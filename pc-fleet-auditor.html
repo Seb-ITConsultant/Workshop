@@ -5,1006 +5,1121 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PC Fleet Auditor</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap');
-:root {
-  --bg:#0d0f14;--surface:#141720;--surface2:#1a1e2e;--border:#252a3d;--border2:#2e3550;
-  --text:#c8d0e8;--dim:#6b7499;--amber:#f0a500;--amber-dim:#3d2a00;
-  --teal:#00c9b1;--teal-dim:#003d35;--red:#ff4d6d;--red-dim:#3d0015;
-  --green:#39d98a;--green-dim:#0a2e1a;--blue:#4e9eff;--blue-dim:#0a2240;
-  --purple:#9d7ff4;--orange:#ff7a3d;--mono:'JetBrains Mono',monospace;--ui:'Syne',sans-serif;
-}
-*{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh}
-#lib-notice{display:none;align-items:center;gap:8px;padding:8px 14px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:7px;font-size:12px;color:var(--amber);margin-bottom:12px}
-#lib-notice.show{display:flex}
-.lib-spin{width:14px;height:14px;border:2px solid var(--amber-dim);border-top-color:var(--amber);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-#processing{position:fixed;inset:0;background:rgba(13,15,20,.92);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(3px)}
-#processing.show{display:flex}
-.proc-wrap{width:280px;height:4px;background:var(--border2);border-radius:2px}
-.proc-fill{height:4px;background:var(--amber);border-radius:2px;width:0%;transition:width .3s}
-.proc-lbl{font-size:12px;color:var(--dim)}
-header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.logo{font-family:var(--ui);font-size:17px;font-weight:800;display:flex;align-items:center;gap:10px}
-.logo-box{width:30px;height:30px;background:var(--amber);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px}
-.logo em{color:var(--amber);font-style:normal}
-.hdr-r{display:flex;align-items:center;gap:8px}
-#hdr-cnt{font-size:11px;color:var(--dim)}
-.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;border-radius:6px;border:1px solid var(--border2);background:var(--surface2);color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s}
-.btn:hover{border-color:var(--amber);color:var(--amber)}
-.btn-p{background:var(--amber);color:#000;border-color:var(--amber);font-weight:700}
-.btn-p:hover{background:#ffc11a;color:#000;border-color:#ffc11a}
-main{padding:22px 28px;max-width:1700px;margin:0 auto}
-#upload-section{margin-bottom:22px}
-#drop-zone{border:2px dashed var(--border2);border-radius:12px;padding:46px 32px;text-align:center;cursor:pointer;background:var(--surface);transition:all .2s;position:relative;overflow:hidden}
-#drop-zone::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% 50%,rgba(240,165,0,.04),transparent 70%);pointer-events:none}
-#drop-zone:hover,#drop-zone.drag-over{border-color:var(--amber);background:#191b25}
-.up-icon{font-size:36px;margin-bottom:9px}
-.up-title{font-family:var(--ui);font-size:19px;font-weight:800;color:#fff;margin-bottom:5px}
-.up-sub{color:var(--dim);font-size:12px;margin-bottom:16px}
-.up-sub b{color:var(--amber)}
-#file-input{display:none}
-.col-hint{margin-top:12px;padding:11px 15px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:11px;color:var(--dim);line-height:1.9}
-.col-hint b{color:var(--amber)}
-#mapper-section{display:none;background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:22px;margin-bottom:22px}
-.sec-t{font-family:var(--ui);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;color:var(--amber);margin-bottom:12px}
-.map-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:9px}
-.map-item label{display:block;font-size:10px;color:var(--dim);margin-bottom:3px;text-transform:uppercase;letter-spacing:.7px}
-.map-item select{width:100%;background:var(--surface2);border:1px solid var(--border2);color:var(--text);padding:6px 9px;border-radius:5px;font-family:var(--mono);font-size:11px;cursor:pointer}
-.map-item select:focus{outline:none;border-color:var(--amber)}
-.map-item select option{background:var(--surface2)}
-.map-actions{margin-top:12px;display:flex;gap:8px}
-#health-section{display:none;margin-bottom:22px}
-.health-outer{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 22px;display:flex;align-items:center;gap:22px}
-.health-big{font-family:var(--ui);font-size:50px;font-weight:800;line-height:1;flex-shrink:0}
-.health-inner{flex:1}
-.health-lbl{font-size:10px;color:var(--dim);margin-bottom:7px;display:flex;justify-content:space-between}
-.health-track{height:7px;background:var(--border2);border-radius:4px;overflow:hidden;margin-bottom:9px}
-.health-fill{height:100%;border-radius:4px;transition:width .8s ease}
-.hb-row{display:flex;gap:14px;flex-wrap:wrap}
-.hb-item{font-size:11px;color:var(--dim);display:flex;align-items:center;gap:5px}
-.hb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-#stats-section{display:none;margin-bottom:22px}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:11px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:15px 17px;position:relative;overflow:hidden}
-.stat-card::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;border-radius:10px 10px 0 0}
-.sc-a::after{background:var(--amber)}.sc-t::after{background:var(--teal)}.sc-r::after{background:var(--red)}
-.sc-g::after{background:var(--green)}.sc-b::after{background:var(--blue)}.sc-p::after{background:var(--purple)}.sc-o::after{background:var(--orange)}
-.stat-lbl{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.9px;margin-bottom:5px}
-.stat-val{font-family:var(--ui);font-size:29px;font-weight:800;line-height:1;margin-bottom:3px}
-.stat-sub{font-size:11px;color:var(--dim)}
-.sc-a .stat-val{color:var(--amber)}.sc-t .stat-val{color:var(--teal)}.sc-r .stat-val{color:var(--red)}
-.sc-g .stat-val{color:var(--green)}.sc-b .stat-val{color:var(--blue)}.sc-p .stat-val{color:var(--purple)}.sc-o .stat-val{color:var(--orange)}
-#issues-section{display:none;margin-bottom:22px}
-#osver-section{display:none;margin-bottom:22px}
-.sec-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
-.issues-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(235px,1fr));gap:11px}
-.iss-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:13px 17px;display:flex;align-items:center;gap:13px;cursor:pointer;transition:all .15s}
-.iss-card:hover{background:var(--surface2);border-color:var(--border2)}
-.iss-card.active{border-color:var(--amber)}
-.iss-ico{width:38px;height:38px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-.ii-r{background:var(--red-dim)}.ii-a{background:var(--amber-dim)}.ii-t{background:var(--teal-dim)}.ii-b{background:var(--blue-dim)}.ii-o{background:rgba(255,122,61,.14)}
-.iss-info .iss-title{font-family:var(--ui);font-size:12px;font-weight:700;color:#fff;margin-bottom:1px}
-.iss-cnt{font-family:var(--ui);font-size:19px;font-weight:800}
-.ic-r{color:var(--red)}.ic-a{color:var(--amber)}.ic-t{color:var(--teal)}.ic-b{color:var(--blue)}.ic-o{color:var(--orange)}
-.osver-flex{display:flex;flex-wrap:wrap;gap:9px}
-.osver-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 13px;display:flex;align-items:center;gap:10px;cursor:pointer;transition:all .15s}
-.osver-item:hover{border-color:var(--border2)}.osver-item.active{border-color:var(--amber)}
-.ov-cnt{font-family:var(--ui);font-size:17px;font-weight:800}.ov-lbl{font-size:10px;color:var(--dim);margin-top:1px}
-#filter-section{display:none;margin-bottom:12px}
-.f-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
-.f-in{background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:7px 11px;border-radius:6px;font-family:var(--mono);font-size:12px;width:230px}
-.f-in:focus{outline:none;border-color:var(--amber)}
-.f-sel{background:var(--surface);border:1px solid var(--border2);color:var(--text);padding:7px 11px;border-radius:6px;font-family:var(--mono);font-size:12px;cursor:pointer}
-.f-sel:focus{outline:none;border-color:var(--amber)}
-.f-sel option{background:var(--surface)}
-.f-sp{flex:1}
-.badge-f{padding:4px 11px;border-radius:20px;border:1px solid var(--border2);background:transparent;color:var(--dim);font-family:var(--mono);font-size:11px;cursor:pointer;transition:all .15s}
-.badge-f:hover{border-color:var(--amber);color:var(--amber)}
-#table-section{display:none}
-.tbl-wrap{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden}
-.tbl-hdr{padding:13px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
-.tbl-title{font-family:var(--ui);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px}
-.tbl-scroll{overflow-x:auto}
-table{width:100%;border-collapse:collapse}
-thead th{padding:8px 12px;text-align:left;font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.7px;background:var(--surface2);border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none}
-thead th:hover{color:var(--amber)}
-thead th.sorted .sa{color:var(--amber);opacity:1}
-.sa{margin-left:3px;opacity:.3}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
-tbody tr:hover{background:var(--surface2)}
-tbody tr:last-child{border-bottom:none}
-tbody td{padding:8px 12px;font-size:12px;vertical-align:middle;white-space:nowrap}
-.td-pc{font-weight:700;color:#fff}
-.td-dim{color:var(--dim)}
-.badge{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:700;white-space:nowrap}
-.b-ok{background:var(--green-dim);color:var(--green)}.b-w{background:var(--amber-dim);color:var(--amber)}
-.b-c{background:var(--red-dim);color:var(--red)}.b-i{background:var(--blue-dim);color:var(--blue)}
-.b-n{background:var(--border);color:var(--dim)}.b-t{background:var(--teal-dim);color:var(--teal)}
-.mini-bar{width:66px;height:4px;background:var(--border2);border-radius:2px;display:inline-block;vertical-align:middle;margin-right:5px}
-.mini-fill{height:100%;border-radius:2px}
-.age-dots{display:flex;gap:3px;margin-bottom:2px}
-.age-dot{width:5px;height:5px;border-radius:50%;background:var(--border2)}
-.flags{display:flex;gap:3px;flex-wrap:wrap}
-.flag{width:17px;height:17px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;position:relative;cursor:default}
-.flag:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 4px);left:50%;transform:translateX(-50%);background:#000;color:var(--text);font-size:10px;padding:4px 8px;border-radius:5px;z-index:999;border:1px solid var(--border2);pointer-events:none;width:max-content;max-width:220px;white-space:normal;text-align:left}
-.flag-r{background:var(--red-dim)}.flag-a{background:var(--amber-dim)}.flag-b{background:var(--blue-dim)}
-.pagination{padding:11px 17px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--dim)}
-.page-btns{display:flex;gap:3px}
-.page-btn{width:26px;height:26px;border-radius:5px;border:1px solid var(--border2);background:transparent;color:var(--text);font-family:var(--mono);font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s}
-.page-btn:hover{border-color:var(--amber);color:var(--amber)}
-.page-btn.active{background:var(--amber);border-color:var(--amber);color:#000;font-weight:700}
-.page-btn:disabled{opacity:.3;cursor:not-allowed}
-.modal-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:1000;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
-.modal-ov.open{display:flex}
-.modal{background:var(--surface);border:1px solid var(--border2);border-radius:14px;width:700px;max-width:96vw;max-height:90vh;overflow-y:auto;padding:24px;position:relative}
-.modal-x{position:absolute;top:13px;right:13px;width:28px;height:28px;border-radius:7px;background:var(--surface2);border:1px solid var(--border2);color:var(--dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:14px;transition:all .1s}
-.modal-x:hover{border-color:var(--red);color:var(--red)}
-.modal-nm{font-family:var(--ui);font-size:20px;font-weight:800;color:#fff;margin-bottom:3px}
-.modal-sb{color:var(--dim);font-size:11px;margin-bottom:16px}
-.modal-sec{margin-bottom:16px}
-.modal-st{font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--dim);margin-bottom:7px;padding-bottom:5px;border-bottom:1px solid var(--border)}
-.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.mf-l{font-size:10px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px}
-.mf-v{font-size:12px;color:#fff;font-weight:500}
-.modal-iss{display:flex;flex-direction:column;gap:6px}
-.mi{padding:8px 12px;border-radius:7px;border-left:3px solid;font-size:12px;line-height:1.5}
-.mi.r{background:rgba(255,77,109,.07);border-color:var(--red);color:var(--red)}
-.mi.a{background:rgba(240,165,0,.07);border-color:var(--amber);color:var(--amber)}
-.mi.i{background:rgba(78,158,255,.07);border-color:var(--blue);color:var(--blue)}
-.mi.g{background:rgba(57,217,138,.07);border-color:var(--green);color:var(--green)}
-.mi b{display:block;margin-bottom:2px;font-size:12px}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; background: #0f1117; color: #c9d1e0; min-height: 100vh; }
+
+/* Header */
+.header { background: #161b27; border-bottom: 1px solid #252d42; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+.header-title { font-size: 17px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+.header-title .icon { background: #f0a500; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.header-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6b7499; }
+.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #2e3550; background: #1a1e2e; color: #c9d1e0; font-size: 12px; cursor: pointer; font-family: inherit; }
+.btn:hover { border-color: #f0a500; color: #f0a500; }
+.btn-primary { background: #f0a500; color: #000; border-color: #f0a500; font-weight: 700; }
+.btn-primary:hover { background: #ffc11a; border-color: #ffc11a; color: #000; }
+
+/* Layout */
+main { padding: 24px; max-width: 1600px; margin: 0 auto; }
+
+/* Upload */
+.upload-box { border: 2px dashed #2e3550; border-radius: 12px; padding: 52px 24px; text-align: center; background: #161b27; cursor: pointer; transition: border-color .2s, background .2s; }
+.upload-box:hover { border-color: #f0a500; background: #181d2a; }
+.upload-box.drag { border-color: #f0a500; background: rgba(240,165,0,.05); }
+.upload-icon { font-size: 40px; margin-bottom: 12px; }
+.upload-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
+.upload-sub { color: #6b7499; font-size: 13px; margin-bottom: 20px; }
+.upload-sub b { color: #f0a500; }
+#file-input { display: none; }
+.upload-tip { margin-top: 14px; background: #1a1e2e; border: 1px solid #252d42; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #6b7499; line-height: 1.8; }
+.upload-tip b { color: #f0a500; }
+
+/* Error banner */
+.error-banner { display: none; background: rgba(255,77,109,.1); border: 1px solid #ff4d6d; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #ff4d6d; font-size: 13px; }
+.error-banner.show { display: block; }
+
+/* Mapper */
+.mapper { display: none; background: #161b27; border: 1px solid #252d42; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #f0a500; margin-bottom: 12px; }
+.mapper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 10px; }
+.map-field label { display: block; font-size: 11px; color: #6b7499; margin-bottom: 4px; }
+.map-field select { width: 100%; background: #1a1e2e; border: 1px solid #2e3550; color: #c9d1e0; padding: 6px 9px; border-radius: 5px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.map-field select:focus { outline: none; border-color: #f0a500; }
+.mapper-actions { margin-top: 14px; display: flex; gap: 8px; }
+
+/* Stats */
+.stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.stat { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 15px 17px; position: relative; overflow: hidden; }
+.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+.stat.c-amber::before { background: #f0a500; }
+.stat.c-green::before { background: #39d98a; }
+.stat.c-red::before { background: #ff4d6d; }
+.stat.c-blue::before { background: #4e9eff; }
+.stat.c-purple::before { background: #9d7ff4; }
+.stat.c-orange::before { background: #ff7a3d; }
+.stat.c-teal::before { background: #00c9b1; }
+.stat-label { font-size: 10px; color: #6b7499; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
+.stat-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.stat-sub { font-size: 11px; color: #6b7499; }
+.stat.c-amber .stat-value { color: #f0a500; }
+.stat.c-green .stat-value { color: #39d98a; }
+.stat.c-red .stat-value { color: #ff4d6d; }
+.stat.c-blue .stat-value { color: #4e9eff; }
+.stat.c-purple .stat-value { color: #9d7ff4; }
+.stat.c-orange .stat-value { color: #ff7a3d; }
+.stat.c-teal .stat-value { color: #00c9b1; }
+
+/* Health bar */
+.health-bar-wrap { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
+.health-score { font-size: 46px; font-weight: 800; line-height: 1; flex-shrink: 0; }
+.health-detail { flex: 1; }
+.health-bar-bg { background: #252d42; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
+.health-bar-fill { height: 100%; border-radius: 4px; transition: width .6s; }
+.health-meta { font-size: 11px; color: #6b7499; display: flex; gap: 14px; flex-wrap: wrap; }
+.health-meta span { display: flex; align-items: center; gap: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; }
+
+/* Issue cards */
+.issue-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 11px; margin-bottom: 20px; }
+.issue-card { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 13px 16px; display: flex; align-items: center; gap: 13px; cursor: pointer; transition: all .15s; }
+.issue-card:hover, .issue-card.active { border-color: #f0a500; background: #1a1e2e; }
+.issue-ico { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.issue-ico.red { background: rgba(255,77,109,.15); }
+.issue-ico.amber { background: rgba(240,165,0,.15); }
+.issue-ico.blue { background: rgba(78,158,255,.15); }
+.issue-ico.teal { background: rgba(0,201,177,.15); }
+.issue-ico.orange { background: rgba(255,122,61,.15); }
+.issue-title { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+.issue-count { font-size: 20px; font-weight: 800; }
+.issue-count.red { color: #ff4d6d; }
+.issue-count.amber { color: #f0a500; }
+.issue-count.blue { color: #4e9eff; }
+.issue-count.teal { color: #00c9b1; }
+.issue-count.orange { color: #ff7a3d; }
+
+/* OS version row */
+.osver-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 20px; }
+.osver-chip { background: #161b27; border: 1px solid #252d42; border-radius: 8px; padding: 8px 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 9px; }
+.osver-chip:hover, .osver-chip.active { border-color: #f0a500; }
+.osver-num { font-size: 17px; font-weight: 800; }
+.osver-lbl { font-size: 10px; color: #6b7499; }
+.pill { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.pill-ok { background: rgba(57,217,138,.15); color: #39d98a; }
+.pill-warn { background: rgba(240,165,0,.15); color: #f0a500; }
+.pill-crit { background: rgba(255,77,109,.15); color: #ff4d6d; }
+.pill-info { background: rgba(78,158,255,.15); color: #4e9eff; }
+.pill-teal { background: rgba(0,201,177,.15); color: #00c9b1; }
+.pill-grey { background: #252d42; color: #6b7499; }
+
+/* Filters */
+.filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+.filter-row input, .filter-row select { background: #161b27; border: 1px solid #2e3550; color: #c9d1e0; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.filter-row input { width: 230px; cursor: text; }
+.filter-row input:focus, .filter-row select:focus { outline: none; border-color: #f0a500; }
+.filter-row select option { background: #161b27; }
+.filter-spacer { flex: 1; }
+.clear-filter-btn { display: none; padding: 5px 12px; border-radius: 20px; border: 1px solid #2e3550; background: transparent; color: #6b7499; font-size: 11px; font-family: inherit; cursor: pointer; }
+.clear-filter-btn:hover { border-color: #f0a500; color: #f0a500; }
+
+/* Table */
+.table-wrap { background: #161b27; border: 1px solid #252d42; border-radius: 12px; overflow: hidden; }
+.table-top { padding: 13px 17px; border-bottom: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; }
+.table-top-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #c9d1e0; }
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead th { padding: 8px 12px; text-align: left; font-size: 10px; color: #6b7499; text-transform: uppercase; letter-spacing: .7px; background: #1a1e2e; border-bottom: 1px solid #252d42; white-space: nowrap; cursor: pointer; user-select: none; }
+thead th:hover { color: #f0a500; }
+thead th.sorted { color: #f0a500; }
+tbody tr { border-bottom: 1px solid #1e2436; cursor: pointer; }
+tbody tr:hover { background: #1a1e2e; }
+tbody tr:last-child { border-bottom: none; }
+tbody td { padding: 9px 12px; font-size: 12px; vertical-align: middle; white-space: nowrap; }
+.pc-name { font-weight: 700; color: #fff; }
+.dim { color: #6b7499; }
+
+/* Mini progress bar */
+.bar-wrap { display: inline-flex; align-items: center; gap: 5px; }
+.bar-bg { width: 60px; height: 4px; background: #252d42; border-radius: 2px; flex-shrink: 0; }
+.bar-fill { height: 100%; border-radius: 2px; }
+
+/* Age dots */
+.age-dots { display: flex; gap: 3px; margin-bottom: 2px; }
+.age-dot { width: 5px; height: 5px; border-radius: 50%; background: #252d42; }
+.age-label { font-size: 10px; }
+
+/* Flags */
+.flags { display: flex; gap: 3px; }
+.flag { width: 17px; height: 17px; border-radius: 3px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: relative; cursor: default; }
+.flag:hover::after { content: attr(title); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #0d0f14; color: #c9d1e0; font-size: 10px; padding: 4px 8px; border-radius: 5px; z-index: 99; border: 1px solid #2e3550; white-space: nowrap; pointer-events: none; max-width: 240px; white-space: normal; text-align: left; width: max-content; }
+.flag-red { background: rgba(255,77,109,.15); }
+.flag-amber { background: rgba(240,165,0,.15); }
+
+/* Pagination */
+.pager { padding: 12px 17px; border-top: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6b7499; }
+.page-btns { display: flex; gap: 3px; }
+.page-btn { width: 26px; height: 26px; border-radius: 5px; border: 1px solid #2e3550; background: transparent; color: #c9d1e0; font-size: 11px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.page-btn:hover { border-color: #f0a500; color: #f0a500; }
+.page-btn.active { background: #f0a500; border-color: #f0a500; color: #000; font-weight: 700; }
+.page-btn:disabled { opacity: .3; cursor: not-allowed; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal-box { background: #161b27; border: 1px solid #2e3550; border-radius: 12px; width: 660px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 22px; position: relative; }
+.modal-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 6px; background: #1a1e2e; border: 1px solid #2e3550; color: #6b7499; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { border-color: #ff4d6d; color: #ff4d6d; }
+.modal-pc { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.modal-user { font-size: 11px; color: #6b7499; margin-bottom: 16px; }
+.modal-section { margin-bottom: 15px; }
+.modal-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7499; padding-bottom: 6px; border-bottom: 1px solid #252d42; margin-bottom: 9px; }
+.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.modal-field-label { font-size: 10px; color: #6b7499; margin-bottom: 2px; }
+.modal-field-value { font-size: 12px; color: #fff; font-weight: 500; word-break: break-word; }
+.alert-box { padding: 8px 12px; border-radius: 7px; border-left: 3px solid; font-size: 12px; line-height: 1.5; margin-bottom: 6px; }
+.alert-box b { display: block; font-size: 12px; margin-bottom: 1px; }
+.alert-red { background: rgba(255,77,109,.07); border-color: #ff4d6d; color: #ff4d6d; }
+.alert-amber { background: rgba(240,165,0,.07); border-color: #f0a500; color: #f0a500; }
+.alert-blue { background: rgba(78,158,255,.07); border-color: #4e9eff; color: #4e9eff; }
+.alert-green { background: rgba(57,217,138,.07); border-color: #39d98a; color: #39d98a; }
+
+/* Hidden sections */
+.section { display: none; }
+
+/* Section header row */
+.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
 </style>
 </head>
 <body>
 
-<div id="processing">
-  <div class="proc-wrap"><div class="proc-fill" id="proc-fill"></div></div>
-  <div class="proc-lbl" id="proc-lbl">Reading file…</div>
-</div>
-
-<header>
-  <div class="logo"><div class="logo-box">🖥</div>Fleet <em>Auditor</em></div>
-  <div class="hdr-r">
-    <span id="hdr-cnt">No data loaded</span>
-    <button class="btn" id="btn-exp" style="display:none" onclick="exportCSV()">⬇ Export CSV</button>
-    <button class="btn" id="btn-rst" style="display:none" onclick="resetAll()">↺ New File</button>
+<div class="header">
+  <div class="header-title"><div class="icon">🖥</div>Fleet Auditor</div>
+  <div class="header-right">
+    <span id="hdr-info">No data loaded</span>
+    <button class="btn" id="btn-export" style="display:none" onclick="doExport()">⬇ Export CSV</button>
+    <button class="btn" id="btn-reset" style="display:none" onclick="doReset()">↺ New File</button>
   </div>
-</header>
+</div>
 
 <main>
 
-<div id="upload-section">
-  <div id="lib-notice">
-    <div class="lib-spin"></div>
-    <span id="lib-notice-txt">Loading .xlsx library… <b>CSV files work right now without waiting.</b></span>
-  </div>
-  <div id="drop-zone">
-    <div class="up-icon">📊</div>
-    <div class="up-title">Drop your inventory export here</div>
-    <div class="up-sub">Drop a <b>.csv</b> file — works instantly, no internet needed. Also supports <b>.xlsx</b> / <b>.xls</b> if online.</div>
-    <button class="btn btn-p" onclick="event.stopPropagation();document.getElementById('file-input').click()">📂 Choose File</button>
-    <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
-  </div>
-  <div class="col-hint">
-    <b>💡 Tip:</b> In Excel or your RMM tool, use <b>File → Save As → CSV</b> — CSV files work 100% offline with no loading needed.<br>
-    <b>Auto-detected columns:</b> Site/Location · PC/System Name · Username · OS · OS Version · CPU/Processor · RAM (GB) · Total Disk (GB) · Free Disk (GB) · Serial Number · Install/Purchase Date · TPM · Secure Boot · Last Logon · Last Agent Check · Device Type · Device Age (years)
-    <br><em>Column names are flexible — you can remap anything after loading.</em>
-  </div>
-</div>
-
-<div id="mapper-section">
-  <div class="sec-t">⚙ Column Mapping <span style="font-size:10px;color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0">(auto-detected — adjust if needed)</span></div>
-  <div class="map-grid" id="map-grid"></div>
-  <div class="map-actions">
-    <button class="btn btn-p" onclick="applyMapping()">✓ Apply &amp; Analyse</button>
-    <button class="btn" onclick="resetAll()">✕ Different File</button>
-  </div>
-</div>
-
-<div id="health-section">
-  <div class="health-outer">
-    <div class="health-big" id="h-num">—</div>
-    <div class="health-inner">
-      <div class="health-lbl"><span>Fleet Health Score (workstations)</span><span id="h-sub"></span></div>
-      <div class="health-track"><div class="health-fill" id="h-fill"></div></div>
-      <div class="hb-row" id="h-bd"></div>
+  <!-- UPLOAD -->
+  <div id="section-upload">
+    <div class="error-banner" id="error-banner"></div>
+    <div class="upload-box" id="drop-zone">
+      <div class="upload-icon">📊</div>
+      <div class="upload-title">Drop your CSV file here</div>
+      <div class="upload-sub">Export as <b>CSV</b> from Excel, PDQ Inventory, Lansweeper, NinjaRMM, or any RMM tool</div>
+      <button class="btn btn-primary" onclick="event.stopPropagation(); pickFile()">📂 Choose CSV File</button>
+      <input type="file" id="file-input" accept=".csv,.txt">
+    </div>
+    <div class="upload-tip">
+      <b>💡 How to export CSV:</b> In Excel → File → Save As → CSV. In PDQ Inventory → right-click report → Export. In Lansweeper → Reports → Export to CSV.<br>
+      <b>Expected columns (flexible naming):</b> PC/System Name · Username · OS · OS Version · CPU · RAM (GB) · Total Disk (GB) · Free Disk (GB) · Serial · Install Date · Device Age · Site/Location · Last Logon · Device Type
     </div>
   </div>
-</div>
 
-<div id="stats-section"><div class="stats-grid" id="stats-grid"></div></div>
-
-<div id="issues-section">
-  <div class="sec-hdr">
-    <div class="sec-t" style="margin:0">⚠ Issue Summary <span style="font-size:10px;color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0">click to filter ↓</span></div>
-    <button class="badge-f" id="btn-clf" style="display:none" onclick="clearFilter()">✕ Clear Filter</button>
-  </div>
-  <div class="issues-grid" id="issues-grid"></div>
-</div>
-
-<div id="osver-section">
-  <div class="sec-hdr"><div class="sec-t" style="margin:0">🪟 OS Version Breakdown <span style="font-size:10px;color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0">click to filter ↓</span></div></div>
-  <div class="osver-flex" id="osver-flex"></div>
-</div>
-
-<div id="filter-section">
-  <div class="f-row">
-    <input class="f-in" id="f-search" placeholder="🔍  Search PC, user, serial…" oninput="applyFilters()">
-    <select class="f-sel" id="f-site" onchange="applyFilters()"><option value="">All Sites</option></select>
-    <select class="f-sel" id="f-os" onchange="applyFilters()"><option value="">All OS</option></select>
-    <select class="f-sel" id="f-type" onchange="applyFilters()"><option value="">All Types</option></select>
-    <select class="f-sel" id="f-age" onchange="applyFilters()">
-      <option value="">All Ages</option><option value="new">New (&lt;3yr)</option>
-      <option value="aging">Aging (3–5yr)</option><option value="old">Old (5–8yr)</option>
-      <option value="legacy">Legacy (8+yr)</option><option value="unknown">Unknown Age</option>
-    </select>
-    <select class="f-sel" id="f-w11" onchange="applyFilters()">
-      <option value="">Win11: All</option><option value="ready">✅ Ready</option>
-      <option value="partial">⚠ Check</option><option value="not-ready">❌ Not Ready</option><option value="n/a">N/A</option>
-    </select>
-    <div class="f-sp"></div>
-    <select class="f-sel" id="f-ps" onchange="changePS()">
-      <option value="25">25/page</option><option value="50">50/page</option>
-      <option value="100">100/page</option><option value="9999">All</option>
-    </select>
-  </div>
-</div>
-
-<div id="table-section">
-  <div class="tbl-wrap">
-    <div class="tbl-hdr">
-      <div class="tbl-title">🖥 Device Inventory</div>
-      <div id="tbl-cnt" style="font-size:11px;color:var(--dim)"></div>
+  <!-- MAPPER -->
+  <div class="mapper" id="section-mapper">
+    <div class="section-label">⚙ Map Your Columns</div>
+    <div class="mapper-grid" id="mapper-grid"></div>
+    <div class="mapper-actions">
+      <button class="btn btn-primary" onclick="runAnalysis()">✓ Analyse Fleet</button>
+      <button class="btn" onclick="doReset()">✕ Load Different File</button>
     </div>
-    <div class="tbl-scroll"><table><thead id="tbl-head"></thead><tbody id="tbl-body"></tbody></table></div>
-    <div class="pagination" id="pagination"></div>
   </div>
-</div>
 
+  <!-- DASHBOARD -->
+  <div class="section" id="section-dash">
+
+    <!-- Health score -->
+    <div class="health-bar-wrap" id="health-wrap">
+      <div class="health-score" id="health-score">—</div>
+      <div class="health-detail">
+        <div style="font-size:12px;color:#6b7499;margin-bottom:4px">Fleet Health <span id="health-detail-text"></span></div>
+        <div class="health-bar-bg"><div class="health-bar-fill" id="health-fill"></div></div>
+        <div class="health-meta" id="health-meta"></div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" id="stats-row"></div>
+
+    <!-- Issue cards -->
+    <div class="sec-hdr">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#f0a500">⚠ Issues — click to filter table</div>
+      <button class="clear-filter-btn" id="btn-clear" onclick="clearFilter()">✕ Clear Filter</button>
+    </div>
+    <div class="issue-cards" id="issue-cards"></div>
+
+    <!-- OS Versions -->
+    <div id="osver-section" style="display:none;margin-bottom:20px">
+      <div class="sec-hdr">
+        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#f0a500">🪟 OS Versions — click to filter</div>
+      </div>
+      <div class="osver-row" id="osver-row"></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-row">
+      <input type="text" id="f-search" placeholder="🔍  Search PC name, user, serial…" oninput="applyFilters()">
+      <select id="f-site" onchange="applyFilters()"><option value="">All Sites</option></select>
+      <select id="f-os" onchange="applyFilters()"><option value="">All OS</option></select>
+      <select id="f-type" onchange="applyFilters()"><option value="">All Types</option></select>
+      <select id="f-age" onchange="applyFilters()">
+        <option value="">All Ages</option>
+        <option value="new">New (&lt;3yr)</option>
+        <option value="aging">Aging (3–5yr)</option>
+        <option value="old">Old (5–8yr)</option>
+        <option value="legacy">Legacy (8+yr)</option>
+      </select>
+      <select id="f-w11" onchange="applyFilters()">
+        <option value="">Win11: All</option>
+        <option value="ready">✅ Ready</option>
+        <option value="partial">⚠ Check</option>
+        <option value="not-ready">❌ Not Ready</option>
+        <option value="na">N/A</option>
+      </select>
+      <div class="filter-spacer"></div>
+      <select id="f-pagesize" onchange="pgSz=+this.value;pg=1;renderTable()">
+        <option value="25">25/page</option><option value="50">50/page</option>
+        <option value="100">100/page</option><option value="9999">All</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <div class="table-top">
+        <div class="table-top-title">Devices</div>
+        <div id="table-count" style="font-size:11px;color:#6b7499"></div>
+      </div>
+      <div class="table-scroll">
+        <table>
+          <thead id="thead"></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="pager" id="pager"></div>
+    </div>
+
+  </div><!-- /section-dash -->
 </main>
 
-<div class="modal-ov" id="modal-ov" onclick="closeModal(event)">
-  <div class="modal" id="modal-body"></div>
+<!-- MODAL -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal-box" id="modal-box"></div>
 </div>
 
 <script>
-// Multi-CDN fallback — tries 3 sources before giving up
-(function(){
-  const CDNS=[
-    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
-    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
-  ];
-  let idx=0;
-  function tryNext(){
-    if(idx>=CDNS.length){xlsxFail();return;}
-    const s=document.createElement('script');
-    s.src=CDNS[idx++];
-    s.onload=xlsxReady;
-    s.onerror=()=>setTimeout(tryNext,200);
-    document.head.appendChild(s);
+'use strict';
+
+// ═══════════════════════════════════════════════════════
+// CSV PARSER — no library, handles quoted fields
+// ═══════════════════════════════════════════════════════
+function parseCSV(text) {
+  // Normalise line endings
+  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+
+  // Remove totally empty trailing lines
+  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
+
+  function parseLine(line) {
+    var fields = [], i = 0, field = '';
+    while (i <= line.length) {
+      if (i === line.length) { fields.push(field.trim()); break; }
+      var ch = line[i];
+      if (ch === '"') {
+        i++;
+        while (i < line.length) {
+          if (line[i] === '"' && line[i + 1] === '"') { field += '"'; i += 2; }
+          else if (line[i] === '"') { i++; break; }
+          else { field += line[i++]; }
+        }
+        // skip to next comma
+        while (i < line.length && line[i] !== ',') i++;
+        if (line[i] === ',') i++;
+      } else if (ch === ',') {
+        fields.push(field.trim()); field = ''; i++;
+      } else {
+        field += ch; i++;
+      }
+    }
+    return fields;
   }
-  tryNext();
-})();
-</script>
-<script>
-// ── LIBRARY LOAD ─────────────────────────────────────────────
-let _xlsxOK = false;
-function xlsxReady() {
-  _xlsxOK = true;
-  document.getElementById('lib-notice').classList.remove('show');
-}
-function xlsxFail() {
-  const n=document.getElementById('lib-notice');
-  n.style.background='var(--red-dim)';n.style.borderColor='var(--red)';n.style.color='var(--red)';
-  document.querySelector('.lib-spin').style.display='none';
-  document.getElementById('lib-notice-txt').innerHTML=
-    '⚠ Could not load spreadsheet library — check internet connection. ' +
-    '<button class="btn" style="padding:3px 10px;margin-left:8px" onclick="location.reload()">↺ Reload</button>';
-}
-// Show loading notice until library is ready
-document.getElementById('lib-notice').classList.add('show');
 
-// ── PROGRESS ─────────────────────────────────────────────────
-function showProc(msg) { document.getElementById('processing').classList.add('show'); setProc(0,msg); }
-function hideProc() { document.getElementById('processing').classList.remove('show'); }
-function setProc(pct, msg) {
-  document.getElementById('proc-fill').style.width = pct + '%';
-  document.getElementById('proc-lbl').textContent = msg;
-}
-
-// ── CPU DB ───────────────────────────────────────────────────
-const CPUR = {
-  analyze(raw) {
-    if (!raw) return this.unknown();
-    const s = raw.toString().replace(/\(R\)|\(TM\)/gi,'').trim();
-
-    if (/apple\s+m\d/i.test(s)) return { brand:'Apple', gen:'Silicon', year:2020, w11:null, age:'new', ageY:null, mac:true };
-    if (/epyc\s+(\d{4})/i.test(s)) {
-      const n=parseInt(RegExp.$1); const y=n>=9000?2023:n>=7003?2021:n>=7000?2019:2017;
-      return this.mk('AMD','EPYC',y,n>=7003,s);
+  var headers = parseLine(lines[0]);
+  var rows = [];
+  for (var r = 1; r < lines.length; r++) {
+    var line = lines[r];
+    if (!line.trim()) continue;
+    var vals = parseLine(line);
+    var row = {};
+    for (var c = 0; c < headers.length; c++) {
+      row[headers[c]] = vals[c] !== undefined ? vals[c] : '';
     }
-    const ryzen=s.match(/ryzen\s+[3579]\s+(\d{4})/i);
-    if (ryzen) {
-      const n=parseInt(ryzen[1]),ser=Math.floor(n/1000);
-      const M={1:{y:2017,w:false},2:{y:2018,w:false},3:{y:2019,w:true},4:{y:2020,w:true},5:{y:2020,w:true},6:{y:2022,w:true},7:{y:2022,w:true},8:{y:2023,w:true},9:{y:2024,w:true}};
-      const i=M[ser]||{y:2020,w:true}; return this.mk('AMD',`Ryzen ${ser}000`,i.y,i.w,s);
-    }
-    if (/\bamd\b/i.test(s)) return this.mk('AMD','AMD Legacy',2014,false,s);
-
-    // Intel Core Ultra (200=2024, 100=2023)
-    const ultra=s.match(/core\s+ultra\s+[3579]?\s*(\d{3})/i);
-    if (ultra) { const n=parseInt(ultra[1]); return this.mk('Intel',`Core Ultra ${n<200?'S1':'S2'}`,n>=200?2024:2023,true,s); }
-    if (/core\s+ultra/i.test(s)) return this.mk('Intel','Core Ultra',2023,true,s);
-
-    // "Nth Gen" prefix
-    const nth=s.match(/^(\d{1,2})(?:st|nd|rd|th)\s+gen/i);
-    if (nth) { const g=parseInt(nth[1]); return this.mk('Intel',`${g}th Gen`,this.gy(g),g>=8,s); }
-
-    // Core iX-NNNNN
-    const core=s.match(/core\s+i[3579][\s-]+(\d{4,5})/i);
-    if (core) {
-      const n=parseInt(core[1]);
-      let g=n>=10000?Math.floor(n/1000):Math.floor(n/100);
-      if(n>=10000&&n<11000)g=10; else if(n>=11000&&n<12000)g=11;
-      else if(n>=12000&&n<13000)g=12; else if(n>=13000&&n<14000)g=13; else if(n>=14000)g=14;
-      return this.mk('Intel',`${g}th Gen`,this.gy(g),g>=8,s);
-    }
-
-    // Xeon Gold/Silver/Bronze/Platinum
-    const xgsb=s.match(/xeon\s+(gold|silver|bronze|platinum)\s+(\d{4})/i);
-    if (xgsb) {
-      const n=parseInt(xgsb[2]);
-      const gen=n>=6000?6:n>=5000?5:n>=4000?4:n>=3000?3:n>=2000?2:1;
-      const yM={1:2017,2:2019,3:2021,4:2022,5:2023,6:2024};
-      return this.mk('Intel',`Xeon ${xgsb[1]}`,yM[gen]||2019,gen>=3,s);
-    }
-    // Xeon E5/E3
-    const xE=s.match(/xeon\s+[ew]?[35]-?(\d{4})/i);
-    if (xE) { const n=parseInt(xE[1]); return this.mk('Intel','Xeon E',n>=2600?2018:n>=2400?2016:2014,false,s); }
-    // Xeon generic
-    if (/xeon/i.test(s)) return this.mk('Intel','Xeon',2016,false,s);
-
-    // Celeron N
-    const celN=s.match(/celeron\s+n(\d{4})/i);
-    if (celN) { const n=parseInt(celN[1]); return this.mk('Intel',`Celeron N${celN[1]}`,n>=5000?2021:n>=4000?2019:n>=3000?2016:2013,false,s); }
-    // Celeron G
-    const celG=s.match(/celeron\s+g(\d{4})/i);
-    if (celG) { const n=parseInt(celG[1]); return this.mk('Intel',`Celeron G`,n>=6000?2021:n>=5000?2019:n>=4000?2017:n>=3000?2014:2012,false,s); }
-    if (/celeron/i.test(s)) return this.mk('Intel','Celeron',2015,false,s);
-
-    if (/pentium\s+(gold|silver)/i.test(s)) return this.mk('Intel','Pentium Gold/Silver',2017,false,s);
-    if (/core\s*2/i.test(s)) return this.mk('Intel','Core 2',2007,false,s);
-
-    return this.unknown();
-  },
-  gy(g){const M={1:2008,2:2011,3:2012,4:2013,5:2015,6:2016,7:2017,8:2018,9:2018,10:2020,11:2021,12:2022,13:2023,14:2024,15:2025};return M[g]||(g>=16?2025:2015);},
-  mk(brand,gen,year,w11,raw){
-    const cy=new Date().getFullYear(),ageY=year?cy-year:null;
-    const age=ageY===null?'unknown':ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
-    return {brand,gen,year,w11:/apple/i.test(raw)?null:w11,age,ageY};
-  },
-  unknown(){return {brand:'Unknown',gen:'Unknown',year:null,w11:null,age:'unknown',ageY:null};}
-};
-
-// ── OS VERSION ───────────────────────────────────────────────
-const OSVER = {
-  '25H2':{s:'current',c:'green'},'24H2':{s:'current',c:'green'},'23H2':{s:'supported',c:'teal'},
-  '22H2':{s:'aging',c:'amber'},'21H2':{s:'eol',c:'red'},'21H1':{s:'eol',c:'red'},
-  '20H2':{s:'eol',c:'red'},'20H1':{s:'eol',c:'red'},'1909':{s:'eol',c:'red'},
-};
-function osVerInfo(osProduct, ver) {
-  if (!ver) return null;
-  const v=ver.toString().trim();
-  const win10=/windows 10/i.test(osProduct);
-  if (win10 && v==='22H2') return {s:'aging',c:'amber',lbl:'Win10 22H2',ver:v};
-  const base=OSVER[v];
-  if (base) return {...base,lbl:(win10?'Win10 ':'Win11 ')+v,ver:v};
-  return {s:'unknown',c:'blue',lbl:(win10?'Win10 ':'Win11 ')+v,ver:v};
+    rows.push(row);
+  }
+  return { headers: headers, rows: rows };
 }
 
-// ── WIN11 CHECK ───────────────────────────────────────────────
-function w11Check(row, cpu, m) {
-  const os=(gv(row,m.os)||'').toString();
-  if (cpu.mac||/macos/i.test(os)||/server/i.test(os)) return {status:'n/a',issues:[]};
-  const issues=[]; let sc=0;
-  if (cpu.w11===true) sc+=2;
-  else if (cpu.w11===false){sc-=2; issues.push('CPU not on Win11 supported list');}
-  const ram=parseFloat(gv(row,m.ram));
-  if (!isNaN(ram)&&ram>0&&ram<4){sc--; issues.push(`Only ${ram}GB RAM (needs 4GB+)`);}
-  const disk=parseFloat(gv(row,m.totalDisk));
-  if (!isNaN(disk)&&disk>0&&disk<64){sc--; issues.push(`Only ${disk}GB disk (needs 64GB+)`);}
-  const tpm=gv(row,m.tpm);
-  if (tpm){const t=parseFloat(tpm.toString().replace(/[^\d.]/g,''));if(!isNaN(t)){if(t>=2)sc++;else{sc--;issues.push(`TPM ${t} (needs 2.0)`);}}}
-  const sb=gv(row,m.secureBoot);
-  if (sb){const sl=sb.toString().toLowerCase();if(/true|yes|enabled|on/.test(sl))sc++;else if(/false|no|disabled|off/.test(sl)){sc--;issues.push('Secure Boot disabled');}}
-  let status='partial';
-  if (cpu.w11===false) status='not-ready';
-  else if (sc>=2&&issues.length===0) status='ready';
-  else if (sc<0) status='not-ready';
-  return {status,issues};
-}
-
-// ── COLUMN DETECTION ─────────────────────────────────────────
-const FP = {
-  site:[/site.?name|location|site|department|branch|office/i],
-  pcName:[/system.?name|pc.?name|computer.?name|hostname|device.?name|machine.?name|^name$/i],
-  username:[/last.?logged.?on.?user|user.?name|username|^user$|login|account|assigned/i],
-  os:[/os.?product|operating.?system|^os$|^windows$|platform/i],
-  osVersion:[/os.?display.?version|os.?version|display.?version|build.?version/i],
-  cpu:[/processor.?name|cpu.?model|^cpu$|^processor$/i],
-  ram:[/memory.?size.?gb|memory.?gb|ram.?gb|^ram$|^memory$|physical.?memory/i],
-  totalDisk:[/disk.?total.?space|total.?disk|disk.?total|disk.?size.?gb|total.?space.?gb/i],
-  freeDisk:[/disk.?free.?space|free.?disk|disk.?free|free.?space|available.?disk/i],
-  serial:[/bios.?serial|serial.?number|service.?tag|^serial$/i],
-  purchaseDate:[/purchase.?date|os.?install.?date|install.?date|procurement/i],
-  tpm:[/tpm.?version|^tpm$/i],
-  secureBoot:[/secure.?boot/i],
-  model:[/system.?model|device.?model|pc.?model|^model$/i],
+// ═══════════════════════════════════════════════════════
+// COLUMN AUTO-DETECT
+// ═══════════════════════════════════════════════════════
+var FIELD_PATTERNS = {
+  site:        [/site.?name|location|^site$|department|branch|office/i],
+  pcName:      [/system.?name|pc.?name|computer.?name|hostname|device.?name|^name$/i],
+  username:    [/last.?logged.?on.?user|user.?name|username|^user$|login|assigned/i],
+  os:          [/os.?product|operating.?system|^os$|^windows$/i],
+  osVersion:   [/os.?display.?version|os.?version|display.?version|build.?version/i],
+  cpu:         [/processor.?name|processor.?name.?1|cpu.?model|^cpu$|^processor$/i],
+  ram:         [/memory.?size|memory.?gb|ram.?gb|^ram$|^memory$|physical.?mem/i],
+  totalDisk:   [/disk.?total|total.?disk|disk.?size|total.?space/i],
+  freeDisk:    [/disk.?free|free.?disk|free.?space|available.?disk/i],
+  serial:      [/bios.?serial|serial.?number|service.?tag|^serial$/i],
+  installDate: [/os.?install.?date|install.?date|purchase.?date/i],
+  tpm:         [/tpm.?version|^tpm$/i],
+  secureBoot:  [/secure.?boot/i],
+  model:       [/system.?model|device.?model|^model$/i],
   manufacturer:[/bios.?manufacturer|^manufacturer$|^make$|^vendor$/i],
-  lastLogon:[/last.?logged.?on.?date|last.?logon.?date|last.?login.?date|^last.?logon$/i],
-  lastSeen:[/last.?agent.?check|last.?check.?utc|last.?seen|last.?contact/i],
-  deviceType:[/^type$|device.?type|form.?factor/i],
-  deviceAge:[/device.?age.?years|age.?years|^age.?yr/i],
+  lastLogon:   [/last.?logged.?on.?date|last.?logon|last.?login/i],
+  lastSeen:    [/last.?agent.?check|last.?check|last.?seen|last.?contact/i],
+  deviceType:  [/^type$|device.?type|form.?factor/i],
+  deviceAge:   [/device.?age.?years|age.?years|^age$/i],
 };
-const FL = {
-  site:'Site / Location', pcName:'PC / System Name', username:'Username / Last User',
+
+var FIELD_LABELS = {
+  site:'Site / Location', pcName:'PC / System Name', username:'Username',
   os:'Operating System', osVersion:'OS Version (e.g. 24H2)', cpu:'CPU / Processor',
   ram:'RAM (GB)', totalDisk:'Total Disk (GB)', freeDisk:'Free Disk (GB)',
-  serial:'Serial Number', purchaseDate:'Purchase / Install Date',
+  serial:'Serial Number', installDate:'Install / Purchase Date',
   tpm:'TPM Version', secureBoot:'Secure Boot', model:'PC Model',
   manufacturer:'Manufacturer', lastLogon:'Last Logon Date', lastSeen:'Last Agent Check',
   deviceType:'Device Type', deviceAge:'Device Age (years)',
 };
-function detectCols(hdr) {
-  const mp={}, used=new Set();
-  for (const [f,pats] of Object.entries(FP))
-    for (const h of hdr)
-      if (!used.has(h)&&pats.some(p=>p.test(h))){mp[f]=h;used.add(h);break;}
+
+function detectCols(headers) {
+  var mp = {}, used = {};
+  for (var f in FIELD_PATTERNS) {
+    var pats = FIELD_PATTERNS[f];
+    for (var h = 0; h < headers.length; h++) {
+      var hdr = headers[h];
+      if (used[hdr]) continue;
+      for (var p = 0; p < pats.length; p++) {
+        if (pats[p].test(hdr)) { mp[f] = hdr; used[hdr] = true; break; }
+      }
+      if (mp[f]) break;
+    }
+  }
   return mp;
 }
 
-// ── STATE ────────────────────────────────────────────────────
-let rawData=[],headers=[],M={},analysed=[];
-let filtered=[],pg=1,pgSz=25,srtCol=null,srtDir=1;
-let actFilter=null,filterFn=null,actOsVer=null;
+// ═══════════════════════════════════════════════════════
+// CPU ANALYSIS
+// ═══════════════════════════════════════════════════════
+function analyseCPU(raw) {
+  if (!raw) return { brand:'?', gen:'Unknown', year:null, w11:null, age:'unknown', ageY:null };
+  var s = raw.replace(/\(R\)|\(TM\)/gi, '').trim();
+  var CY = new Date().getFullYear();
 
-function gv(row,col){if(!col||row[col]===undefined||row[col]===null)return '';return row[col];}
+  function result(brand, gen, year, w11) {
+    var ageY = year ? CY - year : null;
+    var age = ageY === null ? 'unknown' : ageY < 3 ? 'new' : ageY < 5 ? 'aging' : ageY < 8 ? 'old' : 'legacy';
+    return { brand:brand, gen:gen, year:year, w11:w11, age:age, ageY:ageY };
+  }
+  function igenY(g) {
+    var m = {1:2008,2:2011,3:2012,4:2013,5:2015,6:2016,7:2017,8:2018,9:2018,10:2020,11:2021,12:2022,13:2023,14:2024,15:2025};
+    return m[g] || (g >= 16 ? 2025 : 2015);
+  }
 
-// ── FILE HANDLING ────────────────────────────────────────────
-const dz=document.getElementById('drop-zone');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])startFile(e.dataTransfer.files[0]);});
-dz.addEventListener('click',()=>document.getElementById('file-input').click());
-document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files[0])startFile(e.target.files[0]);e.target.value='';});
+  // Apple
+  if (/apple\s*m\d/i.test(s)) return { brand:'Apple', gen:'Silicon', year:2020, w11:null, age:'new', ageY:null, mac:true };
+  // AMD EPYC
+  var m = s.match(/epyc\s+(\d{4})/i);
+  if (m) { var n=+m[1]; return result('AMD','EPYC', n>=9000?2023:n>=7000?2019:2017, n>=7003); }
+  // AMD Ryzen
+  m = s.match(/ryzen\s+[3579]\s+(\d{4})/i);
+  if (m) {
+    var n=+m[1], ser=Math.floor(n/1000);
+    var ry={1:{y:2017,w:0},2:{y:2018,w:0},3:{y:2019,w:1},4:{y:2020,w:1},5:{y:2020,w:1},6:{y:2022,w:1},7:{y:2022,w:1},8:{y:2023,w:1},9:{y:2024,w:1}};
+    var ri=ry[ser]||{y:2020,w:1}; return result('AMD','Ryzen '+ser+'000',ri.y,!!ri.w);
+  }
+  if (/\bamd\b/i.test(s)) return result('AMD','AMD Legacy',2014,false);
+  // Intel Core Ultra
+  m = s.match(/core\s+ultra\s+[3579]?\s*(\d{3})/i);
+  if (m) { var n=+m[1]; return result('Intel','Core Ultra '+(n<200?'S1':'S2'), n>=200?2024:2023, true); }
+  if (/core\s+ultra/i.test(s)) return result('Intel','Core Ultra',2023,true);
+  // "Nth Gen" prefix
+  m = s.match(/^(\d{1,2})(?:st|nd|rd|th)\s+gen/i);
+  if (m) { var g=+m[1]; return result('Intel',g+'th Gen',igenY(g),g>=8); }
+  // Core iX-NNNNN
+  m = s.match(/core\s+i[3579][\s-]+(\d{4,5})/i);
+  if (m) {
+    var n=+m[1], g;
+    if      (n>=14000) g=14;
+    else if (n>=13000) g=13;
+    else if (n>=12000) g=12;
+    else if (n>=11000) g=11;
+    else if (n>=10000) g=10;
+    else g=Math.floor(n/100);
+    return result('Intel',g+'th Gen',igenY(g),g>=8);
+  }
+  // Xeon Gold/Silver/Bronze/Platinum
+  m = s.match(/xeon\s+(gold|silver|bronze|platinum)\s+(\d{4})/i);
+  if (m) {
+    var n=+m[2], gen=n>=6000?6:n>=5000?5:n>=4000?4:n>=3000?3:n>=2000?2:1;
+    var xy={1:2017,2:2019,3:2021,4:2022,5:2023,6:2024};
+    return result('Intel','Xeon '+m[1],xy[gen]||2019,gen>=3);
+  }
+  // Xeon E5/E3
+  m = s.match(/xeon.*[ew]?[35]-?(\d{4})/i);
+  if (m) return result('Intel','Xeon E',+m[1]>=2600?2018:2015,false);
+  if (/xeon/i.test(s)) return result('Intel','Xeon',2016,false);
+  // Celeron/Pentium
+  m = s.match(/celeron\s+n(\d{4})/i);
+  if (m) { var n=+m[1]; return result('Intel','Celeron N',n>=5000?2021:n>=4000?2019:2016,false); }
+  if (/celeron/i.test(s)) return result('Intel','Celeron',2015,false);
+  if (/pentium\s+(gold|silver)/i.test(s)) return result('Intel','Pentium Gold/Silver',2017,false);
+  if (/core\s*2/i.test(s)) return result('Intel','Core 2',2007,false);
+  return result('?','Unknown',null,null);
+}
 
-// Native RFC-4180 CSV parser — no library needed
-function parseCSV(text) {
-  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
-  function parseLine(line) {
-    const fields=[]; let i=0, f='';
-    while(i<=line.length){
-      if(i===line.length){fields.push(f.trim());break;}
-      if(line[i]==='"'){
-        i++;
-        while(i<line.length){
-          if(line[i]==='"'&&line[i+1]==='"'){f+='"';i+=2;}
-          else if(line[i]==='"'){i++;break;}
-          else f+=line[i++];
-        }
-        while(i<line.length&&line[i]!==',')i++;
-        if(line[i]===',')i++;
-      } else {
-        while(i<line.length&&line[i]!==',')f+=line[i++];
-        if(line[i]===',')i++;
-      }
-      fields.push(f.trim()); f='';
+// ═══════════════════════════════════════════════════════
+// OS VERSION STATUS
+// ═══════════════════════════════════════════════════════
+var OVS = {
+  '25H2':{s:'current',c:'ok'},'24H2':{s:'current',c:'ok'},'23H2':{s:'supported',c:'teal'},
+  '22H2':{s:'aging',c:'warn'},'21H2':{s:'eol',c:'crit'},'21H1':{s:'eol',c:'crit'},
+  '20H2':{s:'eol',c:'crit'},'1909':{s:'eol',c:'crit'}
+};
+function getOVS(os, ver) {
+  if (!ver) return null;
+  var v = ver.toString().trim();
+  var win10 = /windows 10/i.test(os);
+  var base = OVS[v];
+  if (!base) return { s:'unknown', c:'info', lbl:(win10?'Win10 ':'Win11 ')+v };
+  var s = win10 && v==='22H2' ? {s:'aging',c:'warn'} : base;
+  return { s:s.s, c:s.c, lbl:(win10?'Win10 ':'Win11 ')+v };
+}
+
+// ═══════════════════════════════════════════════════════
+// WIN11 CHECK
+// ═══════════════════════════════════════════════════════
+function checkW11(row, cpu, M) {
+  var os = (gv(row,M.os)||'').toString();
+  if (cpu.mac || /macos/i.test(os) || /server/i.test(os)) return { status:'na', issues:[] };
+  var issues = [], sc = 0;
+  if (cpu.w11 === true)  sc += 2;
+  if (cpu.w11 === false) { sc -= 2; issues.push('CPU not on Win11 supported list'); }
+  var ram = parseFloat(gv(row,M.ram));
+  if (!isNaN(ram) && ram > 0 && ram < 4) { sc--; issues.push('RAM '+ram+'GB (needs 4GB+)'); }
+  var disk = parseFloat(gv(row,M.totalDisk));
+  if (!isNaN(disk) && disk > 0 && disk < 64) { sc--; issues.push('Disk '+disk+'GB (needs 64GB+)'); }
+  var tpm = gv(row,M.tpm);
+  if (tpm) { var t=parseFloat(tpm.toString().replace(/[^\d.]/g,'')); if(!isNaN(t)){if(t>=2)sc++;else{sc--;issues.push('TPM '+t+' (needs 2.0)');}} }
+  var sb = gv(row,M.secureBoot);
+  if (sb) { var sl=sb.toString().toLowerCase(); if(/true|yes|enabled/.test(sl))sc++;else if(/false|no|disabled/.test(sl)){sc--;issues.push('Secure Boot disabled');} }
+  var status = cpu.w11===false ? 'not-ready' : (sc>=2&&!issues.length?'ready':(sc<0?'not-ready':'partial'));
+  return { status:status, issues:issues };
+}
+
+// ═══════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════
+function gv(row, col) { return (!col || row[col] === undefined || row[col] === null) ? '' : row[col]; }
+function pDate(v) {
+  if (!v || v === '') return null;
+  if (/^\d{4}-\d{2}-\d{2}/.test(v.toString())) { var d = new Date(v); return isNaN(d)?null:d; }
+  var d = new Date(v); return isNaN(d)?null:d;
+}
+function daysSince(d) { return d ? Math.round((Date.now()-d.getTime())/86400000) : null; }
+
+var AGE_COLOR = { new:'#39d98a', aging:'#f0a500', old:'#ff7a3d', legacy:'#ff4d6d', unknown:'#6b7499' };
+
+// ═══════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════
+var rawRows=[], colHeaders=[], mapping={}, analysed=[];
+var filtered=[], pg=1, pgSz=25, sortCol=null, sortDir=1;
+var activeFilter=null, activeOsVer=null;
+
+// ═══════════════════════════════════════════════════════
+// FILE INPUT
+// ═══════════════════════════════════════════════════════
+function pickFile() { document.getElementById('file-input').click(); }
+
+var dz = document.getElementById('drop-zone');
+dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
+dz.addEventListener('dragleave', function(){ dz.classList.remove('drag'); });
+dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('drag'); var f=e.dataTransfer.files[0]; if(f) loadFile(f); });
+dz.addEventListener('click', pickFile);
+document.getElementById('file-input').addEventListener('change', function(e){ var f=e.target.files[0]; if(f) loadFile(f); this.value=''; });
+
+function showError(msg) {
+  var b = document.getElementById('error-banner');
+  b.textContent = msg; b.classList.add('show');
+}
+function hideError() { document.getElementById('error-banner').classList.remove('show'); }
+
+function loadFile(file) {
+  hideError();
+  var reader = new FileReader();
+  reader.onerror = function() { showError('Could not read the file. Please try again.'); };
+  reader.onload = function(e) {
+    try {
+      var result = parseCSV(e.target.result);
+      if (!result.rows.length) { showError('No data rows found. Is this a valid CSV file?'); return; }
+      rawRows = result.rows;
+      colHeaders = result.headers;
+      mapping = detectCols(colHeaders);
+      showMapper();
+    } catch(err) {
+      showError('Could not parse file: ' + err.message);
     }
-    return fields;
-  }
-  const hdrs=parseLine(lines[0]);
-  const rows=[];
-  for(let i=1;i<lines.length;i++){
-    if(!lines[i].trim())continue;
-    const vals=parseLine(lines[i]);
-    const row={};
-    hdrs.forEach((h,j)=>row[h]=vals[j]??'');
-    rows.push(row);
-  }
-  return{headers:hdrs,rows};
+  };
+  reader.readAsText(file);
 }
 
-function startFile(file) {
-  const isCSV = /\.csv$/i.test(file.name);
-  const isExcel = /\.(xlsx|xls)$/i.test(file.name);
-
-  if (isCSV) {
-    showProc('Reading CSV…');
-    const reader=new FileReader();
-    reader.onerror=()=>{hideProc();alert('Could not read file.');};
-    reader.onload=e=>{
-      setTimeout(()=>{
-        try {
-          setProc(40,'Parsing CSV…');
-          const {headers:hdrs,rows}=parseCSV(e.target.result);
-          if(!rows.length){hideProc();alert('No data rows found in CSV.');return;}
-          rawData=rows; headers=hdrs; M=detectCols(headers);
-          setProc(90,'Almost ready…');
-          setTimeout(()=>{hideProc();showMapper();},80);
-        } catch(err){hideProc();alert('Could not parse CSV: '+err.message);}
-      },50);
-    };
-    reader.readAsText(file);
-
-  } else if (isExcel) {
-    if(!_xlsxOK){
-      // Update notice to explain the situation
-      const n=document.getElementById('lib-notice');
-      n.classList.add('show');
-      n.style.background='var(--amber-dim)';n.style.borderColor='var(--amber)';n.style.color='var(--amber)';
-      document.getElementById('lib-notice-txt').innerHTML=
-        '📋 <b>.xlsx files need the spreadsheet library to load.</b> ' +
-        'Save your file as <b>.csv</b> from Excel and it will work instantly — no internet needed.';
-      return;
+// ═══════════════════════════════════════════════════════
+// MAPPER
+// ═══════════════════════════════════════════════════════
+function showMapper() {
+  document.getElementById('section-upload').style.display = 'none';
+  var grid = document.getElementById('mapper-grid');
+  grid.innerHTML = '';
+  for (var f in FIELD_LABELS) {
+    var div = document.createElement('div');
+    div.className = 'map-field';
+    var opts = '<option value="">— not mapped —</option>';
+    for (var i=0; i<colHeaders.length; i++) {
+      var h = colHeaders[i];
+      opts += '<option value="'+h+'"'+(mapping[f]===h?' selected':'')+'>'+h+'</option>';
     }
-    showProc('Reading Excel file…');
-    const reader=new FileReader();
-    reader.onerror=()=>{hideProc();alert('Could not read file.');};
-    reader.onload=e=>{
-      setTimeout(()=>{
-        try {
-          setProc(35,'Parsing spreadsheet…');
-          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
-          setProc(65,'Loading rows…');
-          const ws=wb.Sheets[wb.SheetNames[0]];
-          rawData=XLSX.utils.sheet_to_json(ws,{defval:''});
-          if(!rawData.length){hideProc();alert('No data found in the first sheet.');return;}
-          headers=Object.keys(rawData[0]);
-          M=detectCols(headers);
-          setProc(90,'Almost ready…');
-          setTimeout(()=>{hideProc();showMapper();},80);
-        } catch(err){hideProc();alert('Could not parse file: '+err.message);}
-      },50);
-    };
-    reader.readAsArrayBuffer(file);
-
-  } else {
-    alert('Please select a .csv, .xlsx, or .xls file.');
-  }
-}
-
-function resetAll(){
-  rawData=[];headers=[];M={};analysed=[];filtered=[];
-  ['upload-section','mapper-section','health-section','stats-section','issues-section','osver-section','filter-section','table-section']
-    .forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=id==='upload-section'?'':'none';});
-  document.getElementById('btn-exp').style.display='none';
-  document.getElementById('btn-rst').style.display='none';
-  document.getElementById('hdr-cnt').textContent='No data loaded';
-}
-
-// ── MAPPER ───────────────────────────────────────────────────
-function showMapper(){
-  document.getElementById('upload-section').style.display='none';
-  const grid=document.getElementById('map-grid');
-  grid.innerHTML='';
-  for(const[f,lbl]of Object.entries(FL)){
-    const div=document.createElement('div');div.className='map-item';
-    const opts=headers.map(h=>`<option value="${h}"${M[f]===h?' selected':''}>${h}</option>`).join('');
-    div.innerHTML=`<label>${lbl}</label><select id="mp_${f}"><option value="">— not mapped —</option>${opts}</select>`;
+    div.innerHTML = '<label>'+FIELD_LABELS[f]+'</label><select id="mp_'+f+'">'+opts+'</select>';
     grid.appendChild(div);
   }
-  document.getElementById('mapper-section').style.display='';
-  document.getElementById('btn-rst').style.display='';
-}
-function applyMapping(){
-  for(const f of Object.keys(FL)){const el=document.getElementById(`mp_${f}`);M[f]=el?el.value:'';}
-  document.getElementById('mapper-section').style.display='none';
-  showProc('Analysing devices…');
-  setTimeout(()=>{try{doAnalyse();}catch(e){hideProc();alert('Analysis error: '+e.message);}},80);
+  document.getElementById('section-mapper').style.display = '';
+  document.getElementById('btn-reset').style.display = '';
 }
 
-// ── ANALYSIS ─────────────────────────────────────────────────
-function pDate(v){
-  if(!v)return null;
-  if(v instanceof Date)return isNaN(v)?null:v;
-  if(typeof v==='number'){const d=new Date((v-25569)*86400000);return isNaN(d)?null:d;}
-  const d=new Date(v);return isNaN(d)?null:d;
+function runAnalysis() {
+  // Read mapping from selects
+  for (var f in FIELD_LABELS) {
+    var el = document.getElementById('mp_'+f);
+    mapping[f] = el ? el.value : '';
+  }
+  document.getElementById('section-mapper').style.display = 'none';
+  doAnalyse();
+  document.getElementById('section-dash').style.display = '';
+  document.getElementById('btn-export').style.display = '';
+  document.getElementById('btn-reset').style.display = '';
 }
-function daysSince(d){if(!d)return null;return Math.round((Date.now()-d.getTime())/86400000);}
 
-function doAnalyse(){
-  setProc(20,'Reading CPU data…');
-  analysed=rawData.map(row=>{
-    const cpuRaw=(gv(row,M.cpu)||'').toString();
-    const cpu=CPUR.analyze(cpuRaw);
-    const os=(gv(row,M.os)||'').toString();
-    const isServer=/server/i.test(os);
-    const isMac=cpu.mac||/macos/i.test(os);
-    const devType=(gv(row,M.deviceType)||'').toString().trim()||(isServer?'Server':isMac?'Mac':'Desktop');
+// ═══════════════════════════════════════════════════════
+// ANALYSIS
+// ═══════════════════════════════════════════════════════
+function doAnalyse() {
+  analysed = rawRows.map(function(row) {
+    var cpuRaw = (gv(row,mapping.cpu)||'').toString();
+    var cpu = analyseCPU(cpuRaw);
+    var os = (gv(row,mapping.os)||'').toString();
+    var isServer = /server/i.test(os);
+    var isMac = cpu.mac || /macos/i.test(os);
+    var devType = (gv(row,mapping.deviceType)||'').toString().trim() || (isServer?'Server':isMac?'Mac':'Desktop');
 
-    const w11=w11Check(row,cpu,M);
-    const ram=parseFloat(gv(row,M.ram))||0;
-    const tdisk=parseFloat(gv(row,M.totalDisk))||0;
-    const fdisk=parseFloat(gv(row,M.freeDisk))||0;
-    const freeP=tdisk>0?(fdisk/tdisk)*100:null;
-    const diskNA=tdisk===0&&fdisk===0;
+    var w11 = checkW11(row, cpu, mapping);
+    var ram = parseFloat(gv(row,mapping.ram)) || 0;
+    var tdisk = parseFloat(gv(row,mapping.totalDisk)) || 0;
+    var fdisk = parseFloat(gv(row,mapping.freeDisk)) || 0;
+    var freeP = tdisk > 0 ? (fdisk/tdisk)*100 : null;
+    var diskNA = tdisk===0 && fdisk===0;
 
-    // Age: use device_age_years if available, else CPU estimate
-    const ageProv=parseFloat(gv(row,M.deviceAge));
-    let ageY=(!isNaN(ageProv)&&ageProv>0)?ageProv:cpu.ageY;
-    const age=ageY===null?'unknown':ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
+    // Age — use device_age_years if present
+    var ageProv = parseFloat(gv(row,mapping.deviceAge));
+    var ageY = (!isNaN(ageProv) && ageProv > 0) ? ageProv : cpu.ageY;
+    var age = ageY===null ? 'unknown' : ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
 
-    // Warranty from install/purchase date
-    const purDate=pDate(gv(row,M.purchaseDate));
-    const purDays=daysSince(purDate);
-    let war='unknown', warNote='No date available';
-    if(purDays!==null){const y=purDays/365;if(y<3){war='in';warNote=`~${y.toFixed(1)}yr (est. in warranty)`;}else if(y<5){war='check';warNote=`~${y.toFixed(1)}yr (check vendor)`;}else{war='out';warNote=`~${y.toFixed(1)}yr (likely expired)`;}}
+    // Warranty from install date
+    var instDate = pDate(gv(row,mapping.installDate));
+    var instDays = daysSince(instDate);
+    var war='unknown', warNote='No date';
+    if (instDays!==null) {
+      var yrs = instDays/365;
+      if (yrs<3)      { war='in';    warNote='~'+yrs.toFixed(1)+'yr (likely in warranty)'; }
+      else if (yrs<5) { war='check'; warNote='~'+yrs.toFixed(1)+'yr (check with vendor)'; }
+      else            { war='out';   warNote='~'+yrs.toFixed(1)+'yr (likely expired)'; }
+    }
 
-    // Stale: last seen > 60 days
-    const lsDate=pDate(gv(row,M.lastSeen))||pDate(gv(row,M.lastLogon));
-    const staleDays=daysSince(lsDate);
-    const stale=staleDays!==null&&staleDays>60;
+    // Stale >60 days
+    var lsDate = pDate(gv(row,mapping.lastSeen)) || pDate(gv(row,mapping.lastLogon));
+    var staleDays = daysSince(lsDate);
+    var stale = staleDays!==null && staleDays>60;
 
     // OS version
-    const osV=(gv(row,M.osVersion)||'').toString().trim();
-    const ovi=osVerInfo(os,osV);
+    var osVer = (gv(row,mapping.osVersion)||'').toString().trim();
+    var ovi = getOVS(os, osVer);
 
-    // Issues
-    const issues=[];
-    if(!isServer&&!isMac){
-      if(ram>0&&ram<4) issues.push({lvl:'crit',msg:`Only ${ram}GB RAM — critical (Win11 min is 4GB)`});
-      else if(ram>0&&ram<8) issues.push({lvl:'warn',msg:`Low RAM: ${ram}GB — upgrade to 8GB+ recommended`});
-      if(!diskNA){
-        if(freeP!==null&&freeP<10) issues.push({lvl:'crit',msg:`Critical disk: ${freeP.toFixed(1)}% free (${fdisk}GB / ${tdisk}GB)`});
-        else if(freeP!==null&&freeP<20) issues.push({lvl:'warn',msg:`Low disk: ${freeP.toFixed(1)}% free (${fdisk}GB / ${tdisk}GB)`});
+    // Build issue list
+    var issues = [];
+    if (!isServer && !isMac) {
+      if (ram>0 && ram<4)  issues.push({lvl:'crit', msg:'Only '+ram+'GB RAM — critical (Win11 needs 4GB+)'});
+      else if (ram>0 && ram<8) issues.push({lvl:'warn', msg:'Low RAM: '+ram+'GB — upgrade to 8GB+ recommended'});
+      if (!diskNA) {
+        if (freeP!==null && freeP<10)  issues.push({lvl:'crit', msg:'Critical: '+freeP.toFixed(1)+'% free disk ('+fdisk+'GB / '+tdisk+'GB)'});
+        else if (freeP!==null && freeP<20) issues.push({lvl:'warn', msg:'Low disk: '+freeP.toFixed(1)+'% free ('+fdisk+'GB / '+tdisk+'GB)'});
       }
-      if(age==='legacy') issues.push({lvl:'crit',msg:`Legacy device: ~${Math.round(ageY)}yr old — replacement overdue`});
-      else if(age==='old') issues.push({lvl:'warn',msg:`Aging device: ~${Math.round(ageY)}yr old — plan refresh`});
-      if(w11.status==='not-ready') w11.issues.forEach(i=>issues.push({lvl:'warn',msg:`Win11 blocker: ${i}`}));
-      if(war==='out') issues.push({lvl:'warn',msg:`Warranty likely expired (${warNote})`});
-      if(ovi&&ovi.s==='eol') issues.push({lvl:'crit',msg:`EOL OS version: ${ovi.lbl} — no longer receiving security updates`});
-      else if(ovi&&ovi.s==='aging') issues.push({lvl:'warn',msg:`Aging OS version: ${ovi.lbl} — update recommended`});
+      if (age==='legacy') issues.push({lvl:'crit', msg:'Legacy device: ~'+Math.round(ageY)+'yr old — replacement overdue'});
+      else if (age==='old') issues.push({lvl:'warn', msg:'Aging device: ~'+Math.round(ageY)+'yr old — plan refresh'});
+      if (w11.status==='not-ready') w11.issues.forEach(function(i){issues.push({lvl:'warn',msg:'Win11 blocker: '+i});});
+      if (war==='out') issues.push({lvl:'warn', msg:'Warranty likely expired ('+warNote+')'});
+      if (ovi && ovi.s==='eol') issues.push({lvl:'crit', msg:'EOL OS: '+ovi.lbl+' — no longer getting security updates'});
+      else if (ovi && ovi.s==='aging') issues.push({lvl:'warn', msg:'Aging OS: '+ovi.lbl+' — update recommended'});
     }
-    if(/windows 7|windows xp|vista/i.test(os)) issues.push({lvl:'crit',msg:'End-of-life OS — immediate security risk!'});
-    else if(/windows 8[^.]/i.test(os)) issues.push({lvl:'warn',msg:'Windows 8/8.1 is end-of-life'});
-    if(stale) issues.push({lvl:'warn',msg:`Not seen for ${staleDays} days — may be offline/decommissioned`});
+    if (/windows 7|windows xp|vista/i.test(os)) issues.push({lvl:'crit', msg:'End-of-life OS — immediate security risk!'});
+    if (stale) issues.push({lvl:'warn', msg:'Not seen for '+staleDays+' days — may be offline'});
 
-    return{...row,_cpu:cpu,_w11:w11,_ram:ram,_tdisk:tdisk,_fdisk:fdisk,_freeP:freeP,_diskNA:diskNA,
-           _war:war,_warNote:warNote,_age:age,_ageY:ageY,_issues:issues,_hasIss:issues.length>0,
-           _stale:stale,_staleDays:staleDays,_ovi:ovi,_devType:devType,_isServer:isServer,_isMac:isMac};
+    return {
+      _r:row, _cpu:cpu, _w11:w11, _ram:ram, _tdisk:tdisk, _fdisk:fdisk,
+      _freeP:freeP, _diskNA:diskNA, _war:war, _warNote:warNote,
+      _age:age, _ageY:ageY, _issues:issues, _hasIss:issues.length>0,
+      _stale:stale, _staleDays:staleDays, _ovi:ovi, _devType:devType,
+      _isServer:isServer, _isMac:isMac
+    };
   });
 
-  setProc(70,'Building dashboard…');
-  populateFilters();
+  populateFilterDropdowns();
   renderHealth();
   renderStats();
-  renderIssues();
+  renderIssueCards();
   renderOsVersions();
-  filtered=[...analysed];
+  filtered = analysed.slice();
   renderTable();
-  ['health','stats','issues','osver','filter','table'].forEach(id=>document.getElementById(id+'-section').style.display='');
-  document.getElementById('btn-exp').style.display='';
-  document.getElementById('btn-rst').style.display='';
-  document.getElementById('hdr-cnt').textContent=`${analysed.length} devices loaded`;
-  setProc(100,'Done');
-  setTimeout(hideProc,300);
+
+  document.getElementById('hdr-info').textContent = analysed.length + ' devices loaded';
 }
 
-// ── HEALTH ───────────────────────────────────────────────────
-function renderHealth(){
-  const wk=analysed.filter(r=>!r._isServer&&!r._isMac);
-  const ok=wk.filter(r=>!r._hasIss).length;
-  const crit=wk.filter(r=>r._issues.some(i=>i.lvl==='crit')).length;
-  const warn=wk.filter(r=>r._issues.some(i=>i.lvl==='warn')&&!r._issues.some(i=>i.lvl==='crit')).length;
-  const score=wk.length?Math.round(ok/wk.length*100):0;
-  const col=score>=80?'var(--green)':score>=60?'var(--amber)':'var(--red)';
-  document.getElementById('h-num').style.color=col;
-  document.getElementById('h-num').textContent=score+'%';
-  document.getElementById('h-sub').textContent=`${ok} of ${wk.length} healthy`;
-  document.getElementById('h-fill').style.cssText=`width:${score}%;background:${col}`;
-  document.getElementById('h-bd').innerHTML=
-    `<div class="hb-item"><div class="hb-dot" style="background:var(--green)"></div>${ok} healthy</div>` +
-    `<div class="hb-item"><div class="hb-dot" style="background:var(--amber)"></div>${warn} warnings</div>` +
-    `<div class="hb-item"><div class="hb-dot" style="background:var(--red)"></div>${crit} critical</div>` +
-    `<div class="hb-item"><div class="hb-dot" style="background:var(--dim)"></div>${analysed.length-wk.length} servers/Mac</div>`;
+// ═══════════════════════════════════════════════════════
+// HEALTH SCORE
+// ═══════════════════════════════════════════════════════
+function renderHealth() {
+  var wk = analysed.filter(function(r){return !r._isServer&&!r._isMac;});
+  var ok = wk.filter(function(r){return !r._hasIss;}).length;
+  var crit = wk.filter(function(r){return r._issues.some(function(i){return i.lvl==='crit';});}).length;
+  var warn = wk.filter(function(r){return r._issues.some(function(i){return i.lvl==='warn';})&&!r._issues.some(function(i){return i.lvl==='crit';});}).length;
+  var score = wk.length ? Math.round(ok/wk.length*100) : 0;
+  var col = score>=80?'#39d98a':score>=60?'#f0a500':'#ff4d6d';
+  document.getElementById('health-score').textContent = score+'%';
+  document.getElementById('health-score').style.color = col;
+  document.getElementById('health-detail-text').textContent = '— workstations only';
+  document.getElementById('health-fill').style.cssText = 'width:'+score+'%;background:'+col;
+  document.getElementById('health-meta').innerHTML =
+    '<span><span class="dot" style="background:#39d98a"></span>'+ok+' healthy</span>'+
+    '<span><span class="dot" style="background:#f0a500"></span>'+warn+' warnings</span>'+
+    '<span><span class="dot" style="background:#ff4d6d"></span>'+crit+' critical</span>'+
+    '<span><span class="dot" style="background:#6b7499"></span>'+(analysed.length-wk.length)+' servers/other</span>';
 }
 
-// ── STATS ────────────────────────────────────────────────────
-function renderStats(){
-  const wk=analysed.filter(r=>!r._isServer&&!r._isMac);
-  const total=analysed.length;
-  const w11ok=wk.filter(r=>r._w11.status==='ready').length;
-  const w11pct=wk.length?Math.round(w11ok/wk.length*100):0;
-  const win10=analysed.filter(r=>/windows 10/i.test(gv(r,M.os))).length;
-  const aging=wk.filter(r=>r._age==='old'||r._age==='legacy').length;
-  const ramArr=wk.filter(r=>r._ram>0).map(r=>r._ram);
-  const avgRam=ramArr.length?(ramArr.reduce((a,b)=>a+b,0)/ramArr.length).toFixed(1):'—';
-  const lowRam=wk.filter(r=>r._ram>0&&r._ram<8).length;
-  const lowDisk=wk.filter(r=>r._freeP!==null&&r._freeP<20&&!r._diskNA).length;
-  const outWar=wk.filter(r=>r._war==='out').length;
-  const stale=analysed.filter(r=>r._stale).length;
+// ═══════════════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════════════
+function renderStats() {
+  var wk = analysed.filter(function(r){return !r._isServer&&!r._isMac;});
+  var w11ok = wk.filter(function(r){return r._w11.status==='ready';}).length;
+  var w11pct = wk.length ? Math.round(w11ok/wk.length*100) : 0;
+  var win10 = analysed.filter(function(r){return /windows 10/i.test(gv(r._r,mapping.os));}).length;
+  var aging = wk.filter(function(r){return r._age==='old'||r._age==='legacy';}).length;
+  var ramArr = wk.filter(function(r){return r._ram>0;}).map(function(r){return r._ram;});
+  var avgRam = ramArr.length ? (ramArr.reduce(function(a,b){return a+b;},0)/ramArr.length).toFixed(1) : '—';
+  var lowRam = wk.filter(function(r){return r._ram>0&&r._ram<8;}).length;
+  var lowDisk = wk.filter(function(r){return r._freeP!==null&&r._freeP<20&&!r._diskNA;}).length;
+  var stale = analysed.filter(function(r){return r._stale;}).length;
 
-  document.getElementById('stats-grid').innerHTML=`
-    <div class="stat-card sc-a"><div class="stat-lbl">Total Devices</div><div class="stat-val">${total}</div><div class="stat-sub">in fleet</div></div>
-    <div class="stat-card sc-t"><div class="stat-lbl">Win11 Ready</div><div class="stat-val">${w11pct}%</div><div class="stat-sub">${w11ok} of ${wk.length} workstations</div></div>
-    <div class="stat-card sc-r"><div class="stat-lbl">Still on Win10</div><div class="stat-val">${win10}</div><div class="stat-sub">migration needed</div></div>
-    <div class="stat-card sc-o"><div class="stat-lbl">Aging / Legacy</div><div class="stat-val">${aging}</div><div class="stat-sub">5+ year devices</div></div>
-    <div class="stat-card sc-b"><div class="stat-lbl">Avg RAM</div><div class="stat-val">${avgRam}<span style="font-size:13px"> GB</span></div><div class="stat-sub">${lowRam} under 8GB</div></div>
-    <div class="stat-card sc-r"><div class="stat-lbl">Low Disk Space</div><div class="stat-val">${lowDisk}</div><div class="stat-sub">&lt;20% free</div></div>
-    <div class="stat-card sc-p"><div class="stat-lbl">Warranty Out</div><div class="stat-val">${outWar}</div><div class="stat-sub">est. expired</div></div>
-    <div class="stat-card sc-a"><div class="stat-lbl">Stale Devices</div><div class="stat-val">${stale}</div><div class="stat-sub">&gt;60 days no check-in</div></div>
-  `;
+  var html =
+    mkStat('c-amber', analysed.length, 'Total Devices', 'in fleet') +
+    mkStat('c-teal',  w11pct+'%', 'Win11 Ready', w11ok+' of '+wk.length+' workstations') +
+    mkStat('c-red',   win10, 'On Windows 10', 'need migration') +
+    mkStat('c-orange',aging, 'Aging / Legacy', '5+ year devices') +
+    mkStat('c-blue',  avgRam+' GB', 'Avg RAM', lowRam+' under 8GB') +
+    mkStat('c-red',   lowDisk, 'Low Disk', '<20% free space') +
+    mkStat('c-amber', stale,   'Stale Devices', '>60 days offline');
+  document.getElementById('stats-row').innerHTML = html;
+}
+function mkStat(cls, val, label, sub) {
+  return '<div class="stat '+cls+'"><div class="stat-label">'+label+'</div><div class="stat-value">'+val+'</div><div class="stat-sub">'+sub+'</div></div>';
 }
 
-// ── ISSUE CARDS ───────────────────────────────────────────────
-const ITYPES=[
-  {key:'eol-os',lbl:'EOL OS Version',ico:'🔒',col:'ii-r',cc:'ic-r',test:r=>r._ovi?.s==='eol'},
-  {key:'win10',lbl:'Still on Windows 10',ico:'🪟',col:'ii-a',cc:'ic-a',test:r=>/windows 10/i.test(gv(r,M.os))},
-  {key:'w11-no',lbl:'Not Win11 Ready',ico:'✗',col:'ii-r',cc:'ic-r',test:r=>r._w11.status==='not-ready'},
-  {key:'legacy',lbl:'Legacy / Old Hardware',ico:'⚡',col:'ii-r',cc:'ic-r',test:r=>r._age==='legacy'||r._age==='old'},
-  {key:'low-ram',lbl:'Low RAM (<8GB)',ico:'🧠',col:'ii-a',cc:'ic-a',test:r=>r._ram>0&&r._ram<8},
-  {key:'low-disk',lbl:'Low Disk Space (<20%)',ico:'💾',col:'ii-a',cc:'ic-a',test:r=>r._freeP!==null&&r._freeP<20&&!r._diskNA},
-  {key:'warranty',lbl:'Warranty Expired',ico:'🛡',col:'ii-o',cc:'ic-o',test:r=>r._war==='out'},
-  {key:'stale',lbl:'Stale (60+ days)',ico:'⏰',col:'ii-t',cc:'ic-t',test:r=>r._stale},
+// ═══════════════════════════════════════════════════════
+// ISSUE CARDS
+// ═══════════════════════════════════════════════════════
+var ISSUE_TYPES = [
+  { key:'eol',    label:'EOL OS Version',    icon:'🔒', col:'red',    iCol:'red',
+    test:function(r){return r._ovi&&r._ovi.s==='eol';} },
+  { key:'win10',  label:'Still on Windows 10',icon:'🪟', col:'amber',  iCol:'amber',
+    test:function(r){return /windows 10/i.test(gv(r._r,mapping.os));} },
+  { key:'w11no',  label:'Not Win11 Ready',   icon:'✗',  col:'red',    iCol:'red',
+    test:function(r){return r._w11.status==='not-ready';} },
+  { key:'old',    label:'Legacy / Old CPU',  icon:'⚡', col:'red',    iCol:'red',
+    test:function(r){return r._age==='legacy'||r._age==='old';} },
+  { key:'lowram', label:'Low RAM (<8GB)',     icon:'🧠', col:'amber',  iCol:'amber',
+    test:function(r){return r._ram>0&&r._ram<8;} },
+  { key:'disk',   label:'Low Disk (<20%)',   icon:'💾', col:'amber',  iCol:'amber',
+    test:function(r){return r._freeP!==null&&r._freeP<20&&!r._diskNA;} },
+  { key:'war',    label:'Warranty Expired',  icon:'🛡', col:'orange', iCol:'orange',
+    test:function(r){return r._war==='out';} },
+  { key:'stale',  label:'Stale (60+ days)',  icon:'⏰', col:'blue',   iCol:'blue',
+    test:function(r){return r._stale;} },
 ];
-function renderIssues(){
-  const grid=document.getElementById('issues-grid');grid.innerHTML='';
-  for(const it of ITYPES){
-    const cnt=analysed.filter(it.test).length;
-    const div=document.createElement('div');div.className='iss-card';div.dataset.k=it.key;
-    div.onclick=()=>setFilter(it.key,it.test);
-    div.innerHTML=`<div class="iss-ico ${it.col}">${it.ico}</div><div class="iss-info"><div class="iss-title">${it.lbl}</div><div class="iss-cnt ${it.cc}">${cnt}</div></div>`;
-    grid.appendChild(div);
-  }
-}
-function setFilter(key,fn){
-  if(actFilter===key){clearFilter();return;}
-  actFilter=key;filterFn=fn;actOsVer=null;
-  document.querySelectorAll('.iss-card').forEach(c=>c.classList.toggle('active',c.dataset.k===key));
-  document.querySelectorAll('.osver-item').forEach(c=>c.classList.remove('active'));
-  document.getElementById('btn-clf').style.display='';
-  applyFilters();
-}
-function clearFilter(){
-  actFilter=null;filterFn=null;actOsVer=null;
-  document.querySelectorAll('.iss-card,.osver-item').forEach(c=>c.classList.remove('active'));
-  document.getElementById('btn-clf').style.display='none';
-  applyFilters();
+
+function renderIssueCards() {
+  var html = '';
+  ISSUE_TYPES.forEach(function(it){
+    var cnt = analysed.filter(it.test).length;
+    html += '<div class="issue-card" data-key="'+it.key+'" onclick="setFilter(\''+it.key+'\')">'
+      +'<div class="issue-ico '+it.col+'">'+it.icon+'</div>'
+      +'<div><div class="issue-title">'+it.label+'</div>'
+      +'<div class="issue-count '+it.iCol+'">'+cnt+'</div></div></div>';
+  });
+  document.getElementById('issue-cards').innerHTML = html;
 }
 
-// ── OS VERSIONS ───────────────────────────────────────────────
-function renderOsVersions(){
-  if(!M.osVersion){document.getElementById('osver-section').style.display='none';return;}
-  const cnts={};
-  for(const r of analysed){
-    const v=(gv(r,M.osVersion)||'').toString().trim();
-    if(!v)continue;
-    const os=(gv(r,M.os)||'').toString();
-    const key=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
+// ═══════════════════════════════════════════════════════
+// OS VERSION BREAKDOWN
+// ═══════════════════════════════════════════════════════
+function renderOsVersions() {
+  if (!mapping.osVersion) { document.getElementById('osver-section').style.display='none'; return; }
+  var cnts = {};
+  analysed.forEach(function(r){
+    var v=(gv(r._r,mapping.osVersion)||'').toString().trim();
+    if(!v) return;
+    var os=(gv(r._r,mapping.os)||'').toString();
+    var key=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
     cnts[key]=(cnts[key]||0)+1;
-  }
-  const SM={current:'b-ok',supported:'b-t',aging:'b-w',eol:'b-c',unknown:'b-i'};
-  const CM={green:'var(--green)',teal:'var(--teal)',amber:'var(--amber)',red:'var(--red)',blue:'var(--blue)'};
-  const flex=document.getElementById('osver-flex');flex.innerHTML='';
-  const sorted=Object.entries(cnts).sort((a,b)=>b[1]-a[1]);
-  for(const[key,cnt]of sorted){
-    const parts=key.split(' '),ver=parts.slice(1).join(' '),isW10=key.startsWith('Win10');
-    const info=osVerInfo(isW10?'Windows 10':'Windows 11',ver)||{s:'unknown',c:'blue',lbl:key};
-    const div=document.createElement('div');div.className='osver-item';div.dataset.v=key;
-    div.innerHTML=`<div><div class="ov-cnt" style="color:${CM[info.c]||'var(--blue)'}">${cnt}</div><div class="ov-lbl">${key}</div></div><span class="badge ${SM[info.s]||'b-n'}">${info.s}</span>`;
-    div.onclick=()=>{
-      if(actOsVer===key){clearFilter();return;}
-      actOsVer=key;actFilter=null;filterFn=null;
-      document.querySelectorAll('.iss-card').forEach(c=>c.classList.remove('active'));
-      document.querySelectorAll('.osver-item').forEach(c=>c.classList.toggle('active',c.dataset.v===key));
-      document.getElementById('btn-clf').style.display='';
-      applyFilters();
-    };
-    flex.appendChild(div);
-  }
+  });
+  var PC = {current:'pill-ok',supported:'pill-teal',aging:'pill-warn',eol:'pill-crit',unknown:'pill-info'};
+  var CC = {current:'#39d98a',supported:'#00c9b1',aging:'#f0a500',eol:'#ff4d6d',unknown:'#4e9eff'};
+  var html = '';
+  Object.keys(cnts).sort(function(a,b){return cnts[b]-cnts[a];}).forEach(function(key){
+    var ver=key.split(' ').slice(1).join(' ');
+    var isW10=key.indexOf('Win10')===0;
+    var info=getOVS(isW10?'Windows 10':'Windows 11',ver)||{s:'unknown',c:'info',lbl:key};
+    var col=CC[info.s]||'#4e9eff';
+    var pc=PC[info.s]||'pill-grey';
+    html+='<div class="osver-chip" data-ver="'+key+'" onclick="setOsFilter(\''+key+'\')">'
+      +'<div><div class="osver-num" style="color:'+col+'">'+cnts[key]+'</div>'
+      +'<div class="osver-lbl">'+key+'</div></div>'
+      +'<span class="pill '+pc+'">'+info.s+'</span></div>';
+  });
+  document.getElementById('osver-row').innerHTML = html;
+  document.getElementById('osver-section').style.display = '';
 }
 
-// ── FILTERS ───────────────────────────────────────────────────
-function populateFilters(){
-  const pop=(id,vals,all)=>{const el=document.getElementById(id);el.innerHTML=`<option value="">${all}</option>`+vals.map(v=>`<option>${v}</option>`).join('');};
-  pop('f-site',[...new Set(analysed.map(r=>(gv(r,M.site)||'').toString().trim()).filter(Boolean))].sort(),'All Sites');
-  pop('f-os',[...new Set(analysed.map(r=>(gv(r,M.os)||'').toString().trim()).filter(Boolean))].sort(),'All OS');
-  pop('f-type',[...new Set(analysed.map(r=>r._devType).filter(Boolean))].sort(),'All Types');
+// ═══════════════════════════════════════════════════════
+// FILTERS
+// ═══════════════════════════════════════════════════════
+function populateFilterDropdowns() {
+  function pop(id, vals, all) {
+    var el=document.getElementById(id);
+    el.innerHTML='<option value="">'+all+'</option>'+vals.map(function(v){return '<option>'+v+'</option>';}).join('');
+  }
+  pop('f-site',[...new Set(analysed.map(function(r){return (gv(r._r,mapping.site)||'').trim();}).filter(Boolean))].sort(),'All Sites');
+  pop('f-os',[...new Set(analysed.map(function(r){return (gv(r._r,mapping.os)||'').trim();}).filter(Boolean))].sort(),'All OS');
+  pop('f-type',[...new Set(analysed.map(function(r){return r._devType;}).filter(Boolean))].sort(),'All Types');
 }
-function applyFilters(){
-  const srch=document.getElementById('f-search').value.toLowerCase();
-  const site=document.getElementById('f-site').value;
-  const os=document.getElementById('f-os').value;
-  const type=document.getElementById('f-type').value;
-  const ageF=document.getElementById('f-age').value;
-  const w11F=document.getElementById('f-w11').value;
-  filtered=analysed.filter(r=>{
-    if(filterFn&&!filterFn(r))return false;
-    if(actOsVer){
-      const v=(gv(r,M.osVersion)||'').toString().trim();
-      const os2=(gv(r,M.os)||'').toString();
-      if((/windows 10/i.test(os2)?'Win10 ':'Win11 ')+v!==actOsVer)return false;
+
+function setFilter(key) {
+  if (activeFilter===key) { clearFilter(); return; }
+  activeFilter=key; activeOsVer=null;
+  document.querySelectorAll('.issue-card').forEach(function(c){c.classList.toggle('active',c.dataset.key===key);});
+  document.querySelectorAll('.osver-chip').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('btn-clear').style.display='';
+  applyFilters();
+}
+function setOsFilter(ver) {
+  if (activeOsVer===ver) { clearFilter(); return; }
+  activeOsVer=ver; activeFilter=null;
+  document.querySelectorAll('.issue-card').forEach(function(c){c.classList.remove('active');});
+  document.querySelectorAll('.osver-chip').forEach(function(c){c.classList.toggle('active',c.dataset.ver===ver);});
+  document.getElementById('btn-clear').style.display='';
+  applyFilters();
+}
+function clearFilter() {
+  activeFilter=null; activeOsVer=null;
+  document.querySelectorAll('.issue-card,.osver-chip').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('btn-clear').style.display='none';
+  applyFilters();
+}
+
+function applyFilters() {
+  var srch=(document.getElementById('f-search').value||'').toLowerCase();
+  var site=document.getElementById('f-site').value;
+  var osF=document.getElementById('f-os').value;
+  var typeF=document.getElementById('f-type').value;
+  var ageF=document.getElementById('f-age').value;
+  var w11F=document.getElementById('f-w11').value;
+
+  var issueFn = null;
+  if (activeFilter) {
+    for (var i=0;i<ISSUE_TYPES.length;i++) if(ISSUE_TYPES[i].key===activeFilter){issueFn=ISSUE_TYPES[i].test;break;}
+  }
+
+  filtered = analysed.filter(function(r){
+    if (issueFn && !issueFn(r)) return false;
+    if (activeOsVer) {
+      var v=(gv(r._r,mapping.osVersion)||'').toString().trim();
+      var os=(gv(r._r,mapping.os)||'').toString();
+      var key=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
+      if(key!==activeOsVer) return false;
     }
-    if(srch){const fs=[M.pcName,M.username,M.cpu,M.serial,M.model].map(c=>(gv(r,c)||'').toString().toLowerCase());if(!fs.some(f=>f.includes(srch)))return false;}
-    if(site&&(gv(r,M.site)||'').toString().trim()!==site)return false;
-    if(os&&(gv(r,M.os)||'').toString().trim()!==os)return false;
-    if(type&&r._devType!==type)return false;
-    if(ageF&&r._age!==ageF)return false;
-    if(w11F&&r._w11.status!==w11F)return false;
+    if (srch) {
+      var fields=[mapping.pcName,mapping.username,mapping.cpu,mapping.serial,mapping.model]
+        .map(function(c){return (gv(r._r,c)||'').toString().toLowerCase();});
+      if(!fields.some(function(f){return f.indexOf(srch)>=0;})) return false;
+    }
+    if (site && (gv(r._r,mapping.site)||'').toString().trim()!==site) return false;
+    if (osF && (gv(r._r,mapping.os)||'').toString().trim()!==osF) return false;
+    if (typeF && r._devType!==typeF) return false;
+    if (ageF && r._age!==ageF) return false;
+    if (w11F && r._w11.status!==w11F) return false;
     return true;
+  });
+  pg=1; renderTable();
+}
+
+// ═══════════════════════════════════════════════════════
+// TABLE
+// ═══════════════════════════════════════════════════════
+var COLS=[
+  {k:'pcName',l:'PC Name'},{k:'site',l:'Site'},{k:'username',l:'User'},
+  {k:'os',l:'OS'},{k:'osVer',l:'Ver'},{k:'cpu',l:'CPU'},
+  {k:'age',l:'Age'},{k:'ram',l:'RAM'},{k:'disk',l:'Disk'},
+  {k:'w11',l:'Win11'},{k:'war',l:'Warranty'},{k:'type',l:'Type'},{k:'issues',l:'Issues'}
+];
+
+function renderTable() {
+  var s=(pg-1)*pgSz, rows=filtered.slice(s,s+pgSz);
+  var total=filtered.length;
+  document.getElementById('table-count').textContent=(total?s+1:0)+'–'+Math.min(s+pgSz,total)+' of '+total;
+
+  var thead='<tr>'+COLS.map(function(c){
+    return '<th onclick="doSort(\''+c.k+'\')" class="'+(sortCol===c.k?'sorted':'')+'">'
+      +c.l+' '+(sortCol===c.k?(sortDir===1?'↑':'↓'):'')+'</th>';
+  }).join('')+'</tr>';
+  document.getElementById('thead').innerHTML=thead;
+
+  if (!rows.length) {
+    document.getElementById('tbody').innerHTML='<tr><td colspan="13" style="text-align:center;padding:40px;color:#6b7499">No matching devices</td></tr>';
+    renderPager(); return;
+  }
+
+  var html='';
+  rows.forEach(function(r,idx){
+    var ridx=analysed.indexOf(r);
+    var pc=(gv(r._r,mapping.pcName)||'—').toString();
+    var site=(gv(r._r,mapping.site)||'—').toString();
+    var user=(gv(r._r,mapping.username)||'—').toString().replace(/.*\\/,'').replace(/.*\//,'');
+    var os=(gv(r._r,mapping.os)||'—').toString().replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
+    var osV=(gv(r._r,mapping.osVersion)||'').toString();
+    var cpu=(gv(r._r,mapping.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').trim();
+    if(cpu.length>36)cpu=cpu.slice(0,34)+'…';
+    var cpuFull=(gv(r._r,mapping.cpu)||'').toString();
+
+    // Age dots
+    var ac=AGE_COLOR[r._age]||'#6b7499';
+    var ad={new:1,aging:2,old:3,legacy:4,unknown:0}[r._age]||0;
+    var dots='';
+    for(var d=1;d<=4;d++) dots+='<div class="age-dot"'+(d<=ad?' style="background:'+ac+'"':'')+' ></div>';
+    var ageL=r._ageY!=null?'<span class="age-label" style="color:'+ac+'">'+r._ageY.toFixed(1)+'yr</span>':'<span class="age-label dim">?</span>';
+
+    // RAM bar
+    var ramH='<span class="dim">—</span>';
+    if(r._ram>0){var p=Math.min(r._ram/32*100,100),c=r._ram<4?'#ff4d6d':r._ram<8?'#f0a500':'#39d98a';ramH='<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div>'+r._ram+'GB</div>';}
+
+    // Disk bar
+    var diskH='<span class="dim">—</span>';
+    if(!r._diskNA&&r._tdisk>0){var p=r._freeP||0,c=p<10?'#ff4d6d':p<20?'#f0a500':'#39d98a';diskH='<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div>'+r._fdisk+'/'+r._tdisk+'GB</div>';}
+    else if(r._tdisk>0)diskH=r._tdisk+'GB';
+
+    // OS version pill
+    var verH='';
+    if(osV){var ovc={ok:'pill-ok',teal:'pill-teal',warn:'pill-warn',crit:'pill-crit',info:'pill-info'};var pc2=(r._ovi&&ovc[r._ovi.c])||'pill-grey';verH='<span class="pill '+pc2+'">'+osV+'</span>';}
+
+    var W11 ={'ready':'<span class="pill pill-ok">✓</span>','partial':'<span class="pill pill-warn">⚠</span>','not-ready':'<span class="pill pill-crit">✗</span>','na':'<span class="pill pill-grey">N/A</span>'};
+    var WAR={'in':'<span class="pill pill-ok">✓</span>','check':'<span class="pill pill-warn">?</span>','out':'<span class="pill pill-crit">Exp</span>','unknown':'<span class="pill pill-grey">—</span>'};
+
+    var flags=r._issues.map(function(i){return '<div class="flag '+(i.lvl==='crit'?'flag-red':'flag-amber')+'" title="'+i.msg+'">'+(i.lvl==='crit'?'🔴':'🟡')+'</div>';}).join('');
+    var issH=flags||'<span style="color:#39d98a;font-size:11px">✓</span>';
+
+    html+='<tr onclick="openModal('+ridx+')">'
+      +'<td class="pc-name">'+pc+'</td>'
+      +'<td class="dim" style="font-size:11px">'+site+'</td>'
+      +'<td class="dim" style="font-size:11px">'+user+'</td>'
+      +'<td style="font-size:11px">'+os+'</td>'
+      +'<td>'+verH+'</td>'
+      +'<td title="'+cpuFull+'" style="font-size:11px">'+cpu+'</td>'
+      +'<td><div class="age-dots">'+dots+'</div>'+ageL+'</td>'
+      +'<td>'+ramH+'</td>'
+      +'<td>'+diskH+'</td>'
+      +'<td>'+(W11[r._w11.status]||'<span class="pill pill-grey">?</span>')+'</td>'
+      +'<td>'+(WAR[r._war]||'<span class="pill pill-grey">—</span>')+'</td>'
+      +'<td><span class="pill pill-grey" style="font-size:9px">'+r._devType+'</span></td>'
+      +'<td><div class="flags">'+issH+'</div></td>'
+      +'</tr>';
+  });
+  document.getElementById('tbody').innerHTML=html;
+  renderPager();
+}
+
+function renderPager(){
+  var total=filtered.length, pages=Math.ceil(total/pgSz);
+  if(pages<=1){document.getElementById('pager').innerHTML='';return;}
+  var btns='';
+  for(var i=1;i<=pages;i++){
+    if(i===1||i===pages||Math.abs(i-pg)<=2)
+      btns+='<button class="page-btn'+(i===pg?' active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
+    else if(Math.abs(i-pg)===3)btns+='<span style="color:#6b7499;padding:0 2px">…</span>';
+  }
+  document.getElementById('pager').innerHTML=
+    '<div>Page '+pg+' of '+pages+'</div>'
+    +'<div class="page-btns"><button class="page-btn" onclick="goPage('+(pg-1)+')" '+(pg===1?'disabled':'')+'>‹</button>'+btns+'<button class="page-btn" onclick="goPage('+(pg+1)+')" '+(pg===pages?'disabled':'')+'>›</button></div>';
+}
+function goPage(p){var pages=Math.ceil(filtered.length/pgSz);pg=Math.max(1,Math.min(p,pages));renderTable();}
+
+function doSort(col){
+  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
+  var fns={
+    pcName:function(r){return gv(r._r,mapping.pcName);},
+    site:function(r){return gv(r._r,mapping.site);},
+    username:function(r){return gv(r._r,mapping.username);},
+    os:function(r){return gv(r._r,mapping.os);},
+    osVer:function(r){return gv(r._r,mapping.osVersion);},
+    cpu:function(r){return gv(r._r,mapping.cpu);},
+    age:function(r){return r._ageY||999;},
+    ram:function(r){return r._ram;},
+    disk:function(r){return r._freeP||999;},
+    w11:function(r){return r._w11.status;},
+    war:function(r){return r._war;},
+    type:function(r){return r._devType;},
+    issues:function(r){return r._issues.length;}
+  };
+  var fn=fns[col]||function(r){return '';};
+  filtered.sort(function(a,b){
+    var av=fn(a),bv=fn(b);
+    if(typeof av==='number'&&typeof bv==='number')return(av-bv)*sortDir;
+    return(av||'').toString().localeCompare((bv||'').toString())*sortDir;
   });
   pg=1;renderTable();
 }
-function changePS(){pgSz=parseInt(document.getElementById('f-ps').value);pg=1;renderTable();}
 
-// ── TABLE ─────────────────────────────────────────────────────
-const COLS=[
-  {k:'pcName',l:'PC Name'},{k:'site',l:'Site'},{k:'username',l:'User'},
-  {k:'os',l:'OS'},{k:'osVersion',l:'Ver'},{k:'cpu',l:'CPU'},
-  {k:'_age',l:'Age'},{k:'_ram',l:'RAM'},{k:'disk',l:'Disk'},
-  {k:'_w11',l:'Win11'},{k:'_war',l:'Warranty'},{k:'_devType',l:'Type'},{k:'_issues',l:'Issues'},
-];
-function renderTable(){
-  const s=(pg-1)*pgSz,rows=filtered.slice(s,s+pgSz);
-  document.getElementById('tbl-cnt').textContent=`${filtered.length?s+1:0}–${Math.min(s+pgSz,filtered.length)} of ${filtered.length}`;
-  document.getElementById('tbl-head').innerHTML='<tr>'+COLS.map(c=>
-    `<th onclick="srt('${c.k}')" class="${srtCol===c.k?'sorted':''}">${c.l}<span class="sa">${srtCol===c.k?(srtDir===1?'↑':'↓'):'↕'}</span></th>`
-  ).join('')+'</tr>';
-  const tbody=document.getElementById('tbl-body');
-  if(!rows.length){tbody.innerHTML=`<tr><td colspan="13" style="text-align:center;padding:44px;color:var(--dim)">No matching devices</td></tr>`;renderPag();return;}
-  const AC={new:'var(--green)',aging:'var(--amber)',old:'var(--orange)',legacy:'var(--red)',unknown:'var(--dim)'};
-  const AD={new:1,aging:2,old:3,legacy:4,unknown:0};
-  tbody.innerHTML=rows.map(r=>{
-    const idx=analysed.indexOf(r);
-    const pc=(gv(r,M.pcName)||'—').toString();
-    const site=(gv(r,M.site)||'—').toString();
-    const user=(gv(r,M.username)||'—').toString().replace(/.*\\/,'').replace(/.*\//,'');
-    const os=(gv(r,M.os)||'—').toString().replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
-    const osV=(gv(r,M.osVersion)||'').toString();
-    const cpu=(gv(r,M.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').trim();
-    const cpuS=cpu.length>36?cpu.slice(0,34)+'…':cpu;
-    const ac=AC[r._age];
-    const ad=AD[r._age];
-    const dots=[1,2,3,4].map(i=>`<div class="age-dot"${i<=ad?` style="background:${ac}"`:''} ></div>`).join('');
-    const ageL=r._ageY!=null?`<span style="color:${ac};font-size:10px">${r._ageY.toFixed(1)}yr</span>`:'<span style="color:var(--dim);font-size:10px">?</span>';
-    let ramH='<span class="td-dim">—</span>';
-    if(r._ram>0){const p=Math.min(r._ram/32*100,100),c=r._ram<4?'var(--red)':r._ram<8?'var(--amber)':'var(--green)';ramH=`<div class="mini-bar"><div class="mini-fill" style="width:${p}%;background:${c}"></div></div>${r._ram}GB`;}
-    let diskH='<span class="td-dim">—</span>';
-    if(!r._diskNA&&r._tdisk>0){const p=r._freeP||0,c=p<10?'var(--red)':p<20?'var(--amber)':'var(--green)';diskH=`<div class="mini-bar"><div class="mini-fill" style="width:${p}%;background:${c}"></div></div>${r._fdisk}/${r._tdisk}GB`;}
-    else if(r._tdisk>0)diskH=`${r._tdisk}GB`;
-    let verH='';
-    if(osV&&r._ovi){const SM={current:'b-ok',supported:'b-t',aging:'b-w',eol:'b-c',unknown:'b-i'};verH=`<span class="badge ${SM[r._ovi.s]||'b-n'}">${osV}</span>`;}
-    else if(osV)verH=`<span class="badge b-n">${osV}</span>`;
-    const W11M={'ready':'<span class="badge b-ok">✓</span>','partial':'<span class="badge b-w">⚠</span>','not-ready':'<span class="badge b-c">✗</span>','n/a':'<span class="badge b-n">N/A</span>'};
-    const WARM={in:'<span class="badge b-ok">✓</span>',check:'<span class="badge b-w">Check</span>',out:'<span class="badge b-c">Exp</span>',unknown:'<span class="badge b-n">?</span>'};
-    const flags=r._issues.map(i=>`<div class="flag flag-${i.lvl==='crit'?'r':'a'}" title="${i.msg}">${i.lvl==='crit'?'🔴':'🟡'}</div>`).join('');
-    const issH=flags||'<span style="color:var(--green);font-size:11px">✓</span>';
-    return `<tr onclick="showMod(${idx})">
-      <td class="td-pc">${pc}</td>
-      <td class="td-dim" style="font-size:11px">${site}</td>
-      <td class="td-dim" style="font-size:11px">${user}</td>
-      <td style="font-size:11px">${os}</td>
-      <td>${verH}</td>
-      <td title="${cpu}" style="font-size:11px">${cpuS}</td>
-      <td><div class="age-dots">${dots}</div>${ageL}</td>
-      <td>${ramH}</td>
-      <td>${diskH}</td>
-      <td>${W11M[r._w11.status]||'<span class="badge b-n">?</span>'}</td>
-      <td>${WARM[r._war]}</td>
-      <td><span class="badge b-n" style="font-size:9px">${r._devType}</span></td>
-      <td><div class="flags">${issH}</div></td>
-    </tr>`;
-  }).join('');
-  renderPag();
+// ═══════════════════════════════════════════════════════
+// MODAL
+// ═══════════════════════════════════════════════════════
+function openModal(idx) {
+  var r=analysed[idx];
+  var ac=AGE_COLOR[r._age]||'#6b7499';
+  var w11lbl={'ready':'✅ Ready for Windows 11','partial':'⚠ Needs manual check','not-ready':'❌ Not compatible','na':'N/A (Server or Mac)'};
+  var warLbl={in:'✅ Likely in warranty',check:'⚠ Check with vendor',out:'⚠ Likely expired',unknown:'ℹ Unknown'};
+  var warCls={in:'alert-green',check:'alert-amber',out:'alert-amber',unknown:'alert-blue'};
+
+  function field(label,val){return '<div><div class="modal-field-label">'+label+'</div><div class="modal-field-value">'+(val||'—')+'</div></div>';}
+
+  var issHtml=r._issues.length
+    ? r._issues.map(function(i){return '<div class="alert-box '+(i.lvl==='crit'?'alert-red':'alert-amber')+'"><b>'+(i.lvl==='crit'?'🔴 Critical':'🟡 Warning')+'</b>'+i.msg+'</div>';}).join('')
+    : '<div class="alert-box alert-green"><b>✅ No issues found</b>All checks passed</div>';
+
+  var w11cls=r._w11.status==='ready'?'alert-green':r._w11.status==='not-ready'?'alert-red':'alert-blue';
+  var w11blk=(r._w11.issues||[]).map(function(i){return '<div class="alert-box alert-amber"><b>⚠ Blocker</b>'+i+'</div>';}).join('');
+
+  var cpu=(gv(r._r,mapping.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').trim();
+
+  document.getElementById('modal-box').innerHTML=
+    '<button class="modal-close" onclick="closeModal()">✕</button>'
+    +'<div class="modal-pc">🖥 '+(gv(r._r,mapping.pcName)||'Unknown')+'</div>'
+    +'<div class="modal-user">'+(gv(r._r,mapping.username)||'—').replace(/.*\\/,'').replace(/.*\//,'')+' · '+(gv(r._r,mapping.site)||'—')+' · '+r._devType+(r._stale?' · <span class="pill pill-warn">⏰ '+r._staleDays+'d stale</span>':'')+'</div>'
+
+    +'<div class="modal-section"><div class="modal-section-title">System</div>'
+    +'<div class="modal-grid">'
+    +field('Operating System',(gv(r._r,mapping.os)||'—')+' '+(gv(r._r,mapping.osVersion)||''))
+    +field('Model',gv(r._r,mapping.model))
+    +field('Manufacturer',gv(r._r,mapping.manufacturer))
+    +field('Serial',gv(r._r,mapping.serial))
+    +field('Last Logon',gv(r._r,mapping.lastLogon))
+    +field('Last Seen',gv(r._r,mapping.lastSeen))
+    +field('Install / Purchase Date',gv(r._r,mapping.installDate))
+    +'</div></div>'
+
+    +'<div class="modal-section"><div class="modal-section-title">Hardware</div>'
+    +'<div class="modal-grid" style="grid-template-columns:1fr">'
+    +field('CPU',cpu)
+    +'</div>'
+    +'<div class="modal-grid" style="margin-top:9px">'
+    +field('CPU Generation','<span style="color:'+ac+'">'+r._cpu.brand+' '+r._cpu.gen+' · '+(r._cpu.year||'?')+' · '+r._age+'</span>')
+    +field('RAM',r._ram?r._ram+'GB':'—')
+    +field('Total Disk',r._tdisk?r._tdisk+'GB':'—')
+    +field('Free Disk',r._fdisk?r._fdisk+'GB ('+(r._freeP||0).toFixed(1)+'%)':'—')
+    +field('TPM',gv(r._r,mapping.tpm))
+    +field('Secure Boot',gv(r._r,mapping.secureBoot))
+    +'</div></div>'
+
+    +'<div class="modal-section"><div class="modal-section-title">Windows 11</div>'
+    +'<div class="alert-box '+w11cls+'"><b>'+(w11lbl[r._w11.status]||'Unknown')+'</b></div>'
+    +w11blk+'</div>'
+
+    +'<div class="modal-section"><div class="modal-section-title">Warranty</div>'
+    +'<div class="alert-box '+(warCls[r._war]||'alert-blue')+'"><b>'+(warLbl[r._war]||'Unknown')+'</b>'+r._warNote+'</div></div>'
+
+    +'<div class="modal-section"><div class="modal-section-title">Issues ('+r._issues.length+')</div>'
+    +issHtml+'</div>';
+
+  document.getElementById('modal-bg').classList.add('open');
 }
-function renderPag(){
-  const total=filtered.length,pages=Math.ceil(total/pgSz);
-  if(pages<=1){document.getElementById('pagination').innerHTML='';return;}
-  let btns='';
-  for(let i=1;i<=pages;i++){
-    if(i===1||i===pages||Math.abs(i-pg)<=2)btns+=`<button class="page-btn${i===pg?' active':''}" onclick="goP(${i})">${i}</button>`;
-    else if(Math.abs(i-pg)===3)btns+=`<span style="color:var(--dim);padding:0 2px">…</span>`;
-  }
-  document.getElementById('pagination').innerHTML=`
-    <div>Page ${pg} of ${pages} · ${total} devices</div>
-    <div class="page-btns">
-      <button class="page-btn" onclick="goP(${pg-1})" ${pg===1?'disabled':''}>‹</button>
-      ${btns}
-      <button class="page-btn" onclick="goP(${pg+1})" ${pg===pages?'disabled':''}>›</button>
-    </div>`;
-}
-function goP(p){const pages=Math.ceil(filtered.length/pgSz);pg=Math.max(1,Math.min(p,pages));renderTable();}
-function srt(col){
-  if(srtCol===col)srtDir*=-1;else{srtCol=col;srtDir=1;}
-  const GV={pcName:r=>gv(r,M.pcName),site:r=>gv(r,M.site),username:r=>gv(r,M.username),
-             os:r=>gv(r,M.os),osVersion:r=>gv(r,M.osVersion),cpu:r=>gv(r,M.cpu),
-             _age:r=>r._age,_ram:r=>r._ram,_war:r=>r._war,'_w11':r=>r._w11.status,
-             _devType:r=>r._devType,_issues:r=>r._issues.length};
-  const fn=GV[col]||(r=>r[col]);
-  filtered.sort((a,b)=>{let av=fn(a),bv=fn(b);av=av??'';bv=bv??'';if(typeof av==='number'&&typeof bv==='number')return(av-bv)*srtDir;return av.toString().localeCompare(bv.toString())*srtDir;});
-  pg=1;renderTable();
+function closeModal(e){if(!e||e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('modal-bg').classList.remove('open');});
+
+// ═══════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════
+function doExport() {
+  var cols=[
+    ['PC Name',function(r){return gv(r._r,mapping.pcName);}],
+    ['Site',function(r){return gv(r._r,mapping.site);}],
+    ['User',function(r){return gv(r._r,mapping.username);}],
+    ['OS',function(r){return gv(r._r,mapping.os);}],
+    ['OS Version',function(r){return gv(r._r,mapping.osVersion);}],
+    ['CPU',function(r){return gv(r._r,mapping.cpu);}],
+    ['CPU Gen',function(r){return r._cpu.gen;}],
+    ['CPU Year',function(r){return r._cpu.year||'';}],
+    ['Age (yr)',function(r){return r._ageY!=null?r._ageY.toFixed(1):'';}],
+    ['Age Category',function(r){return r._age;}],
+    ['RAM (GB)',function(r){return r._ram||'';}],
+    ['Total Disk',function(r){return r._tdisk||'';}],
+    ['Free Disk',function(r){return r._fdisk||'';}],
+    ['Free %',function(r){return r._freeP!=null?r._freeP.toFixed(1):'';}],
+    ['Win11 Status',function(r){return r._w11.status;}],
+    ['Win11 Blockers',function(r){return (r._w11.issues||[]).join(' | ');}],
+    ['Warranty',function(r){return r._war;}],
+    ['Stale',function(r){return r._stale?'Yes':'No';}],
+    ['Issue Count',function(r){return r._issues.length;}],
+    ['Issues',function(r){return r._issues.map(function(i){return i.msg;}).join(' | ');}],
+    ['Serial',function(r){return gv(r._r,mapping.serial);}],
+    ['Model',function(r){return gv(r._r,mapping.model);}],
+  ];
+  function esc(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+  var lines=[cols.map(function(c){return esc(c[0]);}).join(',')];
+  filtered.forEach(function(r){lines.push(cols.map(function(c){return esc(c[1](r));}).join(','));});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\r\n')],{type:'text/csv'}));
+  a.download='fleet-audit.csv'; a.click();
 }
 
-// ── MODAL ─────────────────────────────────────────────────────
-function showMod(idx){
-  const r=analysed[idx];
-  const ac={new:'var(--green)',aging:'var(--amber)',old:'var(--orange)',legacy:'var(--red)',unknown:'var(--dim)'}[r._age];
-  const w11Lbl={'ready':'✅ Ready for Windows 11','partial':'⚠ Needs verification','not-ready':'❌ Not compatible','n/a':'N/A (Server / macOS)'};
-  const issH=r._issues.length
-    ? r._issues.map(i=>`<div class="mi ${i.lvl==='crit'?'r':'a'}"><b>${i.lvl==='crit'?'🔴 Critical':'🟡 Warning'}</b>${i.msg}</div>`).join('')
-    : '<div class="mi g"><b>✅ No Issues</b>All checks passed</div>';
-  const w11IssH=(r._w11.issues||[]).map(i=>`<div class="mi a"><b>⚠ Blocker</b>${i}</div>`).join('');
-  document.getElementById('modal-body').innerHTML=`
-    <button class="modal-x" onclick="closeModal()">✕</button>
-    <div class="modal-nm">🖥 ${gv(r,M.pcName)||'Unknown PC'}</div>
-    <div class="modal-sb">${(gv(r,M.username)||'—').replace(/.*\\/,'')} · ${gv(r,M.site)||'—'} · <span class="badge b-n">${r._devType}</span>${r._stale?` · <span class="badge b-w">⏰ ${r._staleDays}d stale</span>`:''}</div>
-    <div class="modal-sec">
-      <div class="modal-st">System</div>
-      <div class="modal-grid">
-        <div><div class="mf-l">OS</div><div class="mf-v">${gv(r,M.os)||'—'} ${gv(r,M.osVersion)||''}</div></div>
-        <div><div class="mf-l">Model</div><div class="mf-v">${gv(r,M.model)||'—'}</div></div>
-        <div><div class="mf-l">Manufacturer</div><div class="mf-v">${gv(r,M.manufacturer)||'—'}</div></div>
-        <div><div class="mf-l">Serial</div><div class="mf-v">${gv(r,M.serial)||'—'}</div></div>
-        <div><div class="mf-l">Last Logon</div><div class="mf-v">${gv(r,M.lastLogon)||'—'}</div></div>
-        <div><div class="mf-l">Last Seen</div><div class="mf-v">${gv(r,M.lastSeen)||'—'}</div></div>
-        <div><div class="mf-l">Install / Purchase Date</div><div class="mf-v">${gv(r,M.purchaseDate)||'—'}</div></div>
-      </div>
-    </div>
-    <div class="modal-sec">
-      <div class="modal-st">Hardware</div>
-      <div class="modal-grid">
-        <div style="grid-column:span 2"><div class="mf-l">CPU</div><div class="mf-v">${(gv(r,M.cpu)||'—').replace(/\(R\)|\(TM\)/gi,'').trim()}</div></div>
-        <div><div class="mf-l">CPU Generation</div><div class="mf-v" style="color:${ac}">${r._cpu.brand} ${r._cpu.gen} · ${r._cpu.year||'?'} · ${r._age}</div></div>
-        <div><div class="mf-l">RAM</div><div class="mf-v">${r._ram?r._ram+'GB':'—'}</div></div>
-        <div><div class="mf-l">Total Disk</div><div class="mf-v">${r._tdisk?r._tdisk+'GB':'—'}</div></div>
-        <div><div class="mf-l">Free Disk</div><div class="mf-v">${r._fdisk?`${r._fdisk}GB (${(r._freeP||0).toFixed(1)}% free)`:'—'}</div></div>
-        <div><div class="mf-l">TPM</div><div class="mf-v">${gv(r,M.tpm)||'—'}</div></div>
-        <div><div class="mf-l">Secure Boot</div><div class="mf-v">${gv(r,M.secureBoot)||'—'}</div></div>
-      </div>
-    </div>
-    <div class="modal-sec">
-      <div class="modal-st">Windows 11 Assessment</div>
-      <div class="modal-iss">
-        <div class="mi ${r._w11.status==='ready'?'g':r._w11.status==='not-ready'?'r':'i'}"><b>${w11Lbl[r._w11.status]||'Unknown'}</b></div>
-        ${w11IssH}
-      </div>
-    </div>
-    <div class="modal-sec">
-      <div class="modal-st">Warranty</div>
-      <div class="modal-iss">
-        <div class="mi ${r._war==='in'?'g':r._war==='out'?'a':'i'}">
-          <b>${r._war==='in'?'✅ Likely in warranty':r._war==='out'?'⚠ Likely expired':'ℹ Unknown'}</b>${r._warNote}
-        </div>
-      </div>
-    </div>
-    <div class="modal-sec">
-      <div class="modal-st">Issues &amp; Recommendations (${r._issues.length})</div>
-      <div class="modal-iss">${issH}</div>
-    </div>`;
-  document.getElementById('modal-ov').classList.add('open');
-}
-function closeModal(e){if(!e||e.target===document.getElementById('modal-ov'))document.getElementById('modal-ov').classList.remove('open');}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')document.getElementById('modal-ov').classList.remove('open');});
-
-// ── EXPORT ───────────────────────────────────────────────────
-function exportCSV(){
-  const C=[['PC Name',r=>gv(r,M.pcName)],['Site',r=>gv(r,M.site)],['User',r=>gv(r,M.username)],
-    ['OS',r=>gv(r,M.os)],['OS Version',r=>gv(r,M.osVersion)],['CPU',r=>gv(r,M.cpu)],
-    ['CPU Gen',r=>r._cpu.gen],['CPU Year',r=>r._cpu.year||''],['Age (yr)',r=>r._ageY!=null?r._ageY.toFixed(1):''],
-    ['Age Category',r=>r._age],['RAM (GB)',r=>r._ram||''],['Total Disk (GB)',r=>r._tdisk||''],
-    ['Free Disk (GB)',r=>r._fdisk||''],['Free %',r=>r._freeP!=null?r._freeP.toFixed(1):''],
-    ['Win11 Status',r=>r._w11.status],['Win11 Blockers',r=>(r._w11.issues||[]).join(' | ')],
-    ['Warranty',r=>r._war],['Stale',r=>r._stale?'Yes':'No'],['Days Since Seen',r=>r._staleDays!=null?r._staleDays:''],
-    ['Issues',r=>r._issues.length],['Issue Details',r=>r._issues.map(i=>i.msg).join(' | ')],
-    ['Serial',r=>gv(r,M.serial)],['Model',r=>gv(r,M.model)],['Manufacturer',r=>gv(r,M.manufacturer)]];
-  const esc=v=>`"${String(v??'').replace(/"/g,'""')}"`;
-  const lines=[C.map(([l])=>esc(l)).join(',')];
-  for(const r of filtered)lines.push(C.map(([,fn])=>esc(fn(r))).join(','));
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(new Blob([lines.join('\n')],{type:'text/csv'}));
-  a.download='fleet-audit.csv';a.click();
+// ═══════════════════════════════════════════════════════
+// RESET
+// ═══════════════════════════════════════════════════════
+function doReset(){
+  rawRows=[];colHeaders=[];mapping={};analysed=[];filtered=[];
+  document.getElementById('section-upload').style.display='';
+  document.getElementById('section-mapper').style.display='none';
+  document.getElementById('section-dash').style.display='none';
+  document.getElementById('btn-export').style.display='none';
+  document.getElementById('btn-reset').style.display='none';
+  document.getElementById('hdr-info').textContent='No data loaded';
+  hideError();
 }
 </script>
 </body>
