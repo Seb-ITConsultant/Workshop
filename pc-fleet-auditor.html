@@ -177,16 +177,17 @@ tbody td{padding:8px 12px;font-size:12px;vertical-align:middle;white-space:nowra
 <div id="upload-section">
   <div id="lib-notice">
     <div class="lib-spin"></div>
-    <span id="lib-notice-txt">Loading spreadsheet library…</span>
+    <span id="lib-notice-txt">Loading .xlsx library… <b>CSV files work right now without waiting.</b></span>
   </div>
   <div id="drop-zone">
     <div class="up-icon">📊</div>
     <div class="up-title">Drop your inventory export here</div>
-    <div class="up-sub">Supports <b>.xlsx</b>, <b>.xls</b>, <b>.csv</b> — SCCM, PDQ Inventory, Lansweeper, NinjaRMM, Datto RMM, etc.</div>
+    <div class="up-sub">Drop a <b>.csv</b> file — works instantly, no internet needed. Also supports <b>.xlsx</b> / <b>.xls</b> if online.</div>
     <button class="btn btn-p" onclick="event.stopPropagation();document.getElementById('file-input').click()">📂 Choose File</button>
     <input type="file" id="file-input" accept=".xlsx,.xls,.csv">
   </div>
   <div class="col-hint">
+    <b>💡 Tip:</b> In Excel or your RMM tool, use <b>File → Save As → CSV</b> — CSV files work 100% offline with no loading needed.<br>
     <b>Auto-detected columns:</b> Site/Location · PC/System Name · Username · OS · OS Version · CPU/Processor · RAM (GB) · Total Disk (GB) · Free Disk (GB) · Serial Number · Install/Purchase Date · TPM · Secure Boot · Last Logon · Last Agent Check · Device Type · Device Age (years)
     <br><em>Column names are flexible — you can remap anything after loading.</em>
   </div>
@@ -476,34 +477,102 @@ const dz=document.getElementById('drop-zone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])startFile(e.dataTransfer.files[0]);});
-dz.addEventListener('click',()=>{
-  if(!_xlsxOK){document.getElementById('lib-notice').classList.add('show');return;}
-  document.getElementById('file-input').click();
-});
+dz.addEventListener('click',()=>document.getElementById('file-input').click());
 document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files[0])startFile(e.target.files[0]);e.target.value='';});
 
+// Native RFC-4180 CSV parser — no library needed
+function parseCSV(text) {
+  const lines = text.replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n');
+  function parseLine(line) {
+    const fields=[]; let i=0, f='';
+    while(i<=line.length){
+      if(i===line.length){fields.push(f.trim());break;}
+      if(line[i]==='"'){
+        i++;
+        while(i<line.length){
+          if(line[i]==='"'&&line[i+1]==='"'){f+='"';i+=2;}
+          else if(line[i]==='"'){i++;break;}
+          else f+=line[i++];
+        }
+        while(i<line.length&&line[i]!==',')i++;
+        if(line[i]===',')i++;
+      } else {
+        while(i<line.length&&line[i]!==',')f+=line[i++];
+        if(line[i]===',')i++;
+      }
+      fields.push(f.trim()); f='';
+    }
+    return fields;
+  }
+  const hdrs=parseLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    if(!lines[i].trim())continue;
+    const vals=parseLine(lines[i]);
+    const row={};
+    hdrs.forEach((h,j)=>row[h]=vals[j]??'');
+    rows.push(row);
+  }
+  return{headers:hdrs,rows};
+}
+
 function startFile(file) {
-  if (!_xlsxOK){ document.getElementById('lib-notice').classList.add('show'); return; }
-  showProc('Reading file…');
-  const reader=new FileReader();
-  reader.onerror=()=>{hideProc();alert('Could not read file.');};
-  reader.onload=e=>{
-    setTimeout(()=>{
-      try {
-        setProc(35,'Parsing spreadsheet…');
-        const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
-        setProc(65,'Loading rows…');
-        const ws=wb.Sheets[wb.SheetNames[0]];
-        rawData=XLSX.utils.sheet_to_json(ws,{defval:''});
-        if(!rawData.length){hideProc();alert('No data found in the first sheet.');return;}
-        headers=Object.keys(rawData[0]);
-        M=detectCols(headers);
-        setProc(90,'Almost ready…');
-        setTimeout(()=>{hideProc();showMapper();},80);
-      } catch(err){hideProc();alert('Could not parse file: '+err.message);}
-    },50);
-  };
-  reader.readAsArrayBuffer(file);
+  const isCSV = /\.csv$/i.test(file.name);
+  const isExcel = /\.(xlsx|xls)$/i.test(file.name);
+
+  if (isCSV) {
+    showProc('Reading CSV…');
+    const reader=new FileReader();
+    reader.onerror=()=>{hideProc();alert('Could not read file.');};
+    reader.onload=e=>{
+      setTimeout(()=>{
+        try {
+          setProc(40,'Parsing CSV…');
+          const {headers:hdrs,rows}=parseCSV(e.target.result);
+          if(!rows.length){hideProc();alert('No data rows found in CSV.');return;}
+          rawData=rows; headers=hdrs; M=detectCols(headers);
+          setProc(90,'Almost ready…');
+          setTimeout(()=>{hideProc();showMapper();},80);
+        } catch(err){hideProc();alert('Could not parse CSV: '+err.message);}
+      },50);
+    };
+    reader.readAsText(file);
+
+  } else if (isExcel) {
+    if(!_xlsxOK){
+      // Update notice to explain the situation
+      const n=document.getElementById('lib-notice');
+      n.classList.add('show');
+      n.style.background='var(--amber-dim)';n.style.borderColor='var(--amber)';n.style.color='var(--amber)';
+      document.getElementById('lib-notice-txt').innerHTML=
+        '📋 <b>.xlsx files need the spreadsheet library to load.</b> ' +
+        'Save your file as <b>.csv</b> from Excel and it will work instantly — no internet needed.';
+      return;
+    }
+    showProc('Reading Excel file…');
+    const reader=new FileReader();
+    reader.onerror=()=>{hideProc();alert('Could not read file.');};
+    reader.onload=e=>{
+      setTimeout(()=>{
+        try {
+          setProc(35,'Parsing spreadsheet…');
+          const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array',cellDates:true});
+          setProc(65,'Loading rows…');
+          const ws=wb.Sheets[wb.SheetNames[0]];
+          rawData=XLSX.utils.sheet_to_json(ws,{defval:''});
+          if(!rawData.length){hideProc();alert('No data found in the first sheet.');return;}
+          headers=Object.keys(rawData[0]);
+          M=detectCols(headers);
+          setProc(90,'Almost ready…');
+          setTimeout(()=>{hideProc();showMapper();},80);
+        } catch(err){hideProc();alert('Could not parse file: '+err.message);}
+      },50);
+    };
+    reader.readAsArrayBuffer(file);
+
+  } else {
+    alert('Please select a .csv, .xlsx, or .xls file.');
+  }
 }
 
 function resetAll(){
