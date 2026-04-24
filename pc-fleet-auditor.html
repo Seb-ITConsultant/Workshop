@@ -15,11 +15,9 @@
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--mono);font-size:13px;min-height:100vh}
-#lib-gate{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-#lib-gate.hidden{display:none}
-.gate-spin{width:36px;height:36px;border:2px solid var(--border2);border-top-color:var(--amber);border-radius:50%;animation:spin .7s linear infinite}
-.gate-txt{font-size:13px;color:var(--dim)}
-.gate-txt b{color:var(--amber)}
+#lib-notice{display:none;align-items:center;gap:8px;padding:8px 14px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:7px;font-size:12px;color:var(--amber);margin-bottom:12px}
+#lib-notice.show{display:flex}
+.lib-spin{width:14px;height:14px;border:2px solid var(--amber-dim);border-top-color:var(--amber);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
 #processing{position:fixed;inset:0;background:rgba(13,15,20,.92);z-index:500;display:none;align-items:center;justify-content:center;flex-direction:column;gap:14px;backdrop-filter:blur(3px)}
 #processing.show{display:flex}
@@ -160,11 +158,6 @@ tbody td{padding:8px 12px;font-size:12px;vertical-align:middle;white-space:nowra
 </head>
 <body>
 
-<div id="lib-gate">
-  <div class="gate-spin" id="gate-spin"></div>
-  <div class="gate-txt" id="gate-txt">Loading <b>spreadsheet library</b>…</div>
-</div>
-
 <div id="processing">
   <div class="proc-wrap"><div class="proc-fill" id="proc-fill"></div></div>
   <div class="proc-lbl" id="proc-lbl">Reading file…</div>
@@ -182,6 +175,10 @@ tbody td{padding:8px 12px;font-size:12px;vertical-align:middle;white-space:nowra
 <main>
 
 <div id="upload-section">
+  <div id="lib-notice">
+    <div class="lib-spin"></div>
+    <span id="lib-notice-txt">Loading spreadsheet library…</span>
+  </div>
   <div id="drop-zone">
     <div class="up-icon">📊</div>
     <div class="up-title">Drop your inventory export here</div>
@@ -270,21 +267,43 @@ tbody td{padding:8px 12px;font-size:12px;vertical-align:middle;white-space:nowra
   <div class="modal" id="modal-body"></div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"
-  onload="xlsxReady()" onerror="xlsxFail()"></script>
 <script>
-// ── GATE ──────────────────────────────────────────────────────
+// Multi-CDN fallback — tries 3 sources before giving up
+(function(){
+  const CDNS=[
+    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js'
+  ];
+  let idx=0;
+  function tryNext(){
+    if(idx>=CDNS.length){xlsxFail();return;}
+    const s=document.createElement('script');
+    s.src=CDNS[idx++];
+    s.onload=xlsxReady;
+    s.onerror=()=>setTimeout(tryNext,200);
+    document.head.appendChild(s);
+  }
+  tryNext();
+})();
+</script>
+<script>
+// ── LIBRARY LOAD ─────────────────────────────────────────────
 let _xlsxOK = false;
 function xlsxReady() {
   _xlsxOK = true;
-  document.getElementById('lib-gate').classList.add('hidden');
+  document.getElementById('lib-notice').classList.remove('show');
 }
 function xlsxFail() {
-  document.getElementById('lib-gate').innerHTML =
-    '<div style="color:var(--red);text-align:center;max-width:380px;line-height:1.7;font-size:13px">' +
-    '⚠ Failed to load the spreadsheet library from CDN.<br>Please check your internet connection and reload.' +
-    '<br><br><button class="btn btn-p" onclick="location.reload()">↺ Reload</button></div>';
+  const n=document.getElementById('lib-notice');
+  n.style.background='var(--red-dim)';n.style.borderColor='var(--red)';n.style.color='var(--red)';
+  document.querySelector('.lib-spin').style.display='none';
+  document.getElementById('lib-notice-txt').innerHTML=
+    '⚠ Could not load spreadsheet library — check internet connection. ' +
+    '<button class="btn" style="padding:3px 10px;margin-left:8px" onclick="location.reload()">↺ Reload</button>';
 }
+// Show loading notice until library is ready
+document.getElementById('lib-notice').classList.add('show');
 
 // ── PROGRESS ─────────────────────────────────────────────────
 function showProc(msg) { document.getElementById('processing').classList.add('show'); setProc(0,msg); }
@@ -457,11 +476,14 @@ const dz=document.getElementById('drop-zone');
 dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
 dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
 dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');if(e.dataTransfer.files[0])startFile(e.dataTransfer.files[0]);});
-dz.addEventListener('click',()=>{if(!_xlsxOK){alert('Library still loading — please wait a moment.');return;}document.getElementById('file-input').click();});
+dz.addEventListener('click',()=>{
+  if(!_xlsxOK){document.getElementById('lib-notice').classList.add('show');return;}
+  document.getElementById('file-input').click();
+});
 document.getElementById('file-input').addEventListener('change',e=>{if(e.target.files[0])startFile(e.target.files[0]);e.target.value='';});
 
 function startFile(file) {
-  if (!_xlsxOK){alert('Library still loading — please wait.');return;}
+  if (!_xlsxOK){ document.getElementById('lib-notice').classList.add('show'); return; }
   showProc('Reading file…');
   const reader=new FileReader();
   reader.onerror=()=>{hideProc();alert('Could not read file.');};
