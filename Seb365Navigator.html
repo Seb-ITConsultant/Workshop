@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Seb's 365 Navigator</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'DM Sans','Segoe UI',sans-serif;background:#f4f6fb;min-height:100vh}
+  input:focus{outline:2px solid #0078D4;border-color:#0078D4!important}
+  ::-webkit-scrollbar{width:6px;height:6px}
+  ::-webkit-scrollbar-track{background:#f0f4f8}
+  ::-webkit-scrollbar-thumb{background:#c4cdd6;border-radius:3px}
+  .frow:hover{border-color:#0078D480!important;background:#f7f9ff!important}
+  .bbtn:hover{opacity:0.85}
+  select{font-family:inherit}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ─── LICENCES ───────────────────────────────────────────────────────────────
+// GBP/user/month · annual commitment · ex-VAT
+// Sources: Microsoft UK, AMVIA, Chorus, Mondocloud (Oct 2025), Speedster IT / Valto (E7 est.)
+const LICENCES = {
+  // ── Business (max 300 users) ──────────────────────────────────────────────
+  "biz-basic":        { name:"Microsoft 365 Business Basic",              short:"Basic",           tier:"Business",   price:4.60,  color:"#0078D4", maxUsers:300, base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/business/compare-all-plans" },
+  "biz-standard":     { name:"Microsoft 365 Business Standard",           short:"Standard",        tier:"Business",   price:9.40,  color:"#0078D4", maxUsers:300, base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/business/compare-all-plans" },
+  "biz-premium":      { name:"Microsoft 365 Business Premium",            short:"Premium",         tier:"Business",   price:17.60, color:"#0078D4", maxUsers:300, base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/business/microsoft-365-business-premium" },
+  // ── Enterprise ────────────────────────────────────────────────────────────
+  "ent-e3":           { name:"Microsoft 365 E3",                          short:"E3",              tier:"Enterprise", price:30.20, color:"#107C10", base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise/microsoft-365-e3" },
+  "ent-e5":           { name:"Microsoft 365 E5",                          short:"E5",              tier:"Enterprise", price:47.80, color:"#107C10", base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise/microsoft-365-e5" },
+  "ent-e7":           { name:"Microsoft 365 E7 (Frontier Suite)",         short:"E7",              tier:"Enterprise", price:79.00, color:"#004B1C", base:true,  badge:"New May 2026", docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise" },
+  // ── Frontline ─────────────────────────────────────────────────────────────
+  "fl-f1":            { name:"Microsoft 365 F1",                          short:"F1",              tier:"Frontline",  price:1.80,  color:"#8764B8", base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise/f1" },
+  "fl-f3":            { name:"Microsoft 365 F3",                          short:"F3",              tier:"Frontline",  price:6.60,  color:"#8764B8", base:true,  docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise/f3" },
+
+  // ── Add-ons ───────────────────────────────────────────────────────────────
+  // compatibleWith: which base licences this add-on can be applied to
+  // ── AI
+  "ao-copilot":       { name:"Microsoft 365 Copilot",                     short:"Copilot",         tier:"Add-on / AI",        price:24.70, color:"#FFB900", addon:true, compatibleWith:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5"], docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/copilot/microsoft-365-copilot" },
+  // ── Security & Identity (Enterprise)
+  "ao-entra-suite":   { name:"Microsoft Entra Suite",                     short:"Entra Suite",     tier:"Add-on / Identity",  price:9.90,  color:"#CA5010", addon:true, compatibleWith:["biz-premium","ent-e3","ent-e5"], docsUrl:"https://www.microsoft.com/en-gb/security/business/microsoft-entra-pricing" },
+  "ao-defender-ent":  { name:"Microsoft Defender Suite",                  short:"Defender Suite",  tier:"Add-on / Security",  price:9.90,  color:"#C00000", addon:true, compatibleWith:["ent-e3"], docsUrl:"https://www.microsoft.com/en-gb/security/pricing/enterprise-plans",
+    note:"Formerly Microsoft 365 E5 Security (renamed Oct 2025). Adds full EDR, Defender for Identity, Cloud Apps CASB, and Defender XDR on top of E3." },
+  "ao-purview-ent":   { name:"Microsoft Purview Suite",                   short:"Purview Suite",   tier:"Add-on / Compliance", price:8.20,  color:"#107C10", addon:true, compatibleWith:["ent-e3","ent-e5"], docsUrl:"https://www.microsoft.com/en-gb/security/pricing-overview",
+    note:"Formerly Microsoft 365 E5 Compliance (renamed Oct 2025). Adds Premium Audit, eDiscovery Premium, Insider Risk, Communication Compliance, and Customer Lockbox." },
+  "ao-intune-suite":  { name:"Microsoft Intune Suite",                    short:"Intune Suite",    tier:"Add-on / Device",    price:8.20,  color:"#5C2D91", addon:true, compatibleWith:["biz-premium","ent-e3","ent-e5"], docsUrl:"https://www.microsoft.com/en-gb/security/business/microsoft-intune-pricing" },
+  // ── Security & Compliance (Business Premium — SMB-specific, max 300 users)
+  "ao-defender-biz":  { name:"Defender Suite for Business Premium",       short:"Def. Suite Biz",  tier:"Add-on / Security",  price:8.09,  color:"#C00000", addon:true, compatibleWith:["biz-premium"], docsUrl:"https://www.microsoft.com/en-gb/security/pricing/small-medium-business/security-add-on-plans",
+    note:"SMB version (max 300 users). Adds Entra ID P2, Defender for Endpoint P2 (full EDR), Defender for Office 365 P2, Defender for Identity, and Defender for Cloud Apps on top of Business Premium." },
+  "ao-purview-biz":   { name:"Purview Suite for Business Premium",        short:"Purv. Suite Biz", tier:"Add-on / Compliance", price:9.24,  color:"#107C10", addon:true, compatibleWith:["biz-premium"], docsUrl:"https://www.microsoft.com/en-gb/security/pricing/small-medium-business/security-add-on-plans",
+    note:"SMB version (max 300 users). Adds Insider Risk Management, Communication Compliance, Advanced DLP, Sensitivity Auto-labelling, Premium Audit, eDiscovery Premium, and Customer Lockbox." },
+  "ao-defpurv-biz":   { name:"Defender + Purview Suite for Business",     short:"Def+Purv Biz",    tier:"Add-on / Bundle",    price:12.08, color:"#8764B8", addon:true, compatibleWith:["biz-premium"], docsUrl:"https://www.microsoft.com/en-gb/security/pricing/small-medium-business/security-add-on-plans",
+    note:"Combined SMB bundle (max 300 users). Includes everything in both Defender Suite and Purview Suite for Business Premium at a bundled discount." },
+  // ── Teams & Productivity
+  "ao-teams-phone":   { name:"Teams Phone / UK Calling Plan",             short:"Teams Phone",     tier:"Add-on / Voice",     price:10.00, color:"#005B99", addon:true, compatibleWith:["biz-basic","biz-standard","biz-premium","ent-e3","fl-f1","fl-f3"], docsUrl:"https://www.microsoft.com/en-gb/microsoft-teams/microsoft-teams-phone",
+    note:"Adds UK domestic PSTN calling to Teams. Approximate price — actual cost varies by bundle (domestic only vs. international). E5/E7 include Teams Phone System; this add-on provides the calling plan (dial-out minutes)." },
+  "ao-teams-premium": { name:"Teams Premium",                             short:"Teams Premium",   tier:"Add-on / Voice",     price:7.00,  color:"#005B99", addon:true, compatibleWith:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","fl-f1","fl-f3"], docsUrl:"https://www.microsoft.com/en-gb/microsoft-teams/premium",
+    note:"Adds AI-powered meeting recaps, intelligent recap, custom meeting branding, advanced webinars with registration controls, and meeting guides on top of any Teams-enabled plan." },
+  "ao-power-bi-pro":  { name:"Power BI Pro (standalone)",                 short:"PBI Pro",         tier:"Add-on / Analytics",  price:8.00,  color:"#F2C811", addon:true, compatibleWith:["biz-basic","biz-standard","biz-premium","ent-e3","fl-f1","fl-f3"], docsUrl:"https://www.microsoft.com/en-gb/power-platform/products/power-bi/pricing" },
+};
+
+// ─── FEATURES ───────────────────────────────────────────────────────────────
+const FEATURES = [
+  // Productivity
+  { id:"desktop-apps",     cat:"Productivity", name:"Desktop Office Apps",
+    desc:"Fully installed Word, Excel, PowerPoint, Outlook, OneNote on up to 5 PCs/Macs + 5 tablets + 5 phones per user. Works offline. Not available on F1.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/admin/setup/install-applications",
+    includedIn:["biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"web-apps",         cat:"Productivity", name:"Web & Mobile Office Apps",
+    desc:"Word, Excel, PowerPoint and Outlook via browser and mobile. Full editing on Standard and above; F1 is read-only.",
+    docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/free-office-online-for-the-web",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"teams",            cat:"Productivity", name:"Microsoft Teams",
+    desc:"Chat, video meetings, and collaboration hub. UK Enterprise plans are sold without Teams — Teams Enterprise is purchased separately. F1 has limited scheduling.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoftteams/teams-add-on-licensing/microsoft-teams-add-on-licensing",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"teams-premium",    cat:"Productivity", name:"Teams Premium (Advanced Meetings)",
+    desc:"AI-powered meeting recaps, intelligent recap summaries, custom meeting branding, advanced webinar controls, and meeting guides. Add-on to any Teams-enabled plan.",
+    docsUrl:"https://www.microsoft.com/en-gb/microsoft-teams/premium",
+    includedIn:["ao-teams-premium"] },
+
+  { id:"teams-phone-sys",  cat:"Productivity", name:"Teams Phone System (Cloud PBX)",
+    desc:"Cloud PBX for voicemail, call queues, and auto attendants in Teams. Included in E5/E7. Requires a Calling Plan or Direct Routing for outbound PSTN calls.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoftteams/what-is-phone-system-in-office-365",
+    includedIn:["ent-e5","ent-e7"] },
+
+  { id:"teams-calling",    cat:"Productivity", name:"Teams Phone / PSTN Calling Plan",
+    desc:"Outbound calling to UK landlines and mobiles from Teams. Approximate price — actual cost varies by bundle. E5/E7 include Phone System but still need a Calling Plan for outbound calls.",
+    docsUrl:"https://www.microsoft.com/en-gb/microsoft-teams/microsoft-teams-phone",
+    includedIn:["ao-teams-phone"] },
+
+  { id:"audio-conf",       cat:"Productivity", name:"Audio Conferencing",
+    desc:"Dial-in phone numbers for Teams meetings so participants can join by phone. Included in E5 and E7.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoftteams/audio-conferencing-in-office-365",
+    includedIn:["ent-e5","ent-e7"] },
+
+  { id:"exchange-50gb",    cat:"Productivity", name:"Exchange Online – 50 GB Mailbox",
+    desc:"Business email with a 50 GB primary mailbox per user via Outlook (web, desktop, mobile). Business Basic and Standard plans.",
+    docsUrl:"https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-service-description",
+    includedIn:["biz-basic","biz-standard"] },
+
+  { id:"exchange-100gb",   cat:"Productivity", name:"Exchange Online – 100 GB Mailbox",
+    desc:"100 GB primary mailbox with auto-expanding archive. Business Premium, E3, E5, and E7 all include Exchange Online Plan 2.",
+    docsUrl:"https://learn.microsoft.com/en-us/office365/servicedescriptions/exchange-online-service-description/exchange-online-service-description",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"exchange-2gb",     cat:"Productivity", name:"Exchange Online – 2 GB Mailbox (Frontline)",
+    desc:"F3 includes a 2 GB mailbox via Outlook on the Web only. F1 has no mailbox rights — only an Exchange Kiosk licence for Teams calendar.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/frontline/switch-from-enterprise-to-frontline",
+    includedIn:["fl-f3"] },
+
+  { id:"onedrive-1tb",     cat:"Productivity", name:"OneDrive for Business – 1 TB",
+    desc:"1 TB per-user cloud file storage. All Business plans (Basic, Standard, Premium).",
+    docsUrl:"https://learn.microsoft.com/en-us/onedrive/onedrive",
+    includedIn:["biz-basic","biz-standard","biz-premium"] },
+
+  { id:"onedrive-unlimited",cat:"Productivity",name:"OneDrive for Business – Unlimited",
+    desc:"Effectively unlimited OneDrive storage per user (up to 5 TB by default, expandable). Applies to E3, E5, and E7.",
+    docsUrl:"https://learn.microsoft.com/en-us/onedrive/onedrive",
+    includedIn:["ent-e3","ent-e5","ent-e7"] },
+
+  { id:"onedrive-2gb",     cat:"Productivity", name:"OneDrive for Business – 2 GB (Frontline)",
+    desc:"F1 and F3 users receive only 2 GB of OneDrive storage. This limit is hard-capped and cannot be increased by adding standalone OneDrive licences.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/frontline/switch-from-enterprise-to-frontline",
+    includedIn:["fl-f1","fl-f3"] },
+
+  { id:"sharepoint",       cat:"Productivity", name:"SharePoint Online",
+    desc:"Team sites, intranet portals, and document libraries. F1 users have read-only access.",
+    docsUrl:"https://learn.microsoft.com/en-us/sharepoint/introduction",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"webinar",          cat:"Productivity", name:"Teams Webinar Hosting",
+    desc:"Host webinars with registration pages, attendee reporting, and presenter management tools. Available from Business Standard upwards.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoftteams/set-up-webinars",
+    includedIn:["biz-standard","biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"power-automate",   cat:"Productivity", name:"Power Automate (Standard)",
+    desc:"No-code/low-code workflow automation between apps and services. Standard connectors included.",
+    docsUrl:"https://learn.microsoft.com/en-us/power-automate/getting-started",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"power-apps",       cat:"Productivity", name:"Power Apps (Standard)",
+    desc:"Build custom business apps with low-code tools. Standard connectors included; premium connectors require additional licences.",
+    docsUrl:"https://learn.microsoft.com/en-us/power-apps/powerapps-overview",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"forms",            cat:"Productivity", name:"Microsoft Forms",
+    desc:"Create surveys, quizzes, and polls. Responses collected in Excel. Included across all plans.",
+    docsUrl:"https://support.microsoft.com/en-gb/office/create-a-form-with-microsoft-forms",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"planner",          cat:"Productivity", name:"Microsoft Planner & To Do",
+    desc:"Visual task boards (Planner) and personal to-do lists (To Do). Both integrated with Teams and Microsoft 365.",
+    docsUrl:"https://learn.microsoft.com/en-us/office365/planner/planner-for-admins",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"bookings",         cat:"Productivity", name:"Microsoft Bookings",
+    desc:"Online appointment scheduling. Customers self-book into staff calendars via a customisable booking page.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/bookings/bookings-overview",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"viva-engage",      cat:"Productivity", name:"Viva Engage (formerly Yammer)",
+    desc:"Enterprise social network for communities, announcements, and internal comms. Core functionality included across all plans.",
+    docsUrl:"https://learn.microsoft.com/en-us/viva/engage/overview",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"power-bi-pro",     cat:"Productivity", name:"Power BI Pro",
+    desc:"Advanced data analytics, interactive dashboards, and report sharing. Included in E5/E7. Available as a standalone add-on for all other plans.",
+    docsUrl:"https://learn.microsoft.com/en-us/power-bi/fundamentals/service-features-license-type",
+    includedIn:["ent-e5","ent-e7","ao-power-bi-pro"] },
+
+  // AI
+  { id:"copilot-ai",       cat:"AI", name:"Microsoft 365 Copilot (AI Assistant)",
+    desc:"AI assistant in Word, Excel, PowerPoint, Outlook, and Teams. Summarises meetings, drafts content, and generates insights. Included in E7; add-on for Business and E3/E5.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/copilot/microsoft-365-copilot-overview",
+    includedIn:["ent-e7","ao-copilot"] },
+
+  { id:"copilot-chat",     cat:"AI", name:"Copilot Chat (Free Tier)",
+    desc:"Conversational AI in Teams and web apps using web data and referenced files. Included at no extra cost across all M365 commercial plans from 2026.",
+    docsUrl:"https://support.microsoft.com/en-gb/topic/microsoft-365-copilot-chat-overview",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"agent-365",        cat:"AI", name:"Agent 365 (AI Agent Governance)",
+    desc:"Governance and control plane for AI agents acting as digital workers. Manages agent identities, permissions, compliance, and autonomous actions at scale. Exclusive to E7.",
+    docsUrl:"https://www.microsoft.com/en-gb/microsoft-365/enterprise",
+    includedIn:["ent-e7"] },
+
+  { id:"security-copilot", cat:"AI", name:"Security Copilot Agents",
+    desc:"AI agents embedded in Defender, Purview, Entra, and Intune to automate threat investigations and security responses. Available to E5 and E7 customers.",
+    docsUrl:"https://learn.microsoft.com/en-us/copilot/security/microsoft-security-copilot",
+    includedIn:["ent-e5","ent-e7"] },
+
+  // Identity & Access
+  { id:"entra-free",       cat:"Identity & Access", name:"Microsoft Entra ID (SSO + MFA)",
+    desc:"Basic single sign-on, multi-factor authentication (MFA), and self-service password reset (SSPR). Included with every M365 plan.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/fundamentals/whatis",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"entra-p1",         cat:"Identity & Access", name:"Microsoft Entra ID P1",
+    desc:"Conditional Access policies, dynamic groups, hybrid identity via Entra Connect, and self-service group management.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"conditional-access",cat:"Identity & Access", name:"Conditional Access Policies",
+    desc:"Grant or block access to resources based on user, device, location, and risk signals. The core zero-trust enforcement mechanism.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/identity/conditional-access/overview",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"entra-p2",         cat:"Identity & Access", name:"Microsoft Entra ID P2",
+    desc:"Privileged Identity Management (PIM), risk-based Conditional Access with Identity Protection, and access reviews.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/id-protection/overview-identity-protection",
+    includedIn:["ent-e5","ent-e7","ao-entra-suite","ao-defender-ent","ao-defender-biz","ao-defpurv-biz"] },
+
+  { id:"entra-governance",  cat:"Identity & Access", name:"Entra ID Governance",
+    desc:"Entitlement management, access packages, lifecycle automation, and automated provisioning/de-provisioning.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/id-governance/identity-governance-overview",
+    includedIn:["ent-e7","ao-entra-suite"] },
+
+  { id:"entra-internet",   cat:"Identity & Access", name:"Entra Internet Access (SWG)",
+    desc:"Identity-aware Secure Web Gateway routing internet traffic through Microsoft's network with per-app and per-user access policies.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access",
+    includedIn:["ent-e7","ao-entra-suite"] },
+
+  { id:"entra-private",    cat:"Identity & Access", name:"Entra Private Access (ZTNA)",
+    desc:"Zero Trust Network Access to private apps and resources without a VPN. Identity-centric modern replacement for traditional VPN.",
+    docsUrl:"https://learn.microsoft.com/en-us/entra/global-secure-access/overview-what-is-global-secure-access",
+    includedIn:["ent-e7","ao-entra-suite"] },
+
+  // Device Management
+  { id:"intune",           cat:"Device Management", name:"Microsoft Intune (MDM/MAM)",
+    desc:"Cloud-based mobile device management (MDM) and mobile app management (MAM). Enrol, configure, and secure PCs, phones, and tablets.",
+    docsUrl:"https://learn.microsoft.com/en-us/mem/intune/fundamentals/what-is-intune",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"intune-suite",     cat:"Device Management", name:"Intune Suite (Advanced Management)",
+    desc:"Remote Help, Advanced Analytics, Endpoint Privilege Management, Enterprise App Management, and Cloud PKI — all on top of Intune Plan 1.",
+    docsUrl:"https://learn.microsoft.com/en-us/mem/intune/fundamentals/intune-add-ons",
+    includedIn:["ent-e5","ent-e7","ao-intune-suite"] },
+
+  { id:"windows-ent",      cat:"Device Management", name:"Windows 11 Enterprise Licensing",
+    desc:"Rights to Windows 11 Enterprise edition including virtualisation rights, advanced security features, and Windows Autopatch entitlement.",
+    docsUrl:"https://learn.microsoft.com/en-us/windows/deployment/windows-10-enterprise-faq-itpro",
+    includedIn:["ent-e3","ent-e5","ent-e7","fl-f3"] },
+
+  { id:"autopatch",        cat:"Device Management", name:"Windows Autopatch",
+    desc:"Microsoft-managed Windows and Microsoft 365 Apps update automation. Microsoft handles patching rings, testing, and rollback.",
+    docsUrl:"https://learn.microsoft.com/en-us/windows/deployment/windows-autopatch/overview/windows-autopatch-overview",
+    includedIn:["ent-e3","ent-e5","ent-e7"] },
+
+  // Security
+  { id:"def-antivirus",    cat:"Security", name:"Microsoft Defender Antivirus",
+    desc:"Built-in real-time antivirus and anti-malware protection for Windows endpoints. Included in all M365 plans.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/microsoft-defender-antivirus-windows",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"def-biz",          cat:"Security", name:"Defender for Business (EDR – SMB)",
+    desc:"Enterprise-grade endpoint detection and response (EDR) for up to 300 users. Includes threat hunting and automated remediation.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/defender-business/mdb-overview",
+    includedIn:["biz-premium"] },
+
+  { id:"def-ep1",          cat:"Security", name:"Defender for Endpoint Plan 1",
+    desc:"Next-generation antivirus, attack surface reduction rules, and web content filtering for enterprise. No EDR telemetry.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/defender-endpoint-plan-1",
+    includedIn:["ent-e3","fl-f3"] },
+
+  { id:"def-ep2",          cat:"Security", name:"Defender for Endpoint Plan 2 (Full EDR)",
+    desc:"Full EDR with threat hunting, 6-month data retention, live response capability, and IoT device security.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/defender-endpoint/microsoft-defender-endpoint",
+    includedIn:["ent-e5","ent-e7","ao-defender-ent","ao-defender-biz","ao-defpurv-biz"] },
+
+  { id:"def-o365-p1",      cat:"Security", name:"Defender for Office 365 Plan 1",
+    desc:"Safe Links, Safe Attachments, and anti-phishing for Exchange Online, Teams, SharePoint, and OneDrive. Now bundled into E3.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/defender-for-office-365",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"def-o365-p2",      cat:"Security", name:"Defender for Office 365 Plan 2",
+    desc:"Automated investigation and response (AIR), attack simulation training, Threat Explorer, and threat trackers on top of Plan 1.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/office-365-security/defender-for-office-365",
+    includedIn:["ent-e5","ent-e7","ao-defender-ent","ao-defender-biz","ao-defpurv-biz"] },
+
+  { id:"def-identity",     cat:"Security", name:"Microsoft Defender for Identity",
+    desc:"Monitors Active Directory to detect identity-based threats, lateral movement, and compromised accounts.",
+    docsUrl:"https://learn.microsoft.com/en-us/defender-for-identity/what-is",
+    includedIn:["ent-e5","ent-e7","ao-defender-ent","ao-defender-biz","ao-defpurv-biz"] },
+
+  { id:"def-cloud-apps",   cat:"Security", name:"Defender for Cloud Apps (CASB)",
+    desc:"Cloud Access Security Broker. Shadow IT discovery, app governance, session controls, and SaaS security posture management.",
+    docsUrl:"https://learn.microsoft.com/en-us/defender-cloud-apps/what-is-defender-for-cloud-apps",
+    includedIn:["ent-e5","ent-e7","ao-defender-ent","ao-defender-biz","ao-defpurv-biz"] },
+
+  { id:"def-xdr",          cat:"Security", name:"Microsoft Defender XDR",
+    desc:"Unified extended detection and response correlating signals across endpoints, identity, email, and cloud apps.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/security/defender/microsoft-365-defender",
+    includedIn:["ent-e5","ent-e7","ao-defender-ent"] },
+
+  // Compliance
+  { id:"purview-dlp",      cat:"Compliance", name:"Purview Data Loss Prevention (DLP)",
+    desc:"Prevent accidental sharing of sensitive data (PII, financial records) across Exchange Online, SharePoint, OneDrive, and Teams.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/dlp-learn-about-dlp",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"purview-ip",       cat:"Compliance", name:"Purview Information Protection",
+    desc:"Sensitivity labels and encryption for documents and emails. Classify and protect content at rest and in transit.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/information-protection",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"purview-audit",    cat:"Compliance", name:"Purview Audit (Standard)",
+    desc:"Audit log search for user and admin activity across Microsoft 365. 90-day log retention. Included across all plans.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/audit-solutions-overview",
+    includedIn:["biz-basic","biz-standard","biz-premium","ent-e3","ent-e5","ent-e7","fl-f1","fl-f3"] },
+
+  { id:"purview-audit-p",  cat:"Compliance", name:"Purview Audit (Premium)",
+    desc:"Extended log retention (1 year+), intelligent insights, and high-bandwidth access for forensic investigations.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/audit-premium",
+    includedIn:["ent-e5","ent-e7","ao-purview-ent","ao-purview-biz","ao-defpurv-biz"] },
+
+  { id:"purview-edisco",   cat:"Compliance", name:"Purview eDiscovery (Standard)",
+    desc:"Search, place holds, and export mailboxes and sites for legal cases. Core eDiscovery capabilities.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/ediscovery",
+    includedIn:["ent-e3","ent-e5","ent-e7"] },
+
+  { id:"purview-edisco-p", cat:"Compliance", name:"Purview eDiscovery (Premium)",
+    desc:"Custodian workflows, deep indexing, predictive coding, and review sets for complex legal matters.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/overview-ediscovery-20",
+    includedIn:["ent-e5","ent-e7","ao-purview-ent","ao-purview-biz","ao-defpurv-biz"] },
+
+  { id:"purview-retention",cat:"Compliance", name:"Purview Data Lifecycle Management",
+    desc:"Retention policies and labels to keep or delete content across Microsoft 365 on a schedule. Supports regulatory and legal requirements.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/manage-data-governance",
+    includedIn:["biz-premium","ent-e3","ent-e5","ent-e7"] },
+
+  { id:"purview-insider",  cat:"Compliance", name:"Purview Insider Risk Management",
+    desc:"Detect and act on internal risks — data theft, IP leakage — using ML-based behavioural signals.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/insider-risk-management",
+    includedIn:["ent-e5","ent-e7","ao-purview-ent","ao-purview-biz","ao-defpurv-biz"] },
+
+  { id:"purview-comm",     cat:"Compliance", name:"Purview Communication Compliance",
+    desc:"Monitor communications for regulatory compliance, code-of-conduct violations, and policy breaches across email and Teams.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/communication-compliance",
+    includedIn:["ent-e5","ent-e7","ao-purview-ent","ao-purview-biz","ao-defpurv-biz"] },
+
+  { id:"customer-lockbox", cat:"Compliance", name:"Customer Lockbox",
+    desc:"Require explicit approval before Microsoft engineers can access your tenant content during a support operation.",
+    docsUrl:"https://learn.microsoft.com/en-us/microsoft-365/compliance/customer-lockbox-requests",
+    includedIn:["ent-e5","ent-e7","ao-purview-ent","ao-purview-biz","ao-defpurv-biz"] },
+];
+
+// ─── CONSTANTS ───────────────────────────────────────────────────────────────
+const CATEGORIES  = [...new Set(FEATURES.map(f => f.cat))];
+const TIER_ORDER  = ["Business","Enterprise","Frontline","Add-on / AI","Add-on / Identity","Add-on / Security","Add-on / Compliance","Add-on / Device","Add-on / Bundle","Add-on / Voice","Add-on / Analytics"];
+const TIER_COLORS = { Business:"#0078D4", Enterprise:"#107C10", Frontline:"#8764B8" };
+const CAT_COLORS  = { Productivity:"#0078D4", AI:"#c07000", "Identity & Access":"#CA5010", "Device Management":"#5C2D91", Security:"#C00000", Compliance:"#107C10" };
+const BASE_IDS    = Object.keys(LICENCES).filter(id => LICENCES[id].base);
+const ADDON_IDS   = Object.keys(LICENCES).filter(id => LICENCES[id].addon);
+const fmt = p => "£" + p.toFixed(2);
+
+const ADDON_TIER_COLOR = "#6b7a8d";
+
+function licColour(id) {
+  const lic = LICENCES[id];
+  if (!lic) return "#6b7a8d";
+  return lic.color || ADDON_TIER_COLOR;
+}
+
+// ─── RECOMMENDATION ENGINE ───────────────────────────────────────────────────
+function buildRecommendations(selFeatureIds) {
+  if (!selFeatureIds.length) return [];
+  const results = [];
+  BASE_IDS.forEach(baseId => {
+    const compatAddons = ADDON_IDS.filter(aId => {
+      const ao = LICENCES[aId];
+      return ao.compatibleWith && ao.compatibleWith.includes(baseId);
+    });
+    const usefulAddons = compatAddons.filter(aId =>
+      selFeatureIds.some(fId => {
+        const feat = FEATURES.find(f => f.id === fId);
+        return feat && feat.includedIn.includes(aId) && !feat.includedIn.includes(baseId);
+      })
+    );
+    const subsets = [[]];
+    usefulAddons.forEach(aId => subsets.push([aId]));
+    for (let i=0;i<usefulAddons.length;i++)
+      for (let j=i+1;j<usefulAddons.length;j++)
+        subsets.push([usefulAddons[i],usefulAddons[j]]);
+    for (let i=0;i<usefulAddons.length;i++)
+      for (let j=i+1;j<usefulAddons.length;j++)
+        for (let k=j+1;k<usefulAddons.length;k++)
+          subsets.push([usefulAddons[i],usefulAddons[j],usefulAddons[k]]);
+    subsets.forEach(addonCombo => {
+      const allIds = [baseId,...addonCombo];
+      const covered = selFeatureIds.filter(fId => {
+        const feat = FEATURES.find(f=>f.id===fId);
+        return feat && allIds.some(lid=>feat.includedIn.includes(lid));
+      });
+      if (!covered.length) return;
+      const totalPrice = allIds.reduce((s,id)=>s+LICENCES[id].price,0);
+      const key = allIds.slice().sort().join('+');
+      results.push({ key, baseId, addonIds:addonCombo, allIds, covered:covered.length, total:selFeatureIds.length, pct:covered.length/selFeatureIds.length, price:totalPrice });
+    });
+  });
+  const seen = new Set();
+  return results.filter(r=>{ if(seen.has(r.key)) return false; seen.add(r.key); return true; })
+    .sort((a,b)=>b.pct-a.pct||a.price-b.price).slice(0,12);
+}
+
+// ─── SMALL COMPONENTS ────────────────────────────────────────────────────────
+function Tag({ children, color, small }) {
+  return <span style={{ display:"inline-flex",alignItems:"center",fontSize:small?10:11,fontWeight:700,letterSpacing:"0.05em",textTransform:"uppercase",background:color+"1a",color,padding:small?"2px 6px":"3px 9px",borderRadius:20,whiteSpace:"nowrap" }}>{children}</span>;
+}
+
+function LicBadge({ licId, selected, onClick, size }) {
+  const lic = LICENCES[licId]; if (!lic) return null;
+  return (
+    <button className="bbtn" onClick={onClick} style={{ display:"inline-flex",alignItems:"center",gap:5,padding:size==="sm"?"4px 10px":"6px 13px",borderRadius:8,border:`1.5px solid ${selected?lic.color:"#dde3ea"}`,background:selected?lic.color+"15":"#fff",color:selected?lic.color:"#4a5568",fontSize:size==="sm"?11:13,fontWeight:selected?700:500,cursor:"pointer",transition:"all 0.15s",whiteSpace:"nowrap",fontFamily:"inherit" }}>
+      <span style={{width:6,height:6,borderRadius:"50%",background:lic.color,flexShrink:0}}/>
+      {lic.short}
+      {lic.badge&&<span style={{fontSize:9,background:"#004B1C20",color:"#004B1C",borderRadius:4,padding:"1px 4px",fontWeight:700}}>{lic.badge}</span>}
+      <span style={{fontSize:10,opacity:0.6}}>{fmt(lic.price)}</span>
+    </button>
+  );
+}
+
+function DetailPanel({ feature, onClose }) {
+  if (!feature) return null;
+  return (
+    <div style={{ background:"#fff",borderRadius:14,border:"1.5px solid #0078D430",padding:20,boxShadow:"0 4px 24px #0078D415",position:"relative",marginBottom:14 }}>
+      <button onClick={onClose} style={{ position:"absolute",top:10,right:10,background:"#f0f4f8",border:"none",borderRadius:6,width:26,height:26,cursor:"pointer",fontSize:13,color:"#6b7a8d",fontFamily:"inherit" }}>✕</button>
+      <Tag color={CAT_COLORS[feature.cat]||"#6b7a8d"}>{feature.cat}</Tag>
+      <h3 style={{ margin:"8px 0 6px",fontSize:16,fontWeight:800,color:"#1a2332",fontFamily:"'Sora',sans-serif" }}>{feature.name}</h3>
+      <p style={{ margin:"0 0 14px",fontSize:13,color:"#4a5568",lineHeight:1.6 }}>{feature.desc}</p>
+      <div style={{ marginBottom:14 }}>
+        <div style={{ fontSize:11,fontWeight:700,color:"#8896a5",textTransform:"uppercase",letterSpacing:"0.06em",marginBottom:8 }}>Included in</div>
+        <div style={{ display:"flex",flexWrap:"wrap",gap:6 }}>
+          {feature.includedIn.map(id=>{ const lic=LICENCES[id]; return lic?(
+            <span key={id} style={{ display:"inline-flex",alignItems:"center",gap:5,padding:"5px 11px",borderRadius:8,background:lic.color+"15",color:lic.color,fontSize:12,fontWeight:700,border:`1px solid ${lic.color}30` }}>
+              <span style={{width:6,height:6,borderRadius:"50%",background:lic.color}}/>
+              {lic.name}<span style={{fontSize:10,opacity:0.7,marginLeft:2}}>{fmt(lic.price)}/mo</span>
+              {lic.addon&&<span style={{fontSize:9,background:"#00000012",borderRadius:3,padding:"1px 4px"}}>add-on</span>}
+            </span>):null; })}
+        </div>
+      </div>
+      <a href={feature.docsUrl} target="_blank" rel="noopener noreferrer" style={{ display:"inline-flex",alignItems:"center",gap:6,fontSize:13,fontWeight:600,color:"#0078D4",background:"#0078D410",borderRadius:8,padding:"7px 14px",textDecoration:"none",border:"1px solid #0078D430" }}>📄 Microsoft Docs ↗</a>
+    </div>
+  );
+}
+
+function RecCard({ rec }) {
+  const base=LICENCES[rec.baseId], addons=rec.addonIds.map(id=>LICENCES[id]);
+  return (
+    <div style={{ padding:"10px 12px",borderRadius:10,marginBottom:6,border:`1.5px solid ${rec.pct===1?base.color:"#e8ecf0"}`,background:rec.pct===1?base.color+"08":"#fafbff" }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:4 }}>
+        <div style={{ flex:1 }}>
+          <div style={{ fontSize:13,fontWeight:700,color:"#1a2332",display:"flex",alignItems:"center",gap:5,flexWrap:"wrap" }}>
+            {base.name}{base.badge&&<span style={{fontSize:9,background:"#004B1C20",color:"#004B1C",borderRadius:4,padding:"1px 5px",fontWeight:700}}>{base.badge}</span>}
+          </div>
+          {addons.length>0&&<div style={{ display:"flex",flexWrap:"wrap",gap:3,marginTop:3 }}>{addons.map(ao=><span key={ao.name} style={{ fontSize:11,background:ao.color+"18",color:ao.color,borderRadius:5,padding:"2px 7px",fontWeight:600,border:`1px solid ${ao.color}30` }}>+ {ao.name}</span>)}</div>}
+        </div>
+        <div style={{ textAlign:"right",flexShrink:0,marginLeft:8 }}>
+          <div style={{ fontSize:12,fontWeight:800,color:rec.pct===1?"#107C10":"#CA5010" }}>{rec.covered}/{rec.total}</div>
+          <div style={{ fontSize:12,fontWeight:700,color:base.color }}>{fmt(rec.price)}<span style={{fontSize:10,fontWeight:400,color:"#8896a5"}}>/mo</span></div>
+          {rec.covered<rec.total&&<div style={{fontSize:10,color:"#dc3545"}}>{rec.total-rec.covered} missing</div>}
+        </div>
+      </div>
+      <div style={{ background:"#e8ecf0",borderRadius:4,height:4,overflow:"hidden",marginBottom:4 }}>
+        <div style={{ width:`${rec.pct*100}%`,height:"100%",background:rec.pct===1?"#107C10":base.color,borderRadius:4,transition:"width 0.3s" }}/>
+      </div>
+      <a href={base.docsUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize:11,color:"#0078D4",textDecoration:"none" }}>View on Microsoft.com ↗</a>
+    </div>
+  );
+}
+
+// ─── COMPARE SLOT EDITOR ─────────────────────────────────────────────────────
+function SlotEditor({ slot, onChange, onClose }) {
+  const [localBase,   setLocalBase]   = useState(slot.baseId);
+  const [localAddons, setLocalAddons] = useState([...slot.addonIds]);
+
+  const compatAddons = ADDON_IDS.filter(aId => {
+    const ao = LICENCES[aId];
+    return ao.compatibleWith && ao.compatibleWith.includes(localBase);
+  });
+
+  const togAddon = id => setLocalAddons(s => s.includes(id)?s.filter(x=>x!==id):[...s,id]);
+
+  const totalPrice = [localBase,...localAddons].reduce((s,id)=>s+(LICENCES[id]?.price||0),0);
+
+  const tierGroups = {};
+  BASE_IDS.forEach(id => {
+    const t = LICENCES[id].tier;
+    if (!tierGroups[t]) tierGroups[t]=[];
+    tierGroups[t].push(id);
+  });
+
+  return (
+    <div style={{ background:"#fff",border:"1.5px solid #0078D440",borderRadius:12,padding:16,boxShadow:"0 4px 20px #0078D420" }}>
+      <div style={{ display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12 }}>
+        <span style={{ fontSize:13,fontWeight:700,color:"#1a2332" }}>Edit comparison column</span>
+        <button onClick={onClose} style={{ background:"#f0f4f8",border:"none",borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:12,color:"#6b7a8d",fontFamily:"inherit" }}>✕</button>
+      </div>
+
+      <div style={{ marginBottom:12 }}>
+        <div style={{ fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",color:"#8896a5",marginBottom:7 }}>Base licence</div>
+        {Object.entries(tierGroups).map(([tier,ids])=>(
+          <div key={tier} style={{ marginBottom:8 }}>
+            <div style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.06em",color:TIER_COLORS[tier]||"#8896a5",marginBottom:4 }}>{tier}</div>
+            <div style={{ display:"flex",flexWrap:"wrap",gap:4 }}>
+              {ids.map(id=>{
+                const lic=LICENCES[id];
+                const sel=localBase===id;
+                return (
+                  <button key={id} className="bbtn" onClick={()=>{ setLocalBase(id); setLocalAddons([]); }}
+                    style={{ display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:7,border:`1.5px solid ${sel?lic.color:"#dde3ea"}`,background:sel?lic.color+"18":"#fff",color:sel?lic.color:"#4a5568",fontSize:11,fontWeight:sel?700:500,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap" }}>
+                    <span style={{width:6,height:6,borderRadius:"50%",background:lic.color}}/>
+                    {lic.short}
+                    {lic.badge&&<span style={{fontSize:8,background:"#004B1C20",color:"#004B1C",borderRadius:3,padding:"1px 4px",fontWeight:700}}>{lic.badge}</span>}
+                    <span style={{fontSize:10,opacity:0.6}}>{fmt(lic.price)}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {compatAddons.length>0&&(
+        <div style={{ marginBottom:12 }}>
+          <div style={{ fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",color:"#8896a5",marginBottom:7 }}>Add-ons compatible with {LICENCES[localBase]?.short}</div>
+          <div style={{ display:"flex",flexWrap:"wrap",gap:4 }}>
+            {compatAddons.map(id=>{
+              const lic=LICENCES[id];
+              const sel=localAddons.includes(id);
+              return (
+                <button key={id} className="bbtn" onClick={()=>togAddon(id)}
+                  style={{ display:"inline-flex",alignItems:"center",gap:4,padding:"4px 10px",borderRadius:7,border:`1.5px solid ${sel?lic.color:"#dde3ea"}`,background:sel?lic.color+"18":"#fff",color:sel?lic.color:"#4a5568",fontSize:11,fontWeight:sel?700:500,cursor:"pointer",fontFamily:"inherit",whiteSpace:"nowrap" }}>
+                  <span style={{width:6,height:6,borderRadius:"50%",background:lic.color}}/>
+                  {lic.short}
+                  <span style={{fontSize:10,opacity:0.6}}>{fmt(lic.price)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",borderTop:"1px solid #f0f4f8",paddingTop:10 }}>
+        <span style={{ fontSize:12,color:"#8896a5" }}>Total: <strong style={{color:"#1a2332"}}>{fmt(totalPrice)}/mo</strong></span>
+        <button onClick={()=>{ onChange({ baseId:localBase, addonIds:localAddons }); onClose(); }}
+          style={{ padding:"7px 16px",borderRadius:8,border:"none",background:"#0078D4",color:"#fff",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+          Apply
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─── COMPARE SLOT COLUMN HEADER ──────────────────────────────────────────────
+function SlotHeader({ slot, onEdit, onRemove, isEditing }) {
+  const base   = LICENCES[slot.baseId];
+  const addons = slot.addonIds.map(id=>LICENCES[id]).filter(Boolean);
+  const total  = [slot.baseId,...slot.addonIds].reduce((s,id)=>s+(LICENCES[id]?.price||0),0);
+  return (
+    <th style={{ textAlign:"center",padding:"10px 8px",background:"#f7f9fc",borderBottom:`3px solid ${base.color}`,minWidth:130,verticalAlign:"top" }}>
+      <div style={{ fontSize:12,fontWeight:800,color:"#1a2332" }}>{base.short}</div>
+      {addons.map(ao=><div key={ao.name} style={{ fontSize:10,color:ao.color,fontWeight:600,marginTop:1 }}>+{ao.short}</div>)}
+      <div style={{ fontSize:14,fontWeight:800,color:base.color,marginTop:3 }}>{fmt(total)}<span style={{ fontSize:9,fontWeight:500,color:"#8896a5" }}>/mo</span></div>
+      {base.badge&&<div style={{ fontSize:8,background:"#004B1C20",color:"#004B1C",borderRadius:4,padding:"1px 5px",fontWeight:700,marginTop:2,display:"inline-block" }}>{base.badge}</div>}
+      <div style={{ display:"flex",gap:4,justifyContent:"center",marginTop:5 }}>
+        <button onClick={onEdit} style={{ fontSize:10,padding:"2px 8px",borderRadius:5,border:`1px solid ${isEditing?"#0078D4":"#dde3ea"}`,background:isEditing?"#0078D410":"#fff",color:isEditing?"#0078D4":"#6b7a8d",cursor:"pointer",fontFamily:"inherit" }}>
+          {isEditing?"▲ Close":"✏️ Edit"}
+        </button>
+        <button onClick={onRemove} style={{ fontSize:10,padding:"2px 8px",borderRadius:5,border:"1px solid #dde3ea",background:"#fff",color:"#dc3545",cursor:"pointer",fontFamily:"inherit" }}>✕</button>
+      </div>
+      <a href={base.docsUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize:10,color:"#0078D4",textDecoration:"none",display:"block",marginTop:3 }}>Docs ↗</a>
+    </th>
+  );
+}
+
+// ─── MAIN APP ────────────────────────────────────────────────────────────────
+let _slotId = 0;
+const newSlot = (baseId="biz-premium", addonIds=[]) => ({ id:`slot-${++_slotId}`, baseId, addonIds });
+
+function App() {
+  const [tab,          setTab]          = useState("features");
+  const [selFeatures,  setSelFeatures]  = useState([]);
+  const [selLicences,  setSelLicences]  = useState([]);
+  const [filterCat,    setFilterCat]    = useState("All");
+  const [search,       setSearch]       = useState("");
+  const [focusFeat,    setFocusFeat]    = useState(null);
+  const [diffOnly,       setDiffOnly]       = useState(false);
+  const [compareSlots,   setCompareSlots]   = useState([newSlot("ent-e3"),newSlot("ent-e5")]);
+  const [editingSlotId,  setEditingSlotId]  = useState(null);
+  const [cmpFocusFeat,   setCmpFocusFeat]   = useState(null);
+
+  const togFeat = id => setSelFeatures(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id]);
+  const togLic  = id => setSelLicences(s=>s.includes(id)?s.filter(x=>x!==id):[...s,id]);
+
+  const addSlot    = ()     => { if(compareSlots.length<5) setCompareSlots(s=>[...s,newSlot()]); };
+  const removeSlot = id     => setCompareSlots(s=>s.filter(sl=>sl.id!==id));
+  const updateSlot = (id,data) => setCompareSlots(s=>s.map(sl=>sl.id===id?{...sl,...data}:sl));
+  const toggleEdit = id     => setEditingSlotId(prev=>prev===id?null:id);
+
+  const slotCovers = (slot, featureId) => {
+    const feat = FEATURES.find(f=>f.id===featureId);
+    if (!feat) return false;
+    return [slot.baseId,...slot.addonIds].some(lid=>feat.includedIn.includes(lid));
+  };
+
+  const filtered = useMemo(()=>FEATURES.filter(f=>{
+    const mc=filterCat==="All"||f.cat===filterCat;
+    const ms=!search||f.name.toLowerCase().includes(search.toLowerCase())||f.desc.toLowerCase().includes(search.toLowerCase());
+    return mc&&ms;
+  }),[filterCat,search]);
+
+  const licRecs = useMemo(()=>buildRecommendations(selFeatures),[selFeatures]);
+
+  const TABS=[["features","🔍 Features → Licences"],["licences","🪪 Licences → Features"],["compare","⚖️ Compare"]];
+
+  return (
+    <div style={{ minHeight:"100vh",background:"#f4f6fb",fontFamily:"'DM Sans','Segoe UI',sans-serif" }}>
+      {/* HEADER */}
+      <div style={{ background:"#fff",borderBottom:"1px solid #e8ecf0",padding:"0 20px",position:"sticky",top:0,zIndex:100,boxShadow:"0 2px 10px #0009" }}>
+        <div style={{ maxWidth:1400,margin:"0 auto",display:"flex",alignItems:"center",justifyContent:"space-between",height:56,gap:12,flexWrap:"wrap" }}>
+          <div style={{ display:"flex",alignItems:"center",gap:10 }}>
+            <div style={{ width:32,height:32,background:"linear-gradient(135deg,#0078D4,#107C10)",borderRadius:8,display:"flex",alignItems:"center",justifyContent:"center",fontSize:16,flexShrink:0 }}>☁️</div>
+            <div>
+              <div style={{ fontSize:15,fontWeight:800,color:"#1a2332",lineHeight:1.1,fontFamily:"'Sora',sans-serif" }}>Seb's 365 Navigator</div>
+              <div style={{ fontSize:9,color:"#8896a5",letterSpacing:"0.04em" }}>UK EDITION · FEATURE ↔ LICENCE LOOKUP · PRICES EX-VAT</div>
+            </div>
+          </div>
+          <div style={{ display:"flex",gap:3,background:"#f0f4f8",borderRadius:10,padding:3 }}>
+            {TABS.map(([t,label])=>(
+              <button key={t} onClick={()=>setTab(t)} style={{ padding:"5px 13px",borderRadius:7,border:"none",background:tab===t?"#fff":"transparent",color:tab===t?"#1a2332":"#6b7a8d",fontWeight:tab===t?700:500,fontSize:12,cursor:"pointer",boxShadow:tab===t?"0 1px 4px #0001":"none",transition:"all 0.15s",whiteSpace:"nowrap",fontFamily:"inherit" }}>{label}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth:1400,margin:"0 auto",padding:"18px 14px 60px" }}>
+
+        {/* ══ FEATURES → LICENCES ══ */}
+        {tab==="features"&&(
+          <div style={{ display:"grid",gridTemplateColumns:"1fr 340px",gap:18,alignItems:"start" }}>
+            <div>
+              <div style={{ marginBottom:14 }}>
+                <h1 style={{ margin:"0 0 3px",fontSize:20,fontWeight:800,color:"#1a2332",fontFamily:"'Sora',sans-serif" }}>Find Licences by Feature</h1>
+                <p style={{ margin:0,fontSize:13,color:"#6b7a8d" }}>Select features you need → see which licences (including base + add-on combinations) cover them.</p>
+              </div>
+              <div style={{ display:"flex",gap:8,marginBottom:12,flexWrap:"wrap" }}>
+                <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search features…"
+                  style={{ flex:1,minWidth:180,padding:"7px 13px",borderRadius:9,border:"1.5px solid #dde3ea",fontSize:13,background:"#fff",fontFamily:"inherit" }}/>
+                <div style={{ display:"flex",gap:4,flexWrap:"wrap" }}>
+                  {["All",...CATEGORIES].map(c=>(
+                    <button key={c} onClick={()=>setFilterCat(c)} style={{ padding:"6px 11px",borderRadius:8,border:`1.5px solid ${filterCat===c?(CAT_COLORS[c]||"#0078D4"):"#dde3ea"}`,background:filterCat===c?(CAT_COLORS[c]||"#0078D4")+"12":"#fff",color:filterCat===c?(CAT_COLORS[c]||"#0078D4"):"#4a5568",fontSize:11,fontWeight:filterCat===c?700:500,cursor:"pointer",fontFamily:"inherit" }}>{c}</button>
+                  ))}
+                </div>
+              </div>
+              {CATEGORIES.filter(c=>filterCat==="All"||filterCat===c).map(cat=>{
+                const catF=filtered.filter(f=>f.cat===cat); if(!catF.length) return null;
+                return (
+                  <div key={cat} style={{ marginBottom:20 }}>
+                    <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8 }}>
+                      <Tag color={CAT_COLORS[cat]||"#6b7a8d"}>{cat}</Tag>
+                      <span style={{ fontSize:11,color:"#8896a5" }}>{catF.length} features</span>
+                    </div>
+                    {catF.map(f=>{
+                      const isSel=selFeatures.includes(f.id), isFoc=focusFeat?.id===f.id;
+                      return (
+                        <div key={f.id} className="frow" onClick={()=>{ togFeat(f.id); setFocusFeat(isFoc?null:f); }}
+                          style={{ padding:"10px 13px",borderRadius:10,cursor:"pointer",border:`1.5px solid ${isFoc?"#0078D4":isSel?CAT_COLORS[f.cat]+"60":"#e8ecf0"}`,background:isSel?CAT_COLORS[f.cat]+"08":"#fff",transition:"all 0.15s",marginBottom:5,display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:12 }}>
+                          <div style={{ flex:1 }}>
+                            <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:2,flexWrap:"wrap" }}>
+                              <span style={{ fontSize:14,fontWeight:isSel?700:500,color:"#1a2332" }}>{f.name}</span>
+                              {isSel&&<span style={{ fontSize:10,background:CAT_COLORS[f.cat]+"20",color:CAT_COLORS[f.cat],borderRadius:4,padding:"1px 6px",fontWeight:700 }}>Selected</span>}
+                            </div>
+                            <p style={{ margin:0,fontSize:12,color:"#6b7a8d",lineHeight:1.5 }}>{f.desc}</p>
+                          </div>
+                          <div style={{ flexShrink:0,display:"flex",flexWrap:"wrap",gap:3,justifyContent:"flex-end",maxWidth:160 }}>
+                            {f.includedIn.map(id=><span key={id} style={{ fontSize:10,fontWeight:700,background:licColour(id)+"18",color:licColour(id),padding:"2px 5px",borderRadius:4 }}>{LICENCES[id]?.short}</span>)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })}
+            </div>
+            {/* RIGHT PANEL */}
+            <div style={{ position:"sticky",top:68 }}>
+              {focusFeat&&<DetailPanel feature={focusFeat} onClose={()=>setFocusFeat(null)}/>}
+              <div style={{ background:"#fff",borderRadius:14,border:"1.5px solid #e8ecf0",overflow:"hidden",boxShadow:"0 3px 18px #0009" }}>
+                <div style={{ background:"linear-gradient(135deg,#0078D4,#107C10)",padding:"16px 18px" }}>
+                  <h2 style={{ margin:"0 0 2px",fontSize:14,fontWeight:800,color:"#fff",fontFamily:"'Sora',sans-serif" }}>Licence Recommendations</h2>
+                  <p style={{ margin:0,fontSize:11,color:"#ffffffb0" }}>{selFeatures.length===0?"Select features on the left":`Based on ${selFeatures.length} feature${selFeatures.length!==1?"s":""}. Includes base + add-on combinations.`}</p>
+                </div>
+                <div style={{ padding:"14px 16px" }}>
+                  {!selFeatures.length?(
+                    <div style={{ textAlign:"center",padding:"28px 0",color:"#b0bac6" }}>
+                      <div style={{ fontSize:36,marginBottom:8 }}>🎯</div>
+                      <div style={{ fontSize:13 }}>Tick features to see matching licences</div>
+                    </div>
+                  ):(
+                    <>
+                      <div style={{ marginBottom:14 }}>
+                        <div style={{ fontSize:11,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.05em",color:"#8896a5",marginBottom:7 }}>Selected features</div>
+                        <div style={{ display:"flex",flexWrap:"wrap",gap:4 }}>
+                          {selFeatures.map(id=>{ const f=FEATURES.find(x=>x.id===id); return f?(<span key={id} onClick={()=>togFeat(id)} style={{ fontSize:11,background:"#f0f4f8",color:"#4a5568",borderRadius:6,padding:"3px 8px",cursor:"pointer",border:"1px solid #dde3ea",display:"inline-flex",alignItems:"center",gap:4 }}>{f.name}<span style={{ color:"#dc3545",fontWeight:700 }}>×</span></span>):null; })}
+                        </div>
+                      </div>
+                      {licRecs.length===0?(<div style={{ textAlign:"center",padding:"16px 0",color:"#b0bac6",fontSize:13 }}>No licences cover these features.</div>):(licRecs.map(rec=><RecCard key={rec.key} rec={rec}/>))}
+                      <button onClick={()=>{ setSelFeatures([]); setFocusFeat(null); }} style={{ width:"100%",marginTop:8,padding:"8px",borderRadius:8,border:"1.5px solid #e8ecf0",background:"#fff",color:"#6b7a8d",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Clear Selection</button>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ══ LICENCES → FEATURES ══ */}
+        {tab==="licences"&&(
+          <div style={{ display:"grid",gridTemplateColumns:"260px 1fr",gap:18,alignItems:"start" }}>
+            <div style={{ position:"sticky",top:68 }}>
+              <div style={{ background:"#fff",borderRadius:14,border:"1.5px solid #e8ecf0",padding:16,boxShadow:"0 2px 12px #0007" }}>
+                <h2 style={{ margin:"0 0 14px",fontSize:15,fontWeight:800,color:"#1a2332",fontFamily:"'Sora',sans-serif" }}>Select Licences</h2>
+                {["Business","Enterprise","Frontline"].map(tier=>{
+                  const lics=Object.entries(LICENCES).filter(([,l])=>l.tier===tier);
+                  return (
+                    <div key={tier} style={{ marginBottom:14 }}>
+                      <div style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:TIER_COLORS[tier],marginBottom:7 }}>{tier}</div>
+                      <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
+                        {lics.map(([id])=><LicBadge key={id} licId={id} selected={selLicences.includes(id)} onClick={()=>togLic(id)}/>)}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div style={{ marginBottom:14 }}>
+                  <div style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.07em",color:"#6b7a8d",marginBottom:7 }}>Add-ons</div>
+                  <div style={{ display:"flex",flexDirection:"column",gap:4 }}>
+                    {ADDON_IDS.map(id=><LicBadge key={id} licId={id} selected={selLicences.includes(id)} onClick={()=>togLic(id)}/>)}
+                  </div>
+                </div>
+                {selLicences.length>0&&<button onClick={()=>setSelLicences([])} style={{ width:"100%",padding:"7px",borderRadius:8,border:"1.5px solid #e8ecf0",background:"#fff",color:"#6b7a8d",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit" }}>Clear All</button>}
+              </div>
+            </div>
+            <div>
+              <div style={{ marginBottom:14 }}>
+                <h1 style={{ margin:"0 0 3px",fontSize:20,fontWeight:800,color:"#1a2332",fontFamily:"'Sora',sans-serif" }}>What's Included in Your Licences</h1>
+                <p style={{ margin:0,fontSize:13,color:"#6b7a8d" }}>Select licences (including add-ons) to browse every feature they include.</p>
+              </div>
+              {!selLicences.length?(
+                <div style={{ textAlign:"center",padding:"60px",background:"#fff",borderRadius:14,border:"1.5px solid #e8ecf0",color:"#b0bac6" }}>
+                  <div style={{ fontSize:40,marginBottom:10 }}>🪪</div>
+                  <div style={{ fontSize:14 }}>Select one or more licences to explore their features</div>
+                </div>
+              ):(
+                <>
+                  <div style={{ background:"#fff",borderRadius:14,border:"1.5px solid #e8ecf0",padding:14,marginBottom:16,display:"flex",flexWrap:"wrap",gap:10 }}>
+                    {selLicences.map(id=>{ const lic=LICENCES[id]; const count=FEATURES.filter(f=>f.includedIn.includes(id)).length; return (
+                      <div key={id} style={{ display:"inline-flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,background:lic.color+"10",border:`1.5px solid ${lic.color}40` }}>
+                        <span style={{ width:8,height:8,borderRadius:"50%",background:lic.color }}/>
+                        <div>
+                          <div style={{ fontSize:13,fontWeight:700,color:lic.color }}>{lic.name}</div>
+                          <div style={{ fontSize:11,color:"#8896a5" }}>{count} features · {fmt(lic.price)}/mo ex-VAT</div>
+                        </div>
+                      </div>
+                    ); })}
+                  </div>
+                  {CATEGORIES.map(cat=>{
+                    const catF=FEATURES.filter(f=>f.cat===cat&&selLicences.some(id=>f.includedIn.includes(id)));
+                    if(!catF.length) return null;
+                    return (
+                      <div key={cat} style={{ marginBottom:18 }}>
+                        <div style={{ display:"flex",alignItems:"center",gap:8,marginBottom:8 }}>
+                          <Tag color={CAT_COLORS[cat]||"#6b7a8d"}>{cat}</Tag>
+                          <span style={{ fontSize:11,color:"#8896a5" }}>{catF.length} features</span>
+                        </div>
+                        {catF.map(f=>(
+                          <div key={f.id} style={{ padding:"10px 13px",borderRadius:9,marginBottom:5,border:"1px solid #e8ecf0",background:"#fff",display:"flex",justifyContent:"space-between",alignItems:"flex-start" }}>
+                            <div style={{ flex:1 }}>
+                              <div style={{ fontSize:13,fontWeight:600,color:"#1a2332",marginBottom:2 }}>{f.name}</div>
+                              <p style={{ margin:0,fontSize:11,color:"#8896a5",lineHeight:1.5 }}>{f.desc}</p>
+                            </div>
+                            <div style={{ flexShrink:0,marginLeft:12,display:"flex",flexDirection:"column",alignItems:"flex-end",gap:5 }}>
+                              <div style={{ display:"flex",gap:3,flexWrap:"wrap",justifyContent:"flex-end",maxWidth:160 }}>
+                                {f.includedIn.filter(id=>selLicences.includes(id)).map(id=><span key={id} style={{ fontSize:10,fontWeight:700,background:licColour(id)+"18",color:licColour(id),padding:"2px 5px",borderRadius:4 }}>{LICENCES[id]?.short}</span>)}
+                              </div>
+                              <a href={f.docsUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize:10,color:"#0078D4",textDecoration:"none" }}>Docs ↗</a>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══ COMPARE ══ */}
+        {tab==="compare"&&(
+          <div>
+            <div style={{ display:"flex",alignItems:"flex-start",justifyContent:"space-between",gap:12,flexWrap:"wrap",marginBottom:14 }}>
+              <div>
+                <h1 style={{ margin:"0 0 3px",fontSize:20,fontWeight:800,color:"#1a2332",fontFamily:"'Sora',sans-serif" }}>Compare Licences Side-by-Side</h1>
+                <p style={{ margin:0,fontSize:13,color:"#6b7a8d" }}>Build each column as a base licence + add-ons. Up to 5 columns. Click ✓/— to open Microsoft Docs.</p>
+              </div>
+              <div style={{ display:"flex",gap:8,flexShrink:0,flexWrap:"wrap" }}>
+                {compareSlots.length<5&&(
+                  <button onClick={addSlot} style={{ display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:9,border:"1.5px solid #0078D4",background:"#0078D410",color:"#0078D4",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit" }}>
+                    ＋ Add column
+                  </button>
+                )}
+                <button onClick={()=>setDiffOnly(d=>!d)} style={{ display:"inline-flex",alignItems:"center",gap:6,padding:"8px 14px",borderRadius:9,border:`1.5px solid ${diffOnly?"#0078D4":"#dde3ea"}`,background:diffOnly?"#0078D4":"#fff",color:diffOnly?"#fff":"#4a5568",fontSize:12,fontWeight:700,cursor:"pointer",fontFamily:"inherit",transition:"all 0.15s" }}>
+                  {diffOnly?"🔍 Differences only":"⚡ Show differences only"}
+                </button>
+              </div>
+            </div>
+
+            {/* Slot editors (inline, opens below header) */}
+            {compareSlots.map(slot=>editingSlotId===slot.id&&(
+              <div key={`editor-${slot.id}`} style={{ marginBottom:14 }}>
+                <SlotEditor slot={slot} onChange={data=>updateSlot(slot.id,data)} onClose={()=>setEditingSlotId(null)}/>
+              </div>
+            ))}
+
+            {!compareSlots.length?(
+              <div style={{ textAlign:"center",padding:"60px",background:"#fff",borderRadius:14,border:"1.5px solid #e8ecf0",color:"#b0bac6" }}>
+                <div style={{ fontSize:40,marginBottom:10 }}>⚖️</div>
+                <div style={{ fontSize:14 }}>Click "Add column" to start building your comparison</div>
+              </div>
+            ):(
+              <>
+                {cmpFocusFeat&&(
+                  <div style={{ marginBottom:14 }}>
+                    <DetailPanel feature={cmpFocusFeat} onClose={()=>setCmpFocusFeat(null)}/>
+                  </div>
+                )}
+              <div style={{ overflowX:"auto",borderRadius:14,border:"1.5px solid #e8ecf0",background:"#fff",boxShadow:"0 2px 12px #0007" }}>
+                <table style={{ width:"100%",borderCollapse:"collapse",minWidth:400 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign:"left",padding:"12px 14px",background:"#f7f9fc",borderBottom:"2px solid #e8ecf0",fontSize:11,fontWeight:700,color:"#6b7a8d",textTransform:"uppercase",letterSpacing:"0.05em",minWidth:200,position:"sticky",left:0,zIndex:2,boxShadow:"2px 0 4px #0001" }}>Feature <span style={{fontWeight:400,textTransform:"none",fontSize:10,opacity:0.7}}>— click any row for details</span></th>
+                      {compareSlots.map(slot=>(
+                        <SlotHeader key={slot.id} slot={slot} isEditing={editingSlotId===slot.id}
+                          onEdit={()=>toggleEdit(slot.id)} onRemove={()=>{ removeSlot(slot.id); if(editingSlotId===slot.id) setEditingSlotId(null); }}/>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {CATEGORIES.map(cat=>{
+                      const allCatF=FEATURES.filter(f=>f.cat===cat);
+                      const catF=diffOnly
+                        ? allCatF.filter(f=>{ const vals=compareSlots.map(sl=>slotCovers(sl,f.id)); return !vals.every(v=>v===vals[0]); })
+                        : allCatF;
+                      if(!catF.length) return null;
+                      return [
+                        <tr key={"h-"+cat}>
+                          <td colSpan={compareSlots.length+1} style={{ padding:"9px 14px 4px",background:"#f7f9fc",borderTop:"1px solid #e8ecf0" }}>
+                            <Tag color={CAT_COLORS[cat]||"#6b7a8d"}>{cat}</Tag>
+                          </td>
+                        </tr>,
+                        ...catF.map((f,fi)=>{
+                          const isActive = cmpFocusFeat?.id===f.id;
+                          const rowBg = isActive ? "#e8f0fe" : fi%2===0?"#fff":"#fafbff";
+                          return (
+                          <tr key={f.id} style={{ background:rowBg }}>
+                            <td onClick={()=>setCmpFocusFeat(isActive?null:f)}
+                              style={{ padding:"9px 14px",borderBottom:"1px solid #f0f4f8",position:"sticky",left:0,background:rowBg,zIndex:1,boxShadow:"2px 0 4px #0001",cursor:"pointer",borderLeft:`3px solid ${isActive?"#0078D4":"transparent"}`,transition:"all 0.12s" }}>
+                              <div style={{ display:"flex",alignItems:"center",justifyContent:"space-between",gap:6 }}>
+                                <div>
+                                  <div style={{ fontSize:13,fontWeight:isActive?700:600,color:isActive?"#0078D4":"#1a2332" }}>{f.name}</div>
+                                  <div style={{ fontSize:11,color:"#8896a5",lineHeight:1.4,maxWidth:260 }}>{f.desc.slice(0,90)}{f.desc.length>90?"…":""}</div>
+                                </div>
+                                <span style={{ fontSize:11,color:"#0078D4",opacity:isActive?1:0,transition:"opacity 0.12s",flexShrink:0 }}>ℹ︎</span>
+                              </div>
+                            </td>
+                            {compareSlots.map(slot=>{
+                              const has=slotCovers(slot,f.id);
+                              return (
+                                <td key={slot.id} style={{ textAlign:"center",borderBottom:"1px solid #f0f4f8",padding:"9px 8px",background:rowBg }}>
+                                  <a href={f.docsUrl} target="_blank" rel="noopener noreferrer"
+                                    title={(has?"✓ Included":"Not included")+" — click for Docs"}
+                                    style={{ textDecoration:"none",display:"inline-block" }}>
+                                    {has?<span style={{ fontSize:17,color:"#107C10",fontWeight:700 }}>✓</span>:<span style={{ fontSize:15,color:"#dde3ea" }}>—</span>}
+                                  </a>
+                                </td>
+                              );
+                            })}
+                          </tr>
+                          );
+                        })
+                      ];
+                    })}
+                  </tbody>
+                </table>
+              </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* FOOTER */}
+        <div style={{ marginTop:32,padding:"10px 16px",background:"#fffbf0",borderRadius:10,border:"1px solid #ffe8a0",fontSize:12,color:"#78350f" }}>
+          💡 <strong>UK pricing note:</strong> All prices are per user/month on an annual commitment, excluding VAT (20% UK VAT applies).
+          Storage: Basic/Standard = 50 GB mailbox · 1 TB OneDrive. Premium/E3/E5/E7 = 100 GB mailbox · unlimited OneDrive. F3 = 2 GB mailbox · 2 GB OneDrive. F1 = no mailbox · 2 GB OneDrive.
+          Teams Phone price is approximate (£8–12/mo depending on bundle). E7 GBP price is estimated (~£79); official pricing to be confirmed by Microsoft. Defender Suite and Purview Suite renamed from E5 Security / E5 Compliance in October 2025.
+          Always verify at <a href="https://www.microsoft.com/en-gb/microsoft-365" target="_blank" rel="noopener noreferrer" style={{ color:"#0078D4" }}>microsoft.com/en-gb</a>.
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>
