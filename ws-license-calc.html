@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Windows Server & SQL License Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0f14;
+  --surface: #131720;
+  --surface2: #1a2030;
+  --surface3: #1e2639;
+  --border: #2a3347;
+  --border-bright: #3d4f6e;
+  --text: #dce6f5;
+  --text-muted: #6b7fa3;
+  --text-dim: #8fa3c7;
+  --amber: #f0a020;
+  --amber-dim: #b87a16;
+  --amber-glow: rgba(240,160,32,0.12);
+  --blue: #4a9eff;
+  --blue-dim: #2d6eb8;
+  --blue-glow: rgba(74,158,255,0.1);
+  --green: #34d399;
+  --green-glow: rgba(52,211,153,0.1);
+  --red: #f87171;
+  --red-glow: rgba(248,113,113,0.1);
+  --yellow: #fcd34d;
+  --mono: 'JetBrains Mono', monospace;
+  --cond: 'Barlow Condensed', sans-serif;
+  --body: 'DM Sans', sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--body);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─────────────────────────────────────────── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  height: 58px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-icon {
+  width: 32px; height: 32px;
+  background: var(--amber);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  font-size: 16px;
+}
+
+.logo-text {
+  font-family: var(--cond);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
+.logo-text span { color: var(--amber); }
+
+.header-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-left: 4px;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+.header-actions { margin-left: auto; display: flex; gap: 8px; }
+
+/* ─── LAYOUT ──────────────────────────────────────────── */
+.app-layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 0;
+  min-height: calc(100vh - 58px);
+}
+
+.config-panel {
+  padding: 20px 24px;
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.results-panel {
+  padding: 20px 20px;
+  overflow-y: auto;
+  position: sticky;
+  top: 58px;
+  height: calc(100vh - 58px);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* ─── CARDS ───────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  user-select: none;
+}
+
+.card-header:hover { background: var(--surface3); }
+
+.card-num {
+  width: 22px; height: 22px;
+  background: var(--amber);
+  color: #000;
+  border-radius: 4px;
+  font-family: var(--cond);
+  font-weight: 700;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.card-title {
+  font-family: var(--cond);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.card-badge {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-weight: 600;
+}
+
+.badge-on { background: var(--green-glow); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+.badge-off { background: rgba(107,127,163,0.1); color: var(--text-muted); border: 1px solid var(--border); }
+
+.chevron {
+  margin-left: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+  transition: transform 0.2s;
+}
+.chevron.open { transform: rotate(180deg); }
+
+.card-body { padding: 16px; }
+.card-body.collapsed { display: none; }
+
+/* ─── FORM ELEMENTS ───────────────────────────────────── */
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.form-grid.cols3 { grid-template-columns: 1fr 1fr 1fr; }
+.form-grid.cols1 { grid-template-columns: 1fr; }
+.span2 { grid-column: span 2; }
+.span3 { grid-column: span 3; }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+
+label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.info-btn {
+  width: 14px; height: 14px;
+  background: rgba(74,158,255,0.15);
+  border: 1px solid rgba(74,158,255,0.3);
+  border-radius: 50%;
+  color: var(--blue);
+  font-size: 9px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  position: relative;
+}
+
+.info-btn:hover .tooltip { display: block; }
+
+.tooltip {
+  display: none;
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 240px;
+  background: #0c1220;
+  border: 1px solid var(--blue-dim);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 11px;
+  font-family: var(--body);
+  color: var(--text-dim);
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  line-height: 1.5;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+input[type="number"], select {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 14px;
+  padding: 8px 10px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; }
+input[type="number"]:focus, select:focus { border-color: var(--amber); }
+
+select { cursor: pointer; }
+select option { background: var(--surface2); }
+
+/* Computed display */
+.computed {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-family: var(--mono);
+  font-size: 14px;
+  color: var(--amber);
+  font-weight: 600;
+}
+
+/* Toggle switch */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.toggle-row:last-child { border-bottom: none; padding-bottom: 0; }
+.toggle-row:first-child { padding-top: 0; }
+
+.toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.toggle-label strong {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.toggle-label span {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--border);
+  border-radius: 11px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toggle input:checked + .toggle-track { background: var(--amber); }
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  background: white;
+  border-radius: 50%;
+  top: 3px; left: 3px;
+  transition: transform 0.2s;
+}
+.toggle input:checked + .toggle-track::after { transform: translateX(18px); }
+
+/* Inline toggle in label */
+.inline-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+/* ─── RESULTS PANEL ───────────────────────────────────── */
+.results-title {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.result-section { display: flex; flex-direction: column; gap: 8px; }
+
+.result-block {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.result-block-title {
+  font-family: var(--cond);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.result-icon { font-size: 13px; }
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(42,51,71,0.5);
+  font-size: 12px;
+}
+.result-row:last-child { border-bottom: none; }
+
+.result-key { color: var(--text-muted); }
+.result-val {
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text);
+}
+.result-val.amber { color: var(--amber); }
+.result-val.green { color: var(--green); }
+.result-val.blue { color: var(--blue); }
+.result-val.red { color: var(--red); }
+
+/* Big recommendation block */
+.rec-block {
+  background: var(--surface3);
+  border: 1px solid var(--amber);
+  border-radius: 8px;
+  padding: 14px;
+}
+
+.rec-edition {
+  font-family: var(--cond);
+  font-size: 26px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: var(--amber);
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.rec-subtitle { font-size: 11px; color: var(--text-muted); margin-bottom: 10px; }
+
+.rec-meta {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.rec-meta-item {
+  background: rgba(0,0,0,0.2);
+  border-radius: 6px;
+  padding: 8px 10px;
+}
+.rec-meta-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+.rec-meta-val { font-family: var(--mono); font-size: 16px; font-weight: 600; color: var(--text); }
+
+/* Comparison table */
+.compare-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+.compare-table th {
+  font-family: var(--cond);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.compare-table td {
+  padding: 5px 8px;
+  border-bottom: 1px solid rgba(42,51,71,0.4);
+  font-family: var(--mono);
+  color: var(--text);
+}
+.compare-table .highlight { background: var(--amber-glow); }
+.compare-table .highlight td { color: var(--amber); font-weight: 600; }
+.compare-table .highlight td:first-child::after {
+  content: ' ✓';
+  color: var(--green);
+}
+
+/* Total cost block */
+.cost-total {
+  background: linear-gradient(135deg, var(--surface3) 0%, rgba(240,160,32,0.05) 100%);
+  border: 1px solid var(--amber-dim);
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+}
+.cost-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); margin-bottom: 4px; }
+.cost-amount {
+  font-family: var(--mono);
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--amber);
+  line-height: 1;
+}
+.cost-note { font-size: 10px; color: var(--text-muted); margin-top: 4px; }
+
+/* Notes / warnings */
+.note {
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.5;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+.note-icon { flex-shrink: 0; margin-top: 1px; }
+.note.warn { background: rgba(252,211,77,0.08); border: 1px solid rgba(252,211,77,0.25); color: var(--yellow); }
+.note.info { background: var(--blue-glow); border: 1px solid rgba(74,158,255,0.25); color: var(--blue); }
+.note.success { background: var(--green-glow); border: 1px solid rgba(52,211,153,0.25); color: var(--green); }
+.note.danger { background: var(--red-glow); border: 1px solid rgba(248,113,113,0.25); color: var(--red); }
+
+/* Presets */
+.presets {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+.preset-btn {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  padding: 5px 11px;
+  font-family: var(--cond);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.preset-btn:hover { border-color: var(--amber); color: var(--amber); background: var(--amber-glow); }
+
+/* Print button */
+.btn {
+  background: var(--amber);
+  color: #000;
+  border: none;
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.btn:hover { opacity: 0.85; }
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 6px;
+  padding: 7px 14px;
+  font-family: var(--cond);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-ghost:hover { border-color: var(--amber); color: var(--amber); }
+
+/* Divider */
+.divider { border: none; border-top: 1px solid var(--border); margin: 4px 0; }
+
+/* Collapsible sub-section */
+.sub-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+/* Break-even indicator */
+.breakeven-bar {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+.be-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 6px; }
+.be-track {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.be-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--green), var(--amber), var(--red));
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+.be-desc { font-size: 10px; color: var(--text-muted); }
+
+/* DR note box */
+.dr-note-box {
+  background: rgba(52,211,153,0.05);
+  border: 1px solid rgba(52,211,153,0.2);
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin-top: 8px;
+}
+.dr-note-box strong { color: var(--green); }
+
+/* ─── SCROLLBAR ───────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
+
+/* ─── RESPONSIVE ──────────────────────────────────────── */
+@media (max-width: 900px) {
+  .app-layout { grid-template-columns: 1fr; }
+  .results-panel { position: static; height: auto; border-left: none; border-top: 1px solid var(--border); }
+  .config-panel { border-right: none; }
+}
+
+@media print {
+  header { position: static; }
+  .config-panel { display: none; }
+  .results-panel { position: static; height: auto; width: 100%; overflow: visible; }
+  .app-layout { grid-template-columns: 1fr; }
+  .btn, .btn-ghost, .presets { display: none; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <div class="logo-text">Win<span>Lic</span></div>
+  </div>
+  <div class="header-sub">Windows Server & SQL License Calculator</div>
+  <div class="header-actions">
+    <button class="btn-ghost" onclick="window.print()">🖨 Print</button>
+    <button class="btn" onclick="exportSummary()">↓ Export</button>
+  </div>
+</header>
+
+<div class="app-layout">
+
+<!-- ══════════════════════════════════════════════════════
+     CONFIG PANEL
+══════════════════════════════════════════════════════ -->
+<div class="config-panel">
+
+  <!-- Presets -->
+  <div>
+    <div style="font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);margin-bottom:8px;">Quick Presets</div>
+    <div class="presets">
+      <button class="preset-btn" onclick="loadPreset('smb')">Small Business</button>
+      <button class="preset-btn" onclick="loadPreset('mid')">Mid-Market</button>
+      <button class="preset-btn" onclick="loadPreset('enterprise')">Enterprise</button>
+      <button class="preset-btn" onclick="loadPreset('cluster')">HA Cluster</button>
+      <button class="preset-btn" onclick="loadPreset('dr')">Cluster + DR</button>
+      <button class="preset-btn" onclick="loadPreset('sql')">SQL Heavy</button>
+    </div>
+  </div>
+
+  <!-- CARD 1: Physical Hardware -->
+  <div class="card" id="card1">
+    <div class="card-header" onclick="toggleCard('card1')">
+      <div class="card-num">1</div>
+      <div class="card-title">Physical Server Hardware</div>
+      <span class="chevron open" id="chev-card1">▼</span>
+    </div>
+    <div class="card-body" id="body-card1">
+      <div class="form-grid cols3">
+        <div class="field">
+          <label>
+            Num. of Hosts
+            <div class="info-btn">i<div class="tooltip">Number of physical server hosts in this deployment. For clusters, set nodes here and configure clustering below.</div></div>
+          </label>
+          <input type="number" id="numServers" value="1" min="1" max="64" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>
+            CPU Sockets
+            <div class="info-btn">i<div class="tooltip">Physical processor sockets per server. Minimum 8 cores must be licensed per processor.</div></div>
+          </label>
+          <select id="socketsPerServer" onchange="calc()">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="4">4</option>
+            <option value="8">8</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>
+            Cores / CPU
+            <div class="info-btn">i<div class="tooltip">Physical cores per processor. If actual core count is less than 8, licensing minimum of 8 applies.</div></div>
+          </label>
+          <select id="coresPerSocket" onchange="calc()">
+            <option value="4">4</option>
+            <option value="6">6</option>
+            <option value="8" selected>8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="16">16</option>
+            <option value="20">20</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="32">32</option>
+            <option value="64">64</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Physical Cores/Host</label>
+          <div class="computed" id="disp_physCores">16</div>
+        </div>
+        <div class="field">
+          <label>Licensed Cores/Host
+            <div class="info-btn">i<div class="tooltip">After applying Microsoft minimums: min 8 cores per socket, min 16 cores per server. This is what you must purchase.</div></div>
+          </label>
+          <div class="computed" id="disp_licCores">16</div>
+        </div>
+        <div class="field">
+          <label>Total Phys. Cores</label>
+          <div class="computed" id="disp_totalPhysCores">16</div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <strong>Host OS (physical server runs Windows Server)</strong>
+            <span>e.g. physical host has Desktop Experience or runs workloads directly — consumes one Standard VM slot</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="includeHostOS" onchange="calc()">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <strong>Include Azure Hybrid Benefit note</strong>
+            <span>Flag that existing on-prem SA licenses can be used in Azure</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="showAHB" onchange="calc()">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 2: Virtualization -->
+  <div class="card" id="card2">
+    <div class="card-header" onclick="toggleCard('card2')">
+      <div class="card-num">2</div>
+      <div class="card-title">Virtualization & VMs</div>
+      <span class="chevron open" id="chev-card2">▼</span>
+    </div>
+    <div class="card-body" id="body-card2">
+      <div class="form-grid">
+        <div class="field">
+          <label>
+            Windows Server VMs (total)
+            <div class="info-btn">i<div class="tooltip">Total number of VMs requiring a Windows Server OS license across ALL physical hosts in this deployment. Standard Edition covers 2 VMs per license set.</div></div>
+          </label>
+          <input type="number" id="numWinVMs" value="4" min="0" max="512" oninput="calc()">
+        </div>
+        <div class="field">
+          <label>vCPUs per VM (avg)
+            <div class="info-btn">i<div class="tooltip">Average vCPUs assigned per VM. Used for SQL Per Core calculations. Min 4 for SQL licensing.</div></div>
+          </label>
+          <select id="vcpusPerVM" onchange="calc()">
+            <option value="2">2</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="12">12</option>
+            <option value="16">16</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Windows Server Version</label>
+          <select id="wsVersion" onchange="calc()">
+            <option value="2022" selected>Server 2022</option>
+            <option value="2019">Server 2019</option>
+            <option value="2016">Server 2016</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>VMs per Node</label>
+          <div class="computed" id="disp_vmsPerNode">4</div>
+        </div>
+      </div>
+
+      <div class="sub-section">
+        <div class="form-grid">
+          <div class="field">
+            <label>Linux / Other OS VMs</label>
+            <input type="number" id="linuxVMs" value="0" min="0" max="256" oninput="calc()">
+          </div>
+          <div class="field span1" style="padding-top:20px">
+            <div style="font-size:11px;color:var(--text-muted);line-height:1.5;">Linux VMs on a licensed Datacenter host require <strong style="color:var(--text)">no additional Windows licence</strong> — Datacenter includes them.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 3: SQL Server -->
+  <div class="card" id="card3">
+    <div class="card-header" onclick="toggleCard('card3')">
+      <div class="card-num">3</div>
+      <div class="card-title">SQL Server</div>
+      <div class="card-badge" id="badge-sql">OFF</div>
+      <span class="chevron open" id="chev-card3">▼</span>
+    </div>
+    <div class="card-body" id="body-card3">
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <strong>Include SQL Server Licensing</strong>
+          <span>Calculate SQL core or Server+CAL licences</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="sqlEnabled" onchange="toggleSqlSection(); calc();">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+
+      <div id="sqlSection" style="display:none">
+        <div class="form-grid" style="margin-top:14px">
+          <div class="field">
+            <label>SQL Edition</label>
+            <select id="sqlEdition" onchange="calc()">
+              <option value="standard">Standard</option>
+              <option value="enterprise">Enterprise</option>
+              <option value="developer">Developer (free/dev only)</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Licensing Model
+              <div class="info-btn">i<div class="tooltip">Per Core: License all vCPUs on SQL VMs (min 4 per instance). Server+CAL: One server licence + per-user or per-device CALs. Per Core is usually required for internet-facing or when CAL count is high.</div></div>
+            </label>
+            <select id="sqlModel" onchange="toggleSqlModel(); calc()">
+              <option value="percore">Per Core</option>
+              <option value="servercal">Server + CAL</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>SQL VMs / Instances
+              <div class="info-btn">i<div class="tooltip">Number of separate SQL Server instances to be licensed. Each instance needs a minimum of 4 cores licensed.</div></div>
+            </label>
+            <input type="number" id="numSqlVMs" value="2" min="1" max="64" oninput="calc()">
+          </div>
+          <div class="field" id="sqlVcpuField">
+            <label>vCPUs per SQL VM
+              <div class="info-btn">i<div class="tooltip">vCPUs assigned to each SQL VM. Minimum 4 cores must be licensed per SQL instance regardless of actual vCPU count.</div></div>
+            </label>
+            <select id="sqlVcpusPerVM" onchange="calc()">
+              <option value="2">2</option>
+              <option value="4" selected>4</option>
+              <option value="6">6</option>
+              <option value="8">8</option>
+              <option value="12">12</option>
+              <option value="16">16</option>
+              <option value="24">24</option>
+              <option value="32">32</option>
+            </select>
+          </div>
+
+          <div class="field" id="calUsersField" style="display:none">
+            <label>Users / Devices (CAL)</label>
+            <input type="number" id="calUsers" value="25" min="1" oninput="calc()">
+          </div>
+        </div>
+
+        <div class="sub-section">
+          <div class="toggle-row">
+            <div class="toggle-label">
+              <strong>SQL on physical host (not in VMs)</strong>
+              <span>License the physical host cores; VMs inherit with SA (host licensing)</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="sqlOnHost" onchange="calc()">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+          <div class="toggle-row">
+            <div class="toggle-label">
+              <strong>Active/Active SQL Cluster</strong>
+              <span>Each active node runs SQL — all nodes need licences</span>
+            </div>
+            <label class="toggle">
+              <input type="checkbox" id="sqlActiveActive" onchange="calc()">
+              <div class="toggle-track"></div>
+            </label>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CARD 4: Clustering & DR -->
+  <div class="card" id="card4">
+    <div class="card-header" onclick="toggleCard('card4')">
+      <div class="card-num">4</div>
+      <div class="card-title">Clustering & HA / DR</div>
+      <div class="card-badge badge-off" id="badge-cluster">OFF</div>
+      <span class="chevron open" id="chev-card4">▼</span>
+    </div>
+    <div class="card-body" id="body-card4">
+      <div class="toggle-row">
+        <div class="toggle-label">
+          <strong>Windows Server Failover Cluster</strong>
+          <span>Multiple physical hosts sharing workloads / HA failover</span>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="clusterEnabled" onchange="toggleClusterSection(); calc()">
+          <div class="toggle-track"></div>
+        </label>
+      </div>
+
+      <div id="clusterSection" style="display:none">
+        <div class="form-grid" style="margin-top:14px">
+          <div class="field">
+            <label>Active Cluster Nodes
+              <div class="info-btn">i<div class="tooltip">Number of active nodes in the failover cluster. All active nodes must be individually licensed. For HA only (not DR), use 2.</div></div>
+            </label>
+            <select id="clusterNodes" onchange="calc()">
+              <option value="2" selected>2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="6">6</option>
+              <option value="8">8</option>
+              <option value="12">12</option>
+              <option value="16">16</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Cluster Type</label>
+            <select id="clusterType" onchange="calc()">
+              <option value="ap">Active / Passive</option>
+              <option value="aa">Active / Active</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="toggle-row" style="margin-top:12px">
+          <div class="toggle-label">
+            <strong>DR / Passive Secondary Host</strong>
+            <span>A separate site or host for disaster recovery (Hyper-V Replica, Storage Replica, etc.)</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="drEnabled" onchange="calc()">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="toggle-row">
+          <div class="toggle-label">
+            <strong>Software Assurance (SA) included</strong>
+            <span>SA unlocks passive secondary rights — passive DR node may not need separate WS or SQL licences</span>
+          </div>
+          <label class="toggle">
+            <input type="checkbox" id="hasSA" checked onchange="calc()">
+            <div class="toggle-track"></div>
+          </label>
+        </div>
+
+        <div class="dr-note-box" id="drNoteBox">
+          <strong>DR / Passive Secondary — Official Microsoft Position</strong><br><br>
+          The <a href="https://www.microsoft.com/licensing/docs/documents/download/Licensing_guide_PLT_Windows_Server_2022.pdf" target="_blank" style="color:var(--blue)">Windows Server 2022 Licensing Guide (official PDF)</a> explicitly states:<br><br>
+          <em style="color:var(--green)">"A Windows Server license is not required for the disaster recovery server if the Hyper-V role within Windows Server is used to replicate virtual OSEs from the production server at a primary site to a disaster recovery server."</em><br><br>
+          <strong>✅ Conditions that must be met:</strong><br>
+          • Replicated VMs must not be running on the DR server except during actual failover or DR testing<br>
+          • DR server must not be in the same cluster as the production server<br>
+          • DR server may only run Hyper-V, receive replication, test failover, and await failover — nothing else<br><br>
+          <strong>✅ SQL Server passive instance (with SA):</strong> No additional SQL licence required for a truly passive failover instance. Without SA, SQL must be licensed on the DR node.<br><br>
+          <hr style="border-color:rgba(52,211,153,0.2);margin:10px 0"><br>
+          <strong>💡 Recommendation</strong> — even though no licence is strictly required, consider:<br><br>
+          <strong>Option A — Rely on DR rights (lowest cost):</strong> No WS licence needed. Works well if the DR server is truly passive and you can demonstrate compliance if audited. SA not required for WS DR rights.<br><br>
+          <strong>Option B — Licence the DR host anyway:</strong> Full peace of mind. Removes any audit risk. Lets you use the DR host for dev/test without restrictions. Recommended for organisations with regular compliance reviews.<br><br>
+          <strong>Option C — Add Software Assurance:</strong> Cleanest compliance story — explicitly covers both WS and SQL passive rights, plus SA benefits (new version rights, Azure Hybrid Benefit, etc.). Best value if you're also licensing SQL on the DR node.
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /config-panel -->
+
+
+<!-- ══════════════════════════════════════════════════════
+     RESULTS PANEL
+══════════════════════════════════════════════════════ -->
+<div class="results-panel" id="resultsPanel">
+
+  <div class="results-title">
+    ⚡ Live Results
+    <span style="margin-left:auto;font-size:10px;color:var(--text-muted);font-family:var(--mono);" id="lastUpdated"></span>
+  </div>
+
+  <!-- Physical summary -->
+  <div class="result-block" id="r-physical">
+    <div class="result-block-title"><span class="result-icon">🖥</span> Physical Layer</div>
+    <div class="result-row"><span class="result-key">Hosts to license</span><span class="result-val amber" id="r-hosts">1</span></div>
+    <div class="result-row"><span class="result-key">Licensed cores / host</span><span class="result-val" id="r-licCores">16</span></div>
+    <div class="result-row"><span class="result-key">Total licensed cores</span><span class="result-val" id="r-totalLicCores">16</span></div>
+    <div class="result-row" id="r-drRow" style="display:none"><span class="result-key">DR nodes</span><span class="result-val green" id="r-drNodes">—</span></div>
+  </div>
+
+  <!-- Windows Server recommendation -->
+  <div class="rec-block" id="r-wsRec">
+    <div style="font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--amber-dim);margin-bottom:2px;font-family:var(--cond);font-weight:700;">Recommended</div>
+    <div class="rec-edition" id="r-wsEdition">Standard</div>
+    <div class="rec-subtitle" id="r-wsSubtitle">Windows Server 2022</div>
+    <div class="rec-meta">
+      <div class="rec-meta-item">
+        <div class="rec-meta-label">2-Core Packs</div>
+        <div class="rec-meta-val" id="r-ws2Core">8</div>
+      </div>
+      <div class="rec-meta-item">
+        <div class="rec-meta-label">Licence Sets</div>
+        <div class="rec-meta-val" id="r-wsSets">2</div>
+      </div>
+      <div class="rec-meta-item">
+        <div class="rec-meta-label">VMs Covered</div>
+        <div class="rec-meta-val" id="r-wsVMsCovered">4</div>
+      </div>
+      <div class="rec-meta-item">
+        <div class="rec-meta-label">Est. Cost</div>
+        <div class="rec-meta-val" id="r-wsCost">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Standard vs Datacenter comparison -->
+  <div class="result-block">
+    <div class="result-block-title"><span class="result-icon">📊</span> Edition Comparison</div>
+    <table class="compare-table" id="compareTable">
+      <thead>
+        <tr>
+          <th>Edition</th>
+          <th>VMs</th>
+          <th>2-Core Packs</th>
+          <th>Est. Cost</th>
+        </tr>
+      </thead>
+      <tbody id="compareBody">
+        <!-- filled by JS -->
+      </tbody>
+    </table>
+    <div class="breakeven-bar" id="breakevenBar">
+      <div class="be-label">VM Count vs Datacenter Break-even</div>
+      <div class="be-track"><div class="be-fill" id="beFill" style="width:30%"></div></div>
+      <div class="be-desc" id="beDesc">At <span id="beVMs">—</span> VMs, Datacenter becomes more cost-effective</div>
+    </div>
+  </div>
+
+  <!-- SQL Section (hidden by default) -->
+  <div class="result-block" id="r-sqlBlock" style="display:none">
+    <div class="result-block-title"><span class="result-icon">🗄</span> SQL Server</div>
+    <div class="result-row"><span class="result-key">Edition</span><span class="result-val amber" id="r-sqlEdition">Standard</span></div>
+    <div class="result-row"><span class="result-key">Model</span><span class="result-val" id="r-sqlModel">Per Core</span></div>
+    <div class="result-row"><span class="result-key">Cores per instance (min 4)</span><span class="result-val" id="r-sqlCoresPerInst">4</span></div>
+    <div class="result-row"><span class="result-key">Total SQL cores</span><span class="result-val" id="r-sqlTotalCores">8</span></div>
+    <div class="result-row"><span class="result-key">2-Core packs needed</span><span class="result-val amber" id="r-sqlCorePacks">4</span></div>
+    <div class="result-row"><span class="result-key">Estimated SQL cost</span><span class="result-val amber" id="r-sqlCost">—</span></div>
+    <div class="note info" id="r-sqlNote" style="margin-top:8px">
+      <span class="note-icon">ℹ</span>
+      <span id="r-sqlNoteText">SQL note</span>
+    </div>
+  </div>
+
+  <!-- DR / Cluster note -->
+  <div id="r-drBlock" style="display:none">
+    <div class="note success">
+      <span class="note-icon">✅</span>
+      <span id="r-drNoteText">With SA, passive DR node is licence-free</span>
+    </div>
+  </div>
+
+  <!-- AHB note -->
+  <div id="r-ahbBlock" style="display:none">
+    <div class="note info">
+      <span class="note-icon">☁</span>
+      <span>Azure Hybrid Benefit: Existing on-premises Windows Server licences with active SA can be re-used for Azure VMs, potentially eliminating the Azure Windows VM licence cost.</span>
+    </div>
+  </div>
+
+  <!-- SQL Standard limits warning -->
+  <div id="r-sqlStdWarn" style="display:none">
+    <div class="note warn">
+      <span class="note-icon">⚠</span>
+      <span>SQL Standard is limited to <strong>24 cores</strong> and <strong>128 GB RAM</strong> per instance. If your workload exceeds this, consider SQL Enterprise.</span>
+    </div>
+  </div>
+
+  <!-- Cost total -->
+  <div class="cost-total">
+    <div class="cost-label">Total Estimated MSRP</div>
+    <div class="cost-amount" id="r-totalCost">—</div>
+    <div class="cost-note">Indicative GBP ex-VAT · Open/volume licensing · Actual prices vary by channel &amp; agreement</div>
+  </div>
+
+  <!-- Licensing notes -->
+  <div class="result-block" id="r-notes">
+    <div class="result-block-title"><span class="result-icon">📋</span> Key Rules & Notes</div>
+    <div style="display:flex;flex-direction:column;gap:6px" id="r-notesList">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+</div><!-- /results-panel -->
+
+</div><!-- /app-layout -->
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// PRICING (approximate UK open/volume licensing, ex VAT)
+// Microsoft publishes USD MSRP only — GBP prices are indicative
+// and will vary by channel (OEM / CSP / EA / MPSA) and reseller
+// ═══════════════════════════════════════════════════════════
+const PRICE = {
+  ws_std_2core:  100,    // Windows Server Standard, per 2-core pack (~£100 ex VAT)
+  ws_dc_2core:   610,    // Windows Server Datacenter, per 2-core pack (~£610 ex VAT)
+  sql_std_2core: 2850,   // SQL Server Standard, per 2-core pack (~£2,850 ex VAT)
+  sql_ent_2core: 12500,  // SQL Server Enterprise, per 2-core pack (~£12,500 ex VAT)
+  sql_srv:       780,    // SQL Server server licence (Server+CAL model, ~£780 ex VAT)
+  sql_cal:       180,    // SQL Server CAL per user (~£180 ex VAT)
+};
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+const fmt = n => n.toLocaleString('en-GB');
+const fmtCurrency = n => n === 0 ? '—' : '£' + n.toLocaleString('en-GB', {minimumFractionDigits: 0, maximumFractionDigits: 0});
+
+function toggleCard(id) {
+  const body = $(`body-${id}`);
+  const chev = $(`chev-${id}`);
+  const collapsed = body.classList.toggle('collapsed');
+  chev.classList.toggle('open', !collapsed);
+}
+
+function toggleSqlSection() {
+  const enabled = $('sqlEnabled').checked;
+  $('sqlSection').style.display = enabled ? 'block' : 'none';
+  $('badge-sql').textContent = enabled ? 'ON' : 'OFF';
+  $('badge-sql').className = `card-badge ${enabled ? 'badge-on' : 'badge-off'}`;
+}
+
+function toggleClusterSection() {
+  const enabled = $('clusterEnabled').checked;
+  $('clusterSection').style.display = enabled ? 'block' : 'none';
+  $('badge-cluster').textContent = enabled ? 'ON' : 'OFF';
+  $('badge-cluster').className = `card-badge ${enabled ? 'badge-on' : 'badge-off'}`;
+}
+
+function toggleSqlModel() {
+  const model = $('sqlModel').value;
+  $('sqlVcpuField').style.display = model === 'percore' ? 'flex' : 'none';
+  $('calUsersField').style.display = model === 'servercal' ? 'flex' : 'none';
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN CALCULATION
+// ═══════════════════════════════════════════════════════════
+function calc() {
+  // ─── Read inputs ───
+  const numServers      = Math.max(1, +$('numServers').value   || 1);
+  const sockets         = +$('socketsPerServer').value;
+  const coresPerSocket  = +$('coresPerSocket').value;
+  const includeHostOS   = $('includeHostOS').checked;
+  const numWinVMs       = Math.max(0, +$('numWinVMs').value    || 0);
+  const wsVersion       = $('wsVersion').value;
+
+  const sqlEnabled      = $('sqlEnabled').checked;
+  const sqlEdition      = $('sqlEdition').value;
+  const sqlModel        = $('sqlModel').value;
+  const numSqlVMs       = Math.max(1, +$('numSqlVMs').value    || 1);
+  const sqlVcpusPerVM   = +$('sqlVcpusPerVM').value;
+  const calUsers        = Math.max(1, +$('calUsers').value     || 1);
+  const sqlOnHost       = $('sqlOnHost').checked;
+  const sqlActiveActive = $('sqlActiveActive').checked;
+
+  const clusterEnabled  = $('clusterEnabled').checked;
+  const clusterNodes    = +$('clusterNodes').value;
+  const clusterType     = $('clusterType').value;
+  const drEnabled       = $('drEnabled').checked && clusterEnabled;
+  const hasSA           = $('hasSA').checked;
+  const showAHB         = $('showAHB').checked;
+
+  // ─── Physical cores ───
+  // MS minimum: 8 cores/socket, 16 cores/server
+  const effCoresPerSocket = Math.max(coresPerSocket, 8);
+  const physCoresPerServer = sockets * coresPerSocket;
+  const licCoresPerServer  = Math.max(sockets * effCoresPerSocket, 16);
+
+  // ─── Nodes to License ───
+  // Per official WS 2022 Licensing Guide: DR server using Hyper-V replication
+  // does NOT require a Windows Server licence while passive.
+  // Only active nodes need WS core licences.
+  const nodesNeedingWSHostLic = activeNodes; // DR node is licence-free (passive Hyper-V replication)
+  const totalLicCores = licCoresPerServer * nodesNeedingWSHostLic;
+
+  // ─── VMs per node ───
+  const vmsPerNode = activeNodes > 0 ? Math.ceil(numWinVMs / activeNodes) : numWinVMs;
+  // Add 1 if the host OS itself consumes a VM slot
+  const vmSlots = vmsPerNode + (includeHostOS ? 1 : 0);
+  const totalVMSlots = vmSlots * activeNodes;
+
+  // ─── Windows Server ───
+  // Standard: ceil(vmSlots/2) sets per node, each covering licCoresPerServer
+  // Datacenter: 1 set per node, unlimited VMs
+  const stdSetsPerNode = Math.max(Math.ceil(vmSlots / 2), vmSlots > 0 ? 1 : 1);
+  const std2CorePacksPerNode = (licCoresPerServer / 2) * stdSetsPerNode;
+  const dc2CorePacksPerNode  = licCoresPerServer / 2;
+
+  const stdCostPerNode = std2CorePacksPerNode * PRICE.ws_std_2core;
+  const dcCostPerNode  = dc2CorePacksPerNode  * PRICE.ws_dc_2core;
+
+  const recWS = (dcCostPerNode <= stdCostPerNode) ? 'Datacenter' : 'Standard';
+
+  const totalStdCost = stdCostPerNode * nodesNeedingWSHostLic;
+  const totalDcCost  = dcCostPerNode  * nodesNeedingWSHostLic;
+  const totalWSCost  = recWS === 'Datacenter' ? totalDcCost : totalStdCost;
+
+  const recSets     = recWS === 'Standard' ? stdSetsPerNode * nodesNeedingWSHostLic : nodesNeedingWSHostLic;
+  const recCorePacks = recWS === 'Standard'
+    ? std2CorePacksPerNode * nodesNeedingWSHostLic
+    : dc2CorePacksPerNode * nodesNeedingWSHostLic;
+
+  // Break-even VM count: at what #VMs does DC become cheaper per node?
+  // dcCostPerNode = stdSetsPerNode * (licCores/2) * stdPrice
+  // stdSetsPerNode = ceil(N/2)
+  // DC wins when ceil(N/2) * stdPrice >= dcPricePerPack
+  // ceil(N/2) >= dcPricePerPack / stdPricePerPack = 769/134 ≈ 5.74
+  // So at ceil(N/2) = 6 → N = 11 VMs
+  const beVMs = Math.ceil(PRICE.ws_dc_2core / PRICE.ws_std_2core) * 2 + (includeHostOS ? -1 : 0);
+  const vmsFraction = Math.min(vmSlots / beVMs, 1.5);
+  const beBarPct = Math.min((vmsFraction / 1.5) * 100, 100);
+
+  // ─── SQL Calculation ───
+  let sqlData = null;
+  if (sqlEnabled && sqlEdition !== 'developer') {
+    const sqlCoresPerInst = Math.max(sqlVcpusPerVM, 4);
+    const totalSQLInstances = numSqlVMs;
+
+    if (sqlModel === 'percore') {
+      let sqlInstancesForLicensing = totalSQLInstances;
+      // If active/active cluster, multiply by active nodes
+      if (clusterEnabled && sqlActiveActive) {
+        sqlInstancesForLicensing = totalSQLInstances * activeNodes;
+      }
+      // If host-based licensing
+      let totalSQLCores, sqlCorePacks, sqlCost;
+      if (sqlOnHost) {
+        totalSQLCores = licCoresPerServer * activeNodes;
+        sqlCorePacks  = totalSQLCores / 2;
+      } else {
+        totalSQLCores = sqlCoresPerInst * sqlInstancesForLicensing;
+        sqlCorePacks  = totalSQLCores / 2;
+      }
+      const sqlPricePerPack = sqlEdition === 'enterprise' ? PRICE.sql_ent_2core : PRICE.sql_std_2core;
+      sqlCost = sqlCorePacks * sqlPricePerPack;
+
+      sqlData = {
+        model: 'Per Core',
+        edition: sqlEdition === 'enterprise' ? 'Enterprise' : 'Standard',
+        coresPerInst: sqlOnHost ? licCoresPerServer : sqlCoresPerInst,
+        totalCores: totalSQLCores,
+        corePacks: sqlCorePacks,
+        pricePerPack: sqlPricePerPack,
+        cost: sqlCost,
+        drCovered: hasSA && drEnabled && !sqlActiveActive,
+        stdLimit: sqlEdition === 'standard' && totalSQLCores > 24,
+      };
+    } else {
+      // Server + CAL
+      const srvCost = PRICE.sql_srv * totalSQLInstances;
+      const calCost = PRICE.sql_cal * calUsers;
+      sqlData = {
+        model: 'Server + CAL',
+        edition: sqlEdition === 'enterprise' ? 'Enterprise' : 'Standard',
+        serverLicenses: totalSQLInstances,
+        calCount: calUsers,
+        cost: srvCost + calCost,
+        drCovered: hasSA && drEnabled,
+      };
+    }
+  }
+
+  const totalCost = totalWSCost + (sqlData?.cost || 0);
+
+  // ═══════════════════════════════════════════════════════
+  // UPDATE UI
+  // ═══════════════════════════════════════════════════════
+
+  // Physical display inputs
+  $('disp_physCores').textContent  = fmt(physCoresPerServer);
+  $('disp_licCores').textContent   = fmt(licCoresPerServer);
+  $('disp_totalPhysCores').textContent = fmt(physCoresPerServer * (clusterEnabled ? clusterNodes : numServers));
+  $('disp_vmsPerNode').textContent = fmt(vmsPerNode);
+
+  // Results: physical
+  $('r-hosts').textContent       = fmt(nodesNeedingWSHostLic);
+  $('r-licCores').textContent    = fmt(licCoresPerServer);
+  $('r-totalLicCores').textContent = fmt(totalLicCores);
+
+  if (drEnabled) {
+    $('r-drRow').style.display = 'flex';
+    $('r-drNodes').textContent = '1 (licence-free — passive Hyper-V replication)';
+    $('r-drNodes').style.color = 'var(--green)';
+  } else {
+    $('r-drRow').style.display = 'none';
+  }
+
+  // Results: Windows Server rec
+  $('r-wsEdition').textContent  = recWS;
+  $('r-wsSubtitle').textContent = `Windows Server ${wsVersion}`;
+  $('r-ws2Core').textContent    = fmt(recCorePacks);
+  $('r-wsSets').textContent     = fmt(recSets);
+  $('r-wsVMsCovered').textContent = recWS === 'Datacenter' ? 'Unlimited' : fmt(stdSetsPerNode * 2 * nodesNeedingWSHostLic);
+  $('r-wsCost').textContent     = fmtCurrency(totalWSCost);
+
+  // Comparison table
+  const stdRow = recWS === 'Standard' ? 'highlight' : '';
+  const dcRow  = recWS === 'Datacenter' ? 'highlight' : '';
+  $('compareBody').innerHTML = `
+    <tr class="${stdRow}">
+      <td>Standard</td>
+      <td>${fmt(stdSetsPerNode * 2)} / host</td>
+      <td>${fmt(std2CorePacksPerNode * nodesNeedingWSHostLic)}</td>
+      <td>${fmtCurrency(totalStdCost)}</td>
+    </tr>
+    <tr class="${dcRow}">
+      <td>Datacenter</td>
+      <td>Unlimited</td>
+      <td>${fmt(dc2CorePacksPerNode * nodesNeedingWSHostLic)}</td>
+      <td>${fmtCurrency(totalDcCost)}</td>
+    </tr>
+  `;
+
+  // Break-even bar
+  $('beFill').style.width = beBarPct + '%';
+  $('beVMs').textContent = beVMs;
+  if (vmSlots >= beVMs) {
+    $('beDesc').innerHTML = `<strong style="color:var(--amber)">✓ Datacenter is more cost-effective at your VM count</strong>`;
+  } else {
+    $('beDesc').innerHTML = `Standard is cheaper until ~${beVMs} VMs per host (currently ${vmSlots})`;
+  }
+
+  // SQL results
+  if (sqlData) {
+    $('r-sqlBlock').style.display = 'block';
+    $('r-sqlEdition').textContent = sqlData.edition;
+    $('r-sqlModel').textContent   = sqlData.model;
+
+    if (sqlData.model === 'Per Core') {
+      $('r-sqlCoresPerInst').textContent = fmt(sqlData.coresPerInst) + (sqlOnHost ? ' (host-based)' : '/instance');
+      $('r-sqlTotalCores').textContent   = fmt(sqlData.totalCores);
+      $('r-sqlCorePacks').textContent    = fmt(sqlData.corePacks);
+    } else {
+      $('r-sqlCoresPerInst').textContent = `${sqlData.serverLicenses} server lic.`;
+      $('r-sqlTotalCores').textContent   = `${sqlData.calCount} CALs`;
+      $('r-sqlCorePacks').textContent    = '—';
+    }
+    $('r-sqlCost').textContent = fmtCurrency(sqlData.cost);
+
+    // SQL note
+    let sqlNote = '';
+    if (sqlData.drCovered) sqlNote = 'Passive DR SQL instance is licence-free with SA. ';
+    if (sqlData.model === 'Per Core' && sqlData.edition === 'Standard' && sqlData.totalCores > 24) {
+      sqlNote += '⚠ Exceeds Standard limit of 24 cores — consider Enterprise.';
+    }
+    if (!sqlNote && sqlData.model === 'Per Core') {
+      sqlNote = `Minimum 4 cores licensed per SQL instance. ${sqlData.edition === 'Standard' ? 'Standard: max 24 cores & 128 GB RAM per instance.' : 'Enterprise: unlimited cores and RAM.'}`;
+    }
+    $('r-sqlNoteText').textContent = sqlNote || 'SQL Server licensing applied.';
+    $('r-sqlNote').style.display = sqlNote ? 'flex' : 'none';
+
+    // Standard limit warning
+    $('r-sqlStdWarn').style.display = (sqlData.stdLimit) ? 'block' : 'none';
+  } else {
+    $('r-sqlBlock').style.display = 'none';
+    $('r-sqlStdWarn').style.display = 'none';
+  }
+
+  // DR block
+  if (drEnabled) {
+    $('r-drBlock').style.display = 'block';
+    const saNote = hasSA
+      ? 'SQL Server passive instance also licence-free with SA.'
+      : 'SQL Server on DR node still needs its own licence without SA — consider adding SA or licensing the SQL instance separately.';
+    $('r-drNoteText').innerHTML =
+      '<strong>✅ DR node needs no Windows Server licence</strong> (official MS WS 2022 Licensing Guide) — passive Hyper-V replication, VMs not running until failover. ' + saNote +
+      ' <a href="https://www.microsoft.com/licensing/docs/documents/download/Licensing_guide_PLT_Windows_Server_2022.pdf" target="_blank" style="color:var(--blue);text-decoration:underline">Official source ↗</a>';
+    $('r-drBlock').querySelector('.note').className = hasSA ? 'note success' : 'note warn';
+  } else {
+    $('r-drBlock').style.display = 'none';
+  }
+
+  // AHB
+  $('r-ahbBlock').style.display = showAHB ? 'block' : 'none';
+
+  // Total cost
+  $('r-totalCost').textContent = fmtCurrency(totalCost);
+
+  // Notes list
+  const notes = [];
+  notes.push({ type: 'info', text: `Min 8 cores/socket, 16 cores/server must be licensed regardless of actual core count.` });
+  notes.push({ type: 'info', text: `Prices are indicative GBP ex-VAT, approximate open/volume licensing. Microsoft only publishes official USD MSRP — actual GBP pricing varies by channel (OEM, CSP, EA, MPSA) and reseller. Add 20% VAT for UK billing.` });
+  if (recWS === 'Standard') {
+    notes.push({ type: 'warn', text: `Standard allows ${stdSetsPerNode * 2} Windows Server VMs per host. Stacking more VM copies means buying another full set of core licences for that host.` });
+  }
+  if (recWS === 'Datacenter') {
+    notes.push({ type: 'success', text: `Datacenter covers unlimited Windows Server VMs on each licensed host. All physical cores must be licensed on every host — even if VMs don't use them all.` });
+  }
+  if (sqlEnabled && sqlEdition === 'developer') {
+    notes.push({ type: 'warn', text: `Developer Edition is FREE but cannot be used in production environments.` });
+  }
+  if (clusterEnabled && clusterType === 'aa' && sqlEnabled) {
+    notes.push({ type: 'warn', text: `Active/Active SQL cluster: every active node running SQL requires its own set of SQL core licences.` });
+  }
+  if (sqlEnabled && sqlModel === 'servercal') {
+    notes.push({ type: 'info', text: `Server+CAL cannot be used for internet-facing services or when users are unknown. Switch to Per Core for public-facing workloads.` });
+  }
+  notes.push({ type: 'info', text: `Estimates exclude SA (typically ~25% of licence cost/year), OEM discounts, CSP pricing, or Enterprise Agreement pricing.` });
+
+  $('r-notesList').innerHTML = notes.map(n =>
+    `<div class="note ${n.type}"><span class="note-icon">${n.type==='warn'?'⚠':n.type==='success'?'✅':'ℹ'}</span><span>${n.text}</span></div>`
+  ).join('');
+
+  $('lastUpdated').textContent = new Date().toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════════════════════
+function loadPreset(name) {
+  const presets = {
+    smb: {
+      numServers:1, sockets:1, cores:8, winVMs:2, hostOS:false,
+      sql:false, cluster:false, dr:false, sa:true
+    },
+    mid: {
+      numServers:2, sockets:2, cores:8, winVMs:8, hostOS:false,
+      sql:true, sqlEd:'standard', sqlMod:'percore', sqlVMs:2, sqlVC:4,
+      cluster:false, dr:false, sa:true
+    },
+    enterprise: {
+      numServers:4, sockets:2, cores:16, winVMs:32, hostOS:false,
+      sql:true, sqlEd:'enterprise', sqlMod:'percore', sqlVMs:4, sqlVC:8,
+      cluster:false, dr:false, sa:true
+    },
+    cluster: {
+      numServers:2, sockets:2, cores:12, winVMs:12, hostOS:false,
+      sql:false, cluster:true, clusterN:2, clusterT:'ap', dr:false, sa:true
+    },
+    dr: {
+      numServers:2, sockets:2, cores:12, winVMs:12, hostOS:false,
+      sql:true, sqlEd:'standard', sqlMod:'percore', sqlVMs:2, sqlVC:4,
+      cluster:true, clusterN:2, clusterT:'ap', dr:true, sa:true
+    },
+    sql: {
+      numServers:2, sockets:2, cores:16, winVMs:6, hostOS:false,
+      sql:true, sqlEd:'enterprise', sqlMod:'percore', sqlVMs:4, sqlVC:8,
+      cluster:true, clusterN:2, clusterT:'ap', dr:true, sa:true
+    },
+  };
+
+  const p = presets[name];
+  if (!p) return;
+
+  $('numServers').value = p.numServers;
+  $('socketsPerServer').value = p.sockets;
+  $('coresPerSocket').value = p.cores;
+  $('includeHostOS').checked = p.hostOS;
+  $('numWinVMs').value = p.winVMs;
+
+  $('sqlEnabled').checked = !!p.sql;
+  toggleSqlSection();
+  if (p.sql) {
+    $('sqlEdition').value = p.sqlEd;
+    $('sqlModel').value = p.sqlMod;
+    $('numSqlVMs').value = p.sqlVMs;
+    $('sqlVcpusPerVM').value = p.sqlVC;
+    toggleSqlModel();
+  }
+
+  $('clusterEnabled').checked = !!p.cluster;
+  toggleClusterSection();
+  if (p.cluster) {
+    $('clusterNodes').value = p.clusterN;
+    $('clusterType').value  = p.clusterT;
+    $('drEnabled').checked  = !!p.dr;
+    $('hasSA').checked      = p.sa;
+  }
+
+  calc();
+}
+
+// ═══════════════════════════════════════════════════════════
+// EXPORT
+// ═══════════════════════════════════════════════════════════
+function exportSummary() {
+  const ts   = new Date().toLocaleString('en-GB');
+  const ws   = $('r-wsEdition').textContent + ' ' + $('r-wsSubtitle').textContent;
+  const packs = $('r-ws2Core').textContent;
+  const cost  = $('r-totalCost').textContent;
+
+  const txt = [
+    `Windows Server & SQL Licence Summary`,
+    `Generated: ${ts}`,
+    ``,
+    `Windows Server:`,
+    `  Recommended Edition : ${ws}`,
+    `  2-Core Packs         : ${packs}`,
+    `  Licensed Cores/Host  : ${$('r-licCores').textContent}`,
+    `  Total Licensed Cores : ${$('r-totalLicCores').textContent}`,
+    `  Hosts to License     : ${$('r-hosts').textContent}`,
+    ``,
+    `SQL Server:`,
+    `  Edition    : ${$('r-sqlEdition').textContent || 'N/A'}`,
+    `  Model      : ${$('r-sqlModel').textContent || 'N/A'}`,
+    `  Core Packs : ${$('r-sqlCorePacks').textContent || 'N/A'}`,
+    `  Est. Cost  : ${$('r-sqlCost').textContent || 'N/A'}`,
+    ``,
+    `TOTAL ESTIMATED MSRP : ${cost}`,
+    ``,
+    `Note: Prices are indicative MSRP (USD). Actual pricing varies by`,
+    `agreement type (OEM/CSP/MPSA/EA) and region.`,
+  ].join('\n');
+
+  const blob = new Blob([txt], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `WinLic_Summary_${new Date().toISOString().slice(0,10)}.txt`;
+  a.click();
+}
+
+// ═══════════════════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════════════════
+toggleSqlModel();
+calc();
+</script>
+</body>
+</html>

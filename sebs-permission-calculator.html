@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seb's Permission Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0b0c10;--bg-card:#12141a;--bg-row:#0e1015;--bg-hover:#181b24;
+  --border:#1c1f2a;--border-mid:#252935;
+  --text:#dde1ef;--text-muted:#484f62;--text-dim:#7a8098;
+  --accent:#00dba8;--accent-glow:rgba(0,219,168,.10);--accent-border:rgba(0,219,168,.32);
+  --c:#60a5fa;--c-bg:rgba(96,165,250,.13);--c-b:rgba(96,165,250,.38);
+  --r:#34d399;--r-bg:rgba(52,211,153,.13);--r-b:rgba(52,211,153,.38);
+  --u:#fbbf24;--u-bg:rgba(251,191,36,.13);--u-b:rgba(251,191,36,.38);
+  --d:#f87171;--d-bg:rgba(248,113,113,.13);--d-b:rgba(248,113,113,.38);
+  --rl:#22c55e;--rm:#f59e0b;--rh:#f97316;--rc:#ef4444;
+  --ph:58px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);background-image:radial-gradient(circle,#181b25 1px,transparent 1px);background-size:22px 22px;color:var(--text);font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;padding-bottom:calc(var(--ph)+10px);}
+
+/* Header */
+header{position:sticky;top:0;z-index:40;background:rgba(11,12,16,.94);backdrop-filter:blur(18px);border-bottom:1px solid var(--border);}
+.hdr{max-width:940px;margin:0 auto;padding:0 22px;height:64px;display:flex;align-items:center;gap:14px;}
+.hdr-logo{width:40px;height:40px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),#0ea5e9);border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:14px;color:#041510;letter-spacing:-1px;box-shadow:0 0 22px rgba(0,219,168,.28);}
+.hdr-info h1{font-family:'Syne',sans-serif;font-weight:800;font-size:17px;color:var(--text);line-height:1;}
+.hdr-info p{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:3px;letter-spacing:.05em;}
+.hdr-pill{margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--accent);border:1px solid var(--accent-border);background:var(--accent-glow);padding:3px 11px;border-radius:20px;display:none;}
+
+main{max-width:940px;margin:0 auto;padding:22px;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;animation:up .4s ease both;}
+.stat{background:var(--bg-card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;transition:border-color .2s,transform .2s;cursor:default;}
+.stat:hover{border-color:var(--accent-border);transform:translateY(-1px);}
+.stat-n{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;color:var(--accent);line-height:1;}
+.stat-l{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:5px;text-transform:uppercase;letter-spacing:.06em;}
+
+/* Search */
+.search-wrap{position:relative;margin-bottom:12px;animation:up .4s .06s ease both;}
+.search-wrap svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text-muted);pointer-events:none;}
+#searchInput{width:100%;height:44px;background:var(--bg-card);border:1px solid var(--border);border-radius:11px;padding:0 14px 0 40px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--text);outline:none;transition:border-color .2s;}
+#searchInput:focus{border-color:var(--accent-border);}
+#searchInput::placeholder{color:var(--text-muted);}
+
+/* Risk legend */
+.risk-legend{display:flex;align-items:center;flex-wrap:wrap;gap:14px;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:10px 16px;margin-bottom:10px;animation:up .4s .07s ease both;}
+.rl-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-right:2px;}
+.rl-item{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-dim);}
+.rl-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.rl-sep{color:var(--border-mid);font-size:14px;}
+.rl-esc{color:#f87171;}
+
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:14px;animation:up .4s .09s ease both;}
+.fb-label{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;margin-right:4px;}
+.fchip{
+  font-family:'JetBrains Mono',monospace;font-size:10px;
+  padding:4px 11px;border-radius:20px;cursor:pointer;
+  background:var(--bg-card);border:1px solid var(--border);
+  color:var(--text-dim);transition:all .15s;
+}
+.fchip:hover{border-color:var(--border-mid);color:var(--text);}
+.fchip.active{border-color:var(--accent-border);color:var(--accent);background:var(--accent-glow);}
+.fchip.fc-critical.active{border-color:rgba(239,68,68,.4);color:#f87171;background:rgba(239,68,68,.1);}
+.fchip.fc-high.active{border-color:rgba(249,115,22,.4);color:#fb923c;background:rgba(249,115,22,.1);}
+.fchip.fc-medium.active{border-color:rgba(245,158,11,.4);color:#fbbf24;background:rgba(245,158,11,.1);}
+.fchip.fc-low.active{border-color:rgba(34,197,94,.4);color:#4ade80;background:rgba(34,197,94,.1);}
+.fchip.fc-esc.active{border-color:rgba(248,113,113,.4);color:#f87171;background:rgba(248,113,113,.1);}
+
+/* Presets */
+.presets-card{background:var(--bg-card);border:1px solid var(--border);border-radius:11px;overflow:hidden;margin-bottom:18px;animation:up .4s .11s ease both;}
+.presets-toggle{width:100%;display:flex;align-items:center;gap:12px;padding:14px 20px;background:none;border:none;color:var(--text);cursor:pointer;transition:background .15s;}
+.presets-toggle:hover{background:var(--bg-hover);}
+.pt-ico{width:30px;height:30px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),#0ea5e9);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;}
+.pt-title{font-size:14px;font-weight:600;text-align:left;}
+.pt-sub{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);margin-top:2px;text-align:left;}
+.pt-chev{margin-left:auto;color:var(--text-muted);transition:transform .25s;flex-shrink:0;}
+.pt-chev.open{transform:rotate(180deg);}
+.presets-body{display:none;flex-wrap:wrap;gap:8px;padding:12px 20px 16px;border-top:1px solid var(--border);}
+.presets-body.open{display:flex;}
+.ppill{display:flex;align-items:center;gap:7px;padding:6px 14px;background:var(--bg-hover);border:1px solid var(--border-mid);border-radius:20px;cursor:pointer;font-size:12px;color:var(--text-dim);transition:all .15s;}
+.ppill:hover{border-color:var(--accent-border);color:var(--accent);background:var(--accent-glow);}
+.ppill-dot{width:5px;height:5px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+
+/* Categories */
+.cats{display:flex;flex-direction:column;gap:8px;animation:up .4s .14s ease both;}
+.cc{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;overflow:hidden;transition:border-color .2s;}
+.cc.has-sel{border-color:var(--accent-border);}
+.cc.hidden-cat{display:none;}
+.cat-toggle{width:100%;display:flex;align-items:center;gap:14px;padding:15px 20px;background:none;border:none;color:var(--text);cursor:pointer;transition:background .15s;}
+.cat-toggle:hover{background:var(--bg-hover);}
+.cat-ico{width:38px;height:38px;flex-shrink:0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:11px;letter-spacing:-.5px;}
+.cat-nm{font-weight:600;font-size:14px;}
+.cat-ds{font-size:11px;color:var(--text-muted);margin-top:2px;}
+.cat-bw{margin-left:auto;display:flex;align-items:center;gap:8px;}
+.cat-badge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 9px;border-radius:10px;border:1px solid var(--border);color:var(--text-dim);background:var(--bg-row);}
+.cat-selbadge{font-family:'JetBrains Mono',monospace;font-size:10px;padding:2px 9px;border-radius:10px;border:1px solid var(--accent-border);color:var(--accent);background:var(--accent-glow);display:none;}
+.cat-selbadge.vis{display:block;}
+.cat-chev{color:var(--text-muted);transition:transform .25s;flex-shrink:0;}
+.cat-chev.open{transform:rotate(180deg);}
+.cat-body{border-top:1px solid var(--border);display:none;}
+.cat-body.open{display:block;animation:bodyIn .18s ease;}
+@keyframes bodyIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+/* Table header */
+.tbl-hdr{display:grid;grid-template-columns:1fr 140px;gap:12px;align-items:center;padding:7px 20px;background:rgba(255,255,255,.018);border-bottom:1px solid var(--border);}
+.tbl-hdr-l{font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.08em;}
+.tbl-hdr-r{display:flex;gap:4px;}
+.ch{width:32px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+.ch.c{color:var(--c)}.ch.r{color:var(--r)}.ch.u{color:var(--u)}.ch.d{color:var(--d)}
+
+/* Permission rows */
+.prow{display:grid;grid-template-columns:1fr 140px;gap:12px;align-items:start;padding:12px 20px;border-bottom:1px solid var(--border);border-left:3px solid transparent;transition:background .1s;}
+.prow:last-child{border-bottom:none;}
+.prow:hover{background:var(--bg-hover);}
+.prow.hidden-row{display:none;}
+.prow[data-risk="medium"]{border-left-color:rgba(245,158,11,.28);}
+.prow[data-risk="high"]{border-left-color:rgba(249,115,22,.42);}
+.prow[data-risk="critical"]{border-left-color:rgba(239,68,68,.55);background:rgba(239,68,68,.018);}
+
+/* Permission name area */
+.pnm-wrap{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin-bottom:2px;}
+.risk-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.pnm{font-size:13px;font-weight:500;color:var(--text);}
+.pds{font-size:11px;color:var(--text-muted);margin-top:1px;padding-left:13px;}
+
+/* Escalation badge + op chips */
+.esc-badge{display:inline-flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:1px 6px;border-radius:3px;background:rgba(239,68,68,.14);border:1px solid rgba(239,68,68,.4);color:#f87171;white-space:nowrap;letter-spacing:.03em;flex-shrink:0;}
+.esc-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:3px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;
+  flex-shrink:0;
+}
+.esc-chip.oc{background:var(--c-bg);border:1px solid var(--c-b);color:var(--c);}
+.esc-chip.or{background:var(--r-bg);border:1px solid var(--r-b);color:var(--r);}
+.esc-chip.ou{background:var(--u-bg);border:1px solid var(--u-b);color:var(--u);}
+.esc-chip.od{background:var(--d-bg);border:1px solid var(--d-b);color:var(--d);}
+.esc-text{margin-top:5px;padding:6px 8px 6px 10px;border-left:2px solid rgba(239,68,68,.45);background:rgba(239,68,68,.07);border-radius:0 4px 4px 0;font-family:'JetBrains Mono',monospace;font-size:10px;color:#fca5a5;line-height:1.55;}
+
+/* CRUD buttons */
+.crud-btns{display:flex;gap:4px;padding-top:2px;}
+.op{
+  width:32px;height:32px;display:flex;align-items:center;justify-content:center;
+  border-radius:6px;border:1px solid var(--border-mid);
+  background:var(--bg-row);cursor:pointer;position:relative;
+  font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+  color:var(--text-muted);transition:all .15s;
+  user-select:none;-webkit-tap-highlight-color:transparent;
+}
+.op.na{opacity:.18;cursor:not-allowed;pointer-events:none;}
+.op:not(.na):hover{border-color:rgba(255,255,255,.18);color:var(--text);}
+.op.sel.oc{background:var(--c-bg);border-color:var(--c-b);color:var(--c);}
+.op.sel.or{background:var(--r-bg);border-color:var(--r-b);color:var(--r);}
+.op.sel.ou{background:var(--u-bg);border-color:var(--u-b);color:var(--u);}
+.op.sel.od{background:var(--d-bg);border-color:var(--d-b);color:var(--d);}
+
+/* Amber dot on dangerous op buttons */
+.op.esc-op:not(.na)::before{
+  content:'';position:absolute;top:4px;right:4px;
+  width:4px;height:4px;border-radius:50%;
+  background:rgba(251,191,36,.8);pointer-events:none;
+}
+.op.esc-op.sel::before{opacity:0;}/* hide dot once selected */
+
+/* Tooltip */
+.op[title]:not(.na):hover::after{content:attr(title);position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:#1b1e2b;border:1px solid var(--border-mid);color:var(--text-dim);font-size:10px;padding:4px 9px;border-radius:5px;white-space:nowrap;z-index:999;pointer-events:none;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+
+/* Bottom panel */
+#panel{position:fixed;bottom:0;left:0;right:0;z-index:50;background:rgba(10,11,15,.97);backdrop-filter:blur(22px);border-top:1px solid var(--border-mid);}
+.panel-handle{display:flex;align-items:center;gap:10px;padding:0 22px;height:var(--ph);cursor:pointer;transition:background .15s;}
+.panel-handle:hover{background:var(--bg-hover);}
+.pdot{width:8px;height:8px;border-radius:50%;background:var(--text-muted);transition:background .2s,box-shadow .2s;flex-shrink:0;}
+.pdot.active{background:var(--accent);box-shadow:0 0 10px var(--accent);}
+.plabel{font-family:'Syne',sans-serif;font-weight:700;font-size:13px;color:var(--text-muted);transition:color .2s;white-space:nowrap;}
+.plabel.active{color:var(--accent);}
+.pmeta{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);white-space:nowrap;}
+.pacts{margin-left:auto;display:none;gap:8px;align-items:center;}
+.pacts.vis{display:flex;}
+.pact{font-family:'JetBrains Mono',monospace;font-size:10px;padding:4px 11px;border-radius:5px;cursor:pointer;border:1px solid var(--border-mid);background:var(--bg-hover);color:var(--text-dim);transition:all .15s;}
+.pact.danger:hover{color:#f87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.07);}
+.pact.copy:hover{color:var(--accent);border-color:var(--accent-border);background:var(--accent-glow);}
+.pchev{color:var(--text-muted);transition:transform .25s;flex-shrink:0;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1;}
+.pchev.up{transform:rotate(180deg);}
+.panel-body{overflow:hidden;max-height:0;transition:max-height .32s cubic-bezier(.4,0,.2,1);}
+.panel-body.open{max-height:340px;}
+.panel-inner{padding:14px 22px 18px;border-top:1px solid var(--border);}
+.panel-empty{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text-muted);padding:6px 0;}
+.roles-wrap{display:flex;flex-wrap:wrap;gap:8px;}
+.rchip{display:flex;align-items:center;gap:7px;padding:6px 12px;background:var(--bg-card);border:1px solid var(--border-mid);border-radius:6px;transition:border-color .15s;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text);}
+.rchip:hover{border-color:var(--accent-border);}
+.rchip-dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0;}
+.rchip-cnt{font-size:9px;color:var(--text-muted);background:var(--bg-hover);padding:1px 5px;border-radius:3px;}
+
+/* Escalation warning in panel */
+.panel-esc-warn{
+  display:none;margin-top:10px;
+  padding:7px 11px;
+  border-left:2px solid rgba(239,68,68,.5);
+  background:rgba(239,68,68,.07);
+  border-radius:0 5px 5px 0;
+  font-family:'JetBrains Mono',monospace;font-size:10px;color:#fca5a5;
+}
+.panel-esc-warn.vis{display:block;}
+
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:620px){.stats{grid-template-columns:repeat(2,1fr);}.rl-sep,.rl-label,.fb-label{display:none;}}
+@media(max-width:400px){.pds{display:none;}.stat-n{font-size:21px;}}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
+</style>
+</head>
+<body>
+<header>
+  <div class="hdr">
+    <div class="hdr-logo">S↗</div>
+    <div class="hdr-info">
+      <h1>Seb's Permission Calculator</h1>
+      <p>MS365 &amp; AD · LEAST-PRIVILEGE ROLE REFERENCE · CRUD SELECTOR</p>
+    </div>
+    <div class="hdr-pill" id="hdrPill"></div>
+  </div>
+</header>
+
+<main>
+  <div class="stats">
+    <div class="stat"><div class="stat-n">9</div><div class="stat-l">App&nbsp;Groups</div></div>
+    <div class="stat"><div class="stat-n">67</div><div class="stat-l">Permissions</div></div>
+    <div class="stat"><div class="stat-n">40+</div><div class="stat-l">Admin&nbsp;Roles</div></div>
+    <div class="stat"><div class="stat-n">🔒</div><div class="stat-l">Least&nbsp;Privilege</div></div>
+  </div>
+
+  <div class="search-wrap">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    <input id="searchInput" type="text" placeholder="Search permissions, roles, categories or risk level…" autocomplete="off">
+  </div>
+
+  <div class="risk-legend">
+    <span class="rl-label">Risk level</span>
+    <span class="rl-item"><span class="rl-dot" style="background:#22c55e"></span>Low</span>
+    <span class="rl-item"><span class="rl-dot" style="background:#f59e0b"></span>Medium</span>
+    <span class="rl-item"><span class="rl-dot" style="background:#f97316"></span>High</span>
+    <span class="rl-item"><span class="rl-dot" style="background:#ef4444;box-shadow:0 0 5px rgba(239,68,68,.5)"></span>Critical</span>
+    <span class="rl-sep">|</span>
+    <span class="rl-item rl-esc">⚠ PRIV ESC badge shows which op(s) are the escalation vector · amber dot marks those buttons</span>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-bar">
+    <span class="fb-label">Filter</span>
+    <button class="fchip active" data-f="all">All</button>
+    <button class="fchip fc-critical" data-f="critical">🔴 Critical</button>
+    <button class="fchip fc-high" data-f="high">🟠 High</button>
+    <button class="fchip fc-medium" data-f="medium">🟡 Medium</button>
+    <button class="fchip fc-low" data-f="low">🟢 Low</button>
+    <button class="fchip fc-esc" data-f="esc">⚠ Priv Esc only</button>
+  </div>
+
+  <div class="presets-card">
+    <button class="presets-toggle" id="presetsToggle">
+      <div class="pt-ico">⚡</div>
+      <div><div class="pt-title">Job Role Presets</div><div class="pt-sub">Click a role to auto-populate its typical permissions</div></div>
+      <svg class="pt-chev" id="ptChev" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+    </button>
+    <div class="presets-body" id="presetsBody"></div>
+  </div>
+
+  <div class="cats" id="catList"></div>
+</main>
+
+<div id="panel">
+  <div class="panel-handle" id="panelHandle">
+    <div class="pdot" id="pdot"></div>
+    <div class="plabel" id="plabel">Select permissions to calculate required roles</div>
+    <div class="pmeta" id="pmeta"></div>
+    <div class="pacts" id="pacts">
+      <button class="pact copy" id="copyBtn">copy roles</button>
+      <button class="pact danger" id="clearBtn">clear all</button>
+    </div>
+    <span class="pchev" id="pchev">⌃</span>
+  </div>
+  <div class="panel-body" id="panelBody">
+    <div class="panel-inner">
+      <div class="panel-empty" id="pEmpty">No permissions selected yet.</div>
+      <div class="roles-wrap" id="rolesWrap" style="display:none"></div>
+      <div class="panel-esc-warn" id="panelEscWarn"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+// esc: explanation string or null
+// escOps: array of CRUD ops that are the actual escalation vector e.g. ['U'] or ['C','U']
+const CATS = [
+  { id:'entra', name:'Microsoft Entra ID', desc:'Identity and access management', color:'#3b82f6', abbr:'EN',
+    perms:[
+      {id:'e-usr',name:'Users',                   desc:'Create, manage and delete user accounts',
+       risk:'high', escOps:['U'],
+       esc:'Update is the risk — User Administrators can reset passwords for non-admin users, enabling silent account takeover. They can also modify attributes relied on by Conditional Access policies.',
+       C:'User Administrator',               R:'Directory Readers',                U:'User Administrator',               D:'User Administrator'},
+      {id:'e-grp',name:'Groups',                  desc:'Create and manage security and M365 groups',
+       risk:'medium',esc:null,escOps:null,
+       C:'Groups Administrator',             R:'Directory Readers',                U:'Groups Administrator',             D:'Groups Administrator'},
+      {id:'e-app',name:'App Registrations',        desc:'Register and configure Azure AD application identities',
+       risk:'high', escOps:['C','U'],
+       esc:'Create/Update are the risk — Application Administrators can add credentials (secrets/certificates) to any app registration and impersonate its delegated permissions, including high-privilege Graph API scopes they would not otherwise hold.',
+       C:'Application Administrator',        R:'Directory Readers',                U:'Application Administrator',        D:'Application Administrator'},
+      {id:'e-ent',name:'Enterprise Applications',  desc:'Configure enterprise apps, SSO and consent grants',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — granting tenant-wide admin consent (via create or update) allows an app to act as any user. Cloud Application Admins can abuse OAuth consent flows to acquire permissions beyond their own role.',
+       C:'Cloud Application Administrator',  R:'Directory Readers',                U:'Cloud Application Administrator',  D:'Application Administrator'},
+      {id:'e-ca', name:'Conditional Access',       desc:'Create and manage conditional access policies',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — Conditional Access Administrators can create a new policy or update an existing one to exclude their own account from MFA and device compliance requirements, silently bypassing all access controls.',
+       C:'Conditional Access Administrator', R:'Security Reader',                  U:'Conditional Access Administrator', D:'Conditional Access Administrator'},
+      {id:'e-rol',name:'Directory Roles',          desc:'Assign and manage privileged administrator roles',
+       risk:'critical', escOps:['C'],
+       esc:'Create is the risk — Privileged Role Administrators can assign any Entra ID role, including Global Administrator, to themselves or any account they control. This is the most direct path to full tenant takeover.',
+       C:'Privileged Role Administrator',    R:'Directory Readers',                U:'Privileged Role Administrator',    D:'Privileged Role Administrator'},
+      {id:'e-dev',name:'Devices',                  desc:'Manage registered and Azure AD joined devices',
+       risk:'medium',esc:null,escOps:null,
+       C:'Cloud Device Administrator',       R:'Directory Readers',                U:'Cloud Device Administrator',       D:'Cloud Device Administrator'},
+      {id:'e-lic',name:'Licences',                 desc:'Assign and manage Microsoft 365 product licences',
+       risk:'low',esc:null,escOps:null,
+       C:'License Administrator',            R:'Directory Readers',                U:'License Administrator',            D:'License Administrator'},
+      {id:'e-mfa',name:'MFA / Auth Methods',       desc:'Manage multifactor authentication and passwordless settings',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — Authentication Administrators can register new MFA methods or issue Temporary Access Passes for non-admin users without their knowledge, enabling silent account takeover without the victim noticing.',
+       C:'Authentication Administrator',     R:'Security Reader',                  U:'Authentication Administrator',     D:'Authentication Administrator'},
+      {id:'e-log',name:'Sign-in Logs',             desc:'View user authentication and sign-in activity',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Reports Reader',U:null,D:null},
+      {id:'e-b2b',name:'Guest Users (B2B)',        desc:'Invite and manage external guest user accounts',
+       risk:'medium',esc:null,escOps:null,
+       C:'Guest Inviter',R:'Directory Readers',U:'User Administrator',D:'User Administrator'},
+    ]
+  },
+  { id:'exchange', name:'Exchange Online', desc:'Email and calendar management', color:'#0ea5e9', abbr:'EX',
+    perms:[
+      {id:'x-mbx',name:'Mailboxes',               desc:'Create and manage user mailboxes',
+       risk:'high',esc:null,escOps:null,
+       C:'Exchange Administrator',R:'Exchange Recipient Administrator',U:'Exchange Recipient Administrator',D:'Exchange Administrator'},
+      {id:'x-dg', name:'Distribution Groups',     desc:'Manage distribution and mail-enabled groups',
+       risk:'low',esc:null,escOps:null,
+       C:'Exchange Recipient Administrator',R:'Exchange Recipient Administrator',U:'Exchange Recipient Administrator',D:'Exchange Recipient Administrator'},
+      {id:'x-shd',name:'Shared Mailboxes',        desc:'Create and manage shared mailboxes',
+       risk:'medium',esc:null,escOps:null,
+       C:'Exchange Administrator',R:'Exchange Recipient Administrator',U:'Exchange Recipient Administrator',D:'Exchange Administrator'},
+      {id:'x-tr', name:'Mail Flow Rules',          desc:'Configure transport rules and connectors',
+       risk:'high', escOps:['C','U'],
+       esc:'Create/Update are the risk — mail flow rules can be created or modified to silently BCC or redirect all inbound and outbound email to an external address, enabling continuous data exfiltration without any user-visible sign.',
+       C:'Exchange Administrator',R:'Exchange Administrator',U:'Exchange Administrator',D:'Exchange Administrator'},
+      {id:'x-asp',name:'Anti-Spam Policies',      desc:'Configure spam filter and anti-malware policies',
+       risk:'medium',esc:null,escOps:null,
+       C:'Exchange Administrator',R:'Security Reader',U:'Exchange Administrator',D:'Exchange Administrator'},
+      {id:'x-qar',name:'Quarantine',              desc:'Manage quarantined messages and release policies',
+       risk:'medium',esc:null,escOps:null,
+       C:'Security Administrator',R:'Security Reader',U:'Security Administrator',D:'Security Administrator'},
+      {id:'x-log',name:'Admin Audit Log',         desc:'View Exchange administrator activity logs',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Exchange Administrator',U:null,D:null},
+      {id:'x-dkm',name:'Email Auth (DKIM)',       desc:'Configure DKIM, DMARC and SPF records',
+       risk:'medium',esc:null,escOps:null,
+       C:'Exchange Administrator',R:'Security Reader',U:'Exchange Administrator',D:'Exchange Administrator'},
+    ]
+  },
+  { id:'sharepoint', name:'SharePoint Online', desc:'Collaboration and content management', color:'#10b981', abbr:'SP',
+    perms:[
+      {id:'s-sit',name:'Site Collections',        desc:'Create and manage SharePoint site collections',
+       risk:'medium',esc:null,escOps:null,
+       C:'SharePoint Administrator',R:'SharePoint Administrator',U:'SharePoint Administrator',D:'SharePoint Administrator'},
+      {id:'s-prm',name:'Site Permissions',        desc:'Manage site membership and permission levels',
+       risk:'high', escOps:['U'],
+       esc:'Update is the risk — SharePoint Administrators can update permissions to grant themselves Site Collection Administrator on any site, including confidential HR, finance and executive sites, without any approval workflow.',
+       C:'SharePoint Administrator',R:'Global Reader',U:'SharePoint Administrator',D:'SharePoint Administrator'},
+      {id:'s-ext',name:'External Sharing',        desc:'Configure external sharing policies and settings',
+       risk:'high',esc:null,escOps:null,
+       C:'SharePoint Administrator',R:'Global Reader',U:'SharePoint Administrator',D:'SharePoint Administrator'},
+      {id:'s-hub',name:'Hub Sites',               desc:'Create and associate SharePoint hub sites',
+       risk:'low',esc:null,escOps:null,
+       C:'SharePoint Administrator',R:'Global Reader',U:'SharePoint Administrator',D:'SharePoint Administrator'},
+      {id:'s-ctp',name:'Content Types',           desc:'Manage content types and the term store',
+       risk:'low',esc:null,escOps:null,
+       C:'SharePoint Administrator',R:'Global Reader',U:'SharePoint Administrator',D:'SharePoint Administrator'},
+      {id:'s-stg',name:'Storage Quota',           desc:'View and adjust site collection storage allocation',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Global Reader',U:'SharePoint Administrator',D:null},
+    ]
+  },
+  { id:'teams', name:'Microsoft Teams', desc:'Collaboration and unified communications', color:'#8b5cf6', abbr:'TM',
+    perms:[
+      {id:'t-tms',name:'Teams & Channels',        desc:'Create and manage teams and channels',
+       risk:'low',esc:null,escOps:null,
+       C:'Teams Administrator',R:'Teams Reader',U:'Teams Administrator',D:'Teams Administrator'},
+      {id:'t-mtg',name:'Meeting Policies',        desc:'Configure meeting and live event policies',
+       risk:'low',esc:null,escOps:null,
+       C:'Teams Administrator',R:'Global Reader',U:'Teams Administrator',D:'Teams Administrator'},
+      {id:'t-msg',name:'Messaging Policies',      desc:'Configure chat and messaging settings',
+       risk:'low',esc:null,escOps:null,
+       C:'Teams Administrator',R:'Global Reader',U:'Teams Administrator',D:'Teams Administrator'},
+      {id:'t-app',name:'App Permissions',         desc:'Manage Teams app permission and setup policies',
+       risk:'high', escOps:['C','U'],
+       esc:'Create/Update are the risk — Teams Administrators can create or update app permission policies to approve and deploy third-party apps with broad Graph API access tenant-wide, granting those apps access to all Teams messages, files and user data.',
+       C:'Teams Administrator',R:'Global Reader',U:'Teams Administrator',D:'Teams Administrator'},
+      {id:'t-phn',name:'Phone Numbers',           desc:'Assign and manage Teams Phone numbers',
+       risk:'low',esc:null,escOps:null,
+       C:'Teams Communications Administrator',R:'Teams Communications Support Engineer',U:'Teams Communications Administrator',D:'Teams Communications Administrator'},
+      {id:'t-gst',name:'Guest Access',            desc:'Configure guest user access policies for Teams',
+       risk:'medium',esc:null,escOps:null,
+       C:'Teams Administrator',R:'Global Reader',U:'Teams Administrator',D:'Teams Administrator'},
+    ]
+  },
+  { id:'intune', name:'Microsoft Intune', desc:'Endpoint and mobile device management', color:'#f59e0b', abbr:'IN',
+    perms:[
+      {id:'i-enr',name:'Device Enrollment',       desc:'Configure enrollment profiles and restrictions',
+       risk:'medium',esc:null,escOps:null,
+       C:'Intune Administrator',R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+      {id:'i-cmp',name:'Compliance Policies',     desc:'Create and assign device compliance policies',
+       risk:'medium',esc:null,escOps:null,
+       C:'Intune Administrator',R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+      {id:'i-cfg',name:'Configuration Profiles',  desc:'Deploy device configuration and settings profiles',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — Intune Administrators can create or update configuration profiles to deploy PowerShell scripts executing as SYSTEM on every managed device. This enables remote code execution across the entire device fleet in a single push.',
+       C:'Intune Administrator',R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+      {id:'i-app',name:'App Deployment',          desc:'Deploy and manage applications via Intune',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — Intune Administrators can silently create or update app deployments to push any executable to all enrolled devices. A malicious or trojanised package can compromise every endpoint in the organisation simultaneously.',
+       C:'Intune Administrator',R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+      {id:'i-dev',name:'Managed Devices',         desc:'View and remotely action enrolled devices',
+       risk:'medium',esc:null,escOps:null,
+       C:null,R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+      {id:'i-aup',name:'Autopilot Profiles',      desc:'Configure Windows Autopilot deployment profiles',
+       risk:'medium',esc:null,escOps:null,
+       C:'Intune Administrator',R:'Intune Reader',U:'Intune Administrator',D:'Intune Administrator'},
+    ]
+  },
+  { id:'defender', name:'Microsoft Defender', desc:'Security operations and threat protection', color:'#ef4444', abbr:'DF',
+    perms:[
+      {id:'d-inc',name:'Security Incidents',      desc:'Investigate and manage security incidents',
+       risk:'medium',esc:null,escOps:null,
+       C:'Security Operator',R:'Security Reader',U:'Security Operator',D:'Security Operator'},
+      {id:'d-alt',name:'Alerts',                  desc:'View and triage security alerts',
+       risk:'low',esc:null,escOps:null,
+       C:'Security Operator',R:'Security Reader',U:'Security Operator',D:'Security Operator'},
+      {id:'d-hnt',name:'Threat Hunting',           desc:'Run advanced hunting queries in Defender',
+       risk:'low',esc:null,escOps:null,
+       C:'Security Operator',R:'Security Reader',U:null,D:null},
+      {id:'d-scr',name:'Secure Score',             desc:'View and take Secure Score improvement actions',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Security Reader',U:'Security Administrator',D:null},
+      {id:'d-vul',name:'Vulnerability Management', desc:'View device vulnerabilities and remediation tasks',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Security Reader',U:'Security Administrator',D:null},
+      {id:'d-mal',name:'Anti-Malware Policies',    desc:'Configure threat protection and exclusion policies',
+       risk:'critical', escOps:['U'],
+       esc:'Update is the risk — Security Administrators can update or weaken AV/EDR policies and add process/path exclusions, removing detection coverage across all endpoints and allowing attacker tooling to execute completely undetected.',
+       C:'Security Administrator',R:'Security Reader',U:'Security Administrator',D:'Security Administrator'},
+    ]
+  },
+  { id:'compliance', name:'Security & Compliance', desc:'Governance, risk and compliance', color:'#06b6d4', abbr:'SC',
+    perms:[
+      {id:'c-dlp',name:'DLP Policies',            desc:'Create and manage data loss prevention policies',
+       risk:'high',esc:null,escOps:null,
+       C:'Compliance Administrator',R:'Compliance Data Administrator',U:'Compliance Administrator',D:'Compliance Administrator'},
+      {id:'c-ret',name:'Retention Policies',      desc:'Configure data lifecycle and retention rules',
+       risk:'medium',esc:null,escOps:null,
+       C:'Compliance Administrator',R:'Compliance Data Administrator',U:'Compliance Administrator',D:'Compliance Administrator'},
+      {id:'c-edi',name:'eDiscovery Cases',         desc:'Create and manage eDiscovery cases and legal holds',
+       risk:'high', escOps:['C','R'],
+       esc:'Create and Read are the risk — Create opens a case scoped to any users; Read then allows unrestricted export of all their content (email, Teams, SharePoint files) with no secondary approval. eDiscovery Admins can target anyone in the org including executives and IT staff.',
+       C:'eDiscovery Administrator',R:'eDiscovery Manager',U:'eDiscovery Administrator',D:'eDiscovery Administrator'},
+      {id:'c-lbl',name:'Sensitivity Labels',      desc:'Create and publish Microsoft Purview sensitivity labels',
+       risk:'medium',esc:null,escOps:null,
+       C:'Information Protection Administrator',R:'Global Reader',U:'Information Protection Administrator',D:'Information Protection Administrator'},
+      {id:'c-aud',name:'Unified Audit Log',        desc:'Search and export the Microsoft 365 audit log',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Compliance Data Administrator',U:null,D:null},
+      {id:'c-com',name:'Communication Compliance', desc:'Review employee communications for policy violations',
+       risk:'high',esc:null,escOps:null,
+       C:'Communication Compliance Administrator',R:'Communication Compliance Analyst',U:'Communication Compliance Administrator',D:'Communication Compliance Administrator'},
+    ]
+  },
+  { id:'admin365', name:'Microsoft 365 Admin', desc:'Tenant administration and billing', color:'#ec4899', abbr:'AD',
+    perms:[
+      {id:'a-hlt',name:'Service Health',          desc:'View Microsoft 365 service health dashboards',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Service Support Administrator',U:null,D:null},
+      {id:'a-sup',name:'Support Tickets',         desc:'Create and manage Microsoft support requests',
+       risk:'low',esc:null,escOps:null,
+       C:'Service Support Administrator',R:'Service Support Administrator',U:'Service Support Administrator',D:'Service Support Administrator'},
+      {id:'a-msg',name:'Message Centre',          desc:'Read Microsoft 365 service change announcements',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Message Center Reader',U:null,D:null},
+      {id:'a-rpt',name:'Usage Reports',           desc:'Access Microsoft 365 usage analytics and reports',
+       risk:'low',esc:null,escOps:null,
+       C:null,R:'Reports Reader',U:null,D:null},
+      {id:'a-bil',name:'Billing',                 desc:'View and manage billing accounts and invoices',
+       risk:'medium',esc:null,escOps:null,
+       C:'Billing Administrator',R:'Billing Reader',U:'Billing Administrator',D:'Billing Administrator'},
+      {id:'a-sub',name:'Subscriptions',           desc:'Purchase and manage Microsoft 365 subscriptions',
+       risk:'medium',esc:null,escOps:null,
+       C:'Billing Administrator',R:'Billing Reader',U:'Billing Administrator',D:'Billing Administrator'},
+    ]
+  },
+  { id:'dc', name:'Active Directory / Domain Controller', desc:'On-premises AD DS and Windows Server management', color:'#dc2626', abbr:'DC',
+    perms:[
+      {id:'dc-usr',name:'AD User Accounts',        desc:'Create and manage on-premises Active Directory user accounts',
+       risk:'high', escOps:['U'],
+       esc:'Update is the risk — Account Operators can reset passwords for non-protected accounts, enabling takeover of identities that authenticate to sensitive on-premises systems and services across the domain.',
+       C:'Account Operators',R:'Domain Users',U:'Account Operators',D:'Domain Admin'},
+      {id:'dc-grp',name:'AD Security Groups',      desc:'Manage Active Directory security group membership',
+       risk:'critical', escOps:['U'],
+       esc:'Update is the risk — adding a controlled account to Domain Admins, Enterprise Admins or other protected groups immediately grants full domain control. Note: Account Operators cannot modify protected groups by default — review AdminSDHolder settings.',
+       C:'Account Operators',R:'Domain Users',U:'Account Operators',D:'Account Operators'},
+      {id:'dc-gpo',name:'Group Policy Objects',    desc:'Create and link GPOs to sites, domains and OUs',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — creating or modifying a GPO linked at the domain level deploys logon scripts, scheduled tasks or software packages that execute on every domain-joined machine. Classic technique for domain-wide code execution and persistence.',
+       C:'Group Policy Creator Owner',R:'Domain Users',U:'Group Policy Creator Owner',D:'Domain Admin'},
+      {id:'dc-ou', name:'Organisational Units',    desc:'Create and manage Active Directory organisational units',
+       risk:'medium',esc:null,escOps:null,
+       C:'Domain Admin',R:'Domain Users',U:'Domain Admin',D:'Domain Admin'},
+      {id:'dc-trt',name:'Domain Trusts',           desc:'Create and manage trust relationships between domains and forests',
+       risk:'critical', escOps:['C'],
+       esc:'Create is the risk — establishing a trust with a foreign domain allows principals from that domain to authenticate in yours. SID history attacks and unconstrained Kerberos delegation abuse via trusts are well-documented cross-forest escalation paths.',
+       C:'Enterprise Admin',R:'Domain Admin',U:'Enterprise Admin',D:'Enterprise Admin'},
+      {id:'dc-dns',name:'DNS Management',          desc:'Manage Active Directory–integrated DNS zones and records',
+       risk:'critical', escOps:['U'],
+       esc:'Update is the risk — DNS Admins can update the server configuration to load a rogue plugin DLL into the DNS service, which runs as SYSTEM on the Domain Controller. Well-documented technique for achieving Domain Admin equivalent access.',
+       C:'DNS Admins',R:'Domain Users',U:'DNS Admins',D:'DNS Admins'},
+      {id:'dc-sch',name:'AD Schema',               desc:'Modify the Active Directory schema (forest-wide, irreversible)',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — schema changes propagate across the entire forest and cannot be rolled back. Adding malicious attributes or modifying security descriptor defaults can create persistent backdoors invisible to conventional forensic tooling.',
+       C:'Schema Admins',R:'Domain Admin',U:'Schema Admins',D:null},
+      {id:'dc-dcp',name:'DC Promotion / Demotion', desc:'Promote servers to DCs or demote existing domain controllers',
+       risk:'critical', escOps:['C'],
+       esc:'Create (promotion) is the risk — a rogue or compromised DC receives full AD replication, enabling DCSync to extract every NTLM hash and Kerberos key in the domain. Results in complete, immediate and covert domain compromise.',
+       C:'Domain Admin',R:'Domain Admin',U:'Domain Admin',D:'Domain Admin'},
+      {id:'dc-fpw',name:'Password Policies (PSOs)',desc:'Create and assign Fine-Grained Password Settings Objects',
+       risk:'high',esc:null,escOps:null,
+       C:'Domain Admin',R:'Domain Admin',U:'Domain Admin',D:'Domain Admin'},
+      {id:'dc-svc',name:'Service / Managed Accounts',desc:'Create and manage service accounts and group MSAs',
+       risk:'critical', escOps:['C','U'],
+       esc:'Create/Update are the risk — creating a privileged service account or updating an SPN on an existing account makes it a Kerberoasting target. Any account that can set the SPN or password can harvest the TGS ticket offline and crack the credentials.',
+       C:'Domain Admin',R:'Account Operators',U:'Domain Admin',D:'Domain Admin'},
+      {id:'dc-rep',name:'AD Replication (DCSync)', desc:'Configure replication topology and delegate replication rights',
+       risk:'critical', escOps:['U','R'],
+       esc:'Update and Read are both risks — Update lets you grant "Replicating Directory Changes All" to an account you control; Read (with that right) enables DCSync to silently extract every NTLM hash and Kerberos key without touching DC storage.',
+       C:null,R:'Domain Admin',U:'Domain Admin',D:null},
+      {id:'dc-dhc',name:'DHCP Management',         desc:'Manage DHCP server scopes, leases and options',
+       risk:'high', escOps:['C','U'],
+       esc:'Create/Update are the risk — creating or modifying DHCP scopes to advertise a rogue default gateway or DNS server redirects all network traffic through an attacker-controlled host, enabling MITM, credential interception and lateral movement.',
+       C:'DHCP Administrators',R:'Domain Users',U:'DHCP Administrators',D:'DHCP Administrators'},
+    ]
+  },
+];
+
+const PMAP = {};
+CATS.forEach(cat => cat.perms.forEach(p => PMAP[p.id] = {...p, catId:cat.id}));
+
+const SUPERSEDES = {
+  'Intune Administrator':                   ['Intune Reader'],
+  'Exchange Administrator':                 ['Exchange Recipient Administrator','Security Reader'],
+  'Security Administrator':                 ['Security Operator','Security Reader'],
+  'Security Operator':                      ['Security Reader'],
+  'Compliance Administrator':               ['Compliance Data Administrator'],
+  'eDiscovery Administrator':               ['eDiscovery Manager'],
+  'SharePoint Administrator':               ['Global Reader'],
+  'Teams Administrator':                    ['Teams Reader'],
+  'Teams Communications Administrator':     ['Teams Communications Support Engineer'],
+  'Communication Compliance Administrator': ['Communication Compliance Analyst'],
+  'Information Protection Administrator':   ['Global Reader'],
+  'Application Administrator':              ['Cloud Application Administrator'],
+  'Privileged Role Administrator':          ['Directory Readers'],
+  'User Administrator':                     ['Directory Readers','Guest Inviter'],
+  'Groups Administrator':                   ['Directory Readers'],
+  'Billing Administrator':                  ['Billing Reader'],
+  'Service Support Administrator':          ['Message Center Reader'],
+  'Domain Admin':                           ['Account Operators','Server Operators','Backup Operators',
+                                             'Group Policy Creator Owner','DNS Admins','DHCP Administrators','Domain Users'],
+  'Enterprise Admin':                       ['Domain Admin','Schema Admins'],
+};
+
+const PRESETS = [
+  {name:'Help Desk Technician',        icon:'🎧', sels:[{id:'e-usr',ops:['R']},{id:'e-grp',ops:['R']},{id:'e-dev',ops:['R']},{id:'e-lic',ops:['R']},{id:'x-mbx',ops:['R']},{id:'a-hlt',ops:['R']},{id:'a-sup',ops:['C','R','U']}]},
+  {name:'User Administrator',          icon:'👤', sels:[{id:'e-usr',ops:['C','R','U','D']},{id:'e-grp',ops:['C','R','U','D']},{id:'e-lic',ops:['R','U']},{id:'e-b2b',ops:['C','R','U']}]},
+  {name:'Exchange Admin',              icon:'✉️', sels:[{id:'x-mbx',ops:['C','R','U','D']},{id:'x-dg',ops:['C','R','U','D']},{id:'x-shd',ops:['C','R','U','D']},{id:'x-tr',ops:['C','R','U','D']},{id:'x-asp',ops:['C','R','U']},{id:'x-log',ops:['R']}]},
+  {name:'SharePoint Admin',            icon:'📁', sels:[{id:'s-sit',ops:['C','R','U','D']},{id:'s-prm',ops:['C','R','U','D']},{id:'s-ext',ops:['R','U']},{id:'s-hub',ops:['C','R','U']},{id:'s-stg',ops:['R','U']}]},
+  {name:'Security Analyst',            icon:'🔍', sels:[{id:'d-inc',ops:['R','U']},{id:'d-alt',ops:['R','U']},{id:'d-hnt',ops:['R']},{id:'d-scr',ops:['R']},{id:'d-vul',ops:['R']},{id:'e-log',ops:['R']},{id:'c-aud',ops:['R']}]},
+  {name:'Compliance Officer',          icon:'⚖️', sels:[{id:'c-dlp',ops:['C','R','U']},{id:'c-ret',ops:['C','R','U']},{id:'c-edi',ops:['C','R','U']},{id:'c-lbl',ops:['C','R','U']},{id:'c-aud',ops:['R']}]},
+  {name:'Teams Admin',                 icon:'💬', sels:[{id:'t-tms',ops:['C','R','U','D']},{id:'t-mtg',ops:['C','R','U']},{id:'t-msg',ops:['C','R','U']},{id:'t-app',ops:['C','R','U']},{id:'t-gst',ops:['R','U']}]},
+  {name:'Intune Admin',                icon:'💻', sels:[{id:'i-enr',ops:['C','R','U','D']},{id:'i-cmp',ops:['C','R','U','D']},{id:'i-cfg',ops:['C','R','U','D']},{id:'i-app',ops:['C','R','U','D']},{id:'i-dev',ops:['R','U','D']},{id:'i-aup',ops:['C','R','U','D']}]},
+  {name:'AD / Domain Admin',           icon:'🖥', sels:[{id:'dc-usr',ops:['C','R','U','D']},{id:'dc-grp',ops:['C','R','U','D']},{id:'dc-gpo',ops:['C','R','U','D']},{id:'dc-ou',ops:['C','R','U']},{id:'dc-dns',ops:['C','R','U','D']},{id:'dc-svc',ops:['C','R','U']}]},
+  {name:'Read-Only (Global Reader)',    icon:'👁', sels:Object.values(PMAP).filter(p=>p.R).map(p=>({id:p.id,ops:['R']}))},
+];
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let sel = {}, activeFilter = 'all', panelOpen = false, presetsOpen = false;
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+function totalSel(){ return Object.values(sel).reduce((a,o)=>a+Object.values(o).filter(Boolean).length,0); }
+
+function getRequiredRoles(){
+  const map={};
+  for(const [pid,ops] of Object.entries(sel)){
+    const p=PMAP[pid]; if(!p) continue;
+    for(const op of['C','R','U','D']){ if(ops[op]&&p[op]) map[p[op]]=(map[p[op]]||0)+1; }
+  }
+  const remove=new Set();
+  Object.keys(map).forEach(r=>{ (SUPERSEDES[r]||[]).forEach(s=>{ if(map[s]) remove.add(s); }); });
+  return Object.entries(map).filter(([r])=>!remove.has(r)).map(([role,cnt])=>({role,cnt})).sort((a,b)=>b.cnt-a.cnt);
+}
+
+function catSelCount(catId){
+  const cat=CATS.find(c=>c.id===catId); if(!cat) return 0;
+  return cat.perms.reduce((a,p)=>{ const s=sel[p.id]; return a+(s?Object.values(s).filter(Boolean).length:0); },0);
+}
+
+function countSelectedEsc(){
+  return Object.keys(sel).filter(pid=>PMAP[pid]?.esc && Object.values(sel[pid]).some(Boolean)).length;
+}
+
+// ── BUILD DOM ─────────────────────────────────────────────────────────────
+const OP_CLS = {C:'oc',R:'or',U:'ou',D:'od'};
+const RISK_COLORS = {low:'#22c55e',medium:'#f59e0b',high:'#f97316',critical:'#ef4444'};
+
+function buildCats(){
+  document.getElementById('catList').innerHTML = CATS.map(cat=>`
+    <div class="cc" id="card-${cat.id}">
+      <button class="cat-toggle" onclick="toggleCat('${cat.id}')">
+        <div class="cat-ico" style="background:${cat.color}18;color:${cat.color}">${cat.abbr}</div>
+        <div><div class="cat-nm">${cat.name}</div><div class="cat-ds">${cat.desc}</div></div>
+        <div class="cat-bw">
+          <span class="cat-badge">${cat.perms.length}&nbsp;perms</span>
+          <span class="cat-selbadge" id="csb-${cat.id}"></span>
+        </div>
+        <svg class="cat-chev${openCats.has(cat.id)?' open':''}" id="cchev-${cat.id}" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+      <div class="cat-body${openCats.has(cat.id)?' open':''}" id="cbody-${cat.id}">
+        <div class="tbl-hdr">
+          <span class="tbl-hdr-l">Permission</span>
+          <div class="tbl-hdr-r"><span class="ch c">C</span><span class="ch r">R</span><span class="ch u">U</span><span class="ch d">D</span></div>
+        </div>
+        ${cat.perms.map(buildRow).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function buildRow(p){
+  const rc = RISK_COLORS[p.risk]||'#6b7280';
+  const glow = p.risk==='critical'?';box-shadow:0 0 6px rgba(239,68,68,.5)':'';
+  // Esc op chips (coloured mini CRUD badges)
+  const escChips = (p.escOps||[]).map(op=>`<span class="esc-chip ${OP_CLS[op]}">${op}</span>`).join('');
+  const escBadge = p.esc ? `<span class="esc-badge">⚠ PRIV ESC</span>${escChips}` : '';
+  return `
+    <div class="prow" id="row-${p.id}" data-risk="${p.risk||'low'}" data-esc="${p.esc?'1':'0'}">
+      <div>
+        <div class="pnm-wrap">
+          <span class="risk-dot" style="background:${rc}${glow}"></span>
+          <span class="pnm">${p.name}</span>
+          ${escBadge}
+        </div>
+        <div class="pds">${p.desc}</div>
+        ${p.esc?`<div class="esc-text">${p.esc}</div>`:''}
+      </div>
+      <div class="crud-btns">
+        ${['C','R','U','D'].map(op=>{
+          const role=p[op], cls=OP_CLS[op];
+          const isEscOp = p.escOps?.includes(op);
+          if(!role) return `<div class="op na ${cls}">${op}</div>`;
+          return `<div class="op ${cls}${isEscOp?' esc-op':''}" data-pid="${p.id}" data-op="${op}" title="${role}" onclick="toggleOp('${p.id}','${op}')">${op}</div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function buildPresets(){
+  document.getElementById('presetsBody').innerHTML = PRESETS.map((pr,i)=>`
+    <button class="ppill" onclick="applyPreset(${i})">
+      <span class="ppill-dot"></span><span>${pr.icon}</span><span>${pr.name}</span>
+    </button>`).join('');
+}
+
+// ── INTERACTIONS ──────────────────────────────────────────────────────────
+const openCats = new Set(['entra']);
+
+function toggleCat(id){
+  if(openCats.has(id)){ openCats.delete(id); document.getElementById('cbody-'+id).classList.remove('open'); document.getElementById('cchev-'+id).classList.remove('open'); }
+  else{ openCats.add(id); document.getElementById('cbody-'+id).classList.add('open'); document.getElementById('cchev-'+id).classList.add('open'); }
+}
+
+function toggleOp(pid,op){
+  if(!sel[pid]) sel[pid]={C:false,R:false,U:false,D:false};
+  sel[pid][op]=!sel[pid][op];
+  if(!Object.values(sel[pid]).some(Boolean)) delete sel[pid];
+  const el=document.querySelector(`.op[data-pid="${pid}"][data-op="${op}"]`);
+  if(el) el.classList.toggle('sel',!!(sel[pid]?.[op]));
+  updateCatBadge(PMAP[pid].catId);
+  updatePanel();
+}
+
+function updateCatBadge(catId){
+  const cnt=catSelCount(catId);
+  const badge=document.getElementById('csb-'+catId), card=document.getElementById('card-'+catId);
+  if(!badge||!card) return;
+  if(cnt>0){ badge.textContent=cnt+' selected'; badge.classList.add('vis'); card.classList.add('has-sel'); }
+  else{ badge.classList.remove('vis'); card.classList.remove('has-sel'); }
+}
+
+function applyPreset(idx){
+  sel={};
+  PRESETS[idx].sels.forEach(({id,ops})=>{ sel[id]={C:false,R:false,U:false,D:false}; ops.forEach(op=>{sel[id][op]=true;}); });
+  document.querySelectorAll('.op[data-pid]').forEach(el=>{ if(!el.classList.contains('na')) el.classList.toggle('sel',!!(sel[el.dataset.pid]?.[el.dataset.op])); });
+  CATS.forEach(c=>updateCatBadge(c.id));
+  updatePanel();
+  const rel=new Set(PRESETS[idx].sels.map(s=>PMAP[s.id]?.catId).filter(Boolean));
+  rel.forEach(catId=>{ if(!openCats.has(catId)){ openCats.add(catId); document.getElementById('cbody-'+catId)?.classList.add('open'); document.getElementById('cchev-'+catId)?.classList.add('open'); } });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function clearAll(){
+  sel={};
+  document.querySelectorAll('.op[data-pid]').forEach(el=>{ if(!el.classList.contains('na')) el.classList.remove('sel'); });
+  CATS.forEach(c=>updateCatBadge(c.id));
+  if(panelOpen) togglePanel(false);
+  updatePanel();
+}
+
+function updatePanel(){
+  const total=totalSel(), roles=getRequiredRoles(), n=roles.length, escN=countSelectedEsc();
+  const [pdot,plabel,pmeta,pacts,pill,pEmpty,rolesWrap,escWarn]=['pdot','plabel','pmeta','pacts','hdrPill','pEmpty','rolesWrap','panelEscWarn'].map(id=>document.getElementById(id));
+  if(total===0){
+    pdot.classList.remove('active'); plabel.classList.remove('active');
+    plabel.textContent='Select permissions to calculate required roles';
+    pmeta.textContent=''; pacts.classList.remove('vis');
+    pill.style.display='none'; pEmpty.style.display='block';
+    rolesWrap.style.display='none'; rolesWrap.innerHTML='';
+    escWarn.classList.remove('vis');
+  } else {
+    pdot.classList.add('active'); plabel.classList.add('active');
+    plabel.textContent=total+' op'+(total!==1?'s':'')+' selected';
+    pmeta.textContent=' → '+n+' role'+(n!==1?'s':'')+' required';
+    pacts.classList.add('vis'); pill.style.display=''; pill.textContent=n+' role'+(n!==1?'s':'');
+    pEmpty.style.display='none'; rolesWrap.style.display='flex';
+    rolesWrap.innerHTML=roles.map(({role,cnt})=>`
+      <div class="rchip" title="${cnt} operation${cnt!==1?'s':''} require this role">
+        <div class="rchip-dot"></div><span>${role}</span><span class="rchip-cnt">×${cnt}</span>
+      </div>`).join('');
+    if(escN>0){
+      escWarn.classList.add('vis');
+      escWarn.textContent=`⚠ ${escN} selected permission${escN!==1?'s':''} carr${escN!==1?'y':'ies'} a privilege escalation risk — review the amber-dotted ops carefully before assigning.`;
+    } else {
+      escWarn.classList.remove('vis');
+    }
+  }
+}
+
+function togglePanel(force){
+  const body=document.getElementById('panelBody'), chev=document.getElementById('pchev');
+  panelOpen=force!==undefined?force:!panelOpen;
+  body.classList.toggle('open',panelOpen); chev.classList.toggle('up',panelOpen);
+}
+
+function copyRoles(){
+  const roles=getRequiredRoles(); if(!roles.length) return;
+  const text=roles.map(r=>r.role).join('\n');
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn=document.getElementById('copyBtn'), orig=btn.textContent;
+    btn.textContent='✓ copied!'; btn.style.color='var(--accent)';
+    setTimeout(()=>{ btn.textContent=orig; btn.style.color=''; },2000);
+  }).catch(()=>{ const ta=document.createElement('textarea'); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); document.body.removeChild(ta); });
+}
+
+// ── FILTERING & SEARCH ────────────────────────────────────────────────────
+function rowVisible(p){
+  if(activeFilter==='esc') return !!p.esc;
+  if(activeFilter!=='all') return p.risk===activeFilter;
+  return true;
+}
+
+function applyFilters(){
+  const q=document.getElementById('searchInput').value.toLowerCase().trim();
+  CATS.forEach(cat=>{
+    let catVis=false;
+    cat.perms.forEach(p=>{
+      const row=document.getElementById('row-'+p.id); if(!row) return;
+      let show=rowVisible(p);
+      if(show&&q){
+        show=p.name.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)||
+             cat.name.toLowerCase().includes(q)||
+             (p.C&&p.C.toLowerCase().includes(q))||(p.R&&p.R.toLowerCase().includes(q))||
+             (p.U&&p.U.toLowerCase().includes(q))||(p.D&&p.D.toLowerCase().includes(q))||
+             p.risk.includes(q)||(p.esc&&p.esc.toLowerCase().includes(q));
+      }
+      row.classList.toggle('hidden-row',!show);
+      if(show) catVis=true;
+    });
+    const card=document.getElementById('card-'+cat.id); if(card) card.classList.toggle('hidden-cat',!catVis);
+    if(catVis&&!openCats.has(cat.id)&&q){ openCats.add(cat.id); document.getElementById('cbody-'+cat.id)?.classList.add('open'); document.getElementById('cchev-'+cat.id)?.classList.add('open'); }
+  });
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  buildCats(); buildPresets(); updatePanel();
+
+  // Filter chips
+  document.querySelectorAll('.fchip').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeFilter=btn.dataset.f;
+      document.querySelectorAll('.fchip').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      applyFilters();
+    });
+  });
+
+  document.getElementById('presetsToggle').addEventListener('click',()=>{
+    presetsOpen=!presetsOpen;
+    document.getElementById('presetsBody').classList.toggle('open',presetsOpen);
+    document.getElementById('ptChev').classList.toggle('open',presetsOpen);
+  });
+  document.getElementById('panelHandle').addEventListener('click',()=>{ if(totalSel()>0) togglePanel(); });
+  document.getElementById('clearBtn').addEventListener('click',e=>{ e.stopPropagation(); clearAll(); });
+  document.getElementById('copyBtn').addEventListener('click',e=>{ e.stopPropagation(); copyRoles(); });
+  document.getElementById('searchInput').addEventListener('input',applyFilters);
+});
+</script>
+</body>
+</html>
