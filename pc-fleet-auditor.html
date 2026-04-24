@@ -2,408 +2,349 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>PC Fleet Auditor</title>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; background: #0f1117; color: #c9d1e0; min-height: 100vh; }
-
-/* Header */
-.header { background: #161b27; border-bottom: 1px solid #252d42; padding: 0 24px; height: 52px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
-.header-title { font-size: 17px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
-.header-title .icon { background: #f0a500; width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-.header-right { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #6b7499; }
-.btn { padding: 6px 14px; border-radius: 6px; border: 1px solid #2e3550; background: #1a1e2e; color: #c9d1e0; font-size: 12px; cursor: pointer; font-family: inherit; }
-.btn:hover { border-color: #f0a500; color: #f0a500; }
-.btn-primary { background: #f0a500; color: #000; border-color: #f0a500; font-weight: 700; }
-.btn-primary:hover { background: #ffc11a; border-color: #ffc11a; color: #000; }
-
-/* Layout */
-main { padding: 24px; max-width: 1600px; margin: 0 auto; }
-
-/* Upload */
-.upload-box { border: 2px dashed #2e3550; border-radius: 12px; padding: 52px 24px; text-align: center; background: #161b27; cursor: pointer; transition: border-color .2s, background .2s; }
-.upload-box:hover { border-color: #f0a500; background: #181d2a; }
-.upload-box.drag { border-color: #f0a500; background: rgba(240,165,0,.05); }
-.upload-icon { font-size: 40px; margin-bottom: 12px; }
-.upload-title { font-size: 20px; font-weight: 700; color: #fff; margin-bottom: 6px; }
-.upload-sub { color: #6b7499; font-size: 13px; margin-bottom: 20px; }
-.upload-sub b { color: #f0a500; }
-#file-input { display: none; }
-.upload-tip { margin-top: 14px; background: #1a1e2e; border: 1px solid #252d42; border-radius: 8px; padding: 12px 16px; font-size: 12px; color: #6b7499; line-height: 1.8; }
-.upload-tip b { color: #f0a500; }
-
-/* Error banner */
-.error-banner { display: none; background: rgba(255,77,109,.1); border: 1px solid #ff4d6d; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; color: #ff4d6d; font-size: 13px; }
-.error-banner.show { display: block; }
-
-/* Mapper */
-.mapper { display: none; background: #161b27; border: 1px solid #252d42; border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-.section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #f0a500; margin-bottom: 12px; }
-.mapper-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(195px, 1fr)); gap: 10px; }
-.map-field label { display: block; font-size: 11px; color: #6b7499; margin-bottom: 4px; }
-.map-field select { width: 100%; background: #1a1e2e; border: 1px solid #2e3550; color: #c9d1e0; padding: 6px 9px; border-radius: 5px; font-size: 12px; font-family: inherit; cursor: pointer; }
-.map-field select:focus { outline: none; border-color: #f0a500; }
-.mapper-actions { margin-top: 14px; display: flex; gap: 8px; }
-
+body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #0f1117; color: #c9d1e0; }
+h1 { font-size: 18px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 10px; }
+h1 span { background: #f0a500; color: #000; padding: 2px 8px; border-radius: 5px; font-size: 12px; }
+.page { padding: 24px; max-width: 1600px; margin: 0 auto; }
+.card { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 20px; margin-bottom: 18px; }
+/* Upload area */
+.pick-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.pick-row label { font-size: 14px; color: #c9d1e0; }
+#csv-file { color: #c9d1e0; font-size: 13px; padding: 7px; background: #1a1e2e; border: 1px solid #2e3550; border-radius: 6px; cursor: pointer; }
+#csv-file::-webkit-file-upload-button { background: #f0a500; color: #000; border: none; padding: 6px 14px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-right: 10px; }
+.btn { padding: 8px 18px; border-radius: 6px; border: none; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 700; }
+.btn-go { background: #f0a500; color: #000; }
+.btn-go:hover { background: #ffc11a; }
+.btn-go:disabled { background: #555; color: #888; cursor: not-allowed; }
+.btn-sm { padding: 5px 12px; font-size: 11px; background: #1a1e2e; color: #c9d1e0; border: 1px solid #2e3550; border-radius: 5px; cursor: pointer; }
+.btn-sm:hover { border-color: #f0a500; color: #f0a500; }
+/* Status */
+#status { display: none; margin-top: 10px; padding: 10px 14px; border-radius: 7px; font-size: 13px; }
+#status.ok  { background: rgba(57,217,138,.1); border: 1px solid #39d98a; color: #39d98a; }
+#status.err { background: rgba(255,77,109,.1); border: 1px solid #ff4d6d; color: #ff4d6d; }
+#status.info{ background: rgba(240,165,0,.1); border: 1px solid #f0a500; color: #f0a500; }
+/* Health */
+.health-row { display: flex; align-items: center; gap: 18px; }
+.health-pct { font-size: 48px; font-weight: 800; line-height: 1; flex-shrink: 0; }
+.health-bar-bg { flex: 1; height: 8px; background: #252d42; border-radius: 4px; overflow: hidden; }
+.health-bar-fill { height: 100%; border-radius: 4px; }
+.health-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 7px; }
+.health-legend span { font-size: 11px; color: #6b7499; display: flex; align-items: center; gap: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
 /* Stats */
-.stats-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(155px, 1fr)); gap: 12px; margin-bottom: 20px; }
-.stat { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 15px 17px; position: relative; overflow: hidden; }
-.stat::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
-.stat.c-amber::before { background: #f0a500; }
-.stat.c-green::before { background: #39d98a; }
-.stat.c-red::before { background: #ff4d6d; }
-.stat.c-blue::before { background: #4e9eff; }
-.stat.c-purple::before { background: #9d7ff4; }
-.stat.c-orange::before { background: #ff7a3d; }
-.stat.c-teal::before { background: #00c9b1; }
-.stat-label { font-size: 10px; color: #6b7499; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 5px; }
-.stat-value { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
-.stat-sub { font-size: 11px; color: #6b7499; }
-.stat.c-amber .stat-value { color: #f0a500; }
-.stat.c-green .stat-value { color: #39d98a; }
-.stat.c-red .stat-value { color: #ff4d6d; }
-.stat.c-blue .stat-value { color: #4e9eff; }
-.stat.c-purple .stat-value { color: #9d7ff4; }
-.stat.c-orange .stat-value { color: #ff7a3d; }
-.stat.c-teal .stat-value { color: #00c9b1; }
-
-/* Health bar */
-.health-bar-wrap { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 18px 22px; margin-bottom: 20px; display: flex; align-items: center; gap: 20px; }
-.health-score { font-size: 46px; font-weight: 800; line-height: 1; flex-shrink: 0; }
-.health-detail { flex: 1; }
-.health-bar-bg { background: #252d42; height: 8px; border-radius: 4px; overflow: hidden; margin: 8px 0; }
-.health-bar-fill { height: 100%; border-radius: 4px; transition: width .6s; }
-.health-meta { font-size: 11px; color: #6b7499; display: flex; gap: 14px; flex-wrap: wrap; }
-.health-meta span { display: flex; align-items: center; gap: 4px; }
-.dot { width: 7px; height: 7px; border-radius: 50%; }
-
-/* Issue cards */
-.issue-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 11px; margin-bottom: 20px; }
-.issue-card { background: #161b27; border: 1px solid #252d42; border-radius: 10px; padding: 13px 16px; display: flex; align-items: center; gap: 13px; cursor: pointer; transition: all .15s; }
-.issue-card:hover, .issue-card.active { border-color: #f0a500; background: #1a1e2e; }
-.issue-ico { width: 38px; height: 38px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
-.issue-ico.red { background: rgba(255,77,109,.15); }
-.issue-ico.amber { background: rgba(240,165,0,.15); }
-.issue-ico.blue { background: rgba(78,158,255,.15); }
-.issue-ico.teal { background: rgba(0,201,177,.15); }
-.issue-ico.orange { background: rgba(255,122,61,.15); }
-.issue-title { font-size: 12px; font-weight: 700; color: #fff; margin-bottom: 2px; }
-.issue-count { font-size: 20px; font-weight: 800; }
-.issue-count.red { color: #ff4d6d; }
-.issue-count.amber { color: #f0a500; }
-.issue-count.blue { color: #4e9eff; }
-.issue-count.teal { color: #00c9b1; }
-.issue-count.orange { color: #ff7a3d; }
-
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 11px; }
+.stat { background: #161b27; border: 1px solid #252d42; border-radius: 9px; padding: 14px; position: relative; overflow: hidden; }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; }
+.s1::before{background:#f0a500} .s2::before{background:#00c9b1} .s3::before{background:#ff4d6d}
+.s4::before{background:#ff7a3d} .s5::before{background:#4e9eff} .s6::before{background:#9d7ff4} .s7::before{background:#39d98a}
+.stat-n { font-size: 11px; color: #6b7499; text-transform: uppercase; letter-spacing: .7px; margin-bottom: 5px; }
+.stat-v { font-size: 26px; font-weight: 800; line-height: 1; margin-bottom: 2px; }
+.stat-s { font-size: 11px; color: #6b7499; }
+.s1 .stat-v{color:#f0a500}.s2 .stat-v{color:#00c9b1}.s3 .stat-v{color:#ff4d6d}
+.s4 .stat-v{color:#ff7a3d}.s5 .stat-v{color:#4e9eff}.s6 .stat-v{color:#9d7ff4}.s7 .stat-v{color:#39d98a}
+/* Issue chips */
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px; }
+.chip { background: #161b27; border: 1px solid #252d42; border-radius: 9px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.chip:hover, .chip.on { border-color: #f0a500; background: #1a1e2e; }
+.chip-ico { width: 36px; height: 36px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+.ico-r{background:rgba(255,77,109,.15)}.ico-a{background:rgba(240,165,0,.15)}.ico-b{background:rgba(78,158,255,.15)}.ico-t{background:rgba(0,201,177,.15)}.ico-o{background:rgba(255,122,61,.15)}
+.chip-title { font-size: 12px; font-weight: 700; color: #fff; }
+.chip-cnt { font-size: 19px; font-weight: 800; }
+.cnt-r{color:#ff4d6d}.cnt-a{color:#f0a500}.cnt-b{color:#4e9eff}.cnt-t{color:#00c9b1}.cnt-o{color:#ff7a3d}
 /* OS version row */
-.osver-row { display: flex; flex-wrap: wrap; gap: 9px; margin-bottom: 20px; }
-.osver-chip { background: #161b27; border: 1px solid #252d42; border-radius: 8px; padding: 8px 13px; cursor: pointer; transition: all .15s; display: flex; align-items: center; gap: 9px; }
-.osver-chip:hover, .osver-chip.active { border-color: #f0a500; }
-.osver-num { font-size: 17px; font-weight: 800; }
-.osver-lbl { font-size: 10px; color: #6b7499; }
-.pill { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
-.pill-ok { background: rgba(57,217,138,.15); color: #39d98a; }
-.pill-warn { background: rgba(240,165,0,.15); color: #f0a500; }
-.pill-crit { background: rgba(255,77,109,.15); color: #ff4d6d; }
-.pill-info { background: rgba(78,158,255,.15); color: #4e9eff; }
-.pill-teal { background: rgba(0,201,177,.15); color: #00c9b1; }
-.pill-grey { background: #252d42; color: #6b7499; }
-
+.ver-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ver-chip { background: #161b27; border: 1px solid #252d42; border-radius: 7px; padding: 7px 12px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+.ver-chip:hover, .ver-chip.on { border-color: #f0a500; }
+.ver-cnt { font-size: 16px; font-weight: 800; }
+.ver-lbl { font-size: 10px; color: #6b7499; }
 /* Filters */
-.filter-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-.filter-row input, .filter-row select { background: #161b27; border: 1px solid #2e3550; color: #c9d1e0; padding: 7px 11px; border-radius: 6px; font-size: 12px; font-family: inherit; cursor: pointer; }
-.filter-row input { width: 230px; cursor: text; }
-.filter-row input:focus, .filter-row select:focus { outline: none; border-color: #f0a500; }
-.filter-row select option { background: #161b27; }
-.filter-spacer { flex: 1; }
-.clear-filter-btn { display: none; padding: 5px 12px; border-radius: 20px; border: 1px solid #2e3550; background: transparent; color: #6b7499; font-size: 11px; font-family: inherit; cursor: pointer; }
-.clear-filter-btn:hover { border-color: #f0a500; color: #f0a500; }
-
+.filters { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 12px; }
+.filters input, .filters select { background: #161b27; border: 1px solid #2e3550; color: #c9d1e0; padding: 6px 10px; border-radius: 6px; font-size: 12px; font-family: inherit; }
+.filters input { width: 220px; }
+.filters input:focus, .filters select:focus { outline: none; border-color: #f0a500; }
+.filters select option { background: #161b27; }
+.fsp { flex: 1; }
 /* Table */
-.table-wrap { background: #161b27; border: 1px solid #252d42; border-radius: 12px; overflow: hidden; }
-.table-top { padding: 13px 17px; border-bottom: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; }
-.table-top-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #c9d1e0; }
-.table-scroll { overflow-x: auto; }
+.tbl-wrap { background: #161b27; border: 1px solid #252d42; border-radius: 10px; overflow: hidden; }
+.tbl-top { padding: 12px 16px; border-bottom: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6b7499; }
+.tbl-scroll { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; }
-thead th { padding: 8px 12px; text-align: left; font-size: 10px; color: #6b7499; text-transform: uppercase; letter-spacing: .7px; background: #1a1e2e; border-bottom: 1px solid #252d42; white-space: nowrap; cursor: pointer; user-select: none; }
-thead th:hover { color: #f0a500; }
-thead th.sorted { color: #f0a500; }
-tbody tr { border-bottom: 1px solid #1e2436; cursor: pointer; }
-tbody tr:hover { background: #1a1e2e; }
-tbody tr:last-child { border-bottom: none; }
-tbody td { padding: 9px 12px; font-size: 12px; vertical-align: middle; white-space: nowrap; }
-.pc-name { font-weight: 700; color: #fff; }
+th { padding: 7px 11px; text-align: left; font-size: 10px; color: #6b7499; text-transform: uppercase; letter-spacing: .7px; background: #1a1e2e; border-bottom: 1px solid #252d42; white-space: nowrap; cursor: pointer; user-select: none; }
+th:hover, th.on { color: #f0a500; }
+tr { border-bottom: 1px solid #1e2436; cursor: pointer; }
+tr:hover { background: #1a1e2e; }
+tr:last-child { border-bottom: none; }
+td { padding: 8px 11px; font-size: 12px; vertical-align: middle; white-space: nowrap; }
+.pcn { font-weight: 700; color: #fff; }
 .dim { color: #6b7499; }
-
-/* Mini progress bar */
+/* pills */
+.p { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: 700; }
+.p-ok   { background: rgba(57,217,138,.15); color: #39d98a; }
+.p-warn { background: rgba(240,165,0,.15);  color: #f0a500; }
+.p-crit { background: rgba(255,77,109,.15); color: #ff4d6d; }
+.p-info { background: rgba(78,158,255,.15); color: #4e9eff; }
+.p-teal { background: rgba(0,201,177,.15);  color: #00c9b1; }
+.p-grey { background: #252d42; color: #6b7499; }
+/* bar */
 .bar-wrap { display: inline-flex; align-items: center; gap: 5px; }
-.bar-bg { width: 60px; height: 4px; background: #252d42; border-radius: 2px; flex-shrink: 0; }
-.bar-fill { height: 100%; border-radius: 2px; }
-
-/* Age dots */
-.age-dots { display: flex; gap: 3px; margin-bottom: 2px; }
-.age-dot { width: 5px; height: 5px; border-radius: 50%; background: #252d42; }
-.age-label { font-size: 10px; }
-
-/* Flags */
+.bar { width: 55px; height: 4px; background: #252d42; border-radius: 2px; overflow: hidden; }
+.bar-f { height: 100%; border-radius: 2px; }
+/* age */
+.age-dots { display: flex; gap: 2px; margin-bottom: 2px; }
+.ad { width: 5px; height: 5px; border-radius: 50%; background: #252d42; }
+/* flags */
 .flags { display: flex; gap: 3px; }
-.flag { width: 17px; height: 17px; border-radius: 3px; font-size: 10px; display: flex; align-items: center; justify-content: center; position: relative; cursor: default; }
-.flag:hover::after { content: attr(title); position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: #0d0f14; color: #c9d1e0; font-size: 10px; padding: 4px 8px; border-radius: 5px; z-index: 99; border: 1px solid #2e3550; white-space: nowrap; pointer-events: none; max-width: 240px; white-space: normal; text-align: left; width: max-content; }
-.flag-red { background: rgba(255,77,109,.15); }
-.flag-amber { background: rgba(240,165,0,.15); }
-
-/* Pagination */
-.pager { padding: 12px 17px; border-top: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6b7499; }
-.page-btns { display: flex; gap: 3px; }
-.page-btn { width: 26px; height: 26px; border-radius: 5px; border: 1px solid #2e3550; background: transparent; color: #c9d1e0; font-size: 11px; font-family: inherit; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-.page-btn:hover { border-color: #f0a500; color: #f0a500; }
-.page-btn.active { background: #f0a500; border-color: #f0a500; color: #000; font-weight: 700; }
-.page-btn:disabled { opacity: .3; cursor: not-allowed; }
-
-/* Modal */
-.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; align-items: center; justify-content: center; }
-.modal-bg.open { display: flex; }
-.modal-box { background: #161b27; border: 1px solid #2e3550; border-radius: 12px; width: 660px; max-width: 95vw; max-height: 90vh; overflow-y: auto; padding: 22px; position: relative; }
-.modal-close { position: absolute; top: 12px; right: 12px; width: 28px; height: 28px; border-radius: 6px; background: #1a1e2e; border: 1px solid #2e3550; color: #6b7499; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; }
-.modal-close:hover { border-color: #ff4d6d; color: #ff4d6d; }
-.modal-pc { font-size: 19px; font-weight: 800; color: #fff; margin-bottom: 3px; }
-.modal-user { font-size: 11px; color: #6b7499; margin-bottom: 16px; }
-.modal-section { margin-bottom: 15px; }
-.modal-section-title { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #6b7499; padding-bottom: 6px; border-bottom: 1px solid #252d42; margin-bottom: 9px; }
-.modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
-.modal-field-label { font-size: 10px; color: #6b7499; margin-bottom: 2px; }
-.modal-field-value { font-size: 12px; color: #fff; font-weight: 500; word-break: break-word; }
-.alert-box { padding: 8px 12px; border-radius: 7px; border-left: 3px solid; font-size: 12px; line-height: 1.5; margin-bottom: 6px; }
-.alert-box b { display: block; font-size: 12px; margin-bottom: 1px; }
-.alert-red { background: rgba(255,77,109,.07); border-color: #ff4d6d; color: #ff4d6d; }
-.alert-amber { background: rgba(240,165,0,.07); border-color: #f0a500; color: #f0a500; }
-.alert-blue { background: rgba(78,158,255,.07); border-color: #4e9eff; color: #4e9eff; }
-.alert-green { background: rgba(57,217,138,.07); border-color: #39d98a; color: #39d98a; }
-
-/* Hidden sections */
-.section { display: none; }
-
-/* Section header row */
-.sec-hdr { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.flag { width: 16px; height: 16px; border-radius: 3px; font-size: 9px; display: flex; align-items: center; justify-content: center; position: relative; }
+.flag:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #0d0f14; color: #c9d1e0; font-size: 11px; padding: 4px 8px; border-radius: 5px; border: 1px solid #2e3550; z-index: 99; white-space: nowrap; pointer-events: none; max-width: 250px; white-space: normal; text-align: left; width: max-content; }
+.fr { background: rgba(255,77,109,.15); }
+.fa { background: rgba(240,165,0,.15); }
+/* pager */
+.pager { padding: 11px 16px; border-top: 1px solid #252d42; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #6b7499; }
+.pager-btns { display: flex; gap: 3px; }
+.pb { width: 25px; height: 25px; border-radius: 5px; border: 1px solid #2e3550; background: transparent; color: #c9d1e0; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.pb:hover { border-color: #f0a500; color: #f0a500; }
+.pb.on { background: #f0a500; border-color: #f0a500; color: #000; font-weight: 700; }
+.pb:disabled { opacity: .3; cursor: not-allowed; }
+/* modal */
+.mover { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); z-index: 100; align-items: center; justify-content: center; }
+.mover.open { display: flex; }
+.mbox { background: #161b27; border: 1px solid #2e3550; border-radius: 12px; width: 650px; max-width: 96vw; max-height: 90vh; overflow-y: auto; padding: 22px; position: relative; }
+.mx { position: absolute; top: 12px; right: 12px; background: #1a1e2e; border: 1px solid #2e3550; color: #6b7499; cursor: pointer; border-radius: 6px; width: 27px; height: 27px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
+.mx:hover { border-color: #ff4d6d; color: #ff4d6d; }
+.mpc { font-size: 18px; font-weight: 800; color: #fff; margin-bottom: 3px; }
+.mu  { font-size: 11px; color: #6b7499; margin-bottom: 15px; }
+.ms { margin-bottom: 14px; }
+.mst { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: #6b7499; border-bottom: 1px solid #252d42; padding-bottom: 5px; margin-bottom: 8px; }
+.mg { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.mfl { font-size: 10px; color: #6b7499; margin-bottom: 2px; }
+.mfv { font-size: 12px; color: #fff; word-break: break-word; }
+.alert { padding: 8px 12px; border-radius: 7px; border-left: 3px solid; font-size: 12px; margin-bottom: 5px; line-height: 1.5; }
+.alert b { display: block; margin-bottom: 2px; }
+.a-r { background: rgba(255,77,109,.07); border-color: #ff4d6d; color: #ff4d6d; }
+.a-a { background: rgba(240,165,0,.07); border-color: #f0a500; color: #f0a500; }
+.a-b { background: rgba(78,158,255,.07); border-color: #4e9eff; color: #4e9eff; }
+.a-g { background: rgba(57,217,138,.07); border-color: #39d98a; color: #39d98a; }
+/* mapper */
+.map-wrap { display: none; }
+.mg2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 9px; }
+.mf label { display: block; font-size: 10px; color: #6b7499; margin-bottom: 3px; text-transform: uppercase; letter-spacing: .6px; }
+.mf select { width: 100%; background: #1a1e2e; border: 1px solid #2e3550; color: #c9d1e0; padding: 6px 9px; border-radius: 5px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.mf select:focus { outline: none; border-color: #f0a500; }
+/* section title */
+.stitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #f0a500; margin-bottom: 11px; }
+.sec-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; }
+.hidden { display: none; }
 </style>
 </head>
 <body>
+<div class="page">
 
-<div class="header">
-  <div class="header-title"><div class="icon">🖥</div>Fleet Auditor</div>
-  <div class="header-right">
-    <span id="hdr-info">No data loaded</span>
-    <button class="btn" id="btn-export" style="display:none" onclick="doExport()">⬇ Export CSV</button>
-    <button class="btn" id="btn-reset" style="display:none" onclick="doReset()">↺ New File</button>
-  </div>
-</div>
-
-<main>
-
-  <!-- UPLOAD -->
-  <div id="section-upload">
-    <div class="error-banner" id="error-banner"></div>
-    <div class="upload-box" id="drop-zone">
-      <div class="upload-icon">📊</div>
-      <div class="upload-title">Drop your CSV file here</div>
-      <div class="upload-sub">Export as <b>CSV</b> from Excel, PDQ Inventory, Lansweeper, NinjaRMM, or any RMM tool</div>
-      <button class="btn btn-primary" onclick="event.stopPropagation(); pickFile()">📂 Choose CSV File</button>
-      <input type="file" id="file-input" accept=".csv,.txt">
+  <!-- TITLE -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">
+    <h1>🖥 Fleet Auditor <span id="hdr-count"></span></h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sm hidden" id="btn-exp" onclick="doExport()">⬇ Export CSV</button>
+      <button class="btn-sm hidden" id="btn-rst" onclick="doReset()">↺ New File</button>
     </div>
-    <div class="upload-tip">
-      <b>💡 How to export CSV:</b> In Excel → File → Save As → CSV. In PDQ Inventory → right-click report → Export. In Lansweeper → Reports → Export to CSV.<br>
-      <b>Expected columns (flexible naming):</b> PC/System Name · Username · OS · OS Version · CPU · RAM (GB) · Total Disk (GB) · Free Disk (GB) · Serial · Install Date · Device Age · Site/Location · Last Logon · Device Type
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card" id="card-upload">
+    <div class="stitle">📂 Load Inventory CSV</div>
+    <div class="pick-row">
+      <input type="file" id="csv-file" accept=".csv">
+      <button class="btn btn-go" id="btn-load" onclick="doLoad()">Load File</button>
+    </div>
+    <div id="status"></div>
+    <div style="margin-top:12px;font-size:11px;color:#6b7499;line-height:1.8">
+      <b style="color:#f0a500">How to export CSV:</b>
+      Excel → File → Save As → CSV UTF-8 &nbsp;|&nbsp;
+      PDQ Inventory → right-click report → Export &nbsp;|&nbsp;
+      Lansweeper → Reports → Export to CSV<br>
+      <b style="color:#f0a500">Supported columns:</b>
+      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type
     </div>
   </div>
 
   <!-- MAPPER -->
-  <div class="mapper" id="section-mapper">
-    <div class="section-label">⚙ Map Your Columns</div>
-    <div class="mapper-grid" id="mapper-grid"></div>
-    <div class="mapper-actions">
-      <button class="btn btn-primary" onclick="runAnalysis()">✓ Analyse Fleet</button>
-      <button class="btn" onclick="doReset()">✕ Load Different File</button>
+  <div class="card map-wrap" id="card-map">
+    <div class="stitle">⚙ Map Columns</div>
+    <div class="mg2" id="map-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-go" onclick="doAnalyse()">✓ Analyse Fleet</button>
+      <button class="btn-sm" onclick="doReset()">✕ Different File</button>
     </div>
   </div>
 
-  <!-- DASHBOARD -->
-  <div class="section" id="section-dash">
+  <!-- DASHBOARD (hidden until loaded) -->
+  <div id="dash" class="hidden">
 
-    <!-- Health score -->
-    <div class="health-bar-wrap" id="health-wrap">
-      <div class="health-score" id="health-score">—</div>
-      <div class="health-detail">
-        <div style="font-size:12px;color:#6b7499;margin-bottom:4px">Fleet Health <span id="health-detail-text"></span></div>
-        <div class="health-bar-bg"><div class="health-bar-fill" id="health-fill"></div></div>
-        <div class="health-meta" id="health-meta"></div>
+    <!-- Health -->
+    <div class="card">
+      <div class="health-row">
+        <div class="health-pct" id="h-pct">—</div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:#6b7499;margin-bottom:5px">Fleet Health Score <span id="h-sub" style="color:#6b7499"></span></div>
+          <div class="health-bar-bg"><div class="health-bar-fill" id="h-bar"></div></div>
+          <div class="health-legend" id="h-leg"></div>
+        </div>
       </div>
     </div>
 
     <!-- Stats -->
-    <div class="stats-row" id="stats-row"></div>
+    <div class="card"><div class="stats" id="stats"></div></div>
 
-    <!-- Issue cards -->
-    <div class="sec-hdr">
-      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#f0a500">⚠ Issues — click to filter table</div>
-      <button class="clear-filter-btn" id="btn-clear" onclick="clearFilter()">✕ Clear Filter</button>
+    <!-- Issues -->
+    <div class="card">
+      <div class="sec-hdr">
+        <div class="stitle" style="margin:0">⚠ Issues — click to filter</div>
+        <button class="btn-sm hidden" id="btn-clf" onclick="clearFilter()">✕ Clear Filter</button>
+      </div>
+      <div class="chips" id="chips"></div>
     </div>
-    <div class="issue-cards" id="issue-cards"></div>
 
     <!-- OS Versions -->
-    <div id="osver-section" style="display:none;margin-bottom:20px">
+    <div class="card" id="osver-card" style="display:none">
       <div class="sec-hdr">
-        <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.2px;color:#f0a500">🪟 OS Versions — click to filter</div>
+        <div class="stitle" style="margin:0">🪟 OS Versions — click to filter</div>
       </div>
-      <div class="osver-row" id="osver-row"></div>
+      <div class="ver-row" id="ver-row"></div>
     </div>
 
-    <!-- Filters -->
-    <div class="filter-row">
-      <input type="text" id="f-search" placeholder="🔍  Search PC name, user, serial…" oninput="applyFilters()">
-      <select id="f-site" onchange="applyFilters()"><option value="">All Sites</option></select>
-      <select id="f-os" onchange="applyFilters()"><option value="">All OS</option></select>
-      <select id="f-type" onchange="applyFilters()"><option value="">All Types</option></select>
-      <select id="f-age" onchange="applyFilters()">
-        <option value="">All Ages</option>
-        <option value="new">New (&lt;3yr)</option>
-        <option value="aging">Aging (3–5yr)</option>
-        <option value="old">Old (5–8yr)</option>
-        <option value="legacy">Legacy (8+yr)</option>
-      </select>
-      <select id="f-w11" onchange="applyFilters()">
-        <option value="">Win11: All</option>
-        <option value="ready">✅ Ready</option>
-        <option value="partial">⚠ Check</option>
-        <option value="not-ready">❌ Not Ready</option>
-        <option value="na">N/A</option>
-      </select>
-      <div class="filter-spacer"></div>
-      <select id="f-pagesize" onchange="pgSz=+this.value;pg=1;renderTable()">
-        <option value="25">25/page</option><option value="50">50/page</option>
-        <option value="100">100/page</option><option value="9999">All</option>
-      </select>
+    <!-- Filters + Table -->
+    <div class="card">
+      <div class="filters">
+        <input type="text" id="f-q" placeholder="🔍  Search PC, user, serial…" oninput="applyF()">
+        <select id="f-site"  onchange="applyF()"><option value="">All Sites</option></select>
+        <select id="f-os"    onchange="applyF()"><option value="">All OS</option></select>
+        <select id="f-type"  onchange="applyF()"><option value="">All Types</option></select>
+        <select id="f-age"   onchange="applyF()">
+          <option value="">All Ages</option>
+          <option value="new">New (&lt;3yr)</option>
+          <option value="aging">Aging (3–5yr)</option>
+          <option value="old">Old (5–8yr)</option>
+          <option value="legacy">Legacy (8+yr)</option>
+        </select>
+        <select id="f-w11" onchange="applyF()">
+          <option value="">Win11: All</option>
+          <option value="ready">✅ Ready</option>
+          <option value="partial">⚠ Check</option>
+          <option value="not-ready">❌ Not Ready</option>
+          <option value="na">N/A</option>
+        </select>
+        <div class="fsp"></div>
+        <select id="f-ps" onchange="pgSz=+this.value;pg=1;renderT()">
+          <option value="25">25/page</option>
+          <option value="50">50/page</option>
+          <option value="100">100/page</option>
+          <option value="9999">All</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-top">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Devices</span>
+          <span id="tbl-cnt"></span>
+        </div>
+        <div class="tbl-scroll"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+        <div class="pager" id="pager"></div>
+      </div>
     </div>
 
-    <!-- Table -->
-    <div class="table-wrap">
-      <div class="table-top">
-        <div class="table-top-title">Devices</div>
-        <div id="table-count" style="font-size:11px;color:#6b7499"></div>
-      </div>
-      <div class="table-scroll">
-        <table>
-          <thead id="thead"></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div class="pager" id="pager"></div>
-    </div>
+  </div><!-- /dash -->
+</div><!-- /page -->
 
-  </div><!-- /section-dash -->
-</main>
-
-<!-- MODAL -->
-<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
-  <div class="modal-box" id="modal-box"></div>
+<!-- Modal -->
+<div class="mover" id="mover" onclick="closeMod(event)">
+  <div class="mbox" id="mbox"></div>
 </div>
 
 <script>
-'use strict';
+// ─── CSV PARSER ────────────────────────────────────────────
+function parseCSV(raw) {
+  // strip BOM
+  if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+  // normalise line endings
+  raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  var lines = raw.split('\n');
+  while (lines.length && !lines[lines.length-1].trim()) lines.pop();
 
-// ═══════════════════════════════════════════════════════
-// CSV PARSER — no library, handles quoted fields
-// ═══════════════════════════════════════════════════════
-function parseCSV(text) {
-  // Normalise line endings
-  var lines = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-
-  // Remove totally empty trailing lines
-  while (lines.length && !lines[lines.length - 1].trim()) lines.pop();
-
-  function parseLine(line) {
-    var fields = [], i = 0, field = '';
-    while (i <= line.length) {
-      if (i === line.length) { fields.push(field.trim()); break; }
-      var ch = line[i];
-      if (ch === '"') {
+  function splitLine(line) {
+    var out = [], cur = '', i = 0;
+    while (i < line.length) {
+      if (line[i] === '"') {
         i++;
         while (i < line.length) {
-          if (line[i] === '"' && line[i + 1] === '"') { field += '"'; i += 2; }
+          if (line[i] === '"' && line[i+1] === '"') { cur += '"'; i += 2; }
           else if (line[i] === '"') { i++; break; }
-          else { field += line[i++]; }
+          else cur += line[i++];
         }
-        // skip to next comma
-        while (i < line.length && line[i] !== ',') i++;
+        while (i < line.length && line[i] !== ',') i++; // skip to comma
         if (line[i] === ',') i++;
-      } else if (ch === ',') {
-        fields.push(field.trim()); field = ''; i++;
       } else {
-        field += ch; i++;
+        var j = line.indexOf(',', i);
+        if (j === -1) { cur += line.slice(i); i = line.length; }
+        else { cur += line.slice(i, j); i = j + 1; }
       }
+      out.push(cur.trim()); cur = '';
     }
-    return fields;
+    if (line[line.length-1] === ',') out.push(''); // trailing comma
+    return out;
   }
 
-  var headers = parseLine(lines[0]);
+  var headers = splitLine(lines[0]);
   var rows = [];
-  for (var r = 1; r < lines.length; r++) {
-    var line = lines[r];
-    if (!line.trim()) continue;
-    var vals = parseLine(line);
+  for (var i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    var vals = splitLine(lines[i]);
     var row = {};
-    for (var c = 0; c < headers.length; c++) {
-      row[headers[c]] = vals[c] !== undefined ? vals[c] : '';
-    }
+    for (var c = 0; c < headers.length; c++) row[headers[c]] = vals[c] !== undefined ? vals[c] : '';
     rows.push(row);
   }
   return { headers: headers, rows: rows };
 }
 
-// ═══════════════════════════════════════════════════════
-// COLUMN AUTO-DETECT
-// ═══════════════════════════════════════════════════════
-var FIELD_PATTERNS = {
-  site:        [/site.?name|location|^site$|department|branch|office/i],
-  pcName:      [/system.?name|pc.?name|computer.?name|hostname|device.?name|^name$/i],
-  username:    [/last.?logged.?on.?user|user.?name|username|^user$|login|assigned/i],
-  os:          [/os.?product|operating.?system|^os$|^windows$/i],
-  osVersion:   [/os.?display.?version|os.?version|display.?version|build.?version/i],
-  cpu:         [/processor.?name|processor.?name.?1|cpu.?model|^cpu$|^processor$/i],
-  ram:         [/memory.?size|memory.?gb|ram.?gb|^ram$|^memory$|physical.?mem/i],
-  totalDisk:   [/disk.?total|total.?disk|disk.?size|total.?space/i],
-  freeDisk:    [/disk.?free|free.?disk|free.?space|available.?disk/i],
-  serial:      [/bios.?serial|serial.?number|service.?tag|^serial$/i],
-  installDate: [/os.?install.?date|install.?date|purchase.?date/i],
-  tpm:         [/tpm.?version|^tpm$/i],
-  secureBoot:  [/secure.?boot/i],
-  model:       [/system.?model|device.?model|^model$/i],
-  manufacturer:[/bios.?manufacturer|^manufacturer$|^make$|^vendor$/i],
-  lastLogon:   [/last.?logged.?on.?date|last.?logon|last.?login/i],
-  lastSeen:    [/last.?agent.?check|last.?check|last.?seen|last.?contact/i],
-  deviceType:  [/^type$|device.?type|form.?factor/i],
-  deviceAge:   [/device.?age.?years|age.?years|^age$/i],
+// ─── COLUMN DETECTION ──────────────────────────────────────
+var FP = {
+  site:       [/site.?name|^site$|location|department|office/i],
+  pcName:     [/system.?name|pc.?name|computer.?name|hostname|device.?name|^name$/i],
+  user:       [/last.?logged.?on.?user|user.?name|username|^user$|login|assigned/i],
+  os:         [/os.?product|operating.?system|^os$|^windows$/i],
+  osVer:      [/os.?display.?version|os.?version|display.?version|build.?version/i],
+  cpu:        [/processor.?name|processor.?name.?1|cpu.?model|^cpu$|^processor$/i],
+  ram:        [/memory.?size|memory.?gb|ram.?gb|^ram$|^memory$|physical/i],
+  diskTotal:  [/disk.?total|total.?disk|total.?space|disk.?size/i],
+  diskFree:   [/disk.?free|free.?disk|free.?space|available.?disk/i],
+  serial:     [/bios.?serial|serial.?number|service.?tag|^serial$/i],
+  installDate:[/install.?date|purchase.?date|os.?install/i],
+  tpm:        [/^tpm/i],
+  secureBoot: [/secure.?boot/i],
+  model:      [/system.?model|device.?model|^model$/i],
+  mfr:        [/bios.?manufacturer|^manufacturer$|^make$|^vendor$/i],
+  lastLogon:  [/last.?logged.?on.?date|last.?logon|last.?login/i],
+  lastSeen:   [/last.?agent.?check|last.?check|last.?seen/i],
+  devType:    [/^type$|device.?type|form.?factor/i],
+  ageYears:   [/device.?age.?years|age.?years|^age$/i],
 };
-
-var FIELD_LABELS = {
-  site:'Site / Location', pcName:'PC / System Name', username:'Username',
-  os:'Operating System', osVersion:'OS Version (e.g. 24H2)', cpu:'CPU / Processor',
-  ram:'RAM (GB)', totalDisk:'Total Disk (GB)', freeDisk:'Free Disk (GB)',
+var FL = {
+  site:'Site / Location', pcName:'PC / System Name', user:'Username',
+  os:'Operating System', osVer:'OS Version (e.g. 24H2)', cpu:'CPU / Processor',
+  ram:'RAM (GB)', diskTotal:'Total Disk (GB)', diskFree:'Free Disk (GB)',
   serial:'Serial Number', installDate:'Install / Purchase Date',
   tpm:'TPM Version', secureBoot:'Secure Boot', model:'PC Model',
-  manufacturer:'Manufacturer', lastLogon:'Last Logon Date', lastSeen:'Last Agent Check',
-  deviceType:'Device Type', deviceAge:'Device Age (years)',
+  mfr:'Manufacturer', lastLogon:'Last Logon', lastSeen:'Last Agent Check',
+  devType:'Device Type', ageYears:'Device Age (years)',
 };
-
 function detectCols(headers) {
   var mp = {}, used = {};
-  for (var f in FIELD_PATTERNS) {
-    var pats = FIELD_PATTERNS[f];
+  for (var f in FP) {
+    var pats = FP[f];
     for (var h = 0; h < headers.length; h++) {
-      var hdr = headers[h];
-      if (used[hdr]) continue;
+      if (used[headers[h]]) continue;
       for (var p = 0; p < pats.length; p++) {
-        if (pats[p].test(hdr)) { mp[f] = hdr; used[hdr] = true; break; }
+        if (pats[p].test(headers[h])) { mp[f] = headers[h]; used[headers[h]] = true; break; }
       }
       if (mp[f]) break;
     }
@@ -411,715 +352,432 @@ function detectCols(headers) {
   return mp;
 }
 
-// ═══════════════════════════════════════════════════════
-// CPU ANALYSIS
-// ═══════════════════════════════════════════════════════
-function analyseCPU(raw) {
-  if (!raw) return { brand:'?', gen:'Unknown', year:null, w11:null, age:'unknown', ageY:null };
-  var s = raw.replace(/\(R\)|\(TM\)/gi, '').trim();
-  var CY = new Date().getFullYear();
-
-  function result(brand, gen, year, w11) {
-    var ageY = year ? CY - year : null;
-    var age = ageY === null ? 'unknown' : ageY < 3 ? 'new' : ageY < 5 ? 'aging' : ageY < 8 ? 'old' : 'legacy';
-    return { brand:brand, gen:gen, year:year, w11:w11, age:age, ageY:ageY };
-  }
-  function igenY(g) {
-    var m = {1:2008,2:2011,3:2012,4:2013,5:2015,6:2016,7:2017,8:2018,9:2018,10:2020,11:2021,12:2022,13:2023,14:2024,15:2025};
-    return m[g] || (g >= 16 ? 2025 : 2015);
-  }
-
-  // Apple
-  if (/apple\s*m\d/i.test(s)) return { brand:'Apple', gen:'Silicon', year:2020, w11:null, age:'new', ageY:null, mac:true };
-  // AMD EPYC
-  var m = s.match(/epyc\s+(\d{4})/i);
-  if (m) { var n=+m[1]; return result('AMD','EPYC', n>=9000?2023:n>=7000?2019:2017, n>=7003); }
-  // AMD Ryzen
-  m = s.match(/ryzen\s+[3579]\s+(\d{4})/i);
-  if (m) {
-    var n=+m[1], ser=Math.floor(n/1000);
-    var ry={1:{y:2017,w:0},2:{y:2018,w:0},3:{y:2019,w:1},4:{y:2020,w:1},5:{y:2020,w:1},6:{y:2022,w:1},7:{y:2022,w:1},8:{y:2023,w:1},9:{y:2024,w:1}};
-    var ri=ry[ser]||{y:2020,w:1}; return result('AMD','Ryzen '+ser+'000',ri.y,!!ri.w);
-  }
-  if (/\bamd\b/i.test(s)) return result('AMD','AMD Legacy',2014,false);
-  // Intel Core Ultra
-  m = s.match(/core\s+ultra\s+[3579]?\s*(\d{3})/i);
-  if (m) { var n=+m[1]; return result('Intel','Core Ultra '+(n<200?'S1':'S2'), n>=200?2024:2023, true); }
-  if (/core\s+ultra/i.test(s)) return result('Intel','Core Ultra',2023,true);
-  // "Nth Gen" prefix
-  m = s.match(/^(\d{1,2})(?:st|nd|rd|th)\s+gen/i);
-  if (m) { var g=+m[1]; return result('Intel',g+'th Gen',igenY(g),g>=8); }
-  // Core iX-NNNNN
-  m = s.match(/core\s+i[3579][\s-]+(\d{4,5})/i);
-  if (m) {
-    var n=+m[1], g;
-    if      (n>=14000) g=14;
-    else if (n>=13000) g=13;
-    else if (n>=12000) g=12;
-    else if (n>=11000) g=11;
-    else if (n>=10000) g=10;
-    else g=Math.floor(n/100);
-    return result('Intel',g+'th Gen',igenY(g),g>=8);
-  }
-  // Xeon Gold/Silver/Bronze/Platinum
-  m = s.match(/xeon\s+(gold|silver|bronze|platinum)\s+(\d{4})/i);
-  if (m) {
-    var n=+m[2], gen=n>=6000?6:n>=5000?5:n>=4000?4:n>=3000?3:n>=2000?2:1;
-    var xy={1:2017,2:2019,3:2021,4:2022,5:2023,6:2024};
-    return result('Intel','Xeon '+m[1],xy[gen]||2019,gen>=3);
-  }
-  // Xeon E5/E3
-  m = s.match(/xeon.*[ew]?[35]-?(\d{4})/i);
-  if (m) return result('Intel','Xeon E',+m[1]>=2600?2018:2015,false);
-  if (/xeon/i.test(s)) return result('Intel','Xeon',2016,false);
-  // Celeron/Pentium
-  m = s.match(/celeron\s+n(\d{4})/i);
-  if (m) { var n=+m[1]; return result('Intel','Celeron N',n>=5000?2021:n>=4000?2019:2016,false); }
-  if (/celeron/i.test(s)) return result('Intel','Celeron',2015,false);
-  if (/pentium\s+(gold|silver)/i.test(s)) return result('Intel','Pentium Gold/Silver',2017,false);
-  if (/core\s*2/i.test(s)) return result('Intel','Core 2',2007,false);
-  return result('?','Unknown',null,null);
+// ─── CPU ANALYSIS ──────────────────────────────────────────
+function cpuInfo(raw) {
+  if (!raw) return mk('?','Unknown',null,null);
+  var s = raw.replace(/\(R\)|\(TM\)/gi,'').trim();
+  var y = new Date().getFullYear();
+  function mk2(b,g,yr,w){ var ay=yr?y-yr:null; var a=ay===null?'unknown':ay<3?'new':ay<5?'aging':ay<8?'old':'legacy'; return {brand:b,gen:g,year:yr,w11:w,age:a,ageY:ay}; }
+  function gy(g){var m={1:2008,2:2011,3:2012,4:2013,5:2015,6:2016,7:2017,8:2018,9:2018,10:2020,11:2021,12:2022,13:2023,14:2024,15:2025};return m[g]||(g>=16?2025:2015);}
+  if (/apple\s*m\d/i.test(s)) return {brand:'Apple',gen:'Silicon',year:2020,w11:null,age:'new',ageY:null,mac:1};
+  var m;
+  if ((m=s.match(/ryzen\s+[3579]\s+(\d{4})/i))) { var n=+m[1],sr=Math.floor(n/1000); var t={1:[2017,0],2:[2018,0],3:[2019,1],4:[2020,1],5:[2020,1],6:[2022,1],7:[2022,1],8:[2023,1],9:[2024,1]}[sr]||[2020,1]; return mk2('AMD','Ryzen '+sr+'000',t[0],!!t[1]); }
+  if (/\bamd\b/i.test(s)) return mk2('AMD','AMD',2014,false);
+  if ((m=s.match(/core\s+ultra\s*\d*\s*(\d{3})/i))) { var n=+m[1]; return mk2('Intel','Core Ultra '+(n<200?'S1':'S2'),n>=200?2024:2023,true); }
+  if (/core\s+ultra/i.test(s)) return mk2('Intel','Core Ultra',2023,true);
+  if ((m=s.match(/^(\d{1,2})(?:st|nd|rd|th)\s*gen/i))) { var g=+m[1]; return mk2('Intel',g+'th Gen',gy(g),g>=8); }
+  if ((m=s.match(/core\s+i[3579][\s-]+(\d{4,5})/i))) { var n=+m[1],g=n>=14000?14:n>=13000?13:n>=12000?12:n>=11000?11:n>=10000?10:Math.floor(n/100); return mk2('Intel',g+'th Gen',gy(g),g>=8); }
+  if ((m=s.match(/xeon.*(gold|silver|bronze|platinum)\s+(\d{4})/i))) { var n=+m[2],g=n>=6000?6:n>=5000?5:n>=4000?4:n>=3000?3:n>=2000?2:1; return mk2('Intel','Xeon '+m[1],{1:2017,2:2019,3:2021,4:2022,5:2023,6:2024}[g]||2019,g>=3); }
+  if (/xeon/i.test(s)) return mk2('Intel','Xeon',2016,false);
+  if ((m=s.match(/celeron\s+n(\d{4})/i))) { var n=+m[1]; return mk2('Intel','Celeron',n>=5000?2021:n>=4000?2019:2016,false); }
+  if (/celeron|pentium/i.test(s)) return mk2('Intel','Celeron/Pentium',2016,false);
+  if (/core\s*2/i.test(s)) return mk2('Intel','Core 2',2007,false);
+  return mk2('?','Unknown',null,null);
 }
 
-// ═══════════════════════════════════════════════════════
-// OS VERSION STATUS
-// ═══════════════════════════════════════════════════════
-var OVS = {
-  '25H2':{s:'current',c:'ok'},'24H2':{s:'current',c:'ok'},'23H2':{s:'supported',c:'teal'},
-  '22H2':{s:'aging',c:'warn'},'21H2':{s:'eol',c:'crit'},'21H1':{s:'eol',c:'crit'},
-  '20H2':{s:'eol',c:'crit'},'1909':{s:'eol',c:'crit'}
-};
-function getOVS(os, ver) {
-  if (!ver) return null;
-  var v = ver.toString().trim();
-  var win10 = /windows 10/i.test(os);
-  var base = OVS[v];
-  if (!base) return { s:'unknown', c:'info', lbl:(win10?'Win10 ':'Win11 ')+v };
-  var s = win10 && v==='22H2' ? {s:'aging',c:'warn'} : base;
-  return { s:s.s, c:s.c, lbl:(win10?'Win10 ':'Win11 ')+v };
+// ─── OS VERSION ────────────────────────────────────────────
+var OV={'25H2':'ok','24H2':'ok','23H2':'teal','22H2':'warn','21H2':'crit','21H1':'crit','20H2':'crit','1909':'crit'};
+var OVL={'ok':'current','teal':'supported','warn':'aging','crit':'eol'};
+var OVC={'ok':'#39d98a','teal':'#00c9b1','warn':'#f0a500','crit':'#ff4d6d','info':'#4e9eff'};
+var OVP={'ok':'p-ok','teal':'p-teal','warn':'p-warn','crit':'p-crit','info':'p-info'};
+function getOV(os,ver){
+  if(!ver) return null;
+  var v=ver.toString().trim(), w10=/windows 10/i.test(os);
+  var c=(w10&&v==='22H2')?'warn':(OV[v]||'info');
+  return {c:c, lbl:(w10?'Win10 ':'Win11 ')+v, s:OVL[c]||'unknown', ver:v};
 }
 
-// ═══════════════════════════════════════════════════════
-// WIN11 CHECK
-// ═══════════════════════════════════════════════════════
-function checkW11(row, cpu, M) {
-  var os = (gv(row,M.os)||'').toString();
-  if (cpu.mac || /macos/i.test(os) || /server/i.test(os)) return { status:'na', issues:[] };
-  var issues = [], sc = 0;
-  if (cpu.w11 === true)  sc += 2;
-  if (cpu.w11 === false) { sc -= 2; issues.push('CPU not on Win11 supported list'); }
-  var ram = parseFloat(gv(row,M.ram));
-  if (!isNaN(ram) && ram > 0 && ram < 4) { sc--; issues.push('RAM '+ram+'GB (needs 4GB+)'); }
-  var disk = parseFloat(gv(row,M.totalDisk));
-  if (!isNaN(disk) && disk > 0 && disk < 64) { sc--; issues.push('Disk '+disk+'GB (needs 64GB+)'); }
-  var tpm = gv(row,M.tpm);
-  if (tpm) { var t=parseFloat(tpm.toString().replace(/[^\d.]/g,'')); if(!isNaN(t)){if(t>=2)sc++;else{sc--;issues.push('TPM '+t+' (needs 2.0)');}} }
-  var sb = gv(row,M.secureBoot);
-  if (sb) { var sl=sb.toString().toLowerCase(); if(/true|yes|enabled/.test(sl))sc++;else if(/false|no|disabled/.test(sl)){sc--;issues.push('Secure Boot disabled');} }
-  var status = cpu.w11===false ? 'not-ready' : (sc>=2&&!issues.length?'ready':(sc<0?'not-ready':'partial'));
-  return { status:status, issues:issues };
+// ─── WIN11 CHECK ───────────────────────────────────────────
+function w11(row,cpu,M){
+  var os=(gv(row,M.os)||'').toString();
+  if(cpu.mac||/macos/i.test(os)||/server/i.test(os)) return {st:'na',iss:[]};
+  var iss=[],sc=0;
+  if(cpu.w11===true) sc+=2; else if(cpu.w11===false){sc-=2;iss.push('CPU not on Win11 supported list');}
+  var r=parseFloat(gv(row,M.ram)); if(!isNaN(r)&&r>0&&r<4){sc--;iss.push('RAM '+r+'GB (needs 4GB+)');}
+  var d=parseFloat(gv(row,M.diskTotal)); if(!isNaN(d)&&d>0&&d<64){sc--;iss.push('Disk '+d+'GB (needs 64GB+)');}
+  var t=gv(row,M.tpm); if(t){var tv=parseFloat(t.toString().replace(/[^\d.]/g,'')); if(!isNaN(tv)){if(tv>=2)sc++;else{sc--;iss.push('TPM '+tv+' (needs 2.0)');}}}
+  var sb=gv(row,M.secureBoot); if(sb){var sl=sb.toLowerCase(); if(/true|yes|enabled/.test(sl))sc++;else if(/false|no|disabled/.test(sl)){sc--;iss.push('Secure Boot disabled');}}
+  var st=cpu.w11===false?'not-ready':sc>=2&&!iss.length?'ready':sc<0?'not-ready':'partial';
+  return {st:st,iss:iss};
 }
 
-// ═══════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════
-function gv(row, col) { return (!col || row[col] === undefined || row[col] === null) ? '' : row[col]; }
-function pDate(v) {
-  if (!v || v === '') return null;
-  if (/^\d{4}-\d{2}-\d{2}/.test(v.toString())) { var d = new Date(v); return isNaN(d)?null:d; }
-  var d = new Date(v); return isNaN(d)?null:d;
+// ─── HELPERS ───────────────────────────────────────────────
+function gv(row,col){return(!col||row[col]===undefined||row[col]===null)?'':row[col];}
+function pDate(v){if(!v||!v.toString().trim())return null;var d=new Date(v.toString().trim());return isNaN(d.getTime())?null:d;}
+function dSince(d){return d?Math.round((Date.now()-d.getTime())/86400000):null;}
+var AC={new:'#39d98a',aging:'#f0a500',old:'#ff7a3d',legacy:'#ff4d6d',unknown:'#6b7499'};
+var AD={new:1,aging:2,old:3,legacy:4,unknown:0};
+
+// ─── STATE ─────────────────────────────────────────────────
+var RAW=[],HDRS=[],M={},DATA=[],FILT=[],pg=1,pgSz=25,sCol=null,sDir=1,actF=null,actV=null;
+
+// ─── FILE LOADING ──────────────────────────────────────────
+function setStatus(msg,type){
+  var el=document.getElementById('status');
+  el.textContent=msg; el.className=type; el.style.display='block';
 }
-function daysSince(d) { return d ? Math.round((Date.now()-d.getTime())/86400000) : null; }
-
-var AGE_COLOR = { new:'#39d98a', aging:'#f0a500', old:'#ff7a3d', legacy:'#ff4d6d', unknown:'#6b7499' };
-
-// ═══════════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════════
-var rawRows=[], colHeaders=[], mapping={}, analysed=[];
-var filtered=[], pg=1, pgSz=25, sortCol=null, sortDir=1;
-var activeFilter=null, activeOsVer=null;
-
-// ═══════════════════════════════════════════════════════
-// FILE INPUT
-// ═══════════════════════════════════════════════════════
-function pickFile() { document.getElementById('file-input').click(); }
-
-var dz = document.getElementById('drop-zone');
-dz.addEventListener('dragover', function(e){ e.preventDefault(); dz.classList.add('drag'); });
-dz.addEventListener('dragleave', function(){ dz.classList.remove('drag'); });
-dz.addEventListener('drop', function(e){ e.preventDefault(); dz.classList.remove('drag'); var f=e.dataTransfer.files[0]; if(f) loadFile(f); });
-dz.addEventListener('click', pickFile);
-document.getElementById('file-input').addEventListener('change', function(e){ var f=e.target.files[0]; if(f) loadFile(f); this.value=''; });
-
-function showError(msg) {
-  var b = document.getElementById('error-banner');
-  b.textContent = msg; b.classList.add('show');
-}
-function hideError() { document.getElementById('error-banner').classList.remove('show'); }
-
-function loadFile(file) {
-  hideError();
-  var reader = new FileReader();
-  reader.onerror = function() { showError('Could not read the file. Please try again.'); };
-  reader.onload = function(e) {
-    try {
-      var result = parseCSV(e.target.result);
-      if (!result.rows.length) { showError('No data rows found. Is this a valid CSV file?'); return; }
-      rawRows = result.rows;
-      colHeaders = result.headers;
-      mapping = detectCols(colHeaders);
+function doLoad(){
+  var inp=document.getElementById('csv-file');
+  if(!inp.files||!inp.files[0]){setStatus('Please select a CSV file first.','err');return;}
+  var file=inp.files[0];
+  setStatus('Reading '+file.name+' …','info');
+  var reader=new FileReader();
+  reader.onerror=function(){setStatus('FileReader error — could not read the file.','err');};
+  reader.onload=function(ev){
+    try{
+      var text=ev.target.result;
+      if(!text||!text.length){setStatus('File appears empty.','err');return;}
+      var res=parseCSV(text);
+      if(!res.headers.length){setStatus('Could not find any column headers.','err');return;}
+      if(!res.rows.length){setStatus('No data rows found (just a header row?).','err');return;}
+      RAW=res.rows; HDRS=res.headers; M=detectCols(HDRS);
+      setStatus('Loaded '+RAW.length+' rows with '+HDRS.length+' columns. Map the columns below then click Analyse.','ok');
       showMapper();
-    } catch(err) {
-      showError('Could not parse file: ' + err.message);
-    }
+    }catch(e){setStatus('Parse error: '+e.message,'err');}
   };
-  reader.readAsText(file);
+  reader.readAsText(file,'UTF-8');
 }
 
-// ═══════════════════════════════════════════════════════
-// MAPPER
-// ═══════════════════════════════════════════════════════
-function showMapper() {
-  document.getElementById('section-upload').style.display = 'none';
-  var grid = document.getElementById('mapper-grid');
-  grid.innerHTML = '';
-  for (var f in FIELD_LABELS) {
-    var div = document.createElement('div');
-    div.className = 'map-field';
-    var opts = '<option value="">— not mapped —</option>';
-    for (var i=0; i<colHeaders.length; i++) {
-      var h = colHeaders[i];
-      opts += '<option value="'+h+'"'+(mapping[f]===h?' selected':'')+'>'+h+'</option>';
-    }
-    div.innerHTML = '<label>'+FIELD_LABELS[f]+'</label><select id="mp_'+f+'">'+opts+'</select>';
-    grid.appendChild(div);
+// ─── MAPPER ────────────────────────────────────────────────
+function showMapper(){
+  document.getElementById('card-map').style.display='';
+  document.getElementById('card-map').scrollIntoView({behavior:'smooth',block:'nearest'});
+  var g=document.getElementById('map-grid'); g.innerHTML='';
+  for(var f in FL){
+    var div=document.createElement('div'); div.className='mf';
+    var opts='<option value="">— not mapped —</option>';
+    for(var i=0;i<HDRS.length;i++) opts+='<option value="'+HDRS[i]+'"'+(M[f]===HDRS[i]?' selected':'')+'>'+HDRS[i]+'</option>';
+    div.innerHTML='<label>'+FL[f]+'</label><select id="mp_'+f+'">'+opts+'</select>';
+    g.appendChild(div);
   }
-  document.getElementById('section-mapper').style.display = '';
-  document.getElementById('btn-reset').style.display = '';
 }
+function readMapper(){for(var f in FL){var el=document.getElementById('mp_'+f);M[f]=el?el.value:'';}}
 
-function runAnalysis() {
-  // Read mapping from selects
-  for (var f in FIELD_LABELS) {
-    var el = document.getElementById('mp_'+f);
-    mapping[f] = el ? el.value : '';
-  }
-  document.getElementById('section-mapper').style.display = 'none';
-  doAnalyse();
-  document.getElementById('section-dash').style.display = '';
-  document.getElementById('btn-export').style.display = '';
-  document.getElementById('btn-reset').style.display = '';
-}
-
-// ═══════════════════════════════════════════════════════
-// ANALYSIS
-// ═══════════════════════════════════════════════════════
-function doAnalyse() {
-  analysed = rawRows.map(function(row) {
-    var cpuRaw = (gv(row,mapping.cpu)||'').toString();
-    var cpu = analyseCPU(cpuRaw);
-    var os = (gv(row,mapping.os)||'').toString();
-    var isServer = /server/i.test(os);
-    var isMac = cpu.mac || /macos/i.test(os);
-    var devType = (gv(row,mapping.deviceType)||'').toString().trim() || (isServer?'Server':isMac?'Mac':'Desktop');
-
-    var w11 = checkW11(row, cpu, mapping);
-    var ram = parseFloat(gv(row,mapping.ram)) || 0;
-    var tdisk = parseFloat(gv(row,mapping.totalDisk)) || 0;
-    var fdisk = parseFloat(gv(row,mapping.freeDisk)) || 0;
-    var freeP = tdisk > 0 ? (fdisk/tdisk)*100 : null;
-    var diskNA = tdisk===0 && fdisk===0;
-
-    // Age — use device_age_years if present
-    var ageProv = parseFloat(gv(row,mapping.deviceAge));
-    var ageY = (!isNaN(ageProv) && ageProv > 0) ? ageProv : cpu.ageY;
-    var age = ageY===null ? 'unknown' : ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
-
-    // Warranty from install date
-    var instDate = pDate(gv(row,mapping.installDate));
-    var instDays = daysSince(instDate);
-    var war='unknown', warNote='No date';
-    if (instDays!==null) {
-      var yrs = instDays/365;
-      if (yrs<3)      { war='in';    warNote='~'+yrs.toFixed(1)+'yr (likely in warranty)'; }
-      else if (yrs<5) { war='check'; warNote='~'+yrs.toFixed(1)+'yr (check with vendor)'; }
-      else            { war='out';   warNote='~'+yrs.toFixed(1)+'yr (likely expired)'; }
+// ─── ANALYSIS ──────────────────────────────────────────────
+function doAnalyse(){
+  readMapper();
+  document.getElementById('card-map').style.display='none';
+  DATA=RAW.map(function(row){
+    var cpu=cpuInfo((gv(row,M.cpu)||'').toString());
+    var os=(gv(row,M.os)||'').toString();
+    var srv=/server/i.test(os), mac=cpu.mac||/macos/i.test(os);
+    var devT=(gv(row,M.devType)||'').trim()||(srv?'Server':mac?'Mac':'Desktop');
+    var wc=w11(row,cpu,M);
+    var ram=parseFloat(gv(row,M.ram))||0;
+    var td=parseFloat(gv(row,M.diskTotal))||0;
+    var fd=parseFloat(gv(row,M.diskFree))||0;
+    var freeP=td>0?(fd/td)*100:null;
+    var dNA=td===0&&fd===0;
+    var ageProv=parseFloat(gv(row,M.ageYears));
+    var ageY=(!isNaN(ageProv)&&ageProv>0)?ageProv:cpu.ageY;
+    var age=ageY===null?'unknown':ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
+    var instD=pDate(gv(row,M.installDate));
+    var instDays=dSince(instD);
+    var war='unknown',warN='No date';
+    if(instDays!==null){var yr=instDays/365;if(yr<3){war='in';warN='~'+yr.toFixed(1)+'yr (likely in warranty)';}else if(yr<5){war='check';warN='~'+yr.toFixed(1)+'yr (check vendor)';}else{war='out';warN='~'+yr.toFixed(1)+'yr (likely expired)';}}
+    var lsD=pDate(gv(row,M.lastSeen))||pDate(gv(row,M.lastLogon));
+    var staleDays=dSince(lsD); var stale=staleDays!==null&&staleDays>60;
+    var ov=getOV(os,(gv(row,M.osVer)||'').toString().trim());
+    var iss=[];
+    if(!srv&&!mac){
+      if(ram>0&&ram<4) iss.push({l:'crit',m:'Only '+ram+'GB RAM (Win11 needs 4GB+)'});
+      else if(ram>0&&ram<8) iss.push({l:'warn',m:'Low RAM: '+ram+'GB — upgrade to 8GB+ recommended'});
+      if(!dNA){if(freeP!==null&&freeP<10) iss.push({l:'crit',m:'Critical disk: '+freeP.toFixed(1)+'% free'});else if(freeP!==null&&freeP<20) iss.push({l:'warn',m:'Low disk: '+freeP.toFixed(1)+'% free ('+fd+'/'+td+'GB)'});}
+      if(age==='legacy') iss.push({l:'crit',m:'Legacy: ~'+Math.round(ageY)+'yr old — replacement overdue'});
+      else if(age==='old') iss.push({l:'warn',m:'Aging: ~'+Math.round(ageY)+'yr old — plan refresh'});
+      wc.iss.forEach(function(i){iss.push({l:'warn',m:'Win11: '+i});});
+      if(war==='out') iss.push({l:'warn',m:'Warranty likely expired ('+warN+')'});
+      if(ov&&ov.c==='crit') iss.push({l:'crit',m:'EOL OS: '+ov.lbl+' — no security updates'});
+      else if(ov&&ov.c==='warn') iss.push({l:'warn',m:'Aging OS: '+ov.lbl+' — update recommended'});
     }
-
-    // Stale >60 days
-    var lsDate = pDate(gv(row,mapping.lastSeen)) || pDate(gv(row,mapping.lastLogon));
-    var staleDays = daysSince(lsDate);
-    var stale = staleDays!==null && staleDays>60;
-
-    // OS version
-    var osVer = (gv(row,mapping.osVersion)||'').toString().trim();
-    var ovi = getOVS(os, osVer);
-
-    // Build issue list
-    var issues = [];
-    if (!isServer && !isMac) {
-      if (ram>0 && ram<4)  issues.push({lvl:'crit', msg:'Only '+ram+'GB RAM — critical (Win11 needs 4GB+)'});
-      else if (ram>0 && ram<8) issues.push({lvl:'warn', msg:'Low RAM: '+ram+'GB — upgrade to 8GB+ recommended'});
-      if (!diskNA) {
-        if (freeP!==null && freeP<10)  issues.push({lvl:'crit', msg:'Critical: '+freeP.toFixed(1)+'% free disk ('+fdisk+'GB / '+tdisk+'GB)'});
-        else if (freeP!==null && freeP<20) issues.push({lvl:'warn', msg:'Low disk: '+freeP.toFixed(1)+'% free ('+fdisk+'GB / '+tdisk+'GB)'});
-      }
-      if (age==='legacy') issues.push({lvl:'crit', msg:'Legacy device: ~'+Math.round(ageY)+'yr old — replacement overdue'});
-      else if (age==='old') issues.push({lvl:'warn', msg:'Aging device: ~'+Math.round(ageY)+'yr old — plan refresh'});
-      if (w11.status==='not-ready') w11.issues.forEach(function(i){issues.push({lvl:'warn',msg:'Win11 blocker: '+i});});
-      if (war==='out') issues.push({lvl:'warn', msg:'Warranty likely expired ('+warNote+')'});
-      if (ovi && ovi.s==='eol') issues.push({lvl:'crit', msg:'EOL OS: '+ovi.lbl+' — no longer getting security updates'});
-      else if (ovi && ovi.s==='aging') issues.push({lvl:'warn', msg:'Aging OS: '+ovi.lbl+' — update recommended'});
-    }
-    if (/windows 7|windows xp|vista/i.test(os)) issues.push({lvl:'crit', msg:'End-of-life OS — immediate security risk!'});
-    if (stale) issues.push({lvl:'warn', msg:'Not seen for '+staleDays+' days — may be offline'});
-
-    return {
-      _r:row, _cpu:cpu, _w11:w11, _ram:ram, _tdisk:tdisk, _fdisk:fdisk,
-      _freeP:freeP, _diskNA:diskNA, _war:war, _warNote:warNote,
-      _age:age, _ageY:ageY, _issues:issues, _hasIss:issues.length>0,
-      _stale:stale, _staleDays:staleDays, _ovi:ovi, _devType:devType,
-      _isServer:isServer, _isMac:isMac
-    };
+    if(/windows 7|windows xp|vista/i.test(os)) iss.push({l:'crit',m:'End-of-life OS!'});
+    if(stale) iss.push({l:'warn',m:'No check-in for '+staleDays+' days'});
+    return {r:row,cpu:cpu,w11:wc,ram:ram,td:td,fd:fd,freeP:freeP,dNA:dNA,war:war,warN:warN,age:age,ageY:ageY,iss:iss,hasIss:iss.length>0,stale:stale,staleDays:staleDays,ov:ov,devT:devT,srv:srv,mac:mac};
   });
-
-  populateFilterDropdowns();
-  renderHealth();
-  renderStats();
-  renderIssueCards();
-  renderOsVersions();
-  filtered = analysed.slice();
-  renderTable();
-
-  document.getElementById('hdr-info').textContent = analysed.length + ' devices loaded';
+  buildFilters(); buildHealth(); buildStats(); buildChips(); buildOsVer();
+  FILT=DATA.slice(); renderT();
+  document.getElementById('dash').classList.remove('hidden');
+  document.getElementById('btn-exp').classList.remove('hidden');
+  document.getElementById('btn-rst').classList.remove('hidden');
+  document.getElementById('hdr-count').textContent=DATA.length+' devices';
+  document.getElementById('dash').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-// ═══════════════════════════════════════════════════════
-// HEALTH SCORE
-// ═══════════════════════════════════════════════════════
-function renderHealth() {
-  var wk = analysed.filter(function(r){return !r._isServer&&!r._isMac;});
-  var ok = wk.filter(function(r){return !r._hasIss;}).length;
-  var crit = wk.filter(function(r){return r._issues.some(function(i){return i.lvl==='crit';});}).length;
-  var warn = wk.filter(function(r){return r._issues.some(function(i){return i.lvl==='warn';})&&!r._issues.some(function(i){return i.lvl==='crit';});}).length;
-  var score = wk.length ? Math.round(ok/wk.length*100) : 0;
-  var col = score>=80?'#39d98a':score>=60?'#f0a500':'#ff4d6d';
-  document.getElementById('health-score').textContent = score+'%';
-  document.getElementById('health-score').style.color = col;
-  document.getElementById('health-detail-text').textContent = '— workstations only';
-  document.getElementById('health-fill').style.cssText = 'width:'+score+'%;background:'+col;
-  document.getElementById('health-meta').innerHTML =
+// ─── HEALTH ────────────────────────────────────────────────
+function buildHealth(){
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  var ok=wk.filter(function(r){return !r.hasIss;}).length;
+  var cr=wk.filter(function(r){return r.iss.some(function(i){return i.l==='crit';});}).length;
+  var wa=wk.filter(function(r){return r.iss.some(function(i){return i.l==='warn';})&&!r.iss.some(function(i){return i.l==='crit';});}).length;
+  var sc=wk.length?Math.round(ok/wk.length*100):0;
+  var col=sc>=80?'#39d98a':sc>=60?'#f0a500':'#ff4d6d';
+  document.getElementById('h-pct').textContent=sc+'%';
+  document.getElementById('h-pct').style.color=col;
+  document.getElementById('h-sub').textContent='(workstations only)';
+  document.getElementById('h-bar').style.cssText='width:'+sc+'%;background:'+col;
+  document.getElementById('h-leg').innerHTML=
     '<span><span class="dot" style="background:#39d98a"></span>'+ok+' healthy</span>'+
-    '<span><span class="dot" style="background:#f0a500"></span>'+warn+' warnings</span>'+
-    '<span><span class="dot" style="background:#ff4d6d"></span>'+crit+' critical</span>'+
-    '<span><span class="dot" style="background:#6b7499"></span>'+(analysed.length-wk.length)+' servers/other</span>';
+    '<span><span class="dot" style="background:#f0a500"></span>'+wa+' warnings</span>'+
+    '<span><span class="dot" style="background:#ff4d6d"></span>'+cr+' critical</span>'+
+    '<span><span class="dot" style="background:#6b7499"></span>'+(DATA.length-wk.length)+' servers/other</span>';
 }
 
-// ═══════════════════════════════════════════════════════
-// STATS
-// ═══════════════════════════════════════════════════════
-function renderStats() {
-  var wk = analysed.filter(function(r){return !r._isServer&&!r._isMac;});
-  var w11ok = wk.filter(function(r){return r._w11.status==='ready';}).length;
-  var w11pct = wk.length ? Math.round(w11ok/wk.length*100) : 0;
-  var win10 = analysed.filter(function(r){return /windows 10/i.test(gv(r._r,mapping.os));}).length;
-  var aging = wk.filter(function(r){return r._age==='old'||r._age==='legacy';}).length;
-  var ramArr = wk.filter(function(r){return r._ram>0;}).map(function(r){return r._ram;});
-  var avgRam = ramArr.length ? (ramArr.reduce(function(a,b){return a+b;},0)/ramArr.length).toFixed(1) : '—';
-  var lowRam = wk.filter(function(r){return r._ram>0&&r._ram<8;}).length;
-  var lowDisk = wk.filter(function(r){return r._freeP!==null&&r._freeP<20&&!r._diskNA;}).length;
-  var stale = analysed.filter(function(r){return r._stale;}).length;
-
-  var html =
-    mkStat('c-amber', analysed.length, 'Total Devices', 'in fleet') +
-    mkStat('c-teal',  w11pct+'%', 'Win11 Ready', w11ok+' of '+wk.length+' workstations') +
-    mkStat('c-red',   win10, 'On Windows 10', 'need migration') +
-    mkStat('c-orange',aging, 'Aging / Legacy', '5+ year devices') +
-    mkStat('c-blue',  avgRam+' GB', 'Avg RAM', lowRam+' under 8GB') +
-    mkStat('c-red',   lowDisk, 'Low Disk', '<20% free space') +
-    mkStat('c-amber', stale,   'Stale Devices', '>60 days offline');
-  document.getElementById('stats-row').innerHTML = html;
-}
-function mkStat(cls, val, label, sub) {
-  return '<div class="stat '+cls+'"><div class="stat-label">'+label+'</div><div class="stat-value">'+val+'</div><div class="stat-sub">'+sub+'</div></div>';
+// ─── STATS ─────────────────────────────────────────────────
+function buildStats(){
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  var w11ok=wk.filter(function(r){return r.w11.st==='ready';}).length;
+  var win10=DATA.filter(function(r){return /windows 10/i.test(gv(r.r,M.os));}).length;
+  var aging=wk.filter(function(r){return r.age==='old'||r.age==='legacy';}).length;
+  var ramA=wk.filter(function(r){return r.ram>0;}).map(function(r){return r.ram;});
+  var avgR=ramA.length?(ramA.reduce(function(a,b){return a+b;},0)/ramA.length).toFixed(1)+'GB':'—';
+  var lowR=wk.filter(function(r){return r.ram>0&&r.ram<8;}).length;
+  var lowD=wk.filter(function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}).length;
+  var stale=DATA.filter(function(r){return r.stale;}).length;
+  function st(cls,v,n,s){return '<div class="stat '+cls+'"><div class="stat-n">'+n+'</div><div class="stat-v">'+v+'</div><div class="stat-s">'+s+'</div></div>';}
+  document.getElementById('stats').innerHTML=
+    st('s1',DATA.length,'Total Devices','in fleet')+
+    st('s2',Math.round(w11ok/(wk.length||1)*100)+'%','Win11 Ready',w11ok+' of '+wk.length+' workstations')+
+    st('s3',win10,'On Win10','need migration')+
+    st('s4',aging,'Aging/Legacy','5+ year devices')+
+    st('s5',avgR,'Avg RAM',lowR+' under 8GB')+
+    st('s3',lowD,'Low Disk','<20% free')+
+    st('s6',stale,'Stale','60+ days no check-in');
 }
 
-// ═══════════════════════════════════════════════════════
-// ISSUE CARDS
-// ═══════════════════════════════════════════════════════
-var ISSUE_TYPES = [
-  { key:'eol',    label:'EOL OS Version',    icon:'🔒', col:'red',    iCol:'red',
-    test:function(r){return r._ovi&&r._ovi.s==='eol';} },
-  { key:'win10',  label:'Still on Windows 10',icon:'🪟', col:'amber',  iCol:'amber',
-    test:function(r){return /windows 10/i.test(gv(r._r,mapping.os));} },
-  { key:'w11no',  label:'Not Win11 Ready',   icon:'✗',  col:'red',    iCol:'red',
-    test:function(r){return r._w11.status==='not-ready';} },
-  { key:'old',    label:'Legacy / Old CPU',  icon:'⚡', col:'red',    iCol:'red',
-    test:function(r){return r._age==='legacy'||r._age==='old';} },
-  { key:'lowram', label:'Low RAM (<8GB)',     icon:'🧠', col:'amber',  iCol:'amber',
-    test:function(r){return r._ram>0&&r._ram<8;} },
-  { key:'disk',   label:'Low Disk (<20%)',   icon:'💾', col:'amber',  iCol:'amber',
-    test:function(r){return r._freeP!==null&&r._freeP<20&&!r._diskNA;} },
-  { key:'war',    label:'Warranty Expired',  icon:'🛡', col:'orange', iCol:'orange',
-    test:function(r){return r._war==='out';} },
-  { key:'stale',  label:'Stale (60+ days)',  icon:'⏰', col:'blue',   iCol:'blue',
-    test:function(r){return r._stale;} },
+// ─── CHIPS ─────────────────────────────────────────────────
+var CHIPS=[
+  {k:'eol',    t:'EOL OS',        i:'🔒',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.ov&&r.ov.c==='crit';}},
+  {k:'win10',  t:'On Windows 10', i:'🪟',ic:'ico-a',cc:'cnt-a',fn:function(r){return /windows 10/i.test(gv(r.r,M.os));}},
+  {k:'w11no',  t:'Not Win11 Ready',i:'✗',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.w11.st==='not-ready';}},
+  {k:'old',    t:'Legacy/Old CPU',i:'⚡',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.age==='legacy'||r.age==='old';}},
+  {k:'lowram', t:'Low RAM (<8GB)',i:'🧠',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.ram>0&&r.ram<8;}},
+  {k:'disk',   t:'Low Disk (<20%)',i:'💾',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}},
+  {k:'war',    t:'Warranty Expired',i:'🛡',ic:'ico-o',cc:'cnt-o',fn:function(r){return r.war==='out';}},
+  {k:'stale',  t:'Stale (60+days)',i:'⏰',ic:'ico-b',cc:'cnt-b',fn:function(r){return r.stale;}},
 ];
-
-function renderIssueCards() {
-  var html = '';
-  ISSUE_TYPES.forEach(function(it){
-    var cnt = analysed.filter(it.test).length;
-    html += '<div class="issue-card" data-key="'+it.key+'" onclick="setFilter(\''+it.key+'\')">'
-      +'<div class="issue-ico '+it.col+'">'+it.icon+'</div>'
-      +'<div><div class="issue-title">'+it.label+'</div>'
-      +'<div class="issue-count '+it.iCol+'">'+cnt+'</div></div></div>';
+function buildChips(){
+  var h='';
+  CHIPS.forEach(function(c){
+    var n=DATA.filter(c.fn).length;
+    h+='<div class="chip" data-k="'+c.k+'" onclick="setF(\''+c.k+'\')">'
+      +'<div class="chip-ico '+c.ic+'">'+c.i+'</div>'
+      +'<div><div class="chip-title">'+c.t+'</div><div class="chip-cnt '+c.cc+'">'+n+'</div></div></div>';
   });
-  document.getElementById('issue-cards').innerHTML = html;
+  document.getElementById('chips').innerHTML=h;
 }
 
-// ═══════════════════════════════════════════════════════
-// OS VERSION BREAKDOWN
-// ═══════════════════════════════════════════════════════
-function renderOsVersions() {
-  if (!mapping.osVersion) { document.getElementById('osver-section').style.display='none'; return; }
-  var cnts = {};
-  analysed.forEach(function(r){
-    var v=(gv(r._r,mapping.osVersion)||'').toString().trim();
-    if(!v) return;
-    var os=(gv(r._r,mapping.os)||'').toString();
-    var key=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
-    cnts[key]=(cnts[key]||0)+1;
+// ─── OS VERSIONS ───────────────────────────────────────────
+function buildOsVer(){
+  if(!M.osVer){document.getElementById('osver-card').style.display='none';return;}
+  var cnts={};
+  DATA.forEach(function(r){
+    var v=(gv(r.r,M.osVer)||'').toString().trim(); if(!v)return;
+    var os=(gv(r.r,M.os)||'').toString();
+    var k=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
+    cnts[k]=(cnts[k]||0)+1;
   });
-  var PC = {current:'pill-ok',supported:'pill-teal',aging:'pill-warn',eol:'pill-crit',unknown:'pill-info'};
-  var CC = {current:'#39d98a',supported:'#00c9b1',aging:'#f0a500',eol:'#ff4d6d',unknown:'#4e9eff'};
-  var html = '';
-  Object.keys(cnts).sort(function(a,b){return cnts[b]-cnts[a];}).forEach(function(key){
-    var ver=key.split(' ').slice(1).join(' ');
-    var isW10=key.indexOf('Win10')===0;
-    var info=getOVS(isW10?'Windows 10':'Windows 11',ver)||{s:'unknown',c:'info',lbl:key};
-    var col=CC[info.s]||'#4e9eff';
-    var pc=PC[info.s]||'pill-grey';
-    html+='<div class="osver-chip" data-ver="'+key+'" onclick="setOsFilter(\''+key+'\')">'
-      +'<div><div class="osver-num" style="color:'+col+'">'+cnts[key]+'</div>'
-      +'<div class="osver-lbl">'+key+'</div></div>'
-      +'<span class="pill '+pc+'">'+info.s+'</span></div>';
+  var h='';
+  Object.keys(cnts).sort(function(a,b){return cnts[b]-cnts[a];}).forEach(function(k){
+    var ver=k.split(' ').slice(1).join(' '), w10=k.indexOf('Win10')===0;
+    var ov=getOV(w10?'Windows 10':'Windows 11',ver)||{c:'info',lbl:k};
+    h+='<div class="ver-chip" data-v="'+k+'" onclick="setV(\''+k+'\')">'
+      +'<div><div class="ver-cnt" style="color:'+OVC[ov.c]+'">'+cnts[k]+'</div>'
+      +'<div class="ver-lbl">'+k+'</div></div>'
+      +'<span class="p '+OVP[ov.c]+'">'+OVL[ov.c]+'</span></div>';
   });
-  document.getElementById('osver-row').innerHTML = html;
-  document.getElementById('osver-section').style.display = '';
+  document.getElementById('ver-row').innerHTML=h;
+  document.getElementById('osver-card').style.display='';
 }
 
-// ═══════════════════════════════════════════════════════
-// FILTERS
-// ═══════════════════════════════════════════════════════
-function populateFilterDropdowns() {
-  function pop(id, vals, all) {
-    var el=document.getElementById(id);
-    el.innerHTML='<option value="">'+all+'</option>'+vals.map(function(v){return '<option>'+v+'</option>';}).join('');
-  }
-  pop('f-site',[...new Set(analysed.map(function(r){return (gv(r._r,mapping.site)||'').trim();}).filter(Boolean))].sort(),'All Sites');
-  pop('f-os',[...new Set(analysed.map(function(r){return (gv(r._r,mapping.os)||'').trim();}).filter(Boolean))].sort(),'All OS');
-  pop('f-type',[...new Set(analysed.map(function(r){return r._devType;}).filter(Boolean))].sort(),'All Types');
+// ─── FILTERS ───────────────────────────────────────────────
+function buildFilters(){
+  function pop(id,vals,all){var el=document.getElementById(id);el.innerHTML='<option value="">'+all+'</option>'+vals.map(function(v){return '<option>'+v+'</option>';}).join('');}
+  var sites=[],oses=[],types=[];
+  DATA.forEach(function(r){
+    var s=(gv(r.r,M.site)||'').trim(); if(s&&sites.indexOf(s)<0)sites.push(s);
+    var o=(gv(r.r,M.os)||'').trim(); if(o&&oses.indexOf(o)<0)oses.push(o);
+    if(r.devT&&types.indexOf(r.devT)<0)types.push(r.devT);
+  });
+  pop('f-site',sites.sort(),'All Sites');
+  pop('f-os',oses.sort(),'All OS');
+  pop('f-type',types.sort(),'All Types');
 }
-
-function setFilter(key) {
-  if (activeFilter===key) { clearFilter(); return; }
-  activeFilter=key; activeOsVer=null;
-  document.querySelectorAll('.issue-card').forEach(function(c){c.classList.toggle('active',c.dataset.key===key);});
-  document.querySelectorAll('.osver-chip').forEach(function(c){c.classList.remove('active');});
-  document.getElementById('btn-clear').style.display='';
-  applyFilters();
+function setF(k){
+  if(actF===k){clearFilter();return;}
+  actF=k; actV=null;
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.dataset.k===k);});
+  document.querySelectorAll('.ver-chip').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
 }
-function setOsFilter(ver) {
-  if (activeOsVer===ver) { clearFilter(); return; }
-  activeOsVer=ver; activeFilter=null;
-  document.querySelectorAll('.issue-card').forEach(function(c){c.classList.remove('active');});
-  document.querySelectorAll('.osver-chip').forEach(function(c){c.classList.toggle('active',c.dataset.ver===ver);});
-  document.getElementById('btn-clear').style.display='';
-  applyFilters();
+function setV(v){
+  if(actV===v){clearFilter();return;}
+  actV=v; actF=null;
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+  document.querySelectorAll('.ver-chip').forEach(function(c){c.classList.toggle('on',c.dataset.v===v);});
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
 }
-function clearFilter() {
-  activeFilter=null; activeOsVer=null;
-  document.querySelectorAll('.issue-card,.osver-chip').forEach(function(c){c.classList.remove('active');});
-  document.getElementById('btn-clear').style.display='none';
-  applyFilters();
+function clearFilter(){
+  actF=null; actV=null;
+  document.querySelectorAll('.chip,.ver-chip').forEach(function(c){c.classList.remove('on');});
+  document.getElementById('btn-clf').classList.add('hidden');
+  applyF();
 }
-
-function applyFilters() {
-  var srch=(document.getElementById('f-search').value||'').toLowerCase();
+function applyF(){
+  var q=(document.getElementById('f-q').value||'').toLowerCase();
   var site=document.getElementById('f-site').value;
-  var osF=document.getElementById('f-os').value;
-  var typeF=document.getElementById('f-type').value;
-  var ageF=document.getElementById('f-age').value;
-  var w11F=document.getElementById('f-w11').value;
-
-  var issueFn = null;
-  if (activeFilter) {
-    for (var i=0;i<ISSUE_TYPES.length;i++) if(ISSUE_TYPES[i].key===activeFilter){issueFn=ISSUE_TYPES[i].test;break;}
-  }
-
-  filtered = analysed.filter(function(r){
-    if (issueFn && !issueFn(r)) return false;
-    if (activeOsVer) {
-      var v=(gv(r._r,mapping.osVersion)||'').toString().trim();
-      var os=(gv(r._r,mapping.os)||'').toString();
-      var key=(/windows 10/i.test(os)?'Win10 ':'Win11 ')+v;
-      if(key!==activeOsVer) return false;
-    }
-    if (srch) {
-      var fields=[mapping.pcName,mapping.username,mapping.cpu,mapping.serial,mapping.model]
-        .map(function(c){return (gv(r._r,c)||'').toString().toLowerCase();});
-      if(!fields.some(function(f){return f.indexOf(srch)>=0;})) return false;
-    }
-    if (site && (gv(r._r,mapping.site)||'').toString().trim()!==site) return false;
-    if (osF && (gv(r._r,mapping.os)||'').toString().trim()!==osF) return false;
-    if (typeF && r._devType!==typeF) return false;
-    if (ageF && r._age!==ageF) return false;
-    if (w11F && r._w11.status!==w11F) return false;
+  var os=document.getElementById('f-os').value;
+  var type=document.getElementById('f-type').value;
+  var age=document.getElementById('f-age').value;
+  var w11f=document.getElementById('f-w11').value;
+  var chipFn=null;
+  if(actF){for(var i=0;i<CHIPS.length;i++){if(CHIPS[i].k===actF){chipFn=CHIPS[i].fn;break;}}}
+  FILT=DATA.filter(function(r){
+    if(chipFn&&!chipFn(r))return false;
+    if(actV){var v=(gv(r.r,M.osVer)||'').trim(),os2=(gv(r.r,M.os)||'');if((/windows 10/i.test(os2)?'Win10 ':'Win11 ')+v!==actV)return false;}
+    if(q){var fs=[M.pcName,M.user,M.cpu,M.serial,M.model].map(function(c){return(gv(r.r,c)||'').toLowerCase();});if(!fs.some(function(f){return f.indexOf(q)>=0;}))return false;}
+    if(site&&(gv(r.r,M.site)||'').trim()!==site)return false;
+    if(os&&(gv(r.r,M.os)||'').trim()!==os)return false;
+    if(type&&r.devT!==type)return false;
+    if(age&&r.age!==age)return false;
+    if(w11f&&r.w11.st!==w11f)return false;
     return true;
   });
-  pg=1; renderTable();
+  pg=1; renderT();
 }
 
-// ═══════════════════════════════════════════════════════
-// TABLE
-// ═══════════════════════════════════════════════════════
+// ─── TABLE ─────────────────────────────────────────────────
 var COLS=[
-  {k:'pcName',l:'PC Name'},{k:'site',l:'Site'},{k:'username',l:'User'},
-  {k:'os',l:'OS'},{k:'osVer',l:'Ver'},{k:'cpu',l:'CPU'},
+  {k:'pcName',l:'PC Name'},{k:'site',l:'Site'},{k:'user',l:'User'},
+  {k:'os',l:'OS'},{k:'ver',l:'Ver'},{k:'cpu',l:'CPU'},
   {k:'age',l:'Age'},{k:'ram',l:'RAM'},{k:'disk',l:'Disk'},
-  {k:'w11',l:'Win11'},{k:'war',l:'Warranty'},{k:'type',l:'Type'},{k:'issues',l:'Issues'}
+  {k:'w11',l:'Win11'},{k:'war',l:'Warranty'},{k:'type',l:'Type'},{k:'iss',l:'Issues'}
 ];
-
-function renderTable() {
-  var s=(pg-1)*pgSz, rows=filtered.slice(s,s+pgSz);
-  var total=filtered.length;
-  document.getElementById('table-count').textContent=(total?s+1:0)+'–'+Math.min(s+pgSz,total)+' of '+total;
-
-  var thead='<tr>'+COLS.map(function(c){
-    return '<th onclick="doSort(\''+c.k+'\')" class="'+(sortCol===c.k?'sorted':'')+'">'
-      +c.l+' '+(sortCol===c.k?(sortDir===1?'↑':'↓'):'')+'</th>';
-  }).join('')+'</tr>';
-  document.getElementById('thead').innerHTML=thead;
-
-  if (!rows.length) {
-    document.getElementById('tbody').innerHTML='<tr><td colspan="13" style="text-align:center;padding:40px;color:#6b7499">No matching devices</td></tr>';
-    renderPager(); return;
-  }
-
-  var html='';
-  rows.forEach(function(r,idx){
-    var ridx=analysed.indexOf(r);
-    var pc=(gv(r._r,mapping.pcName)||'—').toString();
-    var site=(gv(r._r,mapping.site)||'—').toString();
-    var user=(gv(r._r,mapping.username)||'—').toString().replace(/.*\\/,'').replace(/.*\//,'');
-    var os=(gv(r._r,mapping.os)||'—').toString().replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
-    var osV=(gv(r._r,mapping.osVersion)||'').toString();
-    var cpu=(gv(r._r,mapping.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').trim();
-    if(cpu.length>36)cpu=cpu.slice(0,34)+'…';
-    var cpuFull=(gv(r._r,mapping.cpu)||'').toString();
-
-    // Age dots
-    var ac=AGE_COLOR[r._age]||'#6b7499';
-    var ad={new:1,aging:2,old:3,legacy:4,unknown:0}[r._age]||0;
-    var dots='';
-    for(var d=1;d<=4;d++) dots+='<div class="age-dot"'+(d<=ad?' style="background:'+ac+'"':'')+' ></div>';
-    var ageL=r._ageY!=null?'<span class="age-label" style="color:'+ac+'">'+r._ageY.toFixed(1)+'yr</span>':'<span class="age-label dim">?</span>';
-
-    // RAM bar
+function renderT(){
+  var s=(pg-1)*pgSz, rows=FILT.slice(s,s+pgSz), tot=FILT.length;
+  document.getElementById('tbl-cnt').textContent=(tot?s+1:0)+'–'+Math.min(s+pgSz,tot)+' of '+tot;
+  document.getElementById('th').innerHTML='<tr>'+COLS.map(function(c){return '<th onclick="srt(\''+c.k+'\')" class="'+(sCol===c.k?'on':'')+'">'+(sCol===c.k?(sDir===1?'↑':'↓')+' ':'')+c.l+'</th>';}).join('')+'</tr>';
+  if(!rows.length){document.getElementById('tb').innerHTML='<tr><td colspan="13" style="text-align:center;padding:36px;color:#6b7499">No matching devices</td></tr>';renderPager();return;}
+  var h='';
+  rows.forEach(function(r){
+    var idx=DATA.indexOf(r);
+    var pc=(gv(r.r,M.pcName)||'—').toString();
+    var site=(gv(r.r,M.site)||'—').toString();
+    var user=(gv(r.r,M.user)||'—').toString().replace(/.*[\\/]/,'');
+    var os=(gv(r.r,M.os)||'—').toString().replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
+    var ver=(gv(r.r,M.osVer)||'').toString();
+    var cpu=(gv(r.r,M.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').trim();
+    var cpuf=(gv(r.r,M.cpu)||'').toString();
+    if(cpu.length>34)cpu=cpu.slice(0,32)+'…';
+    var ac=AC[r.age]||'#6b7499', ad=AD[r.age]||0;
+    var dots=''; for(var d=1;d<=4;d++) dots+='<div class="ad"'+(d<=ad?' style="background:'+ac+'"':'')+' ></div>';
+    var ageL='<span style="font-size:10px;color:'+ac+'">'+(r.ageY!=null?r.ageY.toFixed(1)+'yr':'?')+'</span>';
     var ramH='<span class="dim">—</span>';
-    if(r._ram>0){var p=Math.min(r._ram/32*100,100),c=r._ram<4?'#ff4d6d':r._ram<8?'#f0a500':'#39d98a';ramH='<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div>'+r._ram+'GB</div>';}
-
-    // Disk bar
+    if(r.ram>0){var p=Math.min(r.ram/32*100,100),c=r.ram<4?'#ff4d6d':r.ram<8?'#f0a500':'#39d98a';ramH='<div class="bar-wrap"><div class="bar"><div class="bar-f" style="width:'+p+'%;background:'+c+'"></div></div>'+r.ram+'GB</div>';}
     var diskH='<span class="dim">—</span>';
-    if(!r._diskNA&&r._tdisk>0){var p=r._freeP||0,c=p<10?'#ff4d6d':p<20?'#f0a500':'#39d98a';diskH='<div class="bar-wrap"><div class="bar-bg"><div class="bar-fill" style="width:'+p+'%;background:'+c+'"></div></div>'+r._fdisk+'/'+r._tdisk+'GB</div>';}
-    else if(r._tdisk>0)diskH=r._tdisk+'GB';
-
-    // OS version pill
-    var verH='';
-    if(osV){var ovc={ok:'pill-ok',teal:'pill-teal',warn:'pill-warn',crit:'pill-crit',info:'pill-info'};var pc2=(r._ovi&&ovc[r._ovi.c])||'pill-grey';verH='<span class="pill '+pc2+'">'+osV+'</span>';}
-
-    var W11 ={'ready':'<span class="pill pill-ok">✓</span>','partial':'<span class="pill pill-warn">⚠</span>','not-ready':'<span class="pill pill-crit">✗</span>','na':'<span class="pill pill-grey">N/A</span>'};
-    var WAR={'in':'<span class="pill pill-ok">✓</span>','check':'<span class="pill pill-warn">?</span>','out':'<span class="pill pill-crit">Exp</span>','unknown':'<span class="pill pill-grey">—</span>'};
-
-    var flags=r._issues.map(function(i){return '<div class="flag '+(i.lvl==='crit'?'flag-red':'flag-amber')+'" title="'+i.msg+'">'+(i.lvl==='crit'?'🔴':'🟡')+'</div>';}).join('');
+    if(!r.dNA&&r.td>0){var p=r.freeP||0,c=p<10?'#ff4d6d':p<20?'#f0a500':'#39d98a';diskH='<div class="bar-wrap"><div class="bar"><div class="bar-f" style="width:'+p+'%;background:'+c+'"></div></div>'+r.fd+'/'+r.td+'GB</div>';}
+    else if(r.td>0)diskH=r.td+'GB';
+    var verH=ver?(r.ov?'<span class="p '+OVP[r.ov.c]+'">'+ver+'</span>':'<span class="p p-grey">'+ver+'</span>'):'';
+    var W={ready:'<span class="p p-ok">✓</span>',partial:'<span class="p p-warn">⚠</span>','not-ready':'<span class="p p-crit">✗</span>',na:'<span class="p p-grey">N/A</span>'};
+    var WR={in:'<span class="p p-ok">✓</span>',check:'<span class="p p-warn">?</span>',out:'<span class="p p-crit">Exp</span>',unknown:'<span class="p p-grey">—</span>'};
+    var flags=r.iss.map(function(i){return '<div class="flag '+(i.l==='crit'?'fr':'fa')+'" data-tip="'+i.m+'">'+(i.l==='crit'?'🔴':'🟡')+'</div>';}).join('');
     var issH=flags||'<span style="color:#39d98a;font-size:11px">✓</span>';
-
-    html+='<tr onclick="openModal('+ridx+')">'
-      +'<td class="pc-name">'+pc+'</td>'
+    h+='<tr onclick="openMod('+idx+')">'
+      +'<td class="pcn">'+pc+'</td>'
       +'<td class="dim" style="font-size:11px">'+site+'</td>'
       +'<td class="dim" style="font-size:11px">'+user+'</td>'
       +'<td style="font-size:11px">'+os+'</td>'
       +'<td>'+verH+'</td>'
-      +'<td title="'+cpuFull+'" style="font-size:11px">'+cpu+'</td>'
+      +'<td title="'+cpuf+'" style="font-size:11px">'+cpu+'</td>'
       +'<td><div class="age-dots">'+dots+'</div>'+ageL+'</td>'
       +'<td>'+ramH+'</td>'
       +'<td>'+diskH+'</td>'
-      +'<td>'+(W11[r._w11.status]||'<span class="pill pill-grey">?</span>')+'</td>'
-      +'<td>'+(WAR[r._war]||'<span class="pill pill-grey">—</span>')+'</td>'
-      +'<td><span class="pill pill-grey" style="font-size:9px">'+r._devType+'</span></td>'
+      +'<td>'+(W[r.w11.st]||'<span class="p p-grey">?</span>')+'</td>'
+      +'<td>'+(WR[r.war]||'<span class="p p-grey">—</span>')+'</td>'
+      +'<td><span class="p p-grey" style="font-size:9px">'+r.devT+'</span></td>'
       +'<td><div class="flags">'+issH+'</div></td>'
       +'</tr>';
   });
-  document.getElementById('tbody').innerHTML=html;
+  document.getElementById('tb').innerHTML=h;
   renderPager();
 }
-
 function renderPager(){
-  var total=filtered.length, pages=Math.ceil(total/pgSz);
+  var tot=FILT.length, pages=Math.ceil(tot/pgSz);
   if(pages<=1){document.getElementById('pager').innerHTML='';return;}
-  var btns='';
+  var b='';
   for(var i=1;i<=pages;i++){
-    if(i===1||i===pages||Math.abs(i-pg)<=2)
-      btns+='<button class="page-btn'+(i===pg?' active':'')+'" onclick="goPage('+i+')">'+i+'</button>';
-    else if(Math.abs(i-pg)===3)btns+='<span style="color:#6b7499;padding:0 2px">…</span>';
+    if(i===1||i===pages||Math.abs(i-pg)<=2) b+='<button class="pb'+(i===pg?' on':'')+'" onclick="goPg('+i+')">'+i+'</button>';
+    else if(Math.abs(i-pg)===3) b+='<span style="color:#6b7499;padding:0 2px">…</span>';
   }
-  document.getElementById('pager').innerHTML=
-    '<div>Page '+pg+' of '+pages+'</div>'
-    +'<div class="page-btns"><button class="page-btn" onclick="goPage('+(pg-1)+')" '+(pg===1?'disabled':'')+'>‹</button>'+btns+'<button class="page-btn" onclick="goPage('+(pg+1)+')" '+(pg===pages?'disabled':'')+'>›</button></div>';
+  document.getElementById('pager').innerHTML='<div>Page '+pg+' of '+pages+'</div><div class="pager-btns"><button class="pb" onclick="goPg('+(pg-1)+')" '+(pg===1?'disabled':'')+'>‹</button>'+b+'<button class="pb" onclick="goPg('+(pg+1)+')" '+(pg===pages?'disabled':'')+'>›</button></div>';
 }
-function goPage(p){var pages=Math.ceil(filtered.length/pgSz);pg=Math.max(1,Math.min(p,pages));renderTable();}
-
-function doSort(col){
-  if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
-  var fns={
-    pcName:function(r){return gv(r._r,mapping.pcName);},
-    site:function(r){return gv(r._r,mapping.site);},
-    username:function(r){return gv(r._r,mapping.username);},
-    os:function(r){return gv(r._r,mapping.os);},
-    osVer:function(r){return gv(r._r,mapping.osVersion);},
-    cpu:function(r){return gv(r._r,mapping.cpu);},
-    age:function(r){return r._ageY||999;},
-    ram:function(r){return r._ram;},
-    disk:function(r){return r._freeP||999;},
-    w11:function(r){return r._w11.status;},
-    war:function(r){return r._war;},
-    type:function(r){return r._devType;},
-    issues:function(r){return r._issues.length;}
-  };
-  var fn=fns[col]||function(r){return '';};
-  filtered.sort(function(a,b){
-    var av=fn(a),bv=fn(b);
-    if(typeof av==='number'&&typeof bv==='number')return(av-bv)*sortDir;
-    return(av||'').toString().localeCompare((bv||'').toString())*sortDir;
-  });
-  pg=1;renderTable();
+function goPg(p){var pages=Math.ceil(FILT.length/pgSz);pg=Math.max(1,Math.min(p,pages));renderT();}
+function srt(col){
+  if(sCol===col)sDir*=-1;else{sCol=col;sDir=1;}
+  var fn={pcName:function(r){return gv(r.r,M.pcName);},site:function(r){return gv(r.r,M.site);},user:function(r){return gv(r.r,M.user);},os:function(r){return gv(r.r,M.os);},ver:function(r){return gv(r.r,M.osVer);},cpu:function(r){return gv(r.r,M.cpu);},age:function(r){return r.ageY||999;},ram:function(r){return r.ram;},disk:function(r){return r.freeP||999;},w11:function(r){return r.w11.st;},war:function(r){return r.war;},type:function(r){return r.devT;},iss:function(r){return r.iss.length;}};
+  var f=fn[col]||function(r){return '';};
+  FILT.sort(function(a,b){var av=f(a),bv=f(b);if(typeof av==='number'&&typeof bv==='number')return(av-bv)*sDir;return(av||'').toString().localeCompare((bv||'').toString())*sDir;});
+  pg=1;renderT();
 }
 
-// ═══════════════════════════════════════════════════════
-// MODAL
-// ═══════════════════════════════════════════════════════
-function openModal(idx) {
-  var r=analysed[idx];
-  var ac=AGE_COLOR[r._age]||'#6b7499';
-  var w11lbl={'ready':'✅ Ready for Windows 11','partial':'⚠ Needs manual check','not-ready':'❌ Not compatible','na':'N/A (Server or Mac)'};
-  var warLbl={in:'✅ Likely in warranty',check:'⚠ Check with vendor',out:'⚠ Likely expired',unknown:'ℹ Unknown'};
-  var warCls={in:'alert-green',check:'alert-amber',out:'alert-amber',unknown:'alert-blue'};
-
-  function field(label,val){return '<div><div class="modal-field-label">'+label+'</div><div class="modal-field-value">'+(val||'—')+'</div></div>';}
-
-  var issHtml=r._issues.length
-    ? r._issues.map(function(i){return '<div class="alert-box '+(i.lvl==='crit'?'alert-red':'alert-amber')+'"><b>'+(i.lvl==='crit'?'🔴 Critical':'🟡 Warning')+'</b>'+i.msg+'</div>';}).join('')
-    : '<div class="alert-box alert-green"><b>✅ No issues found</b>All checks passed</div>';
-
-  var w11cls=r._w11.status==='ready'?'alert-green':r._w11.status==='not-ready'?'alert-red':'alert-blue';
-  var w11blk=(r._w11.issues||[]).map(function(i){return '<div class="alert-box alert-amber"><b>⚠ Blocker</b>'+i+'</div>';}).join('');
-
-  var cpu=(gv(r._r,mapping.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').trim();
-
-  document.getElementById('modal-box').innerHTML=
-    '<button class="modal-close" onclick="closeModal()">✕</button>'
-    +'<div class="modal-pc">🖥 '+(gv(r._r,mapping.pcName)||'Unknown')+'</div>'
-    +'<div class="modal-user">'+(gv(r._r,mapping.username)||'—').replace(/.*\\/,'').replace(/.*\//,'')+' · '+(gv(r._r,mapping.site)||'—')+' · '+r._devType+(r._stale?' · <span class="pill pill-warn">⏰ '+r._staleDays+'d stale</span>':'')+'</div>'
-
-    +'<div class="modal-section"><div class="modal-section-title">System</div>'
-    +'<div class="modal-grid">'
-    +field('Operating System',(gv(r._r,mapping.os)||'—')+' '+(gv(r._r,mapping.osVersion)||''))
-    +field('Model',gv(r._r,mapping.model))
-    +field('Manufacturer',gv(r._r,mapping.manufacturer))
-    +field('Serial',gv(r._r,mapping.serial))
-    +field('Last Logon',gv(r._r,mapping.lastLogon))
-    +field('Last Seen',gv(r._r,mapping.lastSeen))
-    +field('Install / Purchase Date',gv(r._r,mapping.installDate))
-    +'</div></div>'
-
-    +'<div class="modal-section"><div class="modal-section-title">Hardware</div>'
-    +'<div class="modal-grid" style="grid-template-columns:1fr">'
-    +field('CPU',cpu)
-    +'</div>'
-    +'<div class="modal-grid" style="margin-top:9px">'
-    +field('CPU Generation','<span style="color:'+ac+'">'+r._cpu.brand+' '+r._cpu.gen+' · '+(r._cpu.year||'?')+' · '+r._age+'</span>')
-    +field('RAM',r._ram?r._ram+'GB':'—')
-    +field('Total Disk',r._tdisk?r._tdisk+'GB':'—')
-    +field('Free Disk',r._fdisk?r._fdisk+'GB ('+(r._freeP||0).toFixed(1)+'%)':'—')
-    +field('TPM',gv(r._r,mapping.tpm))
-    +field('Secure Boot',gv(r._r,mapping.secureBoot))
-    +'</div></div>'
-
-    +'<div class="modal-section"><div class="modal-section-title">Windows 11</div>'
-    +'<div class="alert-box '+w11cls+'"><b>'+(w11lbl[r._w11.status]||'Unknown')+'</b></div>'
-    +w11blk+'</div>'
-
-    +'<div class="modal-section"><div class="modal-section-title">Warranty</div>'
-    +'<div class="alert-box '+(warCls[r._war]||'alert-blue')+'"><b>'+(warLbl[r._war]||'Unknown')+'</b>'+r._warNote+'</div></div>'
-
-    +'<div class="modal-section"><div class="modal-section-title">Issues ('+r._issues.length+')</div>'
-    +issHtml+'</div>';
-
-  document.getElementById('modal-bg').classList.add('open');
+// ─── MODAL ─────────────────────────────────────────────────
+function openMod(i){
+  var r=DATA[i], ac=AC[r.age]||'#6b7499';
+  function f(l,v){return '<div><div class="mfl">'+l+'</div><div class="mfv">'+(v||'—')+'</div></div>';}
+  var w11l={ready:'✅ Ready',partial:'⚠ Needs check','not-ready':'❌ Not compatible',na:'N/A'};
+  var w11c={ready:'a-g',partial:'a-b','not-ready':'a-r',na:'a-b'};
+  var warl={in:'✅ Likely in warranty',check:'⚠ Check vendor',out:'⚠ Likely expired',unknown:'ℹ Unknown'};
+  var warc={in:'a-g',check:'a-a',out:'a-a',unknown:'a-b'};
+  var issH=r.iss.length?r.iss.map(function(i){return '<div class="alert '+(i.l==='crit'?'a-r':'a-a')+'"><b>'+(i.l==='crit'?'🔴 Critical':'🟡 Warning')+'</b>'+i.m+'</div>';}).join(''):'<div class="alert a-g"><b>✅ No issues</b>All checks passed</div>';
+  var cpu=(gv(r.r,M.cpu)||'—').replace(/\(R\)|\(TM\)/gi,'').trim();
+  document.getElementById('mbox').innerHTML=
+    '<button class="mx" onclick="closeMod()">✕</button>'
+    +'<div class="mpc">🖥 '+(gv(r.r,M.pcName)||'Unknown')+'</div>'
+    +'<div class="mu">'+(gv(r.r,M.user)||'—').replace(/.*[\\/]/,'')+' · '+(gv(r.r,M.site)||'—')+' · '+r.devT+(r.stale?' · <span class="p p-warn">⏰ '+r.staleDays+'d stale</span>':'')+'</div>'
+    +'<div class="ms"><div class="mst">System</div><div class="mg">'+f('OS',(gv(r.r,M.os)||'—')+' '+(gv(r.r,M.osVer)||''))+f('Model',gv(r.r,M.model))+f('Manufacturer',gv(r.r,M.mfr))+f('Serial',gv(r.r,M.serial))+f('Last Logon',gv(r.r,M.lastLogon))+f('Last Seen',gv(r.r,M.lastSeen))+f('Install Date',gv(r.r,M.installDate))+'</div></div>'
+    +'<div class="ms"><div class="mst">Hardware</div><div class="mg" style="grid-template-columns:1fr">'+f('CPU',cpu)+'</div><div class="mg" style="margin-top:8px">'+f('CPU Generation','<span style="color:'+ac+'">'+r.cpu.brand+' '+r.cpu.gen+' · '+(r.cpu.year||'?')+' · '+r.age+'</span>')+f('RAM',r.ram?r.ram+'GB':'—')+f('Total Disk',r.td?r.td+'GB':'—')+f('Free Disk',r.fd?r.fd+'GB ('+(r.freeP||0).toFixed(1)+'%)':'—')+f('TPM',gv(r.r,M.tpm))+f('Secure Boot',gv(r.r,M.secureBoot))+'</div></div>'
+    +'<div class="ms"><div class="mst">Windows 11</div><div class="alert '+w11c[r.w11.st]+'"><b>'+(w11l[r.w11.st]||'?')+'</b></div>'+(r.w11.iss||[]).map(function(i){return '<div class="alert a-a"><b>⚠ Blocker</b>'+i+'</div>';}).join('')+'</div>'
+    +'<div class="ms"><div class="mst">Warranty</div><div class="alert '+(warc[r.war]||'a-b')+'"><b>'+(warl[r.war]||'?')+'</b>'+r.warN+'</div></div>'
+    +'<div class="ms"><div class="mst">Issues ('+r.iss.length+')</div>'+issH+'</div>';
+  document.getElementById('mover').classList.add('open');
 }
-function closeModal(e){if(!e||e.target===document.getElementById('modal-bg'))document.getElementById('modal-bg').classList.remove('open');}
-document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('modal-bg').classList.remove('open');});
+function closeMod(e){if(!e||e.target===document.getElementById('mover'))document.getElementById('mover').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('mover').classList.remove('open');});
 
-// ═══════════════════════════════════════════════════════
-// EXPORT
-// ═══════════════════════════════════════════════════════
-function doExport() {
-  var cols=[
-    ['PC Name',function(r){return gv(r._r,mapping.pcName);}],
-    ['Site',function(r){return gv(r._r,mapping.site);}],
-    ['User',function(r){return gv(r._r,mapping.username);}],
-    ['OS',function(r){return gv(r._r,mapping.os);}],
-    ['OS Version',function(r){return gv(r._r,mapping.osVersion);}],
-    ['CPU',function(r){return gv(r._r,mapping.cpu);}],
-    ['CPU Gen',function(r){return r._cpu.gen;}],
-    ['CPU Year',function(r){return r._cpu.year||'';}],
-    ['Age (yr)',function(r){return r._ageY!=null?r._ageY.toFixed(1):'';}],
-    ['Age Category',function(r){return r._age;}],
-    ['RAM (GB)',function(r){return r._ram||'';}],
-    ['Total Disk',function(r){return r._tdisk||'';}],
-    ['Free Disk',function(r){return r._fdisk||'';}],
-    ['Free %',function(r){return r._freeP!=null?r._freeP.toFixed(1):'';}],
-    ['Win11 Status',function(r){return r._w11.status;}],
-    ['Win11 Blockers',function(r){return (r._w11.issues||[]).join(' | ');}],
-    ['Warranty',function(r){return r._war;}],
-    ['Stale',function(r){return r._stale?'Yes':'No';}],
-    ['Issue Count',function(r){return r._issues.length;}],
-    ['Issues',function(r){return r._issues.map(function(i){return i.msg;}).join(' | ');}],
-    ['Serial',function(r){return gv(r._r,mapping.serial);}],
-    ['Model',function(r){return gv(r._r,mapping.model);}],
+// ─── EXPORT ────────────────────────────────────────────────
+function doExport(){
+  var C=[
+    ['PC Name',function(r){return gv(r.r,M.pcName);}],['Site',function(r){return gv(r.r,M.site);}],
+    ['User',function(r){return gv(r.r,M.user);}],['OS',function(r){return gv(r.r,M.os);}],
+    ['OS Ver',function(r){return gv(r.r,M.osVer);}],['CPU',function(r){return gv(r.r,M.cpu);}],
+    ['CPU Gen',function(r){return r.cpu.gen;}],['CPU Year',function(r){return r.cpu.year||'';}],
+    ['Age (yr)',function(r){return r.ageY!=null?r.ageY.toFixed(1):'';}],['Age Cat',function(r){return r.age;}],
+    ['RAM GB',function(r){return r.ram||'';}],['Disk Total',function(r){return r.td||'';}],
+    ['Disk Free',function(r){return r.fd||'';}],['Disk Free%',function(r){return r.freeP!=null?r.freeP.toFixed(1):'';}],
+    ['Win11',function(r){return r.w11.st;}],['Win11 Blockers',function(r){return (r.w11.iss||[]).join(' | ');}],
+    ['Warranty',function(r){return r.war;}],['Stale',function(r){return r.stale?'Yes':'No';}],
+    ['Issues',function(r){return r.iss.length;}],['Issue Detail',function(r){return r.iss.map(function(i){return i.m;}).join(' | ');}],
+    ['Serial',function(r){return gv(r.r,M.serial);}],['Model',function(r){return gv(r.r,M.model);}],
   ];
-  function esc(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
-  var lines=[cols.map(function(c){return esc(c[0]);}).join(',')];
-  filtered.forEach(function(r){lines.push(cols.map(function(c){return esc(c[1](r));}).join(','));});
+  function e(v){return'"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+  var lines=[C.map(function(c){return e(c[0]);}).join(',')];
+  FILT.forEach(function(r){lines.push(C.map(function(c){return e(c[1](r));}).join(','));});
   var a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([lines.join('\r\n')],{type:'text/csv'}));
   a.download='fleet-audit.csv'; a.click();
 }
 
-// ═══════════════════════════════════════════════════════
-// RESET
-// ═══════════════════════════════════════════════════════
+// ─── RESET ─────────────────────────────────────────────────
 function doReset(){
-  rawRows=[];colHeaders=[];mapping={};analysed=[];filtered=[];
-  document.getElementById('section-upload').style.display='';
-  document.getElementById('section-mapper').style.display='none';
-  document.getElementById('section-dash').style.display='none';
-  document.getElementById('btn-export').style.display='none';
-  document.getElementById('btn-reset').style.display='none';
-  document.getElementById('hdr-info').textContent='No data loaded';
-  hideError();
+  RAW=[];HDRS=[];M={};DATA=[];FILT=[];
+  document.getElementById('card-map').style.display='none';
+  document.getElementById('dash').classList.add('hidden');
+  document.getElementById('btn-exp').classList.add('hidden');
+  document.getElementById('btn-rst').classList.add('hidden');
+  document.getElementById('hdr-count').textContent='';
+  document.getElementById('status').style.display='none';
+  document.getElementById('csv-file').value='';
 }
 </script>
 </body>
