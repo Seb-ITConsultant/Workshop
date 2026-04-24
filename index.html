@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seb's Workshop Portal</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Sora:wght@800&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0c0f14; --card: #131720; --accent: #00dba8; --text: #dce6f5; }
+        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { text-align: center; max-width: 600px; width: 90%; }
+        h1 { font-family: 'Sora', sans-serif; font-size: 2.5rem; margin-bottom: 2rem; color: var(--accent); }
+        .grid { display: grid; gap: 1rem; }
+        .tool-link { background: var(--card); border: 1px solid #2a3347; border-radius: 12px; padding: 1.5rem; text-decoration: none; color: var(--text); transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
+        .tool-link:hover { border-color: var(--accent); transform: translateY(-3px); background: #1a2030; }
+        .tool-link strong { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        .tool-link span { font-size: 0.9rem; opacity: 0.7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Seb's Workshop</h1>
+        <div class="grid">
+            <a href="ws-license-calc.html" class="tool-link">
+                <strong>⚡ Windows Server & SQL Calc</strong>
+                <span>Hardware & licensing cost estimator</span>
+            </a>
+            <a href="Seb365Navigator.html" class="tool-link">
+                <strong>☁️ M365 Navigator</strong>
+                <span>Feature vs. License lookup tool</span>
+            </a>
+            <a href="sebs-permission-calculator.html" class="tool-link">
+                <strong>🔒 Permission Calculator</strong>
+                <span>Entra & AD least-privilege role reference</span>
+            </a>
+        </div>
+    </div>
+</body>
+</html>
