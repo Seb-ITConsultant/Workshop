@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Seb's System Scout</title>
+<!-- v2 light theme -->
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Inter', 'Segoe UI', Arial, sans-serif; font-size: 13px; background: #eef2ff; color: #1e293b; min-height: 100vh; }
+h1 { font-size: 19px; font-weight: 800; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+h1 span { background: #4f46e5; color: #fff; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: .3px; }
+.page { padding: 24px; max-width: 1600px; margin: 0 auto; }
+.card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; padding: 20px; margin-bottom: 16px; box-shadow: 0 1px 4px rgba(79,70,229,.06), 0 1px 2px rgba(0,0,0,.04); }
+/* Upload */
+.pick-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+#csv-file { color: #1e293b; font-size: 13px; padding: 7px; background: #f8fafc; border: 1px solid #cbd5e1; border-radius: 7px; cursor: pointer; }
+#csv-file::-webkit-file-upload-button { background: #4f46e5; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; font-weight: 700; cursor: pointer; margin-right: 10px; font-family: inherit; }
+.btn { padding: 8px 18px; border-radius: 8px; border: none; font-size: 13px; font-family: inherit; cursor: pointer; font-weight: 600; }
+.btn-go { background: #4f46e5; color: #fff; box-shadow: 0 1px 3px rgba(79,70,229,.3); }
+.btn-go:hover { background: #4338ca; }
+.btn-go:disabled { background: #cbd5e1; color: #94a3b8; cursor: not-allowed; box-shadow: none; }
+.btn-sm { padding: 5px 12px; font-size: 11px; background: #fff; color: #475569; border: 1px solid #e2e8f0; border-radius: 6px; cursor: pointer; font-family: inherit; font-weight: 500; transition: all .15s; }
+.btn-sm:hover { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+/* Status */
+#status { display: none; margin-top: 10px; padding: 10px 14px; border-radius: 8px; font-size: 13px; }
+#status.ok  { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+#status.err { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+#status.info{ background: #eef2ff; border: 1px solid #a5b4fc; color: #4338ca; }
+/* Health */
+.health-row { display: flex; align-items: center; gap: 20px; }
+.health-pct { font-size: 52px; font-weight: 800; line-height: 1; flex-shrink: 0; }
+.health-bar-bg { flex: 1; height: 10px; background: #e2e8f0; border-radius: 5px; overflow: hidden; }
+.health-bar-fill { height: 100%; border-radius: 5px; }
+.health-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 8px; }
+.health-legend span { font-size: 11px; color: #64748b; display: flex; align-items: center; gap: 4px; }
+.dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; }
+.stat { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 15px; position: relative; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,.05); transition: all .15s; }
+.stat.stat-chip:hover { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,.1); transform: translateY(-1px); }
+.stat.stat-active { border-color: #4f46e5 !important; box-shadow: 0 0 0 2px rgba(79,70,229,.15) !important; }
+.stat::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; border-radius:12px 12px 0 0; }
+.s1::before{background:#4f46e5}.s2::before{background:#0891b2}.s3::before{background:#dc2626}
+.s4::before{background:#ea580c}.s5::before{background:#2563eb}.s6::before{background:#7c3aed}.s7::before{background:#16a34a}
+.stat-n { font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .8px; margin-bottom: 6px; font-weight: 600; }
+.stat-v { font-size: 28px; font-weight: 800; line-height: 1; margin-bottom: 3px; }
+.stat-s { font-size: 11px; color: #64748b; }
+.s1 .stat-v{color:#4f46e5}.s2 .stat-v{color:#0891b2}.s3 .stat-v{color:#dc2626}
+.s4 .stat-v{color:#ea580c}.s5 .stat-v{color:#2563eb}.s6 .stat-v{color:#7c3aed}.s7 .stat-v{color:#16a34a}
+/* Issue chips */
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)); gap: 10px; }
+.chip { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 15px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: all .15s; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.chip:hover, .chip.on { border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,.12); background: #fafbff; }
+.chip-ico { width: 38px; height: 38px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.ico-r{background:#fee2e2}.ico-a{background:#fef9c3}.ico-b{background:#dbeafe}.ico-t{background:#cffafe}.ico-o{background:#ffedd5}
+.chip-title { font-size: 12px; font-weight: 600; color: #1e293b; }
+.chip-cnt { font-size: 20px; font-weight: 800; }
+.cnt-r{color:#dc2626}.cnt-a{color:#d97706}.cnt-b{color:#2563eb}.cnt-t{color:#0891b2}.cnt-o{color:#ea580c}
+/* OS version row */
+.ver-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.ver-chip { background: #fff; border: 1px solid #e2e8f0; border-radius: 9px; padding: 8px 13px; cursor: pointer; display: flex; align-items: center; gap: 8px; transition: all .15s; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.ver-chip:hover, .ver-chip.on { border-color: #4f46e5; background: #fafbff; }
+.ver-cnt { font-size: 17px; font-weight: 800; color: #1e293b; }
+.ver-lbl { font-size: 10px; color: #64748b; font-weight: 500; }
+/* Filters */
+.filters { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-bottom: 12px; }
+.filters input, .filters select { background: #fff; border: 1px solid #e2e8f0; color: #1e293b; padding: 7px 11px; border-radius: 8px; font-size: 12px; font-family: inherit; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.filters input { width: 220px; }
+.filters input:focus, .filters select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+.filters select option { background: #fff; color: #1e293b; }
+.fsp { flex: 1; }
+/* Table */
+.tbl-wrap { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.05); }
+.tbl-top { padding: 13px 17px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; background: #fafbff; }
+.tbl-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 8px 12px; text-align: left; font-size: 10px; color: #64748b; text-transform: uppercase; letter-spacing: .8px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; white-space: nowrap; cursor: pointer; user-select: none; font-weight: 600; }
+th:hover, th.on { color: #4f46e5; }
+tr { border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background .1s; }
+tr:hover { background: #f5f3ff; }
+tr:last-child { border-bottom: none; }
+td { padding: 9px 12px; font-size: 12px; vertical-align: middle; white-space: nowrap; }
+.pcn { font-weight: 700; color: #1e293b; }
+.dim { color: #64748b; }
+/* pills */
+.p { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 10px; font-weight: 600; }
+.p-ok   { background: #dcfce7; color: #15803d; }
+.p-warn { background: #fef9c3; color: #a16207; }
+.p-crit { background: #fee2e2; color: #dc2626; }
+.p-info { background: #dbeafe; color: #1d4ed8; }
+.p-teal { background: #cffafe; color: #0e7490; }
+.p-grey { background: #f1f5f9; color: #64748b; }
+/* bar */
+.bar-wrap { display: inline-flex; align-items: center; gap: 5px; }
+.bar { width: 55px; height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden; }
+.bar-f { height: 100%; border-radius: 2px; }
+/* age */
+.age-dots { display: flex; gap: 3px; margin-bottom: 2px; }
+.ad { width: 5px; height: 5px; border-radius: 50%; background: #e2e8f0; }
+/* flags */
+.flags { display: flex; gap: 3px; }
+.flag { width: 16px; height: 16px; border-radius: 3px; font-size: 9px; display: flex; align-items: center; justify-content: center; position: relative; }
+.flag:hover::after { content: attr(data-tip); position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); background: #1e293b; color: #f8fafc; font-size: 11px; padding: 5px 9px; border-radius: 6px; z-index: 99; pointer-events: none; max-width: 260px; white-space: normal; text-align: left; width: max-content; box-shadow: 0 4px 12px rgba(0,0,0,.15); }
+.fr { background: #fee2e2; }
+.fa { background: #fef9c3; }
+/* pager */
+.pager { padding: 11px 16px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; background: #fafbff; }
+.pager-btns { display: flex; gap: 4px; }
+.pb { width: 28px; height: 28px; border-radius: 7px; border: 1px solid #e2e8f0; background: #fff; color: #475569; font-size: 11px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-family: inherit; transition: all .1s; }
+.pb:hover { border-color: #4f46e5; color: #4f46e5; background: #eef2ff; }
+.pb.on { background: #4f46e5; border-color: #4f46e5; color: #fff; font-weight: 700; }
+.pb:disabled { opacity: .35; cursor: not-allowed; }
+/* modal */
+.mover { display: none; position: fixed; inset: 0; background: rgba(15,23,42,.5); z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(3px); }
+.mover.open { display: flex; }
+.mbox { background: #fff; border: 1px solid #e2e8f0; border-radius: 16px; width: 660px; max-width: 96vw; max-height: 90vh; overflow-y: auto; padding: 24px; position: relative; box-shadow: 0 20px 60px rgba(0,0,0,.12), 0 4px 16px rgba(0,0,0,.06); }
+.mx { position: absolute; top: 14px; right: 14px; background: #f1f5f9; border: none; color: #64748b; cursor: pointer; border-radius: 8px; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all .1s; }
+.mx:hover { background: #fee2e2; color: #dc2626; }
+.mpc { font-size: 19px; font-weight: 800; color: #1e293b; margin-bottom: 3px; }
+.mu  { font-size: 11px; color: #64748b; margin-bottom: 16px; }
+.ms { margin-bottom: 15px; }
+.mst { font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px; color: #94a3b8; border-bottom: 1px solid #f1f5f9; padding-bottom: 6px; margin-bottom: 9px; font-weight: 700; }
+.mg { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+.mfl { font-size: 10px; color: #94a3b8; margin-bottom: 2px; font-weight: 500; text-transform: uppercase; letter-spacing: .5px; }
+.mfv { font-size: 12px; color: #1e293b; font-weight: 500; word-break: break-word; }
+.alert { padding: 9px 13px; border-radius: 8px; border-left: 3px solid; font-size: 12px; margin-bottom: 6px; line-height: 1.5; }
+.alert b { display: block; margin-bottom: 2px; font-size: 12px; }
+.a-r { background: #fef2f2; border-color: #dc2626; color: #dc2626; }
+.a-a { background: #fefce8; border-color: #d97706; color: #a16207; }
+.a-b { background: #eff6ff; border-color: #2563eb; color: #1d4ed8; }
+.a-g { background: #f0fdf4; border-color: #16a34a; color: #15803d; }
+/* mapper */
+.map-wrap { display: none; }
+.mg2 { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 9px; }
+.mf label { display: block; font-size: 10px; color: #64748b; margin-bottom: 4px; text-transform: uppercase; letter-spacing: .7px; font-weight: 600; }
+.mf select { width: 100%; background: #fff; border: 1px solid #e2e8f0; color: #1e293b; padding: 7px 10px; border-radius: 7px; font-size: 12px; font-family: inherit; cursor: pointer; }
+.mf select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,.1); }
+/* section title */
+.stitle { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.2px; color: #4f46e5; margin-bottom: 12px; }
+.sec-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- TITLE -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 20px;box-shadow:0 1px 4px rgba(79,70,229,.08)">
+    <h1>🖥 Seb's System Scout <span id="hdr-count"></span></h1>
+    <div style="display:flex;gap:8px">
+      <button class="btn-sm hidden" id="btn-adjust" onclick="showAdjustMapper()">⚙ Adjust Columns</button>
+    <button class="btn-sm hidden" id="btn-pdf" onclick="doPDF(false)">🖨 Full PDF</button>
+      <button class="btn-sm hidden" id="btn-pdf-iss" onclick="doPDF(true)" style="border-color:#dc2626;color:#dc2626">🔴 Issues PDF</button>
+      <button class="btn-sm hidden" id="btn-exp" onclick="doExport()">⬇ Export CSV</button>
+      <button class="btn-sm hidden" id="btn-rst" onclick="doReset()">↺ New File</button>
+    </div>
+  </div>
+
+  <!-- UPLOAD CARD -->
+  <div class="card" id="card-upload">
+    <div class="stitle">📂 Load Inventory CSV</div>
+    <div class="pick-row">
+      <input type="file" id="csv-file" accept=".csv" onchange="doLoad()">
+    </div>
+    <div id="status"></div>
+    <div style="margin-top:12px;font-size:11px;color:#64748b;line-height:1.8">
+      <b style="color:#4f46e5">How to export CSV:</b>
+      Excel → File → Save As → CSV UTF-8 &nbsp;|&nbsp;
+      PDQ Inventory → right-click report → Export &nbsp;|&nbsp;
+      Lansweeper → Reports → Export to CSV<br>
+      <b style="color:#4f46e5">Supported columns:</b>
+      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type
+    </div>
+  </div>
+
+  <!-- MAPPER -->
+  <div class="card map-wrap" id="card-map">
+    <div class="sec-hdr" style="margin-bottom:12px">
+      <div class="stitle" style="margin:0">⚙ Adjust Column Mapping</div>
+      <button class="btn-sm" onclick="document.getElementById('card-map').style.display='none'">✕ Close</button>
+    </div>
+    <div class="mg2" id="map-grid"></div>
+    <div style="margin-top:14px;display:flex;gap:8px">
+      <button class="btn btn-go" onclick="applyAdjustedMapping()">✓ Re-Analyse with these columns</button>
+      <button class="btn-sm" onclick="document.getElementById('card-map').style.display='none'">Cancel</button>
+    </div>
+  </div>
+
+  <!-- DASHBOARD (hidden until loaded) -->
+  <div id="dash" class="hidden">
+
+    <!-- Health -->
+    <div class="card">
+      <div class="health-row">
+        <div class="health-pct" id="h-pct">—</div>
+        <div style="flex:1">
+          <div style="font-size:12px;color:#64748b;margin-bottom:5px">Fleet Health Score <span id="h-sub" style="color:#64748b"></span></div>
+          <div class="health-bar-bg"><div class="health-bar-fill" id="h-bar"></div></div>
+          <div class="health-legend" id="h-leg"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="card"><div class="stats" id="stats"></div></div>
+
+    <!-- Charts (Fleet Snapshot) — moved up -->
+    <div class="card" id="charts-card" style="display:none">
+      <div class="stitle">📊 Fleet Snapshot</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:24px" id="charts-grid"></div>
+    </div>
+
+    <!-- Issues -->
+    <div class="card">
+      <div class="sec-hdr">
+        <div class="stitle" style="margin:0">⚠ Issues — click to filter</div>
+        <button class="btn-sm hidden" id="btn-clf" onclick="clearFilter()">✕ Clear Filter</button>
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <!-- OS Versions + Lifecycle (merged) -->
+    <div class="card" id="osver-card" style="display:none">
+      <div class="sec-hdr">
+        <div class="stitle" style="margin:0">🪟 OS Versions &amp; Lifecycle — click to filter</div>
+      </div>
+      <div class="ver-row" id="ver-row"></div>
+    </div>
+
+    <!-- Filters + Table -->
+    <div class="card">
+      <div class="filters">
+        <input type="text" id="f-q" placeholder="🔍  Search PC, user, serial…" oninput="applyF()">
+        <select id="f-site"  onchange="applyF()"><option value="">All Sites</option></select>
+        <select id="f-type"  onchange="applyF()"><option value="">All Types</option></select>
+        <select id="f-age"   onchange="applyF()">
+          <option value="">All Ages</option>
+          <option value="new">New (&lt;3yr)</option>
+          <option value="aging">Aging (3–5yr)</option>
+          <option value="old">Old (5–8yr)</option>
+          <option value="legacy">Legacy (8+yr)</option>
+        </select>
+        <select id="f-w11" onchange="applyF()">
+          <option value="">Win11: All</option>
+          <option value="on-current">✅ On Win11 Current</option>
+          <option value="on-old">⚠ On Win11 — Update Needed</option>
+          <option value="ready">🔵 Compatible — Ready to Upgrade</option>
+          <option value="partial">🔧 Check Required</option>
+          <option value="not-ready">❌ Incompatible</option>
+          <option value="na">➖ N/A</option>
+        </select>
+        <select id="f-action" onchange="applyF()">
+          <option value="">All Actions</option>
+          <option value="fix-today">🔧 Fix Today</option>
+          <option value="procure">🛒 Needs Procurement</option>
+          <option value="schedule">📅 Schedule</option>
+          <option value="ok">✅ No Action</option>
+        </select>
+        <div class="fsp"></div>
+        <select id="f-ps" onchange="pgSz=+this.value;pg=1;renderT()">
+          <option value="25">25/page</option>
+          <option value="50">50/page</option>
+          <option value="100">100/page</option>
+          <option value="9999">All</option>
+        </select>
+        <button class="btn-sm" onclick="toggleColPicker()" title="Show/hide columns">⊞ Columns</button>
+      </div>
+      <!-- Column picker panel -->
+      <div id="col-picker" style="display:none;background:#f8fafc;border:1px solid #cbd5e1;border-radius:8px;padding:12px 16px;margin-bottom:12px">
+        <div style="font-size:11px;color:#64748b;margin-bottom:8px;font-weight:700;text-transform:uppercase;letter-spacing:.7px">Toggle Columns</div>
+        <div id="col-picker-inner" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+      </div>
+      <div class="tbl-wrap">
+        <div class="tbl-top">
+          <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px">Devices</span>
+          <span id="tbl-cnt"></span>
+        </div>
+        <div class="tbl-scroll"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+        <div class="pager" id="pager"></div>
+      </div>
+    </div>
+
+  </div><!-- /dash -->
+</div><!-- /page -->
+
+<!-- Modal -->
+<div class="mover" id="mover" onclick="closeMod(event)">
+  <div class="mbox" id="mbox"></div>
+</div>
+
+<script>
+// ─── CSV PARSER ────────────────────────────────────────────
+function parseCSV(raw) {
+  // strip BOM
+  if (raw.charCodeAt(0) === 0xFEFF) raw = raw.slice(1);
+  // normalise line endings
+  raw = raw.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  var lines = raw.split('\n');
+  while (lines.length && !lines[lines.length-1].trim()) lines.pop();
+
+  function splitLine(line) {
+    var out = [], cur = '', i = 0;
+    while (i < line.length) {
+      if (line[i] === '"') {
+        i++;
+        while (i < line.length) {
+          if (line[i] === '"' && line[i+1] === '"') { cur += '"'; i += 2; }
+          else if (line[i] === '"') { i++; break; }
+          else cur += line[i++];
+        }
+        while (i < line.length && line[i] !== ',') i++; // skip to comma
+        if (line[i] === ',') i++;
+      } else {
+        var j = line.indexOf(',', i);
+        if (j === -1) { cur += line.slice(i); i = line.length; }
+        else { cur += line.slice(i, j); i = j + 1; }
+      }
+      out.push(cur.trim()); cur = '';
+    }
+    if (line[line.length-1] === ',') out.push(''); // trailing comma
+    return out;
+  }
+
+  var headers = splitLine(lines[0]);
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    var vals = splitLine(lines[i]);
+    var row = {};
+    for (var c = 0; c < headers.length; c++) row[headers[c]] = vals[c] !== undefined ? vals[c] : '';
+    rows.push(row);
+  }
+  return { headers: headers, rows: rows };
+}
+
+// ─── COLUMN DETECTION ──────────────────────────────────────
+var FP = {
+  site:       [/site.?name|^site$|location|department|office/i],
+  pcName:     [/system.?name|pc.?name|computer.?name|hostname|device.?name|^name$/i],
+  user:       [/last.?logged.?on.?user|user.?name|username|^user$|login|assigned/i],
+  os:         [/os.?product|operating.?system|^os$|^windows$/i],
+  osVer:      [/os.?display.?version|os.?version|display.?version|build.?version/i],
+  cpu:        [/processor.?name|processor.?name.?1|cpu.?model|^cpu$|^processor$/i],
+  ram:        [/memory.?size|memory.?gb|ram.?gb|^ram$|^memory$|physical/i],
+  diskTotal:  [/disk.?total|total.?disk|total.?space|disk.?size/i],
+  diskFree:   [/disk.?free|free.?disk|free.?space|available.?disk/i],
+  serial:     [/bios.?serial|serial.?number|service.?tag|^serial$/i],
+  installDate:[/install.?date|purchase.?date|os.?install/i],
+  tpm:        [/^tpm/i],
+  secureBoot: [/secure.?boot/i],
+  model:      [/system.?model|device.?model|^model$/i],
+  mfr:        [/bios.?manufacturer|^manufacturer$|^make$|^vendor$/i],
+  lastLogon:  [/last.?logged.?on.?date|last.?logon|last.?login/i],
+  lastSeen:   [/last.?agent.?check|last.?check|last.?seen/i],
+  devType:    [/^type$|device.?type|form.?factor/i],
+  ageYears:   [/device.?age.?years|age.?years|^age$/i],
+};
+var FL = {
+  site:'Site / Location', pcName:'PC / System Name', user:'Username',
+  os:'Operating System', osVer:'OS Version (e.g. 24H2)', cpu:'CPU / Processor',
+  ram:'RAM (GB)', diskTotal:'Total Disk (GB)', diskFree:'Free Disk (GB)',
+  serial:'Serial Number', installDate:'Install / Purchase Date',
+  tpm:'TPM Version', secureBoot:'Secure Boot', model:'PC Model',
+  mfr:'Manufacturer', lastLogon:'Last Logon', lastSeen:'Last Agent Check',
+  devType:'Device Type', ageYears:'Device Age (years)',
+};
+function detectCols(headers) {
+  var mp = {}, used = {};
+  for (var f in FP) {
+    var pats = FP[f];
+    for (var h = 0; h < headers.length; h++) {
+      if (used[headers[h]]) continue;
+      for (var p = 0; p < pats.length; p++) {
+        if (pats[p].test(headers[h])) { mp[f] = headers[h]; used[headers[h]] = true; break; }
+      }
+      if (mp[f]) break;
+    }
+  }
+  return mp;
+}
+
+// ─── CPU ANALYSIS ──────────────────────────────────────────
+function cpuInfo(raw) {
+  if (!raw) return mk('?','Unknown',null,null);
+  var s = raw.replace(/\(R\)|\(TM\)/gi,'').trim();
+  var y = new Date().getFullYear();
+  function mk2(b,g,yr,w){ var ay=yr?y-yr:null; var a=ay===null?'unknown':ay<3?'new':ay<5?'aging':ay<8?'old':'legacy'; return {brand:b,gen:g,year:yr,w11:w,age:a,ageY:ay}; }
+  function gy(g){var m={1:2008,2:2011,3:2012,4:2013,5:2015,6:2016,7:2017,8:2018,9:2018,10:2020,11:2021,12:2022,13:2023,14:2024,15:2025};return m[g]||(g>=16?2025:2015);}
+  if (/apple\s*m\d/i.test(s)) return {brand:'Apple',gen:'Silicon',year:2020,w11:null,age:'new',ageY:null,mac:1};
+  var m;
+  if ((m=s.match(/ryzen\s+[3579]\s+(\d{4})/i))) { var n=+m[1],sr=Math.floor(n/1000); var t={1:[2017,0],2:[2018,0],3:[2019,1],4:[2020,1],5:[2020,1],6:[2022,1],7:[2022,1],8:[2023,1],9:[2024,1]}[sr]||[2020,1]; return mk2('AMD','Ryzen '+sr+'000',t[0],!!t[1]); }
+  if (/\bamd\b/i.test(s)) return mk2('AMD','AMD',2014,false);
+  if ((m=s.match(/core\s+ultra\s+[3579]\s+(\d{3})/i))) { var n=+m[1]; return mk2('Intel','Core Ultra '+(n<200?'S1':'S2'),n>=200?2024:2023,true); }
+  if (/core\s+ultra/i.test(s)) return mk2('Intel','Core Ultra',2023,true);
+  if ((m=s.match(/^(\d{1,2})(?:st|nd|rd|th)\s*gen/i))) { var g=+m[1]; return mk2('Intel',g+'th Gen',gy(g),g>=8); }
+  if ((m=s.match(/core\s+i[3579][\s-]+(\d{4,5})/i))) {
+    var n=+m[1], g;
+    if      (n>=14000) g=14;
+    else if (n>=13000) g=13;
+    else if (n>=12000) g=12;
+    else if (n>=11000) g=11;
+    else if (n>=10000) g=10;
+    else g=Math.floor(n/1000); // 4-digit: first digit = gen (e.g. 8265→8, 7500→7, 6200→6)
+    return mk2('Intel',g+'th Gen',gy(g),g>=8);
+  }
+  if ((m=s.match(/xeon.*(gold|silver|bronze|platinum)\s+(\d{4})/i))) { var n=+m[2],g=n>=6000?6:n>=5000?5:n>=4000?4:n>=3000?3:n>=2000?2:1; return mk2('Intel','Xeon '+m[1],{1:2017,2:2019,3:2021,4:2022,5:2023,6:2024}[g]||2019,g>=3); }
+  if (/xeon/i.test(s)) return mk2('Intel','Xeon',2016,false);
+  if ((m=s.match(/celeron\s+n(\d{4})/i))) { var n=+m[1]; return mk2('Intel','Celeron',n>=5000?2021:n>=4000?2019:2016,false); }
+  if (/celeron|pentium/i.test(s)) return mk2('Intel','Celeron/Pentium',2016,false);
+  if (/core\s*2/i.test(s)) return mk2('Intel','Core 2',2007,false);
+  return mk2('?','Unknown',null,null);
+}
+
+// ─── OS VERSION ────────────────────────────────────────────
+var OV={
+  '25H2':'ok',   // Current — EOL ~Oct 2027
+  '24H2':'ok',   // Current — EOL Oct 13 2026
+  '23H2':'crit', // EOL Nov 11 2025 ✗
+  '22H2':'crit', // EOL Oct 8 2024 ✗
+  '21H2':'crit', // EOL Oct 2023 ✗
+  '21H1':'crit', '20H2':'crit', '20H1':'crit', '1909':'crit', '1903':'crit'
+};
+var OVL={'ok':'current','teal':'supported','warn':'aging','crit':'eol'};
+var OVC={'ok':'#16a34a','teal':'#0891b2','warn':'#d97706','crit':'#dc2626','info':'#2563eb'};
+var OVP={'ok':'p-ok','teal':'p-teal','warn':'p-warn','crit':'p-crit','info':'p-info'};
+function getOV(os,ver){
+  if(!ver) return null;
+  // Skip version checking for Server OS — server versions share build numbers with desktop but have different lifecycles
+  if (/server/i.test(os)) return null;
+  var v=ver.toString().trim(), w10=/windows 10/i.test(os);
+  // All Windows 10 versions are EOL as of Oct 14 2025
+  var c=w10?'crit':(OV[v]||'info');
+  return {c:c, lbl:(w10?'Win10 ':'Win11 ')+v+( w10?' (EOL)':''), s:OVL[c]||'unknown', ver:v};
+}
+
+// ─── WIN11 CHECK ───────────────────────────────────────────
+function w11(row,cpu,M){
+  var os=(gv(row,M.os)||'').toString();
+  if(cpu.mac||/macos/i.test(os)||/server/i.test(os)) return {st:'na',iss:[]};
+  var osVer=(gv(row,M.osVer)||'').toString().trim();
+  var onWin11=/windows 11/i.test(os);
+  // Already running Win11 — just check if version is current
+  if(onWin11){
+    var ov=getOV(os,osVer);
+    if(!ov||ov.s==='current') return {st:'on-current',iss:[]};
+    // on Win11 but version is EOL or unknown
+    var verLbl=osVer?'Win11 '+osVer:'Win11 (unknown version)';
+    return {st:'on-old',iss:[verLbl+' is no longer receiving security updates — update to 24H2 or 25H2']};
+  }
+  // On Win10 or older — check hardware
+  var iss=[],sc=0;
+  if(cpu.w11===true) sc+=2; else if(cpu.w11===false){sc-=2;iss.push('CPU not on Win11 supported list');}
+  var r=parseFloat(gv(row,M.ram)); if(!isNaN(r)&&r>0&&r<4){sc--;iss.push('RAM '+r+'GB (needs 4GB+)');}
+  var d=parseFloat(gv(row,M.diskTotal)); if(!isNaN(d)&&d>0&&d<64){sc--;iss.push('Disk '+d+'GB (needs 64GB+)');}
+  var t=gv(row,M.tpm); if(t){var tv=parseFloat(t.toString().replace(/[^\d.]/g,'')); if(!isNaN(tv)){if(tv>=2)sc++;else{sc--;iss.push('TPM '+tv+' (needs 2.0)');}}}
+  var sb=gv(row,M.secureBoot); if(sb){var sl=sb.toLowerCase(); if(/true|yes|enabled/.test(sl))sc++;else if(/false|no|disabled/.test(sl)){sc--;iss.push('Secure Boot disabled');}}
+  if(cpu.w11===false) return {st:'not-ready',iss:iss};
+  if(sc>=2&&!iss.length) return {st:'ready',iss:[]};
+  if(sc<0) return {st:'not-ready',iss:iss};
+  return {st:'partial',iss:iss};
+}
+
+// ─── HELPERS ───────────────────────────────────────────────
+function gv(row,col){return(!col||row[col]===undefined||row[col]===null)?'':row[col];}
+function pDate(v){if(!v||!v.toString().trim())return null;var d=new Date(v.toString().trim());return isNaN(d.getTime())?null:d;}
+function dSince(d){return d?Math.round((Date.now()-d.getTime())/86400000):null;}
+var AC={new:'#16a34a',aging:'#d97706',old:'#ea580c',legacy:'#dc2626',unknown:'#64748b'};
+var AD={new:1,aging:2,old:3,legacy:4,unknown:0};
+
+// ─── STATE ─────────────────────────────────────────────────
+var RAW=[],HDRS=[],M={},DATA=[],FILT=[],pg=1,pgSz=25,sCol=null,sDir=1,actF=null,actV=null;
+
+// ─── FILE LOADING ──────────────────────────────────────────
+function setStatus(msg,type){
+  var el=document.getElementById('status');
+  el.textContent=msg; el.className=type; el.style.display='block';
+}
+function doLoad(){
+  var inp=document.getElementById('csv-file');
+  if(!inp.files||!inp.files[0]) return;
+  var file=inp.files[0];
+  setStatus('Reading '+file.name+' …','info');
+  var reader=new FileReader();
+  reader.onerror=function(){setStatus('FileReader error — could not read the file.','err');};
+  reader.onload=function(ev){
+    try{
+      var text=ev.target.result;
+      if(!text||!text.length){setStatus('File appears empty.','err');return;}
+      var res=parseCSV(text);
+      if(!res.headers.length){setStatus('Could not find any column headers.','err');return;}
+      if(!res.rows.length){setStatus('No data rows found (just a header row?).','err');return;}
+      RAW=res.rows; HDRS=res.headers; M=detectCols(HDRS);
+      setStatus('Loaded '+RAW.length+' rows — analysing…','info');
+      // Auto-analyse immediately, no manual confirm needed
+      document.getElementById('card-upload').style.display='none';
+      doAnalyse();
+    }catch(e){setStatus('Parse error: '+e.message,'err');document.getElementById('card-upload').style.display='';}
+  };
+  reader.readAsText(file,'UTF-8');
+}
+
+function showAdjustMapper(){
+  var g=document.getElementById('map-grid'); g.innerHTML='';
+  for(var f in FL){
+    var div=document.createElement('div'); div.className='mf';
+    var opts='<option value="">— not mapped —</option>';
+    for(var i=0;i<HDRS.length;i++) opts+='<option value="'+HDRS[i]+'"'+(M[f]===HDRS[i]?' selected':'')+'>'+HDRS[i]+'</option>';
+    div.innerHTML='<label>'+FL[f]+'</label><select id="mp_'+f+'">'+opts+'</select>';
+    g.appendChild(div);
+  }
+  document.getElementById('card-map').style.display='block';
+  document.getElementById('card-map').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function applyAdjustedMapping(){
+  readMapper(); // read from selects
+  document.getElementById('card-map').style.display='none';
+  doAnalyse();
+}
+
+// ─── MAPPER (kept for applyAdjustedMapping) ─────────────────
+function showMapper(){
+  document.getElementById('card-map').style.display='block';
+  document.getElementById('card-map').scrollIntoView({behavior:'smooth',block:'nearest'});
+  var g=document.getElementById('map-grid'); g.innerHTML='';
+  for(var f in FL){
+    var div=document.createElement('div'); div.className='mf';
+    var opts='<option value="">— not mapped —</option>';
+    for(var i=0;i<HDRS.length;i++) opts+='<option value="'+HDRS[i]+'"'+(M[f]===HDRS[i]?' selected':'')+'>'+HDRS[i]+'</option>';
+    div.innerHTML='<label>'+FL[f]+'</label><select id="mp_'+f+'">'+opts+'</select>';
+    g.appendChild(div);
+  }
+}
+function readMapper(){for(var f in FL){var el=document.getElementById('mp_'+f);M[f]=el?el.value:'';}}
+
+// ─── ANALYSIS ──────────────────────────────────────────────
+function doAnalyse(){
+  // M is already set by detectCols — readMapper only if user manually adjusted
+  document.getElementById('card-map').style.display='none';
+  DATA=RAW.map(function(row){
+    var cpu=cpuInfo((gv(row,M.cpu)||'').toString());
+    var os=(gv(row,M.os)||'').toString();
+    var srv=/server/i.test(os), mac=cpu.mac||/macos/i.test(os);
+    var devT=(gv(row,M.devType)||'').trim()||(srv?'Server':mac?'Mac':'Desktop');
+    var wc=w11(row,cpu,M);
+    var ram=parseFloat(gv(row,M.ram))||0;
+    var td=parseFloat(gv(row,M.diskTotal))||0;
+    var fd=parseFloat(gv(row,M.diskFree))||0;
+    var freeP=td>0?(fd/td)*100:null;
+    var dNA=td===0&&fd===0;
+    var ageProv=parseFloat(gv(row,M.ageYears));
+    var ageY=(!isNaN(ageProv)&&ageProv>0)?ageProv:cpu.ageY;
+    var age=ageY===null?'unknown':ageY<3?'new':ageY<5?'aging':ageY<8?'old':'legacy';
+    var instD=pDate(gv(row,M.installDate));
+    var instDays=dSince(instD);
+    var war='unknown',warN='No date', warEnd=null;
+    if(instDays!==null){
+      // Estimate warranty end as install date + 3 years (standard)
+      warEnd = new Date(instD.getTime() + 3*365*86400000);
+      var yr=instDays/365;
+      if(yr<3){war='in';warN='~'+yr.toFixed(1)+'yr (likely in warranty)';}
+      else if(yr<5){war='check';warN='~'+yr.toFixed(1)+'yr (check vendor)';}
+      else{war='out';warN='~'+yr.toFixed(1)+'yr (likely expired)';}
+    }
+    var warDays = warEnd ? Math.round((warEnd-new Date())/86400000) : null;
+    // Win11 migration path
+    var w11Path='na';
+    if(!srv&&!mac){
+      if(wc.st==='on-current') w11Path='on-current';
+      else if(wc.st==='on-old') w11Path='on-old';
+      else if(wc.st==='ready') w11Path='ready';
+      else if(cpu.w11===false) w11Path='cpu';
+      else {
+        var blockers=wc.iss||[];
+        var needsRam=blockers.some(function(b){return /ram/i.test(b);});
+        var needsBios=blockers.some(function(b){return /tpm|secure boot/i.test(b);});
+        var needsDisk=blockers.some(function(b){return /disk/i.test(b);});
+        var count=(needsRam?1:0)+(needsBios?1:0)+(needsDisk?1:0);
+        if(count>1) w11Path='multi';
+        else if(needsBios) w11Path='bios';
+        else if(needsRam) w11Path='ram';
+        else if(needsDisk) w11Path='disk';
+        else w11Path='partial';
+      }
+    }    var lsD=pDate(gv(row,M.lastSeen))||pDate(gv(row,M.lastLogon));
+    var staleDays=dSince(lsD); var stale=staleDays!==null&&staleDays>60;
+    var ov=getOV(os,(gv(row,M.osVer)||'').toString().trim());
+    var iss=[];
+    if(!srv&&!mac){
+      if(ram>0&&ram<4) iss.push({l:'crit',m:'Only '+ram+'GB RAM (Win11 needs 4GB+)'});
+      else if(ram>0&&ram<8) iss.push({l:'warn',m:'Low RAM: '+ram+'GB — upgrade to 8GB+ recommended'});
+      if(!dNA){if(freeP!==null&&freeP<10) iss.push({l:'crit',m:'Critical disk: '+freeP.toFixed(1)+'% free'});else if(freeP!==null&&freeP<20) iss.push({l:'warn',m:'Low disk: '+freeP.toFixed(1)+'% free ('+fd+'/'+td+'GB)'});}
+      if(age==='legacy') iss.push({l:'crit',m:'Legacy: ~'+Math.round(ageY)+'yr old — replacement overdue'});
+      else if(age==='old') iss.push({l:'warn',m:'Aging: ~'+Math.round(ageY)+'yr old — plan refresh'});
+      wc.iss.forEach(function(i){iss.push({l:'warn',m:'Win11: '+i});});
+      if(wc.st==='on-old') iss.push({l:'warn',m:'On Win11 but version needs updating: '+((gv(row,M.osVer)||'').toString().trim()||'unknown version')});
+      if(war==='out') iss.push({l:'warn',m:'Warranty likely expired ('+warN+')'});
+      if(ov&&ov.c==='crit') iss.push({l:'crit',m:'EOL OS: '+ov.lbl+' — no security updates'});
+      else if(ov&&ov.c==='warn') iss.push({l:'warn',m:'Aging OS: '+ov.lbl+' — update recommended'});
+    }
+    if(/windows 7|windows xp|vista/i.test(os)) iss.push({l:'crit',m:'End-of-life OS — immediate security risk!'});
+    // Server EOL by product name (version numbers are unreliable across server editions)
+    if(srv){
+      if(/server\s*(2003|2000)/i.test(os))
+        iss.push({l:'crit',m:'EOL Server OS: '+os.trim()+' — end-of-life, no security patches'});
+      else if(/server\s*2008/i.test(os))
+        iss.push({l:'crit',m:'EOL Server OS: Server 2008 — end-of-life since Jan 2020'});
+      else if(/server\s*2012/i.test(os))
+        iss.push({l:'crit',m:'EOL Server OS: Server 2012 — end-of-life since Oct 2023'});
+      else if(/server\s*2016/i.test(os))
+        iss.push({l:'warn',m:'Aging Server OS: Server 2016 — end-of-support Jan 2027, plan migration'});
+    }
+    if(stale) iss.push({l:'warn',m:'No check-in for '+staleDays+' days'});
+    // Lifecycle score 0–10
+    var ls=null;
+    if(!srv&&!mac){
+      ls=10;
+      ls-={legacy:4,old:2,aging:1,new:0,unknown:0}[age]||0;
+      if(war==='out')ls-=2; else if(war==='check')ls-=1;
+      if(w11Path==='cpu')ls-=2; else if(w11Path==='multi')ls-=1; else if(w11Path==='on-old')ls-=1;
+      if(ram>0&&ram<4)ls-=3; else if(ram>0&&ram<8)ls-=1;
+      if(freeP!==null&&freeP<10)ls-=2; else if(freeP!==null&&freeP<20)ls-=1;
+      if(ov&&ov.c==='crit')ls-=2; else if(ov&&ov.c==='warn')ls-=1;
+      if(staleDays!==null&&staleDays>90)ls-=1;
+      ls=Math.max(0,ls);
+    }
+    // Action category
+    var actionCat='ok';
+    if(!srv&&!mac){
+      if(age==='legacy'||w11Path==='cpu') actionCat='procure';
+      else if(w11Path==='ram'||w11Path==='bios'||w11Path==='disk') actionCat='fix-today';
+      else if(age==='old'||war==='out'||war==='check'||w11Path==='multi') actionCat='schedule';
+    }
+    return {r:row,cpu:cpu,w11:wc,w11Path:w11Path,actionCat:actionCat,ls:ls,ram:ram,td:td,fd:fd,freeP:freeP,dNA:dNA,war:war,warN:warN,warEnd:warEnd,warDays:warDays,age:age,ageY:ageY,iss:iss,hasIss:iss.length>0,stale:stale,staleDays:staleDays,ov:ov,devT:devT,srv:srv,mac:mac,isDup:false};
+  });
+  // Duplicate detection pass
+  var nameCnt={},serCnt={};
+  DATA.forEach(function(r){
+    var n=(gv(r.r,M.pcName)||'').trim().toLowerCase();
+    var s=(gv(r.r,M.serial)||'').trim().toLowerCase();
+    if(n) nameCnt[n]=(nameCnt[n]||0)+1;
+    if(s) serCnt[s]=(serCnt[s]||0)+1;
+  });
+  DATA.forEach(function(r){
+    var n=(gv(r.r,M.pcName)||'').trim().toLowerCase();
+    var s=(gv(r.r,M.serial)||'').trim().toLowerCase();
+    var dupName=n&&nameCnt[n]>1, dupSerial=s&&serCnt[s]>1;
+    if(dupName||dupSerial){
+      r.isDup=true;
+      r.iss.push({l:'warn',m:'Duplicate '+(dupName?'PC name':'')+(dupName&&dupSerial?' & ':'')+(dupSerial?'serial':'')+' — check for import errors'});
+      r.hasIss=true;
+    }
+  });
+  buildFilters(); buildHealth(); buildStats(); buildCharts(); buildChips(); buildOsVer();
+  FILT=DATA.slice(); renderT();
+  document.getElementById('dash').classList.remove('hidden');
+  document.getElementById('btn-adjust').classList.remove('hidden');
+  document.getElementById('btn-pdf').classList.remove('hidden');
+  document.getElementById('btn-pdf-iss').classList.remove('hidden');
+  document.getElementById('btn-exp').classList.remove('hidden');
+  document.getElementById('btn-rst').classList.remove('hidden');
+  document.getElementById('hdr-count').textContent=DATA.length+' devices';
+  document.getElementById('dash').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ─── HEALTH ────────────────────────────────────────────────
+function buildHealth(){
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  var ok=wk.filter(function(r){return !r.hasIss;}).length;
+  var cr=wk.filter(function(r){return r.iss.some(function(i){return i.l==='crit';});}).length;
+  var wa=wk.filter(function(r){return r.iss.some(function(i){return i.l==='warn';})&&!r.iss.some(function(i){return i.l==='crit';});}).length;
+  var sc=wk.length?Math.round(ok/wk.length*100):0;
+  var col=sc>=80?'#16a34a':sc>=60?'#d97706':'#dc2626';
+  document.getElementById('h-pct').textContent=sc+'%';
+  document.getElementById('h-pct').style.color=col;
+  document.getElementById('h-sub').textContent='(workstations only)';
+  document.getElementById('h-bar').style.cssText='width:'+sc+'%;background:'+col;
+  document.getElementById('h-leg').innerHTML=
+    '<span><span class="dot" style="background:#16a34a"></span>'+ok+' healthy</span>'+
+    '<span><span class="dot" style="background:#d97706"></span>'+wa+' warnings</span>'+
+    '<span><span class="dot" style="background:#dc2626"></span>'+cr+' critical</span>'+
+    '<span><span class="dot" style="background:#64748b"></span>'+(DATA.length-wk.length)+' servers/other</span>';
+}
+
+// ─── STATS ─────────────────────────────────────────────────
+var STAT_FILTERS = {
+  total:   {label:'All Devices',    fn:function(r){return true;}},
+  w11pct:  {label:'On Win11 (Current)',    fn:function(r){return r.w11.st==='on-current';}},
+  w11old:  {label:'Win11 Needs Update',    fn:function(r){return r.w11.st==='on-old';}},
+  w11ready:{label:'Win11 Compatible',      fn:function(r){return r.w11.st==='ready';}},
+  w11no:   {label:'Win11 Incompatible',    fn:function(r){return r.w11.st==='not-ready';}},
+  win10:   {label:'On Windows 10',  fn:function(r){return /windows 10/i.test(gv(r.r,M.os));}},
+  aging:   {label:'Aging/Legacy',   fn:function(r){return r.age==='old'||r.age==='legacy';}},
+  lowram:  {label:'Low RAM (<8GB)', fn:function(r){return r.ram>0&&r.ram<8;}},
+  lowdisk: {label:'Low Disk',       fn:function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}},
+  stale:   {label:'Stale Devices',  fn:function(r){return r.stale;}},
+};
+
+function buildStats(){
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  var w11curr=wk.filter(function(r){return r.w11.st==='on-current';}).length;
+  var w11old=wk.filter(function(r){return r.w11.st==='on-old';}).length;
+  var w11ready=wk.filter(function(r){return r.w11.st==='ready';}).length;
+  var w11no=wk.filter(function(r){return r.w11.st==='not-ready';}).length;
+  var win10=DATA.filter(function(r){return /windows 10/i.test(gv(r.r,M.os));}).length;
+  var aging=wk.filter(function(r){return r.age==='old'||r.age==='legacy';}).length;
+  var ramA=wk.filter(function(r){return r.ram>0;}).map(function(r){return r.ram;});
+  var avgR=ramA.length?(ramA.reduce(function(a,b){return a+b;},0)/ramA.length).toFixed(1)+'GB':'—';
+  var lowR=wk.filter(function(r){return r.ram>0&&r.ram<8;}).length;
+  var lowD=wk.filter(function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}).length;
+  var stale=DATA.filter(function(r){return r.stale;}).length;
+
+  function st(cls,v,n,s,key){
+    var clickable=key?'stat-chip" data-sk="'+key+'" onclick="setStatFilter(\''+key+'\')" style="cursor:pointer;':'"';
+    return '<div class="stat '+cls+(key?' stat-chip" data-sk="'+key+'" onclick="setStatFilter(\''+key+'\')" style="cursor:pointer':'"')+'>'
+      +'<div class="stat-n">'+n+'</div><div class="stat-v">'+v+'</div>'
+      +'<div class="stat-s">'+s+(key?'<div style="font-size:9px;color:#a5b4fc;margin-top:3px;font-weight:600">click to filter ↓</div>':'')+'</div></div>';
+  }
+  // cleaner version:
+  function sc(cls,v,n,s,key){
+    var base='<div class="stat '+cls+(key?' stat-chip':'')+(key?'" data-sk="'+key+'" onclick="setStatFilter(\''+key+'\')':'')+'">';
+    return base
+      +'<div class="stat-n">'+n+'</div>'
+      +'<div class="stat-v">'+v+'</div>'
+      +'<div class="stat-s">'+s+'</div>'
+      +(key?'<div style="font-size:9px;color:#a5b4fc;margin-top:4px;font-weight:600;letter-spacing:.3px">▼ click to filter</div>':'')
+      +'</div>';
+  }
+  document.getElementById('stats').innerHTML=
+    sc('s1',DATA.length,'Total Devices','in fleet','total')+
+    sc('s2',w11curr,'On Win11 Current',w11curr+' up to date','w11pct')+
+    sc('s7',w11old,'Win11 Needs Update',w11old+' on old version','w11old')+
+    sc('s5',w11ready,'Win11 Compatible',w11ready+' ready to upgrade','w11ready')+
+    sc('s3',w11no,'Win11 Incompatible',w11no+' need new hardware','w11no')+
+    sc('s3',win10,'On Win10','EOL — need migration','win10')+
+    sc('s4',aging,'Aging/Legacy','5+ year devices','aging')+
+    sc('s5',avgR,'Avg RAM',lowR+' under 8GB','lowram')+
+    sc('s3',lowD,'Low Disk','<20% free','lowdisk')+
+    sc('s6',stale,'Stale','60+ days no check-in','stale');
+}
+
+function setStatFilter(key){
+  var sf=STAT_FILTERS[key];
+  if(!sf)return;
+  var chips=document.querySelectorAll('.stat-chip');
+  var isActive=false;
+  chips.forEach(function(c){if(c.dataset.sk===key&&c.classList.contains('stat-active'))isActive=true;});
+  // clear all active states
+  chips.forEach(function(c){c.classList.remove('stat-active');c.style.outline='';});
+  document.querySelectorAll('.chip,.ver-chip').forEach(function(c){
+    c.classList.remove('on');c.style.opacity='1';
+    c.style.boxShadow='0 1px 3px rgba(0,0,0,.05)';
+  });
+  if(isActive){actF=null;filterFn=null;document.getElementById('btn-clf').classList.add('hidden');applyF();return;}
+  // show as active
+  chips.forEach(function(c){
+    if(c.dataset.sk===key){c.classList.add('stat-active');c.style.outline='2px solid #4f46e5';}
+  });
+  actF='stat_'+key; filterFn=sf.fn; actV=null;
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
+}
+
+// ─── CHIPS ─────────────────────────────────────────────────
+var CHIPS=[
+  {k:'eol',    t:'EOL OS',        i:'🔒',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.ov&&r.ov.c==='crit';}},
+  {k:'win10',  t:'On Windows 10', i:'🪟',ic:'ico-a',cc:'cnt-a',fn:function(r){return /windows 10/i.test(gv(r.r,M.os));}},
+  {k:'w11no',  t:'Win11 Incompatible', i:'✗',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.w11.st==='not-ready';}},
+  {k:'w11old', t:'Win11 Needs Update', i:'⚠',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.w11.st==='on-old';}},
+  {k:'old',    t:'Legacy/Old CPU',i:'⚡',ic:'ico-r',cc:'cnt-r',fn:function(r){return r.age==='legacy'||r.age==='old';}},
+  {k:'lowram', t:'Low RAM (<8GB)',i:'🧠',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.ram>0&&r.ram<8;}},
+  {k:'disk',   t:'Low Disk (<20%)',i:'💾',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}},
+  {k:'war',    t:'Warranty Expired',i:'🛡',ic:'ico-o',cc:'cnt-o',fn:function(r){return r.war==='out';}},
+  {k:'stale',  t:'Stale (60+days)',  i:'⏰',ic:'ico-b',cc:'cnt-b',fn:function(r){return r.stale;}},
+  {k:'unused', t:'Unused (90+days)', i:'💤',ic:'ico-b',cc:'cnt-b',fn:function(r){return r.staleDays!==null&&r.staleDays>90;}},
+  {k:'dup',    t:'Duplicates',       i:'⚠',ic:'ico-a',cc:'cnt-a',fn:function(r){return r.isDup;}},
+];
+function buildChips(){
+  var h='';
+  CHIPS.forEach(function(c){
+    var n=DATA.filter(c.fn).length;
+    h+='<div class="chip" data-k="'+c.k+'" onclick="setF(\''+c.k+'\')">'
+      +'<div class="chip-ico '+c.ic+'">'+c.i+'</div>'
+      +'<div><div class="chip-title">'+c.t+'</div><div class="chip-cnt '+c.cc+'">'+n+'</div></div></div>';
+  });
+  document.getElementById('chips').innerHTML=h;
+}
+
+// ─── OS VERSIONS ───────────────────────────────────────────
+// ─── OS EOL REFERENCE ──────────────────────────────────────
+var OS_EOL = {
+  // Windows desktop
+  'windows 11 25h2': {date:'~Oct 2027',      status:'ok'},
+  'windows 11 24h2': {date:'Oct 2026',        status:'ok'},
+  'windows 11 23h2': {date:'Nov 2025',        status:'crit'},
+  'windows 11 22h2': {date:'Oct 2024',        status:'crit'},
+  'windows 11 21h2': {date:'Oct 2023',        status:'crit'},
+  'windows 11':      {date:'see version',     status:'info'},
+  'windows 10':      {date:'Oct 2025',        status:'crit'},
+  'windows 8.1':     {date:'Jan 2023',        status:'crit'},
+  'windows 8':       {date:'Jan 2016',        status:'crit'},
+  'windows 7':       {date:'Jan 2020',        status:'crit'},
+  // Windows Server
+  'server 2025':     {date:'Oct 2034',        status:'ok'},
+  'server 2022':     {date:'Oct 2031',        status:'ok'},
+  'server 2019':     {date:'Jan 2029',        status:'ok'},
+  'server 2016':     {date:'Jan 2027',        status:'warn'},
+  'server 2012':     {date:'Oct 2023',        status:'crit'},
+  'server 2008':     {date:'Jan 2020',        status:'crit'},
+  'server 2003':     {date:'Jul 2015',        status:'crit'},
+};
+
+function osEolLabel(os) {
+  var o = os.toLowerCase();
+  for (var key in OS_EOL) {
+    if (o.indexOf(key) !== -1) return OS_EOL[key];
+  }
+  return null;
+}
+
+function buildOsVer(){
+  // Build a single chip for every distinct OS+version combination across ALL device types
+  var cnts={};
+  DATA.forEach(function(r){
+    var os=(gv(r.r,M.os)||'').toString().trim();
+    if(!os) return;
+    var ver=(gv(r.r,M.osVer)||'').toString().trim();
+    // Build a display key
+    var key;
+    if(/windows 11/i.test(os))        key = ver ? 'Win11 '+ver          : 'Windows 11';
+    else if(/windows 10/i.test(os))   key = ver ? 'Win10 '+ver          : 'Windows 10';
+    else if(/server/i.test(os))       key = os.replace('Microsoft ',''); // keep full server name
+    else if(/macos|mac os/i.test(os)) key = ver ? 'macOS '+ver          : 'macOS';
+    else if(/windows/i.test(os))      key = ver ? os.trim()+' '+ver     : os.trim();
+    else                              key = os.trim();
+    cnts[key]=(cnts[key]||{count:0,os:os,ver:ver,_eolStatus:'unknown'});
+    cnts[key].count++;
+    // pre-compute EOL status for sorting
+    if(cnts[key]._eolStatus==='unknown'){
+      var kl2=key.toLowerCase();
+      var ei=null;
+      if(/^win11\s/.test(kl2))      ei=OS_EOL['windows 11 '+key.split(' ').slice(1).join(' ').toLowerCase()]||OS_EOL['windows 11'];
+      else if(/^win10\s/.test(kl2)) ei=OS_EOL['windows 10 '+key.split(' ').slice(1).join(' ').toLowerCase()]||OS_EOL['windows 10'];
+      else if(/^windows 11$/.test(kl2)) ei=OS_EOL['windows 11'];
+      else if(/^windows 10$/.test(kl2)) ei=OS_EOL['windows 10'];
+      else if(/macos/i.test(kl2))   ei={status:'info'};
+      else { for(var ek2 in OS_EOL){if(kl2.indexOf(ek2)!==-1){ei=OS_EOL[ek2];break;}} }
+      cnts[key]._eolStatus=ei?ei.status:'unknown';
+    }
+  });
+
+  var h='';
+  var statusOrder={crit:0, warn:1, ok:2, info:3, unknown:4};
+  var familyOrder=function(k){
+    var kl=k.toLowerCase();
+    if(/^win11/.test(kl)) return 0;
+    if(/^win10/.test(kl)) return 1;
+    if(/windows/.test(kl)) return 2;
+    if(/server/.test(kl)) return 3;
+    if(/macos/.test(kl)) return 4;
+    return 5;
+  };
+
+  Object.keys(cnts).sort(function(a,b){
+    var ea=cnts[a]._eolStatus||'unknown', eb=cnts[b]._eolStatus||'unknown';
+    var sa=statusOrder[ea]!==undefined?statusOrder[ea]:4;
+    var sb=statusOrder[eb]!==undefined?statusOrder[eb]:4;
+    if(sa!==sb) return sa-sb;
+    var fa=familyOrder(a), fb=familyOrder(b);
+    if(fa!==fb) return fa-fb;
+    // within same family, sort by version descending (newer first)
+    return b.localeCompare(a);
+  }).forEach(function(k){
+    var entry=cnts[k], cnt=entry.count;
+    // Get EOL info — try version-specific first, then product-level
+    var eolKey, eolInfo;
+    var kl=k.toLowerCase();
+    if(/^win11\s/.test(kl)){
+      eolKey='windows 11 '+k.split(' ').slice(1).join(' ').toLowerCase();
+      eolInfo=OS_EOL[eolKey]||OS_EOL['windows 11'];
+    } else if(/^win10\s/.test(kl)){
+      eolKey='windows 10 '+k.split(' ').slice(1).join(' ').toLowerCase();
+      eolInfo=OS_EOL[eolKey]||OS_EOL['windows 10'];
+    } else if(/macos/i.test(kl)){
+      eolInfo={status:'info',date:'varies'};
+    } else {
+      // server / other — match by substring
+      eolInfo=null;
+      for(var ek in OS_EOL){ if(kl.indexOf(ek)!==-1){eolInfo=OS_EOL[ek];break;} }
+    }
+
+    var statCol={ok:'#16a34a',warn:'#d97706',crit:'#dc2626',info:'#2563eb'};
+    var statBg ={ok:'#f0fdf4',warn:'#fefce8',crit:'#fef2f2',info:'#eff6ff'};
+    var statBdr={ok:'#bbf7d0',warn:'#fde68a',crit:'#fca5a5',info:'#bfdbfe'};
+    var OVPmap ={ok:'p-ok',  warn:'p-warn',  crit:'p-crit', info:'p-info'};
+    var statLbl={ok:'Supported',warn:'Aging',crit:'EOL',    info:'Check'};
+
+    var sc=eolInfo?eolInfo.status:'unknown';
+    var col=statCol[sc]||'#64748b';
+    var bg =statBg[sc] ||'#f8fafc';
+    var bdr=statBdr[sc]||'#e2e8f0';
+    var pill=OVPmap[sc]||'p-grey';
+    var lbl=statLbl[sc]||'?';
+    var dateStr=eolInfo?(sc==='ok'?'✓ to '+eolInfo.date:'✗ '+eolInfo.date):'';
+
+    // Make clickable — filter by matching OS + version
+    var osVal=entry.os, verVal=entry.ver;
+    h+='<div class="ver-chip" onclick="setOsFilter(\''+k.replace(/'/g,"\\'")+'\')" data-v="'+k.replace(/"/g,'&quot;')+'">'
+      +'<div>'
+      +'<div class="ver-cnt" style="color:'+col+'">'+cnt+'</div>'
+      +'<div class="ver-lbl" style="max-width:130px;white-space:normal;line-height:1.3">'+k+'</div>'
+      +(dateStr?'<div style="font-size:9px;font-weight:600;margin-top:3px;color:'+col+'">'+dateStr+'</div>':'')
+      +'</div>'
+      +'<span class="p '+pill+'" style="align-self:flex-start;flex-shrink:0">'+lbl+'</span>'
+      +'</div>';
+  });
+
+  document.getElementById('ver-row').innerHTML = h || '<span style="color:#94a3b8;font-size:12px">No OS data found</span>';
+  document.getElementById('osver-card').style.display='';
+}
+
+// filter by specific OS chip key
+var actOsChip=null;
+function setOsFilter(key){
+  if(actOsChip===key){actOsChip=null;clearFilter();return;}
+  actOsChip=key;
+  actF='oschip_'+key; actV=null;
+  filterFn=function(r){
+    var os=(gv(r.r,M.os)||'').toString().trim();
+    var ver=(gv(r.r,M.osVer)||'').toString().trim();
+    var k;
+    if(/windows 11/i.test(os))        k=ver?'Win11 '+ver:'Windows 11';
+    else if(/windows 10/i.test(os))   k=ver?'Win10 '+ver:'Windows 10';
+    else if(/server/i.test(os))       k=os.replace('Microsoft ','');
+    else if(/macos|mac os/i.test(os)) k=ver?'macOS '+ver:'macOS';
+    else if(/windows/i.test(os))      k=ver?os.trim()+' '+ver:os.trim();
+    else k=os.trim();
+    return k===key;
+  };
+  document.querySelectorAll('.ver-chip').forEach(function(c){
+    c.classList.toggle('on',c.dataset.v===key);
+  });
+  document.querySelectorAll('.chip,.stat-chip').forEach(function(c){c.classList.remove('on','stat-active');c.style.outline='';});
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
+}
+
+// ─── FILTERS ───────────────────────────────────────────────
+function buildFilters(){
+  function pop(id,vals,all){var el=document.getElementById(id);el.innerHTML='<option value="">'+all+'</option>'+vals.map(function(v){return '<option>'+v+'</option>';}).join('');}
+  var sites=[],types=[];
+  DATA.forEach(function(r){
+    var s=(gv(r.r,M.site)||'').trim(); if(s&&sites.indexOf(s)<0)sites.push(s);
+    if(r.devT&&types.indexOf(r.devT)<0)types.push(r.devT);
+  });
+  pop('f-site',sites.sort(),'All Sites');
+  pop('f-type',types.sort(),'All Types');
+}
+function setF(k){
+  if(actF===k){clearFilter();return;}
+  actF=k; actV=null;
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.toggle('on',c.dataset.k===k);});
+  document.querySelectorAll('.ver-chip').forEach(function(c){c.classList.remove('on');});
+  document.querySelectorAll('.stat-chip').forEach(function(c){c.classList.remove('stat-active');c.style.outline='';});
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
+}
+function setV(v){
+  if(actV===v){clearFilter();return;}
+  actV=v; actF=null;
+  document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');});
+  document.querySelectorAll('.ver-chip').forEach(function(c){c.classList.toggle('on',c.dataset.v===v);});
+  document.querySelectorAll('.stat-chip').forEach(function(c){c.classList.remove('stat-active');c.style.outline='';});
+  document.getElementById('btn-clf').classList.remove('hidden');
+  applyF();
+}
+function clearFilter(){
+  actF=null; actV=null; filterFn=null; actOsChip=null;
+  document.querySelectorAll('.chip,.ver-chip').forEach(function(c){c.classList.remove('on');c.style.opacity='1';});
+  document.querySelectorAll('.stat-chip').forEach(function(c){c.classList.remove('stat-active');c.style.outline='';});
+  document.getElementById('btn-clf').classList.add('hidden');
+  applyF();
+}
+function applyF(){
+  var q=(document.getElementById('f-q').value||'').toLowerCase();
+  var site=document.getElementById('f-site').value;
+  var type=document.getElementById('f-type').value;
+  var age=document.getElementById('f-age').value;
+  var w11f=document.getElementById('f-w11').value;
+  var actionF=document.getElementById('f-action').value;
+  var chipFn=null;
+  if(actF){
+    for(var i=0;i<CHIPS.length;i++){if(CHIPS[i].k===actF){chipFn=CHIPS[i].fn;break;}}
+    if(!chipFn&&filterFn) chipFn=filterFn; // stat/mfr/w11/refresh filters
+  }
+  FILT=DATA.filter(function(r){
+    if(chipFn&&!chipFn(r))return false;
+    if(actV){var v=(gv(r.r,M.osVer)||'').trim(),os2=(gv(r.r,M.os)||'');if((/windows 10/i.test(os2)?'Win10 ':'Win11 ')+v!==actV)return false;}
+    if(q){var fs=[M.pcName,M.user,M.cpu,M.serial,M.model].map(function(c){return(gv(r.r,c)||'').toLowerCase();});if(!fs.some(function(f){return f.indexOf(q)>=0;}))return false;}
+    if(site&&(gv(r.r,M.site)||'').trim()!==site)return false;
+    if(type&&r.devT!==type)return false;
+    if(age&&r.age!==age)return false;
+    if(w11f&&r.w11.st!==w11f)return false;
+    if(actionF&&r.actionCat!==actionF)return false;
+    return true;
+  });
+  // Sort: critical issues first, then warnings only, then fine — unless user has manually sorted
+  if(!sCol){
+    FILT.sort(function(a,b){
+      function rank(r){ if(r.iss.some(function(i){return i.l==='crit';})) return 0; if(r.hasIss) return 1; return 2; }
+      return rank(a)-rank(b);
+    });
+  }
+  pg=1; renderT();
+}
+
+// ─── TABLE ─────────────────────────────────────────────────
+var COLS=[
+  {k:'pcName',l:'PC Name',def:true},{k:'site',l:'Site',def:true},{k:'user',l:'User',def:true},
+  {k:'os',l:'OS',def:true},{k:'ver',l:'Ver',def:true},{k:'cpu',l:'CPU',def:true},
+  {k:'age',l:'Age',def:true},{k:'ram',l:'RAM',def:true},{k:'disk',l:'Disk',def:true},
+  {k:'w11',l:'Win11',def:true},{k:'war',l:'Warranty',def:true},{k:'warDays',l:'War.Exp',def:true},
+  {k:'score',l:'Score',def:true},{k:'type',l:'Type',def:false},{k:'iss',l:'Issues',def:true}
+];
+var hiddenCols={}; // key → true if hidden
+// Default hide 'type'
+hiddenCols['type']=true;
+function renderT(){
+  var s=(pg-1)*pgSz, rows=FILT.slice(s,s+pgSz), tot=FILT.length;
+  // Count groups for the count label
+  var nCrit=FILT.filter(function(r){return r.iss.some(function(i){return i.l==='crit';});}).length;
+  var nWarn=FILT.filter(function(r){return r.hasIss&&!r.iss.some(function(i){return i.l==='crit';});}).length;
+  var nFine=FILT.filter(function(r){return !r.hasIss;}).length;
+  var cntTxt=(tot?s+1:0)+'–'+Math.min(s+pgSz,tot)+' of '+tot;
+  if(!sCol) cntTxt+=' <span style="color:#dc2626">■</span> '+nCrit+' critical &nbsp;<span style="color:#d97706">■</span> '+nWarn+' warnings &nbsp;<span style="color:#16a34a">■</span> '+nFine+' fine';
+  var visCols=COLS.filter(function(c){return !hiddenCols[c.k];});
+  document.getElementById('tbl-cnt').innerHTML=cntTxt;
+  document.getElementById('th').innerHTML='<tr>'+visCols.map(function(c){return '<th onclick="srt(\''+c.k+'\')" class="'+(sCol===c.k?'on':'')+'">'+(sCol===c.k?(sDir===1?'↑':'↓')+' ':'')+c.l+'</th>';}).join('')+'</tr>';
+  if(!rows.length){document.getElementById('tb').innerHTML='<tr><td colspan="13" style="text-align:center;padding:36px;color:#64748b">No matching devices</td></tr>';renderPager();return;}
+
+  // Track when group changes so we can insert divider rows (only when not manually sorted)
+  function rowGroup(r){ if(r.iss.some(function(i){return i.l==='crit';})) return 0; if(r.hasIss) return 1; return 2; }
+  var GROUP_LABEL=['🔴 Needs Immediate Attention','🟡 Has Warnings','✅ No Issues'];
+  var GROUP_BG=['rgba(220,38,38,.06)','rgba(79,70,229,.04)','rgba(22,163,74,.03)'];
+  var GROUP_BORDER=['#dc2626','#4f46e5','#16a34a'];
+
+  var h='';
+  var lastGroup=-1;
+  rows.forEach(function(r){
+    var idx=DATA.indexOf(r);
+    var grp=sCol?-1:rowGroup(r); // no dividers when manually sorted
+
+    // Insert section header row when group changes
+    if(!sCol && grp!==lastGroup){
+      // Only insert if this group has any devices in the full FILT (not just this page)
+      h+='<tr style="background:'+GROUP_BG[grp]+';border-top:2px solid '+GROUP_BORDER[grp]+'">'
+        +'<td colspan="13" style="padding:7px 12px;font-size:11px;font-weight:700;color:'+GROUP_BORDER[grp]+';letter-spacing:.5px">'
+        +GROUP_LABEL[grp]
+        +'</td></tr>';
+      lastGroup=grp;
+    }
+
+    var pc=(gv(r.r,M.pcName)||'—').toString();
+    var site=(gv(r.r,M.site)||'—').toString();
+    var user=(gv(r.r,M.user)||'—').toString().replace(/.*[\\/]/,'');
+    var os=(gv(r.r,M.os)||'—').toString().replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
+    var ver=(gv(r.r,M.osVer)||'').toString();
+    var cpu=(gv(r.r,M.cpu)||'—').toString().replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').trim();
+    var cpuf=(gv(r.r,M.cpu)||'').toString();
+    if(cpu.length>34)cpu=cpu.slice(0,32)+'…';
+    var ac=AC[r.age]||'#64748b', ad=AD[r.age]||0;
+    var dots=''; for(var d=1;d<=4;d++) dots+='<div class="ad"'+(d<=ad?' style="background:'+ac+'"':'')+' ></div>';
+    var ageL='<span style="font-size:10px;color:'+ac+'">'+(r.ageY!=null?r.ageY.toFixed(1)+'yr':'?')+'</span>';
+    var ramH='<span class="dim">—</span>';
+    if(r.ram>0){var p=Math.min(r.ram/32*100,100),c=r.ram<4?'#dc2626':r.ram<8?'#d97706':'#16a34a';ramH='<div class="bar-wrap"><div class="bar"><div class="bar-f" style="width:'+p+'%;background:'+c+'"></div></div>'+r.ram+'GB</div>';}
+    var diskH='<span class="dim">—</span>';
+    if(!r.dNA&&r.td>0){var p=r.freeP||0,c=p<10?'#dc2626':p<20?'#d97706':'#16a34a';diskH='<div class="bar-wrap"><div class="bar"><div class="bar-f" style="width:'+p+'%;background:'+c+'"></div></div>'+r.fd+'/'+r.td+'GB</div>';}
+    else if(r.td>0)diskH=r.td+'GB';
+    var verH=ver?(r.ov?'<span class="p '+OVP[r.ov.c]+'">'+ver+'</span>':'<span class="p p-grey">'+ver+'</span>'):'';
+    var W={
+      'on-current':'<span class="p p-ok">✅ Win11</span>',
+      'on-old':    '<span class="p p-warn">⚠ Update</span>',
+      'ready':     '<span class="p p-info">→ Ready</span>',
+      'partial':   '<span class="p p-warn">🔧 Check</span>',
+      'not-ready': '<span class="p p-crit">✗ No</span>',
+      'na':        '<span class="p p-grey">N/A</span>'
+    };
+    var WR={in:'<span class="p p-ok">✓</span>',check:'<span class="p p-warn">?</span>',out:'<span class="p p-crit">Exp</span>',unknown:'<span class="p p-grey">—</span>'};
+    var flags=r.iss.map(function(i){return '<div class="flag '+(i.l==='crit'?'fr':'fa')+'" data-tip="'+i.m+'">'+(i.l==='crit'?'🔴':'🟡')+'</div>';}).join('');
+    var issH=flags||'<span style="color:#16a34a;font-size:11px">✓</span>';
+    // warDays cell
+    var warDaysH='<span class="dim">—</span>';
+    if(r.warDays!==null){
+      var wd=r.warDays;
+      var wdc=wd<0?'#dc2626':wd<90?'#dc2626':wd<365?'#d97706':'#16a34a';
+      var wdTxt=wd<0?Math.abs(wd)+'d ago':(wd<365?wd+'d':Math.round(wd/365*10)/10+'yr');
+      warDaysH='<span style="color:'+wdc+';font-size:11px;font-weight:600">'+wdTxt+'</span>';
+    }
+    // Score cell
+    var scoreH='<span class="dim">—</span>';
+    if(r.ls!==null){
+      var sc=r.ls,scol=sc>=8?'#16a34a':sc>=6?'#d97706':sc>=4?'#ea580c':'#dc2626';
+      scoreH='<span style="font-size:13px;font-weight:800;color:'+scol+'">'+sc+'</span>'
+        +'<span style="color:#64748b;font-size:10px">/10</span>';
+    }
+    var CELLS={
+      pcName:'<td class="pcn">'+pc+'</td>',
+      site:'<td class="dim" style="font-size:11px">'+site+'</td>',
+      user:'<td class="dim" style="font-size:11px">'+user+'</td>',
+      os:'<td style="font-size:11px">'+os+'</td>',
+      ver:'<td>'+verH+'</td>',
+      cpu:'<td title="'+cpuf+'" style="font-size:11px">'+cpu+'</td>',
+      age:'<td><div class="age-dots">'+dots+'</div>'+ageL+'</td>',
+      ram:'<td>'+ramH+'</td>',
+      disk:'<td>'+diskH+'</td>',
+      w11:'<td>'+(W[r.w11.st]||'<span class="p p-grey">?</span>')+'</td>',
+      war:'<td>'+(WR[r.war]||'<span class="p p-grey">—</span>')+'</td>',
+      warDays:'<td>'+warDaysH+'</td>',
+      score:'<td>'+scoreH+'</td>',
+      type:'<td><span class="p p-grey" style="font-size:9px">'+r.devT+'</span></td>',
+      iss:'<td><div class="flags">'+issH+'</div></td>'
+    };
+    var rowStyle=grp===0?'border-left:3px solid #fca5a5':grp===1?'border-left:3px solid #4f46e5':'border-left:3px solid transparent';
+    h+='<tr onclick="openMod('+idx+')" style="'+rowStyle+'">'
+      +visCols.map(function(c){return CELLS[c.k]||'<td>—</td>';}).join('')
+      +'</tr>';
+  });
+  document.getElementById('tb').innerHTML=h;
+  renderPager();
+}
+function renderPager(){
+  var tot=FILT.length, pages=Math.ceil(tot/pgSz);
+  if(pages<=1){document.getElementById('pager').innerHTML='';return;}
+  var b='';
+  for(var i=1;i<=pages;i++){
+    if(i===1||i===pages||Math.abs(i-pg)<=2) b+='<button class="pb'+(i===pg?' on':'')+'" onclick="goPg('+i+')">'+i+'</button>';
+    else if(Math.abs(i-pg)===3) b+='<span style="color:#64748b;padding:0 2px">…</span>';
+  }
+  document.getElementById('pager').innerHTML='<div>Page '+pg+' of '+pages+'</div><div class="pager-btns"><button class="pb" onclick="goPg('+(pg-1)+')" '+(pg===1?'disabled':'')+'>‹</button>'+b+'<button class="pb" onclick="goPg('+(pg+1)+')" '+(pg===pages?'disabled':'')+'>›</button></div>';
+}
+function goPg(p){var pages=Math.ceil(FILT.length/pgSz);pg=Math.max(1,Math.min(p,pages));renderT();}
+function srt(col){
+  if(sCol===col)sDir*=-1;else{sCol=col;sDir=1;}
+  var fn={pcName:function(r){return gv(r.r,M.pcName);},site:function(r){return gv(r.r,M.site);},user:function(r){return gv(r.r,M.user);},os:function(r){return gv(r.r,M.os);},ver:function(r){return gv(r.r,M.osVer);},cpu:function(r){return gv(r.r,M.cpu);},age:function(r){return r.ageY||999;},ram:function(r){return r.ram;},disk:function(r){return r.freeP||999;},w11:function(r){return r.w11.st;},war:function(r){return r.war;},warDays:function(r){return r.warDays!==null?r.warDays:99999;},score:function(r){return r.ls!==null?r.ls:99;},type:function(r){return r.devT;},iss:function(r){return r.iss.length;}};
+  var f=fn[col]||function(r){return '';};
+  FILT.sort(function(a,b){var av=f(a),bv=f(b);if(typeof av==='number'&&typeof bv==='number')return(av-bv)*sDir;return(av||'').toString().localeCompare((bv||'').toString())*sDir;});
+  pg=1;renderT();
+}
+
+// ─── CHARTS ────────────────────────────────────────────────
+function buildCharts(){
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  if(!wk.length){document.getElementById('charts-card').style.display='none';return;}
+  document.getElementById('charts-card').style.display='';
+
+  function barChart(title, items){
+    // items = [{label, count, color}]
+    var total=items.reduce(function(s,i){return s+i.count;},0)||1;
+    var rows=items.map(function(it){
+      var pct=Math.round(it.count/total*100);
+      var barW=Math.round(it.count/total*100);
+      return '<div style="margin-bottom:7px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">'
+        +'<span style="color:#1e293b">'+it.label+'</span>'
+        +'<span style="color:'+it.color+';font-weight:700">'+it.count+' <span style="color:#64748b;font-weight:400">('+pct+'%)</span></span>'
+        +'</div>'
+        +'<div style="background:#e2e8f0;height:10px;border-radius:5px;overflow:hidden">'
+        +'<div style="height:100%;width:'+barW+'%;background:'+it.color+';border-radius:4px;transition:width .4s"></div>'
+        +'</div></div>';
+    }).join('');
+    return '<div><div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#64748b;margin-bottom:12px">'+title+'</div>'+rows+'</div>';
+  }
+
+  // Age distribution
+  var ageCnts={new:0,aging:0,old:0,legacy:0,unknown:0};
+  wk.forEach(function(r){ageCnts[r.age]=(ageCnts[r.age]||0)+1;});
+  var ageChart=barChart('Device Age',[ 
+    {label:'New (<3yr)',   count:ageCnts.new,    color:'#16a34a'},
+    {label:'Aging (3–5yr)',count:ageCnts.aging,  color:'#d97706'},
+    {label:'Old (5–8yr)',  count:ageCnts.old,    color:'#ea580c'},
+    {label:'Legacy (8+yr)',count:ageCnts.legacy, color:'#dc2626'},
+    {label:'Unknown',      count:ageCnts.unknown,color:'#64748b'},
+  ]);
+
+  // RAM distribution
+  var ramBins={'<4GB':0,'4–7GB':0,'8–15GB':0,'16–31GB':0,'32GB+':0,'Unknown':0};
+  wk.forEach(function(r){
+    if(!r.ram) ramBins['Unknown']++;
+    else if(r.ram<4)  ramBins['<4GB']++;
+    else if(r.ram<8)  ramBins['4–7GB']++;
+    else if(r.ram<16) ramBins['8–15GB']++;
+    else if(r.ram<32) ramBins['16–31GB']++;
+    else ramBins['32GB+']++;
+  });
+  var ramChart=barChart('RAM Distribution',[
+    {label:'<4GB',   count:ramBins['<4GB'],   color:'#dc2626'},
+    {label:'4–7GB',  count:ramBins['4–7GB'],  color:'#4f46e5'},
+    {label:'8–15GB', count:ramBins['8–15GB'], color:'#16a34a'},
+    {label:'16–31GB',count:ramBins['16–31GB'],color:'#2563eb'},
+    {label:'32GB+',  count:ramBins['32GB+'],  color:'#7c3aed'},
+    {label:'Unknown',count:ramBins['Unknown'],color:'#64748b'},
+  ]);
+
+  // Win11 readiness
+  var w11Cnts={'on-current':0,'on-old':0,ready:0,partial:0,'not-ready':0,na:0};
+  wk.forEach(function(r){w11Cnts[r.w11.st]=(w11Cnts[r.w11.st]||0)+1;});
+  var w11Chart=barChart('Win11 Status',[
+    {label:'\u2705 On Win11 Current',   count:w11Cnts['on-current'], color:'#16a34a'},
+    {label:'\u26a0 On Win11 \u2014 Update', count:w11Cnts['on-old'],     color:'#d97706'},
+    {label:'\ud83d\udd35 Compatible / Ready', count:w11Cnts.ready,        color:'#2563eb'},
+    {label:'\ud83d\udd27 Check Required',count:w11Cnts.partial,       color:'#7c3aed'},
+    {label:'\u274c Incompatible',        count:w11Cnts['not-ready'],  color:'#dc2626'},
+    {label:'\u2796 N/A',                 count:w11Cnts.na,            color:'#94a3b8'},
+  ]);
+
+  // Manufacturer distribution
+  var mfrCnts={};
+  DATA.forEach(function(r){ var m=detectMfr(r.r); mfrCnts[m]=(mfrCnts[m]||0)+1; });
+  var mfrItems=Object.keys(mfrCnts).sort(function(a,b){return mfrCnts[b]-mfrCnts[a];}).map(function(m){
+    return {label:MFR_LABEL[m]||m, count:mfrCnts[m], color:MFR_COLOR[m]||'#94a3b8'};
+  });
+  var mfrChart=barChart('Manufacturer',mfrItems);
+
+  document.getElementById('charts-grid').innerHTML=ageChart+ramChart+w11Chart+mfrChart;
+}
+
+// ─── COLUMN PICKER ─────────────────────────────────────────
+function toggleColPicker(){
+  var p=document.getElementById('col-picker');
+  if(p.style.display==='none'){buildColPicker();p.style.display='';}
+  else p.style.display='none';
+}
+function buildColPicker(){
+  var inner=document.getElementById('col-picker-inner');
+  inner.innerHTML=COLS.map(function(c){
+    var on=!hiddenCols[c.k];
+    return '<label style="display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12px;padding:4px 10px;border-radius:5px;border:1px solid '+(on?'#4f46e5':'#cbd5e1')+';background:'+(on?'rgba(79,70,229,.1)':'transparent')+';">'
+      +'<input type="checkbox" '+(on?'checked':'')+' onchange="toggleCol(\''+c.k+'\',this.checked)" style="cursor:pointer"> '+c.l+'</label>';
+  }).join('');
+}
+function toggleCol(key, visible){
+  if(!visible) hiddenCols[key]=true; else delete hiddenCols[key];
+  buildColPicker();
+  renderT();
+}
+
+// ─── MANUFACTURER / WARRANTY HELPERS ──────────────────────
+var MFR_LABEL = {dell:'Dell',lenovo:'Lenovo',hp:'HP',microsoft:'Microsoft',apple:'Apple',toshiba:'Toshiba',acer:'Acer',asus:'ASUS',unknown:'Unknown'};
+var MFR_COLOR = {dell:'#007db8',lenovo:'#e2001a',hp:'#0096d6',microsoft:'#00a4ef',apple:'#64748b',toshiba:'#e2001a',unknown:'#94a3b8'};
+
+function detectMfr(row) {
+  var mfr = (gv(row,M.mfr)||gv(row,M.model)||'').toLowerCase();
+  if (/dell/i.test(mfr))              return 'dell';
+  if (/lenovo|thinkpad|thinkcentre/i.test(mfr)) return 'lenovo';
+  if (/hp|hewlett/i.test(mfr))        return 'hp';
+  if (/microsoft|surface/i.test(mfr)) return 'microsoft';
+  if (/apple/i.test(mfr))             return 'apple';
+  if (/toshiba/i.test(mfr))           return 'toshiba';
+  if (/acer/i.test(mfr))              return 'acer';
+  if (/asus/i.test(mfr))              return 'asus';
+  var serial = (gv(row,M.serial)||'').trim();
+  if (/^[A-Z0-9]{7}$/i.test(serial))              return 'dell';
+  if (/^(PF|MP|R9|MJ|PC|SB|S4)\w+/i.test(serial)) return 'lenovo';
+  if (/^(CND|MXL|5CG|CN\d)\w+/i.test(serial))     return 'hp';
+  return 'unknown';
+}
+
+function warrantyUrl(mfr, serial) {
+  var s = encodeURIComponent((serial||'').trim());
+  if (!s) return null;
+  switch(mfr) {
+    case 'dell':      return 'https://www.dell.com/support/home/en-us?servicetag='+s;
+    case 'lenovo':    return 'https://pcsupport.lenovo.com/products/'+s;
+    case 'hp':        return 'https://support.hp.com/us-en/checkwarranty/';
+    case 'microsoft': return 'https://mybusinessservice.surface.microsoft.com/en-US/CheckWarranty/CheckWarranty';
+    case 'apple':     return 'https://checkcoverage.apple.com/?sn='+s;
+    case 'toshiba':   return 'https://support.dynabook.com/support/warrantyResults?serial='+s;
+    default:          return null;
+  }
+}
+
+// ─── MANUFACTURER BREAKDOWN ────────────────────────────────
+// ─── MODAL ─────────────────────────────────────────────────
+function openMod(i){
+  var r=DATA[i], ac=AC[r.age]||'#64748b';
+  function f(l,v){return '<div><div class="mfl">'+l+'</div><div class="mfv">'+(v||'—')+'</div></div>';}
+  var w11l={'on-current':'✅ On Windows 11 — Current version','on-old':'⚠ On Windows 11 — Update needed','ready':'🔵 Compatible — Ready to upgrade from Win10','partial':'🔧 Check Required — likely compatible','not-ready':'❌ Incompatible — needs new hardware',na:'➖ N/A (Server or Mac)'};
+  var w11c={'on-current':'a-g','on-old':'a-a','ready':'a-b','partial':'a-b','not-ready':'a-r',na:'a-b'};
+  var issH=r.iss.length?r.iss.map(function(i){return '<div class="alert '+(i.l==='crit'?'a-r':'a-a')+'"><b>'+(i.l==='crit'?'🔴 Critical':'🟡 Warning')+'</b>'+i.m+'</div>';}).join(''):'<div class="alert a-g"><b>✅ No issues</b>All checks passed</div>';
+  var cpu=(gv(r.r,M.cpu)||'—').replace(/\(R\)|\(TM\)/gi,'').trim();
+  var serial=(gv(r.r,M.serial)||'').trim();
+  var mfr=detectMfr(r.r);
+  var mfrCol=MFR_COLOR[mfr]||'#64748b';
+  var mfrLbl=MFR_LABEL[mfr]||'Unknown';
+  var wUrl=warrantyUrl(mfr,serial);
+
+  // Warranty display with link to vendor
+  var warl={in:'✅ Likely in warranty',check:'⚠ Check with vendor',out:'⚠ Likely expired',unknown:'ℹ Unknown'};
+  var warc={in:'a-g',check:'a-a',out:'a-a',unknown:'a-b'};
+  var warHtml='<div class="alert '+(warc[r.war]||'a-b')+'">'
+    +'<b>'+(warl[r.war]||'?')+'</b> '+r.warN
+    +(wUrl?'<br><a href="'+wUrl+'" target="_blank" style="color:'+mfrCol+';text-decoration:none;font-weight:700;font-size:12px;margin-top:5px;display:inline-block">↗ Check '+mfrLbl+' Warranty Online</a>':'')
+    +'</div>';
+
+  var sc=r.ls, scol=sc!==null?(sc>=8?'#16a34a':sc>=6?'#d97706':sc>=4?'#ea580c':'#dc2626'):'#64748b';
+  document.getElementById('mbox').innerHTML=
+    '<button class="mx" onclick="closeMod()">✕</button>'
+    +'<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:3px">'
+    +'<div class="mpc">🖥 '+(gv(r.r,M.pcName)||'Unknown')+'</div>'
+    +(sc!==null?'<div style="text-align:center;flex-shrink:0"><div style="font-size:28px;font-weight:800;color:'+scol+';line-height:1">'+sc+'</div><div style="font-size:9px;color:#64748b;text-transform:uppercase;letter-spacing:.5px">/ 10 score</div></div>':'')
+    +'</div>'
+    +'<div class="mu">'+(gv(r.r,M.user)||'—').replace(/.*[\\/]/,'')+' · '+(gv(r.r,M.site)||'—')+' · <span style="background:'+mfrCol+'22;color:'+mfrCol+';padding:1px 7px;border-radius:4px;font-size:10px;font-weight:700">'+mfrLbl+'</span> · '+r.devT+(r.stale?' · <span class="p p-warn">⏰ '+r.staleDays+'d stale</span>':'')+'</div>'
+    +'<div class="ms"><div class="mst">System</div><div class="mg">'+f('OS',(gv(r.r,M.os)||'—')+' '+(gv(r.r,M.osVer)||''))+f('Model',gv(r.r,M.model))+f('Manufacturer',gv(r.r,M.mfr))+f('Serial',serial)+f('Last Logon',gv(r.r,M.lastLogon))+f('Last Seen',gv(r.r,M.lastSeen))+f('Install Date',gv(r.r,M.installDate))+'</div></div>'
+    +'<div class="ms"><div class="mst">Hardware</div><div class="mg" style="grid-template-columns:1fr">'+f('CPU',cpu)+'</div><div class="mg" style="margin-top:8px">'+f('CPU Generation','<span style="color:'+ac+'">'+r.cpu.brand+' '+r.cpu.gen+' · '+(r.cpu.year||'?')+' · '+r.age+'</span>')+f('RAM',r.ram?r.ram+'GB':'—')+f('Total Disk',r.td?r.td+'GB':'—')+f('Free Disk',r.fd?r.fd+'GB ('+(r.freeP||0).toFixed(1)+'%)':'—')+f('TPM',gv(r.r,M.tpm))+f('Secure Boot',gv(r.r,M.secureBoot))+'</div></div>'
+    +'<div class="ms"><div class="mst">Windows 11</div><div class="alert '+w11c[r.w11.st]+'"><b>'+(w11l[r.w11.st]||'?')+'</b></div>'+(r.w11.iss||[]).map(function(i){return '<div class="alert a-a"><b>⚠ Blocker</b>'+i+'</div>';}).join('')+'</div>'
+    +'<div class="ms"><div class="mst">Warranty 🛡</div>'+warHtml+'</div>'
+    +'<div class="ms"><div class="mst">Issues ('+r.iss.length+')</div>'+issH+'</div>';
+  document.getElementById('mover').classList.add('open');
+}
+function closeMod(e){if(!e||e.target===document.getElementById('mover'))document.getElementById('mover').classList.remove('open');}
+document.addEventListener('keydown',function(e){if(e.key==='Escape')document.getElementById('mover').classList.remove('open');});
+
+// ─── PDF REPORT ────────────────────────────────────────────
+function doPDF(issuesOnly){
+  var source = issuesOnly ? FILT.filter(function(r){return r.hasIss;}) : FILT;
+  if(issuesOnly && !source.length){ alert('No devices with issues in the current view.'); return; }
+
+  var wk=DATA.filter(function(r){return !r.srv&&!r.mac;});
+  var ok=wk.filter(function(r){return !r.hasIss;}).length;
+  var score=wk.length?Math.round(ok/wk.length*100):0;
+  var w11curr=wk.filter(function(r){return r.w11.st==='on-current';}).length;
+  var w11old=wk.filter(function(r){return r.w11.st==='on-old';}).length;
+  var w11ready=wk.filter(function(r){return r.w11.st==='ready';}).length;
+  var w11no=wk.filter(function(r){return r.w11.st==='not-ready';}).length;
+  var win10=DATA.filter(function(r){return /windows 10/i.test(gv(r.r,M.os));}).length;
+  var aging=wk.filter(function(r){return r.age==='old'||r.age==='legacy';}).length;
+  var lowDisk=wk.filter(function(r){return r.freeP!==null&&r.freeP<20&&!r.dNA;}).length;
+  var lowRam=wk.filter(function(r){return r.ram>0&&r.ram<8;}).length;
+  var stale=DATA.filter(function(r){return r.stale;}).length;
+  var eolOs=DATA.filter(function(r){return r.ov&&r.ov.c==='crit';}).length;
+  var warOut=wk.filter(function(r){return r.war==='out';}).length;
+  var now=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  var scoreCol=score>=80?'#16a34a':score>=60?'#d97706':'#dc2626';
+
+  // Sort source into groups
+  var crits=source.filter(function(r){return r.iss.some(function(i){return i.l==='crit';});});
+  var warns=source.filter(function(r){return r.hasIss&&!r.iss.some(function(i){return i.l==='crit';});});
+  var fine=issuesOnly?[]:source.filter(function(r){return !r.hasIss;});
+
+  function buildRows(list, bgColor){
+    return list.map(function(r){
+      var pc=gv(r.r,M.pcName)||'—';
+      var user=(gv(r.r,M.user)||'—').replace(/.*[\\/]/,'');
+      var site=gv(r.r,M.site)||'—';
+      var os=(gv(r.r,M.os)||'—').replace('Microsoft Windows ','Win ').replace('Windows ','Win ');
+      var ver=gv(r.r,M.osVer)||'';
+      var cpu=(gv(r.r,M.cpu)||'—').replace(/\(R\)|\(TM\)/gi,'').replace(/ CPU @.*/,'').replace(/ @.*/,'').trim();
+      var ram=r.ram?r.ram+'GB':'—';
+      var disk=r.td?(r.fd+'/'+r.td+'GB'):'—';
+      var w11map={'on-current':['✅ Win11','#16a34a'],'on-old':['⚠ Update','#d97706'],'ready':['→ Ready','#2563eb'],'partial':['? Check','#7c3aed'],'not-ready':['✗ No','#dc2626'],'na':['N/A','#9ca3af']};
+      var w11info=w11map[r.w11.st]||['?','#9ca3af'];
+      var w11t=w11info[0], w11col=w11info[1];
+      var ageCol={new:'#16a34a',aging:'#d97706',old:'#ea580c',legacy:'#dc2626',unknown:'#9ca3af'}[r.age]||'#9ca3af';
+      var issDetail=r.iss.map(function(i){return '<span style="color:'+(i.l==='crit'?'#dc2626':'#d97706')+'">'+(i.l==='crit'?'🔴 ':'🟡 ')+i.m+'</span>';}).join('<br>');
+      return '<tr style="background:'+bgColor+';border-bottom:1px solid #e5e7eb">'
+        +'<td style="padding:5px 7px;font-weight:600;font-size:11px;white-space:nowrap">'+pc+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;color:#6b7280;white-space:nowrap">'+site+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;color:#6b7280;white-space:nowrap">'+user+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;white-space:nowrap">'+os+(ver?' <span style="background:#e5e7eb;padding:1px 4px;border-radius:3px;font-size:9px">'+ver+'</span>':'')+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px">'+cpu+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;color:'+ageCol+';white-space:nowrap">'+(r.ageY!=null?r.ageY.toFixed(1)+'yr':'?')+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;white-space:nowrap">'+ram+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;white-space:nowrap">'+disk+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;color:'+w11col+';font-weight:700;white-space:nowrap">'+w11t+'</td>'
+        +'<td style="padding:5px 7px;font-size:10px;line-height:1.6">'+issDetail+'</td>'
+        +'</tr>';
+    }).join('');
+  }
+
+  function sectionTable(label, borderCol, bgCol, list){
+    if(!list.length) return '';
+    return '<div style="margin-bottom:20px">'
+      +'<div style="background:'+borderCol+';color:#fff;padding:7px 12px;font-weight:700;font-size:12px;border-radius:6px 6px 0 0">'+label+' ('+list.length+')</div>'
+      +'<table style="width:100%;border-collapse:collapse;font-size:11px;border:1px solid #e5e7eb;border-top:none">'
+      +'<thead><tr style="background:#f9fafb">'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280;white-space:nowrap">PC Name</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">Site</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">User</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">OS</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">CPU</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">Age</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">RAM</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">Disk</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">Win11</th>'
+      +'<th style="padding:5px 7px;text-align:left;font-size:10px;color:#6b7280">Issues</th>'
+      +'</tr></thead>'
+      +'<tbody>'+buildRows(list,bgCol)+'</tbody></table></div>';
+  }
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'
+    +'<title>'+(issuesOnly?'Issues Report':'Fleet Report')+' — '+now+'</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:12px;color:#111827;background:#fff;padding:20px}'
+    +'@media print{body{padding:0}.no-print{display:none!important}table{font-size:9px}thead{display:table-header-group}tr{page-break-inside:avoid}}</style>'
+    +'</head><body>'
+    +'<div class="no-print" style="margin-bottom:16px;display:flex;gap:8px;align-items:center">'
+    +'<button onclick="window.print()" style="background:#4f46e5;color:#000;border:none;padding:8px 20px;border-radius:6px;font-weight:700;font-size:13px;cursor:pointer">🖨 Save as PDF / Print</button>'
+    +'<span style="font-size:12px;color:#6b7280">Print dialog → change destination to "Save as PDF"</span>'
+    +'</div>'
+
+    // Header
+    +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;padding-bottom:12px;border-bottom:3px solid #4f46e5">'
+    +'<div><div style="font-size:20px;font-weight:800">🖥 '+(issuesOnly?'Fleet Issues Report':'Fleet Audit Report')+'</div>'
+    +'<div style="font-size:11px;color:#6b7280;margin-top:3px">'+now+' · '+source.length+(issuesOnly?' devices with issues':' devices shown')+'</div></div>'
+    +'<div style="text-align:right"><div style="font-size:34px;font-weight:800;color:'+scoreCol+'">'+score+'%</div><div style="font-size:11px;color:#6b7280">Fleet Health</div></div>'
+    +'</div>'
+
+    // Stats (only on full report)
+    +(!issuesOnly?
+      '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px">'
+      +statBox('Total Devices',DATA.length,'#1d4ed8')
+      +statBox('On Win11 Current',w11curr,'#16a34a')
+      +statBox('Win11 Compatible',w11ready,'#2563eb')
+      +statBox('Win11 Incompatible',w11no,'#dc2626')
+      +statBox('Still on Win10',win10,'#dc2626')
+      +statBox('Aging/Legacy',aging,'#ea580c')
+      +statBox('Low RAM (<8GB)',lowRam,'#d97706')
+      +statBox('Stale',stale,'#d97706')
+      +'</div>'
+    :'')
+
+    // Key issues callout
+    +(issuesOnly?
+      '<div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:7px;padding:12px;margin-bottom:18px;font-size:12px">'
+      +'<b style="color:#991b1b">⚠ This report contains only devices requiring attention</b><br>'
+      +'<span style="color:#6b7280">'+crits.length+' critical · '+warns.length+' warnings · generated '+now+'</span>'
+      +'</div>'
+    :
+      '<div style="background:#fefce8;border:1px solid #fde047;border-radius:7px;padding:12px;margin-bottom:18px">'
+      +'<b style="color:#854d0e;font-size:12px">⚠ Summary</b>'
+      +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:7px;font-size:12px">'
+      +(eolOs?'<div>🔴 <b>'+eolOs+'</b> devices on EOL OS</div>':'')
+      +(win10?'<div>🔴 <b>'+win10+'</b> devices still on Windows 10 (EOL)</div>':'')
+      +(w11old?'<div>🟡 <b>'+w11old+'</b> devices on old Win11 version — update needed</div>':'')
+      +(w11no?'<div>🔴 <b>'+w11no+'</b> workstations Win11 incompatible — new hardware needed</div>':'')
+      +(w11ready?'<div>🔵 <b>'+w11ready+'</b> devices compatible — ready to upgrade to Win11</div>':'')
+      +(aging?'<div>🔴 <b>'+aging+'</b> aging/legacy devices</div>':'')
+      +(lowRam?'<div>🟡 <b>'+lowRam+'</b> devices under 8GB RAM</div>':'')
+      +(lowDisk?'<div>🟡 <b>'+lowDisk+'</b> devices with low disk space</div>':'')
+      +'</div></div>'
+    )
+
+    // Sections
+    +sectionTable('🔴 Needs Immediate Attention','#dc2626','#fff8f8',crits)
+    +sectionTable('🟡 Has Warnings','#d97706','#fffbf0',warns)
+    +(!issuesOnly?sectionTable('✅ No Issues','#16a34a','#f0fdf4',fine):'')
+
+    +'<div style="margin-top:14px;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px">'
+    +'Seb\'s System Scout · '+now+' · Ages estimated from CPU model where not provided'
+    +'</div></body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Please allow pop-ups to open the PDF report.');return;}
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();},600);
+}
+function statBox(label,val,col){
+  return '<div style="border:1px solid #e5e7eb;border-radius:7px;padding:12px;border-top:3px solid '+col+'">'
+    +'<div style="font-size:10px;color:#6b7280;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">'+label+'</div>'
+    +'<div style="font-size:24px;font-weight:800;color:'+col+'">'+val+'</div>'
+    +'</div>';
+}
+
+// ─── EXPORT ────────────────────────────────────────────────
+function doExport(){
+  var C=[
+    ['PC Name',function(r){return gv(r.r,M.pcName);}],['Site',function(r){return gv(r.r,M.site);}],
+    ['User',function(r){return gv(r.r,M.user);}],['OS',function(r){return gv(r.r,M.os);}],
+    ['OS Ver',function(r){return gv(r.r,M.osVer);}],['CPU',function(r){return gv(r.r,M.cpu);}],
+    ['CPU Gen',function(r){return r.cpu.gen;}],['CPU Year',function(r){return r.cpu.year||'';}],
+    ['Age (yr)',function(r){return r.ageY!=null?r.ageY.toFixed(1):'';}],['Age Cat',function(r){return r.age;}],
+    ['RAM GB',function(r){return r.ram||'';}],['Disk Total',function(r){return r.td||'';}],
+    ['Disk Free',function(r){return r.fd||'';}],['Disk Free%',function(r){return r.freeP!=null?r.freeP.toFixed(1):'';}],
+    ['Win11 Status',function(r){var m={'on-current':'On Win11 Current','on-old':'On Win11 - Update Needed','ready':'Compatible - Ready to Upgrade','partial':'Check Required','not-ready':'Incompatible','na':'N/A'};return m[r.w11.st]||r.w11.st;}],['Win11 Blockers',function(r){return (r.w11.iss||[]).join(' | ');}],
+    ['Warranty',function(r){return r.war;}],['Stale',function(r){return r.stale?'Yes':'No';}],
+    ['Issues',function(r){return r.iss.length;}],['Issue Detail',function(r){return r.iss.map(function(i){return i.m;}).join(' | ');}],
+    ['Serial',function(r){return gv(r.r,M.serial);}],['Model',function(r){return gv(r.r,M.model);}],
+  ];
+  function e(v){return'"'+String(v==null?'':v).replace(/"/g,'""')+'"';}
+  var lines=[C.map(function(c){return e(c[0]);}).join(',')];
+  FILT.forEach(function(r){lines.push(C.map(function(c){return e(c[1](r));}).join(','));});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([lines.join('\r\n')],{type:'text/csv'}));
+  a.download='system-scout.csv'; a.click();
+}
+
+// ─── RESET ─────────────────────────────────────────────────
+function doReset(){
+  RAW=[];HDRS=[];M={};DATA=[];FILT=[];filterFn=null;
+  document.getElementById('charts-card').style.display='none';
+  document.getElementById('col-picker').style.display='none';
+  document.getElementById('f-action').value='';
+  document.getElementById('card-map').style.display='none';
+  document.getElementById('dash').classList.add('hidden');
+  document.getElementById('btn-adjust').classList.add('hidden');
+  document.getElementById('btn-pdf').classList.add('hidden');
+  document.getElementById('btn-pdf-iss').classList.add('hidden');
+  document.getElementById('btn-exp').classList.add('hidden');
+  document.getElementById('btn-rst').classList.add('hidden');
+  document.getElementById('hdr-count').textContent='';
+  document.getElementById('status').style.display='none';
+  document.getElementById('csv-file').value='';
+}
+</script>
+</body>
+</html>
