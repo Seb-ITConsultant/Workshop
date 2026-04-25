@@ -1,42 +1,272 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Seb's Workshop Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;700&family=Sora:wght@800&display=swap" rel="stylesheet">
-    <style>
-        :root { --bg: #0c0f14; --card: #131720; --accent: #00dba8; --text: #dce6f5; }
-        body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
-        .container { text-align: center; max-width: 600px; width: 90%; }
-        h1 { font-family: 'Sora', sans-serif; font-size: 2.5rem; margin-bottom: 2rem; color: var(--accent); }
-        .grid { display: grid; gap: 1rem; }
-        .tool-link { background: var(--card); border: 1px solid #2a3347; border-radius: 12px; padding: 1.5rem; text-decoration: none; color: var(--text); transition: all 0.2s; display: flex; flex-direction: column; align-items: center; }
-        .tool-link:hover { border-color: var(--accent); transform: translateY(-3px); background: #1a2030; }
-        .tool-link strong { font-size: 1.2rem; margin-bottom: 0.5rem; }
-        .tool-link span { font-size: 0.9rem; opacity: 0.7; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Seb's Workshop</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #080b11;
+    --surface: #0e1420;
+    --border: #1c2535;
+    --border-hover: #2d3f5a;
+    --text: #c8d8f0;
+    --muted: #4a5a78;
+    --accent: #00dba8;
+    --accent-dim: rgba(0,219,168,.08);
+    --accent-glow: rgba(0,219,168,.15);
+    --font-display: 'Sora', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-display);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+    /* Subtle grid background */
+    background-image:
+      linear-gradient(rgba(0,219,168,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,219,168,.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  /* Glow blob */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 600px;
+    height: 400px;
+    background: radial-gradient(ellipse, rgba(0,219,168,.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 56px;
+  }
+  .header-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 14px;
+    opacity: .8;
+  }
+  .header h1 {
+    font-size: clamp(2.4rem, 5vw, 3.4rem);
+    font-weight: 800;
+    line-height: 1.05;
+    color: #e8f0ff;
+    letter-spacing: -1.5px;
+  }
+  .header h1 em {
+    font-style: normal;
+    color: var(--accent);
+    position: relative;
+  }
+  .header-sub {
+    margin-top: 14px;
+    font-size: 14px;
+    color: var(--muted);
+    font-weight: 300;
+    letter-spacing: .3px;
+  }
+
+  /* Divider */
+  .divider {
+    width: 40px;
+    height: 2px;
+    background: var(--accent);
+    margin: 22px auto 0;
+    opacity: .5;
+    border-radius: 2px;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+  }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px 26px;
+    text-decoration: none;
+    color: var(--text);
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+    overflow: hidden;
+    transition: border-color .25s, transform .25s, background .25s, box-shadow .25s;
+  }
+
+  /* Corner glow on hover */
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 16px;
+    background: var(--accent-dim);
+    opacity: 0;
+    transition: opacity .25s;
+    pointer-events: none;
+  }
+  .card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,219,168,.08); }
+  .card:hover::before { opacity: 1; }
+
+  /* Top accent line */
+  .card::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 20%; right: 20%;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0;
+    transition: opacity .25s;
+  }
+  .card:hover::after { opacity: .6; }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 14px;
+    display: block;
+    filter: drop-shadow(0 0 8px rgba(0,219,168,.3));
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e8f0ff;
+    margin-bottom: 8px;
+    letter-spacing: -.3px;
+  }
+
+  .card-desc {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.65;
+    font-weight: 300;
+    flex: 1;
+  }
+
+  .card-tag {
+    margin-top: 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--accent);
+    opacity: .6;
+    transition: opacity .2s;
+  }
+  .card:hover .card-tag { opacity: 1; }
+  .card-tag::after { content: '→'; transition: transform .2s; }
+  .card:hover .card-tag::after { transform: translateX(3px); }
+
+  /* Footer */
+  .footer {
+    text-align: center;
+    margin-top: 48px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: .5px;
+  }
+
+  /* Fade in animation */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .header        { animation: fadeUp .5s ease both; }
+  .card:nth-child(1) { animation: fadeUp .5s .1s ease both; }
+  .card:nth-child(2) { animation: fadeUp .5s .18s ease both; }
+  .card:nth-child(3) { animation: fadeUp .5s .26s ease both; }
+  .card:nth-child(4) { animation: fadeUp .5s .34s ease both; }
+</style>
 </head>
 <body>
-    <div class="container">
-        <h1>Seb's Workshop</h1>
-        <div class="grid">
-            <a href="ws-license-calc.html" class="tool-link">
-                <strong>⚡ Windows Server & SQL Calc</strong>
-                <span>Hardware & licensing cost estimator</span>
-            </a>
-            <a href="Seb365Navigator.html" class="tool-link">
-                <strong>☁️ M365 Navigator</strong>
-                <span>Feature vs. License lookup tool</span>
-            </a>
-            <a href="sebs-permission-calculator.html" class="tool-link">
-                <strong>🔒 Permission Calculator</strong>
-                <span>Entra & AD least-privilege role reference</span>
-            </a>
-               <a href="pc-fleet-auditor.html" class="tool-link">
-                <strong>PC Spec Check</strong>
-                <span>Upload CSV list of Customer Devices to Review Age and EOL status</span>
-        </div>
-    </div>
+
+<div class="wrapper">
+
+  <header class="header">
+    <div class="header-eyebrow">IT Tools &amp; Utilities</div>
+    <h1>Seb's <em>Workshop</em></h1>
+    <p class="header-sub">A collection of tools for infrastructure, licensing &amp; fleet management</p>
+    <div class="divider"></div>
+  </header>
+
+  <div class="grid">
+
+    <a href="ws-license-calc.html" class="card">
+      <span class="card-icon">⚡</span>
+      <div class="card-title">Windows Server &amp; SQL Calculator</div>
+      <p class="card-desc">Estimate licensing costs for Windows Server and SQL Server deployments. Input your hardware spec, core counts and edition requirements to get an accurate cost breakdown before you commit to a purchase.</p>
+      <span class="card-tag">Licensing</span>
+    </a>
+
+    <a href="Seb365Navigator.html" class="card">
+      <span class="card-icon">☁️</span>
+      <div class="card-title">Microsoft 365 Navigator</div>
+      <p class="card-desc">Instantly look up which Microsoft 365 features are included in which licence tier. Cut through the noise of Microsoft's licensing matrix to find the right plan for your users without overspending.</p>
+      <span class="card-tag">M365</span>
+    </a>
+
+    <a href="sebs-permission-calculator.html" class="card">
+      <span class="card-icon">🔒</span>
+      <div class="card-title">Permission Calculator</div>
+      <p class="card-desc">A least-privilege reference for Microsoft Entra ID and Active Directory. Look up built-in roles, understand what each permission grants, and design access policies that follow zero-trust principles.</p>
+      <span class="card-tag">Security</span>
+    </a>
+
+    <a href="system-scout.html" class="card">
+      <span class="card-icon">🖥️</span>
+      <div class="card-title">Seb's System Scout</div>
+      <p class="card-desc">Upload a CSV export from your RMM tool to instantly audit your device fleet. Flags EOL operating systems, Win11 compatibility, ageing hardware, low disk and RAM, warranty status, and stale devices — all in one view.</p>
+      <span class="card-tag">Fleet Management</span>
+    </a>
+
+  </div>
+
+  <footer class="footer">
+    Seb's Workshop &nbsp;·&nbsp; Built for IT pros
+  </footer>
+
+</div>
+
 </body>
 </html>
