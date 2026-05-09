@@ -354,6 +354,15 @@ main { max-width: 680px; margin: 0 auto; padding: 36px 20px 80px }
 .dot.done-correct { background:var(--green-lt); border-color:var(--green); color:var(--green) }
 .dot.done-wrong   { background:var(--red-lt);   border-color:var(--red);   color:var(--red) }
 
+/* Multi-answer */
+.multi-hint { font-size:.75rem; font-weight:600; color:var(--blue); background:var(--blue-lt);
+  border:1px solid #c5d8f9; border-radius:6px; padding:6px 12px; margin-bottom:12px;
+  display:inline-block; letter-spacing:.02em; }
+.opt-btn.multi { cursor:pointer }
+.opt-btn.selected { border-color:var(--blue); background:var(--blue-lt) }
+.opt-btn.selected .opt-label { background:var(--blue); color:white }
+.submit-multi { margin-top:12px; width:100% }
+
 /* Picker buttons */
 .picker-btn { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; width:100%; text-align:left; border-radius:8px; }
 .pb-label { font-size:.95rem; font-weight:600 }
@@ -528,7 +537,7 @@ async function processFile(file) {
     parsed.slice(0,15).forEach(function(q,i){
       debugOut += 'Q'+q.num+': '+q.text.slice(0,80)+'...\n';
       Object.keys(q.opts).sort().forEach(function(l){
-        debugOut += '  '+l+(l===q.answer?' [ANSWER]':'')+': '+q.opts[l]+'\n';
+        const ans=Array.isArray(q.answer)?q.answer:[q.answer]; debugOut += '  '+l+(ans.includes(l)?' [ANSWER]':'')+': '+q.opts[l]+'\n';
       });
       debugOut += '\n';
     });
@@ -571,7 +580,8 @@ function parseQuestions(rawText) {
   const optSpace    = /^([A-E])\s{2,}(.*)/i;
   const optAlone    = /^([A-E])$/i;
   // Explicit answer statement — HIGHEST priority over CORRECT marker
-  const ansStmt     = /(?:the\s+)?(?:suggested\s+)?(?:correct\s+)?answer\s*(?:is\s+)?[-:.]?\s*([A-E])\b/i;
+  // Matches single or multiple answers: "A" / "A and C" / "A, C" / "AC" / "A, B, and C"
+  const ansStmt     = /(?:the\s+)?(?:suggested\s+)?(?:correct\s+)?answer[s]?\s*(?:(?:are|is)\s+)?[-:.]?\s*([A-E][A-E\s,andAND]*)/i;
 
   // Find all question starts.
   // IMPORTANT: Only fall back to qInlineRe ("1. text") if NO "QUESTION" headers found.
@@ -630,7 +640,10 @@ function parseQuestions(rawText) {
       // Explicit answer statement — always capture when in explain phase
       const am=line.match(ansStmt);
       if(am && phase==='explain'){
-        ansFromStmt=am[1].toUpperCase();
+        // Extract all letters from match e.g. "A and C" → ["A","C"]
+        const letters = am[1].toUpperCase().match(/[A-E]/g);
+        if(letters && letters.length>0)
+          ansFromStmt = letters.length===1 ? letters[0] : letters;
         continue;
       }
 
@@ -696,9 +709,12 @@ function parseQuestions(rawText) {
     // Validate
     if(Object.keys(opts).length<2){dropped.noOpts++;continue;}
     if(!answer){dropped.noAnswer++;continue;}
-    if(!opts[answer]){dropped.badAnswer++;continue;}
+    // Normalise answer to array
+    const answerArr = Array.isArray(answer) ? answer : [answer];
+    // Validate all answer letters exist in opts
+    if(!answerArr.every(l=>opts[l])){dropped.badAnswer++;continue;}
 
-    results.push({num:qNum, text:qText, opts, answer, explanation:explanation.trim()});
+    results.push({num:qNum, text:qText, opts, answer:answerArr, explanation:explanation.trim()});
   }
 
   // Store stats for debug panel
@@ -788,21 +804,39 @@ function buildQuiz(filename){
     card.className='q-card'+(idx===0?' active':'');card.id='q-'+idx;
     const sortedOpts=Object.keys(q.opts).sort();
     const total=window._activeQuestions.length;
-    const optsHtml=sortedOpts.map(l=>`<button class="opt-btn" data-q="${idx}" data-letter="${l}" onclick="chooseAnswer(${idx},'${l}')"><span class="opt-label">${l}</span><span>${escHtml(q.opts[l])}</span><span class="badge"></span></button>`).join('');
-    card.innerHTML=`<div class="q-num">Question ${idx+1} of ${total}</div><div class="q-text">${escHtml(q.text)}</div><div class="options">${optsHtml}</div><div class="feedback" id="fb-${idx}"></div><div class="q-nav"><button class="btn" onclick="goTo(${idx-1})" ${idx===0?'disabled':''}>← Prev</button>${idx<total-1?`<button class="btn primary" onclick="goTo(${idx+1})">Next →</button>`:`<button class="btn primary" onclick="showResults()">Finish ✓</button>`}</div>`;
+    const isMulti = Array.isArray(q.answer) && q.answer.length > 1;
+    const optsHtml=sortedOpts.map(l=>`<button class="opt-btn ${isMulti?'multi':''}" data-q="${idx}" data-letter="${l}" onclick="${isMulti?`toggleAnswer(${idx},'${l}')`:`chooseAnswer(${idx},'${l}')`}"><span class="opt-label">${l}</span><span>${escHtml(q.opts[l])}</span><span class="badge"></span></button>`).join('');
+    const multiHint = isMulti ? `<div class="multi-hint">Select ${q.answer.length} answers</div>` : '';
+    const submitBtn = isMulti ? `<button class="btn primary submit-multi" id="submit-${idx}" onclick="submitMulti(${idx})" disabled>Submit answers</button>` : '';
+    card.innerHTML=`<div class="q-num">Question ${idx+1} of ${total}</div><div class="q-text">${escHtml(q.text)}</div>${multiHint}<div class="options">${optsHtml}</div>${submitBtn}<div class="feedback" id="fb-${idx}"></div><div class="q-nav"><button class="btn" onclick="goTo(${idx-1})" ${idx===0?'disabled':''}>← Prev</button>${idx<total-1?`<button class="btn primary" onclick="goTo(${idx+1})">Next →</button>`:`<button class="btn primary" onclick="showResults()">Finish ✓</button>`}</div>`;
     container.appendChild(card);
   });
   updateScoreMeta();
 }
 
 function buildDots(){const w=document.getElementById('q-dots');w.innerHTML='';questions.forEach((_,i)=>{const d=document.createElement('button');d.className='dot'+(i===0?' current':'');d.id='dot-'+i;d.textContent=i+1;d.onclick=()=>goTo(i);w.appendChild(d)})}
-function updateDots(){questions.forEach((q,i)=>{const d=document.getElementById('dot-'+i);d.className='dot';if(i===current)d.classList.add('current');else if(answers[i]!==undefined)d.classList.add(answers[i]===q.answer?'done-correct':'done-wrong')})}
+function updateDots(){(window._activeQuestions||[]).forEach((q,i)=>{
+  const d=document.getElementById('dot-'+i);if(!d)return;
+  d.className='dot';
+  if(i===current){d.classList.add('current');}
+  else if(answers[i]!==undefined){
+    d.classList.add(isAnswerCorrect(i)?'done-correct':'done-wrong');
+  }
+})}
+function isAnswerCorrect(i){
+  const q=window._activeQuestions[i];
+  const given=answers[i];
+  if(!q||given===undefined) return false;
+  const correct=Array.isArray(q.answer)?q.answer:[q.answer];
+  const givenArr=Array.isArray(given)?given:[given];
+  return correct.length===givenArr.length && correct.every(l=>givenArr.includes(l));
+}
 function goTo(i){if(i<0||i>=questions.length)return;document.getElementById('q-'+current).classList.remove('active');current=i;document.getElementById('q-'+current).classList.add('active');updateDots();updateProgress()}
 function updateProgress(){document.getElementById('progress-bar').style.width=(Object.keys(answers).length/questions.length*100)+'%'}
 function updateScoreMeta(){
   let c=0;
   const done=Object.keys(answers).length;
-  Object.keys(answers).forEach(i=>{if(window._activeQuestions&&answers[i]===window._activeQuestions[i].answer)c++});
+  Object.keys(answers).forEach(i=>{if(window._activeQuestions&&isAnswerCorrect(parseInt(i)))c++});
   const wrong=done-c;
   const remaining=questions.length-done;
   document.getElementById('meta-score').textContent=done+' answered';
@@ -838,20 +872,65 @@ function updateScoreMeta(){
   document.getElementById('chip-r').textContent=remaining+' remaining';
 }
 
+// Single-answer questions
 function chooseAnswer(qIdx,letter){
   if(answers[qIdx]!==undefined)return;
-  const q=window._activeQuestions[qIdx];answers[qIdx]=letter;
-  const ok=letter===q.answer;
+  const q=window._activeQuestions[qIdx];
+  const correct=Array.isArray(q.answer)?q.answer:[q.answer];
+  answers[qIdx]=letter;
+  const ok=correct.includes(letter);
   document.querySelectorAll(`.opt-btn[data-q="${qIdx}"]`).forEach(btn=>{
     btn.disabled=true;const l=btn.dataset.letter;
-    if(l===q.answer)btn.classList.add('revealed');
+    if(correct.includes(l))btn.classList.add('revealed');
     if(l===letter&&ok){btn.classList.remove('revealed');btn.classList.add('correct');btn.querySelector('.badge').textContent='✓ Correct'}
     else if(l===letter&&!ok){btn.classList.add('wrong');btn.querySelector('.badge').textContent='✗ Wrong'}
-    else if(l===q.answer)btn.querySelector('.badge').textContent='← Correct answer';
+    else if(correct.includes(l))btn.querySelector('.badge').textContent='← Correct answer';
   });
   const fb=document.getElementById('fb-'+qIdx);fb.style.display='block';
   fb.className='feedback '+(ok?'correct':'wrong');
-  fb.innerHTML=`<div class="fb-verdict">${ok?'✓  Correct!':'✗  Wrong — correct answer: '+q.answer+'.  '+escHtml(q.opts[q.answer])}</div>`+
+  fb.innerHTML=`<div class="fb-verdict">${ok?'✓  Correct!':'✗  Wrong — correct answer: '+correct.join(', ')}</div>`+
+    (q.explanation?`<div class="fb-explain">${escHtml(q.explanation)}</div>`:'');
+  updateDots();updateProgress();updateScoreMeta();
+}
+
+// Multi-answer: toggle selection
+function toggleAnswer(qIdx,letter){
+  if(answers[qIdx]!==undefined)return; // already submitted
+  const btn=document.querySelector(`.opt-btn[data-q="${qIdx}"][data-letter="${letter}"]`);
+  if(!btn)return;
+  const selected=btn.classList.toggle('selected');
+  btn.querySelector('.badge').textContent=selected?'✓ Selected':'';
+  // Enable submit once at least 1 selected
+  const q=window._activeQuestions[qIdx];
+  const needed=Array.isArray(q.answer)?q.answer.length:1;
+  const count=document.querySelectorAll(`.opt-btn.selected[data-q="${qIdx}"]`).length;
+  const submitBtn=document.getElementById('submit-'+qIdx);
+  if(submitBtn) submitBtn.disabled=(count===0);
+}
+
+// Multi-answer: submit
+function submitMulti(qIdx){
+  if(answers[qIdx]!==undefined)return;
+  const q=window._activeQuestions[qIdx];
+  const correct=Array.isArray(q.answer)?q.answer:[q.answer];
+  const chosen=[...document.querySelectorAll(`.opt-btn.selected[data-q="${qIdx}"]`)].map(b=>b.dataset.letter);
+  answers[qIdx]=chosen;
+  const ok=isAnswerCorrect(qIdx);
+  document.querySelectorAll(`.opt-btn[data-q="${qIdx}"]`).forEach(btn=>{
+    btn.disabled=true;const l=btn.dataset.letter;
+    const wasChosen=chosen.includes(l);
+    const isCorrect=correct.includes(l);
+    btn.classList.remove('selected');
+    if(wasChosen&&isCorrect){btn.classList.add('correct');btn.querySelector('.badge').textContent='✓ Correct'}
+    else if(wasChosen&&!isCorrect){btn.classList.add('wrong');btn.querySelector('.badge').textContent='✗ Wrong'}
+    else if(!wasChosen&&isCorrect){btn.classList.add('revealed');btn.querySelector('.badge').textContent='← Missed'}
+  });
+  const submitBtn=document.getElementById('submit-'+qIdx);
+  if(submitBtn)submitBtn.style.display='none';
+  const fb=document.getElementById('fb-'+qIdx);fb.style.display='block';
+  fb.className='feedback '+(ok?'correct':'wrong');
+  const missedOrWrong=correct.filter(l=>!chosen.includes(l));
+  fb.innerHTML=`<div class="fb-verdict">${ok?'✓  All correct!':'✗  Wrong — correct answers: '+correct.join(', ')}</div>`+
     (q.explanation?`<div class="fb-explain">${escHtml(q.explanation)}</div>`:'');
   updateDots();updateProgress();updateScoreMeta();
 }
