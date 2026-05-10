@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Copilot Readiness Check · Seb's Workshop</title>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#f4f6fb;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--bh:#cbd5e1;--text:#1e293b;--muted:#64748b;--dim:#94a3b8;--accent:#6366f1;--adim:rgba(99,102,241,.08);--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
+html[data-theme="dark"]{--bg:#080b11;--surface:#0e1420;--surface2:#111927;--border:#1c2535;--bh:#2d3f5a;--text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;--accent:#818cf8;--adim:rgba(129,140,248,.08);--shadow:0 2px 8px rgba(0,0,0,.3);}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Segoe UI',system-ui,sans-serif;min-height:100vh;transition:background .2s,color .2s;}
+html[data-theme="dark"] body{background-image:linear-gradient(rgba(99,102,241,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.02) 1px,transparent 1px);background-size:60px 60px;}
+.wrap{max-width:880px;margin:0 auto;padding:32px 18px 60px;}
+.back-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s;}
+.back-link:hover{color:var(--accent);}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;}
+.nav-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);text-decoration:none;font-size:11.5px;font-weight:500;transition:all .15s;}
+.nav-pill:hover{border-color:var(--accent);color:var(--accent);}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media print{body{background:#fff;color:#000;}html[data-theme="dark"] body{filter:none;background:#fff;}.back-nav,#sw-theme-btn,.no-print{display:none!important;}}
+
+:root{--acc2:#6366f1;}
+/* HERO */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;margin-bottom:22px;box-shadow:var(--shadow);animation:fadeUp .4s ease both;}
+.hero-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.hero-title{font-size:clamp(1.5rem,4vw,2.1rem);font-weight:800;color:var(--text);letter-spacing:-.4px;margin-bottom:8px;}
+html[data-theme="dark"] .hero-title{color:#e8f0ff;}
+.hero-sub{font-size:13px;color:var(--muted);line-height:1.7;}
+.hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.h-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;}
+.hb-warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:#d97706;}
+.hb-info{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.3);color:var(--accent);}
+/* STEPPER */
+.stepper{display:flex;align-items:center;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;animation:fadeUp .4s .05s ease both;}
+.step{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;position:relative;}
+.step::after{content:'';position:absolute;top:13px;left:calc(50% + 14px);right:calc(-50% + 14px);height:1px;background:var(--border);z-index:0;}
+.step:last-child::after{display:none;}
+.sd{width:27px;height:27px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);z-index:1;position:relative;transition:all .2s;}
+.step.active .sd{border-color:var(--accent);color:var(--accent);background:var(--adim);}
+.step.done .sd{border-color:#16a34a;background:rgba(22,163,74,.1);color:#16a34a;}
+.sl{font-size:9px;font-family:monospace;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68px;}
+.step.active .sl{color:var(--accent);}
+.step.done .sl{color:#16a34a;opacity:.65;}
+/* SECTION CARD */
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;overflow:hidden;animation:fadeUp .3s ease both;}
+.sec-head{padding:18px 22px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.sec-head-l{display:flex;align-items:center;gap:12px;}
+.sec-icon{font-size:22px;flex-shrink:0;}
+.sec-title{font-size:15px;font-weight:700;color:var(--text);}
+html[data-theme="dark"] .sec-title{color:#e8f0ff;}
+.sec-tag{font-size:11px;color:var(--muted);font-weight:300;margin-top:2px;font-family:monospace;}
+.sec-rag{padding:3px 11px;border-radius:20px;font-family:monospace;font-size:9.5px;letter-spacing:.8px;text-transform:uppercase;flex-shrink:0;transition:all .3s;}
+.rag-pend{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.rag-g{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.28);color:#16a34a;}
+.rag-a{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.28);color:#d97706;}
+.rag-r{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.28);color:#dc2626;}
+/* QUESTIONS */
+.q-item{padding:15px 22px;border-bottom:1px solid var(--border);transition:background .12s;}
+.q-item:last-child{border-bottom:none;}
+.q-item.ans{background:rgba(99,102,241,.012);}
+.q-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
+.q-num{font-family:monospace;font-size:10px;color:var(--muted);padding-top:2px;flex-shrink:0;min-width:18px;}
+.q-text{font-size:13px;line-height:1.65;color:var(--text);flex:1;}
+.badges{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:5px;vertical-align:middle;}
+.badge-crit{display:inline-flex;padding:1px 6px;border-radius:3px;background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.28);font-family:monospace;font-size:8px;color:#dc2626;letter-spacing:.3px;text-transform:uppercase;white-space:nowrap;}
+.q-hint{font-size:11.5px;color:var(--muted);font-style:italic;margin:0 0 8px 26px;line-height:1.55;}
+.ans-btns{display:flex;gap:6px;flex-wrap:wrap;padding-left:26px;}
+.ab{padding:6px 14px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:11.5px;font-weight:500;cursor:pointer;transition:all .12s;}
+.ab:hover{border-color:var(--bh);color:var(--text);}
+.ab.sy{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.35);color:#16a34a;}
+.ab.sp{background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.35);color:#d97706;}
+.ab.sn{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.35);color:#dc2626;}
+.ab.sel{background:var(--adim);border-color:rgba(99,102,241,.4);color:var(--accent);}
+/* NAV */
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-top:15px;gap:10px;flex-wrap:wrap;}
+.prog-text{font-family:monospace;font-size:11px;color:var(--muted);}
+.prog-text b{color:var(--accent);}
+.btn{padding:9px 22px;border-radius:9px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;}
+.btn-p{background:var(--accent);color:#fff;}
+html[data-theme="dark"] .btn-p{color:#0e1420;}
+.btn-p:hover{opacity:.88;transform:translateY(-1px);}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-g:hover{border-color:var(--bh);color:var(--text);}
+/* RESULTS */
+#results{display:none;}#results.show{display:block;}
+.res-hero{border-radius:16px;padding:24px;margin-bottom:14px;border:1px solid;animation:fadeUp .3s ease both;}
+.rh-score{font-family:monospace;font-size:2.8rem;font-weight:700;line-height:1;}
+.rh-title{font-size:1.25rem;font-weight:800;letter-spacing:-.3px;margin-top:4px;}
+html[data-theme="dark"] .rh-title{color:#e8f0ff;}
+.rh-sub{font-size:12.5px;color:var(--muted);margin-top:4px;}
+.rh-green{background:rgba(22,163,74,.06);border-color:rgba(22,163,74,.25);}
+.rh-amber{background:rgba(217,119,6,.06);border-color:rgba(217,119,6,.25);}
+.rh-red{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.25);}
+.sc-green{color:#16a34a;}.sc-amber{color:#d97706;}.sc-red{color:#dc2626;}
+.ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+@media(max-width:540px){.ss-grid{grid-template-columns:1fr;}}
+.ss-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 15px;}
+.ss-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;}
+.ss-name{font-size:12px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:5px;}
+html[data-theme="dark"] .ss-name{color:#e8f0ff;}
+.ss-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-g{background:#16a34a;}.dot-a{background:#d97706;}.dot-r{background:#dc2626;}
+.ss-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:4px;}
+.ss-fill{height:100%;border-radius:2px;transition:width .5s;}
+.fill-g{background:#16a34a;}.fill-a{background:#d97706;}.fill-r{background:#dc2626;}
+.ss-meta{font-family:monospace;font-size:9.5px;color:var(--muted);}
+.gap-block{background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;}
+.gap-hdr{padding:10px 17px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.gap-hdr-title{font-size:12px;font-weight:600;font-family:monospace;flex:1;color:var(--text);}
+html[data-theme="dark"] .gap-hdr-title{color:#e8f0ff;}
+.gap-hdr-rag{font-family:monospace;font-size:9px;letter-spacing:.8px;text-transform:uppercase;}
+.gap-row{padding:12px 17px;border-bottom:1px solid var(--border);}
+.gap-row:last-child{border-bottom:none;}
+.gap-q-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:6px;}
+.gap-sev{font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:.5px;padding-top:1px;flex-shrink:0;}
+.gs-r{color:#dc2626;}.gs-a{color:#d97706;}
+.gap-q-text{font-size:12.5px;color:var(--text);font-weight:500;line-height:1.45;}
+html[data-theme="dark"] .gap-q-text{color:#c8d8f0;}
+.gap-fix{font-size:12px;color:var(--muted);line-height:1.65;padding-left:9px;border-left:2px solid var(--border);margin-bottom:7px;}
+.rem-check-row{display:flex;align-items:center;gap:7px;margin-top:7px;padding-top:7px;border-top:1px dashed var(--border);}
+.rem-checkbox{width:15px;height:15px;border-radius:3px;border:1.5px solid var(--border);background:transparent;appearance:none;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s;}
+.rem-checkbox:checked{background:#16a34a;border-color:#16a34a;}
+.rem-checkbox:checked::after{content:'✓';position:absolute;top:-2px;left:1px;font-size:11px;color:#fff;font-weight:700;}
+.rem-label{font-size:12px;color:var(--muted);cursor:pointer;}
+.res-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.rf-note{font-family:monospace;font-size:10px;color:var(--muted);}
+.rf-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-sm{padding:7px 16px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .2s;font-family:'DM Sans',sans-serif;}
+.bs-g{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.bs-g:hover{border-color:var(--bh);color:var(--text);}
+.bs-a{background:var(--accent);color:#fff;}
+html[data-theme="dark"] .bs-a{color:#0e1420;}
+.bs-teal{background:#0d9488;color:#fff;border:none;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-nav">
+    <a href="index.html" class="back-link">← Workshop</a>
+    <div class="nav-links">
+      <a href="ai-comparison.html" class="nav-pill">🤖 AI Platform Comparison</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eyebrow">Microsoft 365 · Copilot</div>
+    <div class="hero-title">🤖 Copilot Readiness Assessment</div>
+    <p class="hero-sub">A structured assessment across 6 areas to determine whether your organisation — or a customer — is ready to deploy Microsoft 365 Copilot. Covers licensing, identity, data governance, compliance and change management.</p>
+    <div class="hero-badges">
+      <span class="h-badge hb-warn">⚠ Data governance is the #1 deployment risk</span>
+      <span class="h-badge hb-info">🔗 Generates customer report</span>
+    </div>
+  </div>
+
+  <nav class="stepper" id="stepper"></nav>
+  <div id="quiz"></div>
+  <div id="results"></div>
+</div>
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark/light" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>(function(){var b=document.getElementById("sw-theme-btn"),dk=document.documentElement.getAttribute("data-theme")==="dark";b.textContent=dk?"☀":"🌙";b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";}());
+function swToggle(){var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);var b=document.getElementById("sw-theme-btn");b.textContent=dk?"🌙":"☀";b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";}</script>
+<script>
+const META_COP={"l1": {"label": "Does your tenant have a qualifying Microsoft 365 base licence?", "impact": "Copilot is technically blocked without a qualifying base licence.", "action": "Without a qualifying base licence, Copilot cannot be deployed. Upgrade to Business Standard (minimum recommended for SMBs) or E3 for enterprise. Check current qualifier list at learn.microsoft.com.", "critical": true, "section": "Licensing & Prerequisites"}, "l2": {"label": "Have Microsoft 365 Copilot licences been purchased or formally budgeted?", "impact": "Without licences, no users can access Copilot features.", "action": "Without confirmed budget or licences, deployment planning is premature. Present a per-user ROI case to decision-makers \u2014 Forrester research cites an average 116% ROI over 3 years and 26 minutes saved per user per day.", "critical": false, "section": "Licensing & Prerequisites"}, "l3": {"label": "Are Microsoft 365 Apps deployed on the Current Channel or Monthly Enterprise Channel?", "impact": "Users on Semi-Annual Channel cannot use Copilot. This is one of the most common deployment surprises.", "action": "Users on Semi-Annual Channel will not see Copilot features at all, even with a valid licence. Switch affected users to Current Channel or Monthly Enterprise Channel via Microsoft 365 Apps admin centre.", "critical": true, "section": "Licensing & Prerequisites"}, "l4": {"label": "Does every in-scope user have an active OneDrive for Business account provisioned?", "impact": "Without OneDrive, Copilot cannot access personal files for contextual assistance.", "action": "Provision OneDrive for all Copilot users via the Microsoft 365 admin centre. Users without OneDrive will have significantly degraded Copilot functionality.", "critical": true, "section": "Licensing & Prerequisites"}, "l5": {"label": "Is Microsoft Teams actively used by the in-scope user population?", "impact": "Meeting recap and chat summary features are unavailable without Teams.", "action": "Teams integration is optional but provides some of the highest-value Copilot features (meeting summaries, action items). If Teams adoption is low, include Teams adoption in the Copilot rollout plan.", "critical": false, "section": "Licensing & Prerequisites"}, "l6": {"label": "Are Microsoft 365 Apps kept up to date (latest or recent monthly build)?", "impact": "Outdated apps may not display Copilot features in the Office ribbon.", "action": "Ensure Microsoft 365 Apps are managed and updated via Microsoft 365 Apps admin centre, Intune, or equivalent. Enable automatic updates where possible.", "critical": false, "section": "Licensing & Prerequisites"}, "i1": {"label": "Is MFA or passwordless authentication enforced on all user accounts that will access Copilot?", "impact": "An account compromise without MFA gives attackers full Copilot access to query and extract organisational data.", "action": "Enable and enforce MFA on all accounts via Conditional Access before deploying Copilot. Copilot significantly amplifies the impact of any account compromise \u2014 a phished account with Copilot access can be used to query and extract sensitive data at scale.", "critical": true, "section": "Identity & Security"}, "i2": {"label": "Are Conditional Access policies configured to control access to Microsoft 365 services?", "impact": "Without Conditional Access, you cannot enforce compliant device requirements or block risky sign-ins to Copilot.", "action": "At minimum, configure Conditional Access to: require MFA, block legacy authentication protocols, and require compliant or hybrid-joined devices for Copilot access. This is your primary control layer for Copilot access governance.", "critical": true, "section": "Identity & Security"}, "i3": {"label": "Have guest and external accounts been reviewed \u2014 are only those actively needed still active?", "impact": "Guests with overly broad SharePoint access could use Copilot to surface content they were never intended to see.", "action": "Run an Entra ID guest access review. Remove or downscope any guests not actively collaborating. Review SharePoint sites these guests have access to and apply appropriate restrictions before Copilot deployment.", "critical": true, "section": "Identity & Security"}, "i4": {"label": "Is Entra ID P1 (or higher) in use, enabling sign-in risk policies and Conditional Access?", "impact": "Without Entra P1, you cannot configure the Conditional Access policies needed to properly govern Copilot access.", "action": "Entra ID P1 is the minimum recommended for Copilot deployments. It enables the Conditional Access policies needed to govern Copilot access. If on E1 or Business Basic, consider upgrading or adding the Entra P1 add-on.", "critical": false, "section": "Identity & Security"}, "i5": {"label": "Are admin accounts protected with Privileged Identity Management (PIM) or equivalent just-in-time access controls?", "impact": "Standing admin access in a Copilot tenant creates a high-value target for attackers.", "action": "Implement PIM for all admin roles via Entra ID. This is a Copilot best practice \u2014 permanent standing admin access in a Copilot-enabled tenant amplifies the impact of any admin account compromise significantly.", "critical": false, "section": "Identity & Security"}, "g1": {"label": "Have SharePoint Online permissions been formally audited within the last 6 months?", "impact": "Copilot will surface sensitive content (HR records, salary data, board minutes) to anyone who has been inadvertently granted access. This is the most common and damaging Copilot deployment failure.", "action": "Run a SharePoint permission audit immediately before Copilot deployment. Use SharePoint Advanced Management's Data Access Governance (DAG) reports. Copilot will surface any content the user has permission to access \u2014 overshared content becomes instantly queryable. Fix permissions before deploying, not after.", "critical": true, "section": "Data Governance"}, "g2": {"label": "Are broad sharing groups such as \"Everyone\", \"Everyone except external users\" or \"All Staff\" widely used on SharePoint sites?", "impact": "Any document on a broadly-shared site can be surfaced by Copilot to any user in the organisation, regardless of intent.", "action": "Identify all sites using broad sharing groups via the DAG report in SharePoint Admin Centre. Replace with specific security groups scoped to those who genuinely need access. This is often the single most impactful change before Copilot deployment.", "critical": true, "section": "Data Governance"}, "g3": {"label": "Have Microsoft Purview Sensitivity Labels been deployed and are they being actively applied to documents and emails?", "impact": "Without sensitivity labels, Copilot has no content-level guardrails \u2014 all content is treated equally regardless of confidentiality.", "action": "Deploy and train users on sensitivity labels as a prerequisite to Copilot. At minimum, create labels for: Confidential, Internal, and Public. Configure auto-labelling for known sensitive content types (bank details, NI numbers, etc.). E3 includes basic labelling; E5/Purview add-on enables advanced auto-classification.", "critical": true, "section": "Data Governance"}, "g4": {"label": "Are Data Loss Prevention (DLP) policies configured to prevent sensitive data from being shared inappropriately?", "impact": "Without DLP, there is no automated detection of sensitive data being inappropriately surfaced or shared via Copilot responses.", "action": "Configure DLP policies in Microsoft Purview covering email, SharePoint, Teams and now Copilot interactions. Start with policies for financial data, personal data (UK GDPR), and any sector-specific requirements.", "critical": false, "section": "Data Governance"}, "g5": {"label": "Have external sharing settings been reviewed and restricted to only what the business actively requires?", "impact": "Over-permissive external sharing means Copilot interactions could surface data accessible to external parties.", "action": "Review external sharing at both tenant and site collection level in SharePoint Admin Centre. Restrict to the minimum required level (New and existing guests / Existing guests only / Only people in your org). Ensure site owners understand the Copilot implications of their sharing settings.", "critical": true, "section": "Data Governance"}, "g6": {"label": "Is there a process to promptly revoke SharePoint/OneDrive access when staff change roles or leave?", "impact": "Users retain Copilot access to content from previous roles unless permissions are explicitly revoked.", "action": "Integrate SharePoint/OneDrive access revocation into your HR offboarding and role-change processes. Run a quarterly access review using Entra ID Access Reviews to catch accumulated permissions. Copilot makes stale access much more dangerous \u2014 it actively queries accessible content.", "critical": true, "section": "Data Governance"}, "g7": {"label": "Has a Microsoft SharePoint Advanced Management (SAM) licence been considered for ongoing data governance?", "impact": "Without SAM, ongoing data governance for Copilot is manual and limited. Oversharing will re-accumulate without active management.", "action": "SharePoint Advanced Management is highly recommended for any organisation deploying Copilot. It provides the DAG reports needed to identify oversharing, enables restricted SharePoint search (limits Copilot grounding to curated content), and adds site lifecycle controls.", "critical": false, "section": "Data Governance"}, "h1": {"label": "Has stale or inactive SharePoint content been identified and archived or deleted?", "impact": "Copilot may surface outdated policies, superseded procedures, or incorrect information from stale content, eroding user trust in its responses.", "action": "Use SharePoint site usage reports to identify inactive sites. Archive or delete content that is no longer current. Create a content lifecycle policy \u2014 this is fundamental to getting quality Copilot responses.", "critical": false, "section": "Data Hygiene"}, "h2": {"label": "Have orphaned SharePoint sites (no active owner, unused for 12+ months) been addressed?", "impact": "Orphaned sites with poorly managed permissions are a common source of oversharing issues that Copilot will expose.", "action": "Use the SharePoint Admin Centre site lifecycle reports to identify sites with no active owner or no activity in 12+ months. Assign owners or archive. SAM automates this with site lifecycle policies.", "critical": false, "section": "Data Hygiene"}, "h3": {"label": "Have inactive Microsoft Teams and channels been archived?", "impact": "Copilot responses from Teams data may include information from years-old inactive channels, reducing response quality.", "action": "Archive Teams that have been inactive for 6+ months. Set a Teams lifecycle policy. Archived Teams are excluded from active Copilot queries but remain accessible if needed.", "critical": false, "section": "Data Hygiene"}, "h4": {"label": "Is there an agreed file storage structure and naming convention in use across the organisation?", "impact": "Copilot cannot compensate for poor content organisation. Low-structure environments consistently produce lower-quality Copilot responses and lower user adoption.", "action": "Define and document a SharePoint/OneDrive folder structure, file naming convention, and ownership model. This is a change management exercise, not just technical \u2014 user adoption of good data hygiene is what sustains Copilot quality.", "critical": false, "section": "Data Hygiene"}, "h5": {"label": "Has SharePoint search been validated \u2014 is content being indexed correctly?", "impact": "Unindexed content is invisible to Copilot, leading to incomplete responses and user frustration.", "action": "Verify SharePoint search is indexing correctly via the Search & Intelligence admin. Check for excluded paths or content types. Consider enabling Microsoft Graph connectors for content in non-M365 locations (file shares, Confluence, ServiceNow etc.) to extend Copilot's reach.", "critical": false, "section": "Data Hygiene"}, "c1": {"label": "Is the Microsoft 365 Unified Audit Log enabled and is audit retention configured for your compliance requirements?", "impact": "Without audit logging, you cannot demonstrate accountability for Copilot usage under GDPR, investigate incidents, or meet legal hold requirements.", "action": "Enable Unified Audit Log (if not already on \u2014 it's on by default for most M365 tenants). Configure audit log retention via Purview Audit \u2014 standard retention is 90 days; E3 extends to 180 days; E5/Audit Premium extends to 1 year with advanced audit queries. Review requirements with your legal and compliance team.", "critical": true, "section": "Compliance & Legal"}, "c2": {"label": "Has an AI Acceptable Use Policy been drafted, approved by leadership, and communicated to staff?", "impact": "Without a policy, employees have no guidance on responsible Copilot use, creating compliance and liability risk.", "action": "Draft an AI Acceptable Use Policy before deploying Copilot to users. Key areas: permitted and prohibited use cases, data handling in prompts (do not enter personal data, confidential data etc.), output verification requirements, IP considerations, and reporting obligations for incidents. HR and Legal sign-off required.", "critical": true, "section": "Compliance & Legal"}, "c3": {"label": "Has the organisation's privacy notice been reviewed and updated to reference AI tool usage?", "impact": "Deploying Copilot without privacy notice updates may constitute a GDPR transparency breach.", "action": "Update your privacy notice to include reference to AI assistant tools and how employee/customer data may be processed. Review with your DPO or privacy lead. Note: Microsoft's contractual commitments state Copilot does not train on your data \u2014 this should be reflected in your notice.", "critical": true, "section": "Compliance & Legal"}, "c4": {"label": "Has a Data Protection Impact Assessment (DPIA) been conducted or is one in progress for the Copilot deployment?", "impact": "Deploying without a DPIA where one is required risks ICO enforcement action and demonstrates a failure of accountability under UK GDPR.", "action": "Conduct a DPIA in consultation with your DPO before deploying Copilot to the broader organisation. The ICO recommends a DPIA for AI tools processing personal data at scale. Microsoft provides documentation to support DPIA completion.", "critical": true, "section": "Compliance & Legal"}, "c5": {"label": "Have HR and Legal reviewed the Copilot deployment plan, particularly around employee monitoring considerations?", "impact": "Deploying Copilot without HR/Legal awareness can create unexpected employment law exposure.", "action": "Brief HR and Legal on Copilot's data access and logging capabilities. Consider what audit data will be retained, who will have access to it, and how it will be handled in employment contexts. Particularly important for organisations with trade unions or works council consultation requirements.", "critical": false, "section": "Compliance & Legal"}, "c6": {"label": "Is information lifecycle management (retention and deletion policies) configured in Microsoft Purview for Copilot interaction data?", "impact": "Without configured retention, Copilot interaction data may be retained longer than necessary, increasing GDPR data minimisation risk.", "action": "Configure Purview retention policies to cover Copilot interaction data. Determine retention periods in line with your data retention schedule and legal hold requirements. Note: Copilot interaction data can be subject to eDiscovery and legal hold in Copilot in Purview.", "critical": false, "section": "Compliance & Legal"}, "a1": {"label": "Is there identified executive sponsorship for the Copilot rollout?", "impact": "Without executive sponsorship, Copilot adoption typically plateaus at early adopters and fails to achieve broad organisational uptake.", "action": "Identify an executive champion \u2014 ideally someone who will visibly use Copilot and communicate its value. Brief them on key use cases for their role. Lack of executive sponsorship is the most common reason Copilot licences go unused.", "critical": false, "section": "Adoption & Change Management"}, "a2": {"label": "Have specific, high-value use cases been identified and prioritised for the initial deployment?", "impact": "Without defined use cases, users don't know where to start and licence utilisation is typically very low.", "action": "Define 3\u20135 specific use cases for the pilot group, with clear before/after comparisons. \"Use Copilot for everything\" is not a use case. Targeted use cases drive faster adoption and make ROI measurement possible.", "critical": false, "section": "Adoption & Change Management"}, "a3": {"label": "Have Copilot champions or early adopters been identified for a structured pilot phase?", "impact": "Without a pilot phase, broad deployment often hits unforeseen issues (data governance problems, permission errors, channel issues) at scale.", "action": "Select pilot users who are enthusiastic, represent diverse roles, and are willing to provide structured feedback. Run the pilot for 4\u20138 weeks before broader rollout. Document what works well and what doesn't \u2014 this becomes your adoption playbook.", "critical": false, "section": "Adoption & Change Management"}, "a4": {"label": "Is a user training plan in place covering Copilot fundamentals, effective prompting, and responsible use?", "impact": "Untrained users produce poor prompts, get disappointing results, and conclude Copilot isn't useful \u2014 the leading cause of licence underutilisation.", "action": "Develop training covering: Copilot basics per application (Teams, Outlook, Word, Excel), effective prompting techniques (be specific, provide context, iterate), responsible use (verify outputs, no sensitive data in prompts, understand limitations). Microsoft Copilot Academy (free) provides good baseline content.", "critical": false, "section": "Adoption & Change Management"}, "a5": {"label": "Are success metrics and KPIs defined to measure adoption and business value?", "impact": "Without metrics, you cannot demonstrate ROI to justify continued investment or identify where adoption support is needed.", "action": "Define baseline metrics before deployment and target metrics at 30/60/90 days. Use Copilot usage reports in the Microsoft 365 Admin Centre alongside a short pulse survey to capture self-reported value. Share metrics with the executive sponsor regularly.", "critical": false, "section": "Adoption & Change Management"}, "a6": {"label": "Is there a structured feedback mechanism for users to report issues, suggest improvements, and share prompts that work well?", "impact": "Without feedback channels, issues (including data governance problems surfaced by Copilot) go unreported and unresolved.", "action": "Create a dedicated \"Copilot\" Teams channel or community for sharing tips, reporting issues, and celebrating wins. Assign a Copilot community manager. Shared prompt libraries significantly accelerate adoption across the organisation.", "critical": false, "section": "Adoption & Change Management"}};
+const SECTIONS_COP=[{"id": "lic", "icon": "\ud83d\udccb", "name": "Licensing & Prerequisites", "qs": ["l1", "l2", "l3", "l4", "l5", "l6"]}, {"id": "idam", "icon": "\ud83d\udd10", "name": "Identity & Security", "qs": ["i1", "i2", "i3", "i4", "i5"]}, {"id": "gov", "icon": "\ud83d\uddc2\ufe0f", "name": "Data Governance", "qs": ["g1", "g2", "g3", "g4", "g5", "g6", "g7"]}, {"id": "hygiene", "icon": "\ud83e\uddf9", "name": "Data Hygiene", "qs": ["h1", "h2", "h3", "h4", "h5"]}, {"id": "comp", "icon": "\u2696\ufe0f", "name": "Compliance & Legal", "qs": ["c1", "c2", "c3", "c4", "c5", "c6"]}, {"id": "adopt", "icon": "\ud83d\ude80", "name": "Adoption & Change Management", "qs": ["a1", "a2", "a3", "a4", "a5", "a6"]}];
+const CRITICAL_COP=["l1", "l3", "l4", "i1", "i2", "i3", "g1", "g2", "g3", "g5", "g6", "c1", "c2", "c3", "c4"];
+const SAVE_KEY='cop_v1_seb';
+let cur=0; const A={}; const REM={};
+
+function saveState(){try{localStorage.setItem(SAVE_KEY,JSON.stringify({A,cur,REM}));}catch(e){}}
+function loadState(){try{var s=localStorage.getItem(SAVE_KEY);return s?JSON.parse(s):null;}catch(e){return null;}}
+
+const STEP_LABELS=["Licensing", "Identity", "Data", "Data", "Compliance", "Adoption", "Results"];
+
+function renderStepper(){
+  var html='';
+  STEP_LABELS.forEach(function(l,i){
+    var cls=i<cur?'done':i===cur?'active':'';
+    var dot=cls==='done'?'✓':(i===STEP_LABELS.length-1?'★':(i+1));
+    html+='<div class="step '+cls+'"><div class="sd">'+dot+'</div><div class="sl">'+l+'</div></div>';
+  });
+  document.getElementById('stepper').innerHTML=html;
+}
+
+function getSectionData(){
+  return [{"id": "lic", "icon": "\ud83d\udccb", "name": "Licensing & Prerequisites", "tag": "Foundation", "num": 1, "qs": [{"id": "l1", "text": "Does your tenant have a qualifying Microsoft 365 base licence?", "hint": "Required: Business Standard, Business Premium, E3, E5, F3, or Office 365 E1/E3/E5. Note: Business Basic qualifies but delivers limited Copilot value \u2014 no desktop Office apps.", "critical": true, "opts": ["yes", "no", "unsure"]}, {"id": "l2", "text": "Have Microsoft 365 Copilot licences been purchased or formally budgeted?", "hint": "Enterprise (300+ seats): ~\u00a324.70/user/month. Business (<300 seats): ~\u00a321/user/month. Prices updated July 2026 \u2014 verify current pricing.", "critical": false, "opts": ["yes", "budgeted", "no"]}, {"id": "l3", "text": "Are Microsoft 365 Apps deployed on the Current Channel or Monthly Enterprise Channel?", "hint": "Critical blocker: Copilot is NOT available on the Semi-Annual Enterprise Channel. This affects many organisations with conservative update policies.", "critical": true, "opts": ["yes", "some_sa", "no_sa", "unsure"]}, {"id": "l4", "text": "Does every in-scope user have an active OneDrive for Business account provisioned?", "hint": "OneDrive is required for file grounding \u2014 Copilot accesses the user's files to provide contextual assistance.", "critical": true, "opts": ["yes", "partial", "no"]}, {"id": "l5", "text": "Is Microsoft Teams actively used by the in-scope user population?", "hint": "Teams is required for meeting recap, call summary and Teams chat Copilot features.", "critical": false, "opts": ["yes", "partial", "no"]}, {"id": "l6", "text": "Are Microsoft 365 Apps kept up to date (latest or recent monthly build)?", "hint": "Outdated desktop apps may lack the Copilot UI elements even on the correct update channel.", "critical": false, "opts": ["yes", "behind", "no_managed"]}]}, {"id": "idam", "icon": "\ud83d\udd10", "name": "Identity & Security", "tag": "Access Controls", "num": 2, "qs": [{"id": "i1", "text": "Is MFA or passwordless authentication enforced on all user accounts that will access Copilot?", "hint": "Copilot accesses sensitive organisational data. MFA is essential before deployment \u2014 and is also a Cyber Essentials requirement.", "critical": true, "opts": ["yes", "partial", "no"]}, {"id": "i2", "text": "Are Conditional Access policies configured to control access to Microsoft 365 services?", "hint": "Conditional Access enables context-aware access \u2014 requiring MFA from untrusted networks, blocking legacy authentication, requiring compliant devices.", "critical": true, "opts": ["yes", "basic", "no"]}, {"id": "i3", "text": "Have guest and external accounts been reviewed \u2014 are only those actively needed still active?", "hint": "Guest accounts inherit permissions to SharePoint content. Copilot respects these permissions \u2014 guests with broad SharePoint access could use Copilot to surface sensitive content.", "critical": true, "opts": ["yes", "partial", "no"]}, {"id": "i4", "text": "Is Entra ID P1 (or higher) in use, enabling sign-in risk policies and Conditional Access?", "hint": "Entra ID P1 is included in Business Premium, E3 and above. Entra ID P2 (included in E5) adds identity protection and PIM.", "critical": false, "opts": ["p2", "p1", "no"]}, {"id": "i5", "text": "Are admin accounts protected with Privileged Identity Management (PIM) or equivalent just-in-time access controls?", "hint": "PIM provides just-in-time privileged access, reducing the window of exposure for administrator accounts.", "critical": false, "opts": ["yes", "partial", "no"]}]}, {"id": "gov", "icon": "\ud83d\uddc2\ufe0f", "name": "Data Governance", "tag": "The Critical Section", "num": 3, "qs": [{"id": "g1", "text": "Have SharePoint Online permissions been formally audited within the last 6 months?", "hint": "Industry data (EPC Group, 2026): 60\u201380% of enterprise SharePoint sites have at least one oversharing vulnerability. This is the #1 Copilot deployment risk.", "critical": true, "opts": ["yes", "partial", "never"]}, {"id": "g2", "text": "Are broad sharing groups such as \"Everyone\", \"Everyone except external users\" or \"All Staff\" widely used on SharePoint sites?", "hint": "These groups grant access to every person in the tenant. Any content on sites with these permissions is accessible to every user via Copilot.", "critical": true, "opts": ["no", "some", "widespread"]}, {"id": "g3", "text": "Have Microsoft Purview Sensitivity Labels been deployed and are they being actively applied to documents and emails?", "hint": "Copilot respects sensitivity labels \u2014 it will not include labelled content in responses if the user doesn't have appropriate permissions. Without labels, there is no content-level control layer.", "critical": true, "opts": ["yes_trained", "deployed_untrained", "no"]}, {"id": "g4", "text": "Are Data Loss Prevention (DLP) policies configured to prevent sensitive data from being shared inappropriately?", "hint": "DLP policies work alongside Copilot \u2014 they can prevent Copilot from including certain content in responses or flag when sensitive data appears in prompts.", "critical": false, "opts": ["yes", "basic", "no"]}, {"id": "g5", "text": "Have external sharing settings been reviewed and restricted to only what the business actively requires?", "hint": "Default SharePoint external sharing settings are often more permissive than necessary, particularly for organisations that have grown their M365 estate over time.", "critical": true, "opts": ["yes", "partially", "no"]}, {"id": "g6", "text": "Is there a process to promptly revoke SharePoint/OneDrive access when staff change roles or leave?", "hint": "Content permissions often linger after role changes. In a Copilot-enabled tenant, former permissions remain queryable until explicitly removed.", "critical": true, "opts": ["yes", "partial", "no"]}, {"id": "g7", "text": "Has a Microsoft SharePoint Advanced Management (SAM) licence been considered for ongoing data governance?", "hint": "SAM adds Data Access Governance reports, site lifecycle management, restricted SharePoint search, and Copilot-specific governance controls. Available as an add-on or included with E5.", "critical": false, "opts": ["yes", "considering", "no"]}]}, {"id": "hygiene", "icon": "\ud83e\uddf9", "name": "Data Hygiene", "tag": "Content Quality", "num": 4, "qs": [{"id": "h1", "text": "Has stale or inactive SharePoint content been identified and archived or deleted?", "hint": "Copilot queries your entire accessible content estate. Outdated policies, superseded documents, and abandoned project sites all become part of Copilot's knowledge base and can produce inaccurate responses.", "critical": false, "opts": ["yes", "partial", "no"]}, {"id": "h2", "text": "Have orphaned SharePoint sites (no active owner, unused for 12+ months) been addressed?", "hint": "Orphaned sites often contain poorly governed content with no one managing permissions or currency.", "critical": false, "opts": ["yes", "partial", "no"]}, {"id": "h3", "text": "Have inactive Microsoft Teams and channels been archived?", "hint": "Teams meetings, chats and channels are all part of Copilot's knowledge base. Inactive Teams create noise in Copilot responses.", "critical": false, "opts": ["yes", "partial", "no"]}, {"id": "h4", "text": "Is there an agreed file storage structure and naming convention in use across the organisation?", "hint": "Copilot's response quality is directly tied to how well-organised your content is. Poor structure produces poor responses.", "critical": false, "opts": ["yes", "informal", "no"]}, {"id": "h5", "text": "Has SharePoint search been validated \u2014 is content being indexed correctly?", "hint": "Copilot uses the same search index as SharePoint search. If content is not being indexed (excluded paths, permission issues), Copilot cannot access it.", "critical": false, "opts": ["yes", "unsure", "no"]}]}, {"id": "comp", "icon": "\u2696\ufe0f", "name": "Compliance & Legal", "tag": "Governance", "num": 5, "qs": [{"id": "c1", "text": "Is the Microsoft 365 Unified Audit Log enabled and is audit retention configured for your compliance requirements?", "hint": "Audit logging covers Copilot interactions. Required for GDPR accountability obligations and incident investigation. Copilot activity is stored as a distinct audit event type.", "critical": true, "opts": ["yes", "enabled_no_retention", "no"]}, {"id": "c2", "text": "Has an AI Acceptable Use Policy been drafted, approved by leadership, and communicated to staff?", "hint": "An AI AUP defines what employees can and cannot do with Copilot \u2014 for example, whether it can be used for client-facing content, what types of prompts are prohibited, and how outputs should be verified.", "critical": true, "opts": ["yes", "draft", "no"]}, {"id": "c3", "text": "Has the organisation's privacy notice been reviewed and updated to reference AI tool usage?", "hint": "Under UK GDPR, individuals must be informed if their data is processed by AI systems. This includes Copilot processing emails, documents, and meeting content.", "critical": true, "opts": ["yes", "under_review", "no"]}, {"id": "c4", "text": "Has a Data Protection Impact Assessment (DPIA) been conducted or is one in progress for the Copilot deployment?", "hint": "A DPIA is required under UK GDPR for processing likely to result in high risk to individuals. AI tools processing employee and potentially customer data typically trigger this requirement.", "critical": true, "opts": ["yes", "in_progress", "no"]}, {"id": "c5", "text": "Have HR and Legal reviewed the Copilot deployment plan, particularly around employee monitoring considerations?", "hint": "Copilot's audit trail of employee activity (what they searched for, what documents they accessed via Copilot) may have employment law implications, particularly for works councils in EU organisations.", "critical": false, "opts": ["yes", "partial", "no"]}, {"id": "c6", "text": "Is information lifecycle management (retention and deletion policies) configured in Microsoft Purview for Copilot interaction data?", "hint": "Copilot interaction history (prompts and responses) is stored in Exchange Online hidden folders. Standard retention policies apply unless specifically configured otherwise.", "critical": false, "opts": ["yes", "partial", "no"]}]}, {"id": "adopt", "icon": "\ud83d\ude80", "name": "Adoption & Change Management", "tag": "Deployment Planning", "num": 6, "qs": [{"id": "a1", "text": "Is there identified executive sponsorship for the Copilot rollout?", "hint": "Copilot adoption is consistently higher in organisations where leadership actively uses and advocates for it. Executive sponsorship is the strongest predictor of successful rollout.", "critical": false, "opts": ["yes", "passive", "no"]}, {"id": "a2", "text": "Have specific, high-value use cases been identified and prioritised for the initial deployment?", "hint": "The highest-value Copilot use cases vary by role. Common high-impact examples: meeting summaries (Teams), email drafting (Outlook), document summarisation (Word/SharePoint), data analysis (Excel).", "critical": false, "opts": ["yes", "broad", "no"]}, {"id": "a3", "text": "Have Copilot champions or early adopters been identified for a structured pilot phase?", "hint": "A pilot of 20\u201350 enthusiastic users before broad rollout identifies issues, generates success stories, and creates peer advocates who drive wider adoption.", "critical": false, "opts": ["yes", "informal", "no"]}, {"id": "a4", "text": "Is a user training plan in place covering Copilot fundamentals, effective prompting, and responsible use?", "hint": "Copilot output quality is highly dependent on prompt quality. Users who receive prompt training report significantly higher satisfaction and more frequent use.", "critical": false, "opts": ["yes", "planned", "no"]}, {"id": "a5", "text": "Are success metrics and KPIs defined to measure adoption and business value?", "hint": "Common metrics: monthly active users, feature usage (which Copilot features are used), self-reported time saved, task completion time, NPS score.", "critical": false, "opts": ["yes", "informal", "no"]}, {"id": "a6", "text": "Is there a structured feedback mechanism for users to report issues, suggest improvements, and share prompts that work well?", "hint": "A dedicated Teams channel, monthly Q&A session, or simple feedback form drives continuous improvement and surfaces data governance issues early.", "critical": false, "opts": ["yes", "planned", "no"]}]}];
+}
+
+function renderSection(){
+  var sections=getSectionData(), sec=sections[cur];
+  var total=sec.qs.length, answered=sec.qs.filter(function(q){return A[q.id]!==undefined;}).length;
+  var allDone=answered===total;
+  var rag=allDone?sectionRAG(cur):'pend';
+  var ragText=rag==='pend'?(answered+'/'+total+' answered'):rag==='g'?'READY':rag==='a'?'REVIEW':'ISSUES';
+  var ragCls='rag-'+rag;
+
+  var html='<div class="sec-card"><div class="sec-head"><div class="sec-head-l">';
+  html+='<span class="sec-icon">'+sec.icon+'</span>';
+  html+='<div><div class="sec-title">'+sec.num+'. '+sec.name+'</div>';
+  html+='<div class="sec-tag">'+sec.tag+'</div></div></div>';
+  html+='<span class="sec-rag '+ragCls+'" id="sec-rag">'+ragText+'</span></div>';
+
+  sec.qs.forEach(function(q,qi){
+    var v=A[q.id];
+    var critBadge=q.critical?'<span class="badge-crit">⚡ Required</span>':'';
+    html+='<div class="q-item '+(v!==undefined?'ans':'')+'" id="qi-'+q.id+'">';
+    html+='<div class="q-row"><span class="q-num">'+(qi+1)+'.</span>';
+    html+='<span class="q-text">'+q.text+'<span class="badges">'+critBadge+'</span></span></div>';
+    if(q.hint) html+='<div class="q-hint">'+q.hint+'</div>';
+    html+='<div class="ans-btns">';
+    var optLabels={'yes':'Yes','no':'No','unsure':'Not sure','partial':'Partial','budgeted':'Budgeted','some_sa':'Some on Semi-Annual','no_sa':'All on Semi-Annual','basic':'Basic policies only','p2':'Yes — Entra P2','p1':'Yes — Entra P1','deployed_untrained':'Deployed, not trained','yes_trained':'Yes — deployed & trained','some':'Some sites','widespread':'Widespread','considering':'Under consideration','informal':'Informally','under_review':'Under review','draft':'Draft in progress','in_progress':'In progress','broad':'Broad direction only','enabled_no_retention':'Enabled, retention not set','passive':'Passive support','planned':'Planned','behind':'Some versions behind','no_managed':'Not centrally managed','never':'Never done'};
+    q.opts.forEach(function(o){
+      var lbl=optLabels[o]||(o.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}));
+      var selCls=v===o?'sel':'';
+      html+='<button class="ab '+selCls+'" onclick="setAns(''+q.id+'',''+o+'',this)">'+lbl+'</button>';
+    });
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  var isLast=cur===SECTIONS_COP.length-1;
+  var unanswered=sec.qs.filter(function(q){return A[q.id]===undefined;}).length;
+  html+='<div class="nav-bar">';
+  html+='<div class="prog-text">Section <b>'+(cur+1)+'</b> of '+SECTIONS_COP.length+(unanswered>0?' &nbsp;·&nbsp; <span style="color:var(--muted)">'+unanswered+' unanswered — will be deferred</span>':'')+'</div>';
+  html+='<div style="display:flex;gap:8px;align-items:center;">';
+  if(cur>0) html+='<button class="btn btn-g" onclick="goBack()">← Back</button>';
+  html+='<button class="btn btn-p" onclick="goNext()">'+(isLast?'View Results →':'Next →')+'</button>';
+  html+='</div></div>';
+  document.getElementById('quiz').innerHTML=html;
+}
+
+function setAns(qid,val,btn){
+  A[qid]=val;saveState();
+  var qi=document.getElementById('qi-'+qid);
+  if(qi){
+    qi.classList.add('ans');
+    qi.querySelectorAll('.ab').forEach(function(b){b.classList.remove('sel');});
+    btn.classList.add('sel');
+  }
+  updateRAG();
+}
+
+function updateRAG(){
+  var sec=getSectionData()[cur];
+  var total=sec.qs.length,answered=sec.qs.filter(function(q){return A[q.id]!==undefined;}).length;
+  var allDone=answered===total;
+  var rag=allDone?sectionRAG(cur):'pend';
+  var ragText=rag==='pend'?(answered+'/'+total+' answered'):rag==='g'?'READY':rag==='a'?'REVIEW':'ISSUES';
+  var el=document.getElementById('sec-rag');
+  if(el){el.className='sec-rag rag-'+rag;el.textContent=ragText;}
+}
+
+function sectionRAG(si){
+  var qs=getSectionData()[si].qs;
+  var hasCritFail=qs.some(function(q){return q.critical&&(A[q.id]==='no'||A[q.id]==='widespread'||A[q.id]==='never'||A[q.id]==='no_sa');return false;});
+  if(hasCritFail) return 'r';
+  var good=qs.filter(function(q){return A[q.id]==='yes'||A[q.id]==='yes_trained'||A[q.id]==='p2'||A[q.id]==='p1'||A[q.id]==='budgeted';}).length;
+  var pct=qs.length>0?(good/qs.length)*100:0;
+  return pct>=75?'g':pct>=50?'a':'r';
+}
+
+function overallRAG(){
+  var rags=SECTIONS_COP.map(function(_,i){return sectionRAG(i);});
+  return rags.includes('r')?'r':rags.includes('a')?'a':'g';
+}
+
+function overallScore(){
+  var total=0,good=0;
+  var sections=getSectionData();
+  sections.forEach(function(s){
+    s.qs.forEach(function(q){
+      if(A[q.id]==='skip') return;
+      total++;
+      if(['yes','yes_trained','p2','p1','budgeted'].includes(A[q.id])) good++;
+    });
+  });
+  return total>0?Math.round((good/total)*100):0;
+}
+
+function goNext(){
+  var sec=getSectionData()[cur];
+  sec.qs.forEach(function(q){if(A[q.id]===undefined) A[q.id]='skip';});
+  saveState();
+  if(cur<SECTIONS_COP.length-1){cur++;saveState();renderStepper();renderSection();window.scrollTo(0,0);}
+  else{showResults();}
+}
+function goBack(){if(cur>0){cur--;renderStepper();renderSection();window.scrollTo(0,0);}}
+
+function getGaps(){
+  var g=[];
+  var sections=getSectionData();
+  sections.forEach(function(s){
+    s.qs.forEach(function(q){
+      var v=A[q.id];
+      if(v&&v!=='yes'&&v!=='yes_trained'&&v!=='p2'&&v!=='p1'&&v!=='budgeted'&&v!=='skip'){
+        var m=META_COP[q.id];
+        if(m) g.push({qid:q.id,v:v,sec:s.name,icon:s.icon,label:q.text,impact:m.impact,action:m.action,critical:m.critical});
+      }
+    });
+  });
+  return g;
+}
+
+function showResults(){
+  cur=SECTIONS_COP.length;renderStepper();
+  document.getElementById('quiz').innerHTML='';
+  var rag=overallRAG(),sc=overallScore(),gaps=getGaps();
+  var ragClass={'r':'rh-red','a':'rh-amber','g':'rh-green'}[rag];
+  var scClass={'r':'sc-red','a':'sc-amber','g':'sc-green'}[rag];
+  var verdict={'g':'Based on this assessment, the organisation appears broadly ready to deploy Microsoft 365 Copilot. Review any outstanding items before rollout.','a':'There are gaps that should be addressed before broad Copilot deployment. Priority items — particularly data governance — should be resolved first.','r':'Significant readiness gaps were found. Resolve all required items, especially data governance issues, before deploying Copilot to avoid data exposure and compliance risk.'}[rag];
+  
+  var html='<div class="res-hero '+ragClass+'">';
+  html+='<div class="rh-score '+scClass+'">'+sc+'%</div>';
+  html+='<div class="rh-title">Copilot Readiness: '+({'r':'Not Ready','a':'Partially Ready','g':'Ready to Deploy'}[rag])+'</div>';
+  html+='<div class="rh-sub">'+verdict+'</div></div>';
+
+  // Section summary
+  html+='<div class="ss-grid">';
+  var sections=getSectionData();
+  sections.forEach(function(s,i){
+    var r=sectionRAG(i),qs=s.qs.filter(function(q){return A[q.id]!==undefined&&A[q.id]!=='skip';});
+    var good=qs.filter(function(q){return ['yes','yes_trained','p2','p1','budgeted'].includes(A[q.id]);}).length;
+    var pct=qs.length>0?Math.round((good/qs.length)*100):0;
+    var dcls={'r':'dot-r','a':'dot-a','g':'dot-g'}[r];
+    var fcls={'r':'fill-r','a':'fill-a','g':'fill-g'}[r];
+    html+='<div class="ss-card"><div class="ss-top"><span class="ss-name">'+s.icon+' '+s.name+'</span><span class="ss-dot '+dcls+'"></span></div>';
+    html+='<div class="ss-bar"><div class="ss-fill '+fcls+'" style="width:'+pct+'%"></div></div>';
+    html+='<div class="ss-meta">'+pct+'% ready &nbsp;·&nbsp; '+(s.qs.length-qs.length)+' deferred</div></div>';
+  });
+  html+='</div>';
+
+  // Gaps
+  if(gaps.length){
+    html+='<div style="font-family:monospace;font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Gaps &amp; Actions</div>';
+    var bySec={};
+    gaps.forEach(function(g){if(!bySec[g.sec]) bySec[g.sec]={icon:g.icon,items:[]};bySec[g.sec].items.push(g);});
+    Object.entries(bySec).forEach(function([sn,data]){
+      var hasReq=data.items.some(function(g){return g.critical;});
+      var hdrRag=hasReq?'dc2626':'d97706';
+      html+='<div class="gap-block"><div class="gap-hdr"><span>'+data.icon+'</span>';
+      html+='<span class="gap-hdr-title">'+sn+'</span>';
+      html+='<span class="gap-hdr-rag" style="color:#'+hdrRag+';">'+(hasReq?'ACTION REQUIRED':'REVIEW')+'</span></div>';
+      data.items.forEach(function(g){
+        var isCrit=g.critical;
+        html+='<div class="gap-row" id="gr-'+g.qid+'">';
+        html+='<div class="gap-q-row"><span class="gap-sev '+(isCrit?'gs-r':'gs-a')+'">'+(isCrit?'REQUIRED':'REVIEW')+'</span>';
+        html+='<span class="gap-q-text">'+g.label+(isCrit?'<span class="badge-crit" style="margin-left:5px">⚡ Required</span>':'')+'</span></div>';
+        html+='<div class="gap-fix" style="font-size:12px;color:var(--muted);margin-bottom:6px;font-style:italic;">'+g.impact+'</div>';
+        html+='<div class="gap-fix">'+g.action+'</div>';
+        html+='<div class="rem-check-row"><input type="checkbox" class="rem-checkbox" id="rc-'+g.qid+'" '+(REM[g.qid]?'checked':'')+' onchange="setRem(''+g.qid+'',this.checked)"><label class="rem-label" for="rc-'+g.qid+'">Mark as addressed</label></div>';
+        html+='</div>';
+      });
+      html+='</div>';
+    });
+  } else {
+    html+='<div style="background:rgba(22,163,74,.06);border:1px solid rgba(22,163,74,.25);border-radius:11px;padding:14px 18px;text-align:center;color:#16a34a;font-size:13px;font-weight:600;">✓ No gaps identified — organisation appears ready to deploy Copilot</div>';
+  }
+
+  html+='<div class="res-footer">';
+  html+='<span class="rf-note">Microsoft 365 Copilot · Danzell v3.3 compatible · Verify pricing at learn.microsoft.com</span>';
+  html+='<div class="rf-btns">';
+  html+='<button class="btn-sm bs-g" onclick="window.print()">🖨 Print</button>';
+  html+='<button class="btn-sm bs-teal" onclick="window.open('copilot-report.html','_blank')">📋 Customer Report →</button>';
+  html+='<button class="btn-sm bs-a" onclick="restart()">↺ New Assessment</button>';
+  html+='</div></div>';
+
+  var el=document.getElementById('results');
+  el.innerHTML=html;el.classList.add('show');window.scrollTo(0,0);
+}
+
+function setRem(qid,val){REM[qid]=val;saveState();var r=document.getElementById('gr-'+qid);if(r) r.style.opacity=val?'.45':'1';}
+function restart(){Object.keys(A).forEach(function(k){delete A[k];});Object.keys(REM).forEach(function(k){delete REM[k];});cur=0;try{localStorage.removeItem(SAVE_KEY);}catch(e){}document.getElementById('results').classList.remove('show');document.getElementById('results').innerHTML='';renderStepper();renderSection();window.scrollTo(0,0);}
+
+renderStepper();renderSection();
+</script>
+</body>
+</html>

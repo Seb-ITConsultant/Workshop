@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>AI Platform Comparison · Seb's Workshop</title>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6fb;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--bh:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;--dim:#94a3b8;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  /* Platform colours */
+  --ms:#0078d4;--ms-dim:rgba(0,120,212,.08);--ms-brd:rgba(0,120,212,.25);
+  --oai:#10a37f;--oai-dim:rgba(16,163,127,.08);--oai-brd:rgba(16,163,127,.25);
+  --ant:#d97706;--ant-dim:rgba(217,119,6,.08);--ant-brd:rgba(217,119,6,.25);
+  --goo:#4285f4;--goo-dim:rgba(66,133,244,.08);--goo-brd:rgba(66,133,244,.25);
+  --meta:#1877f2;--meta-dim:rgba(24,119,242,.08);--meta-brd:rgba(24,119,242,.25);
+}
+html[data-theme="dark"]{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;--border:#1c2535;--bh:#2d3f5a;
+  --text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;--shadow:0 2px 8px rgba(0,0,0,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Segoe UI',system-ui,sans-serif;min-height:100vh;transition:background .2s,color .2s;}
+html[data-theme="dark"] body{background-image:linear-gradient(rgba(0,120,212,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,120,212,.02) 1px,transparent 1px);background-size:60px 60px;}
+.wrap{max-width:1040px;margin:0 auto;padding:32px 18px 60px;}
+/* NAV */
+.back-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s;}
+.back-link:hover{color:#0078d4;}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;}
+.nav-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);text-decoration:none;font-size:11.5px;font-weight:500;transition:all .15s;}
+.nav-pill:hover{border-color:#0078d4;color:#0078d4;}
+/* HERO */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:22px;box-shadow:var(--shadow);}
+.hero-eye{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:#0078d4;margin-bottom:8px;}
+.hero-title{font-size:clamp(1.5rem,3.5vw,2rem);font-weight:800;color:var(--text);letter-spacing:-.4px;margin-bottom:8px;}
+html[data-theme="dark"] .hero-title{color:#e8f0ff;}
+.hero-sub{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:12px;}
+.updated-note{font-family:monospace;font-size:10px;color:var(--dim);padding:4px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;display:inline-block;}
+/* PLATFORM LOGOS ROW */
+.platform-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.plat-chip{display:inline-flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;border:1.5px solid;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;}
+.plat-chip.ms{background:var(--ms-dim);border-color:var(--ms-brd);color:var(--ms);}
+.plat-chip.oai{background:var(--oai-dim);border-color:var(--oai-brd);color:var(--oai);}
+.plat-chip.ant{background:var(--ant-dim);border-color:var(--ant-brd);color:var(--ant);}
+.plat-chip.goo{background:var(--goo-dim);border-color:var(--goo-brd);color:var(--goo);}
+.plat-chip.meta{background:var(--meta-dim);border-color:var(--meta-brd);color:var(--meta);}
+.plat-chip.off{opacity:.35;filter:grayscale(1);}
+.plat-chip:hover{opacity:1;filter:none;transform:translateY(-1px);}
+/* FILTER BAR */
+.filter-section{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:18px;box-shadow:var(--shadow);}
+.filter-label{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.filter-btns{display:flex;gap:7px;flex-wrap:wrap;}
+.fb{padding:6px 15px;border-radius:20px;border:1.5px solid var(--border);background:transparent;color:var(--muted);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;}
+.fb:hover{border-color:var(--bh);color:var(--text);}
+.fb.active{background:rgba(0,120,212,.1);border-color:rgba(0,120,212,.35);color:#0078d4;}
+/* COMPARISON TABLE */
+.table-wrap{overflow-x:auto;margin-bottom:18px;border-radius:14px;border:1px solid var(--border);box-shadow:var(--shadow);}
+table{width:100%;border-collapse:collapse;background:var(--surface);min-width:700px;}
+thead tr{background:var(--surface2);border-bottom:2px solid var(--border);}
+th{padding:13px 14px;text-align:left;font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+th.plat-th{text-align:center;min-width:130px;}
+th.plat-th .plat-name{font-size:12px;font-weight:700;letter-spacing:0;text-transform:none;}
+th.plat-th .plat-sub{font-size:10px;font-weight:400;opacity:.7;text-transform:none;letter-spacing:0;margin-top:2px;}
+td{padding:11px 14px;border-bottom:1px solid var(--border);font-size:12.5px;color:var(--muted);vertical-align:top;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:var(--surface2);}
+.row-category{background:var(--surface2) !important;}
+.row-category td{font-size:10px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);padding:8px 14px;}
+.row-label{font-size:12.5px;color:var(--text);font-weight:500;vertical-align:top;min-width:160px;}
+html[data-theme="dark"] .row-label{color:#c8d8f0;}
+.row-label .rl-sub{font-size:11px;color:var(--muted);font-weight:400;margin-top:2px;display:block;font-style:italic;}
+td.plat-cell{text-align:center;vertical-align:top;}
+/* Cell value badges */
+.cv{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border-radius:6px;font-size:11px;font-weight:600;white-space:nowrap;}
+.cv-g{background:rgba(22,163,74,.1);color:#16a34a;}
+.cv-a{background:rgba(217,119,6,.1);color:#d97706;}
+.cv-r{background:rgba(220,38,38,.1);color:#dc2626;}
+.cv-b{background:rgba(0,120,212,.1);color:#0078d4;}
+.cv-p{background:rgba(99,102,241,.1);color:#6366f1;}
+.cv-n{background:var(--surface2);color:var(--muted);}
+.cv-text{font-size:11.5px;color:var(--muted);line-height:1.5;display:block;margin-top:4px;}
+.cv-note{font-size:10.5px;color:var(--dim);display:block;margin-top:3px;font-style:italic;}
+/* PLATFORM DETAIL CARDS */
+.detail-section{margin-top:24px;}
+.detail-title{font-size:13px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;}
+.detail-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--shadow);}
+.dc-head{padding:15px 18px 12px;border-bottom:1px solid var(--border);}
+.dc-name{font-size:15px;font-weight:800;color:var(--text);}
+html[data-theme="dark"] .dc-name{color:#e8f0ff;}
+.dc-vendor{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.dc-tag{display:inline-flex;padding:2px 9px;border-radius:20px;font-size:10px;font-weight:600;border:1px solid;margin-top:8px;}
+.dc-body{padding:14px 18px;}
+.dc-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);}
+.dc-row:last-child{border-bottom:none;}
+.dc-key{font-size:11.5px;color:var(--muted);font-weight:500;flex:1;}
+.dc-val{font-size:11.5px;text-align:right;font-weight:600;flex:1;}
+.dc-val.green{color:#16a34a;}
+.dc-val.amber{color:#d97706;}
+.dc-val.red{color:#dc2626;}
+.dc-val.blue{color:#0078d4;}
+/* USE CASE GUIDE */
+.use-case-section{margin-top:24px;}
+.uc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;}
+.uc-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;box-shadow:var(--shadow);}
+.uc-title{font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;}
+html[data-theme="dark"] .uc-title{color:#e8f0ff;}
+.uc-body{font-size:12.5px;color:var(--muted);line-height:1.65;}
+.uc-rec{margin-top:10px;padding:7px 10px;border-radius:7px;font-size:12px;font-weight:600;}
+/* DISCLAIMER */
+.disclaimer{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-top:22px;font-size:11.5px;color:var(--muted);line-height:1.7;}
+.disclaimer strong{color:var(--text);}
+html[data-theme="dark"] .disclaimer strong{color:#c8d8f0;}
+/* HIDDEN */
+.hidden{display:none;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@media print{body{background:#fff;color:#000;}html[data-theme="dark"] body{filter:none;background:#fff;}.back-nav,#sw-theme-btn,.filter-section,.platform-row{display:none!important;}.table-wrap{overflow:visible;}table{min-width:auto;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-nav">
+    <a href="index.html" class="back-link">← Workshop</a>
+    <div class="nav-links">
+      <a href="copilot-readiness.html" class="nav-pill">🤖 Copilot Readiness</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eye">Enterprise AI · Platform Comparison</div>
+    <div class="hero-title">🤖 AI Platform Comparison</div>
+    <p class="hero-sub">A plain-English comparison of the major enterprise AI platforms covering GDPR, data residency, guardrails, certifications and key differences. Use the filters to focus on what matters most to your organisation.</p>
+    <span class="updated-note">Last reviewed: May 2026 — always verify with vendor documentation before decisions</span>
+  </div>
+
+  <!-- Platform toggles -->
+  <div class="platform-row" id="plat-toggles">
+    <button class="plat-chip ms" data-plat="ms" onclick="togglePlat('ms',this)">🪟 Microsoft Copilot</button>
+    <button class="plat-chip oai" data-plat="oai" onclick="togglePlat('oai',this)">🟢 ChatGPT Enterprise</button>
+    <button class="plat-chip ant" data-plat="ant" onclick="togglePlat('ant',this)">🟠 Claude Enterprise</button>
+    <button class="plat-chip goo" data-plat="goo" onclick="togglePlat('goo',this)">🔵 Google Gemini</button>
+    <button class="plat-chip meta" data-plat="meta" onclick="togglePlat('meta',this)">🦙 Meta Llama (Self-hosted)</button>
+  </div>
+
+  <!-- Filter bar -->
+  <div class="filter-section">
+    <div class="filter-label">Filter by topic</div>
+    <div class="filter-btns">
+      <button class="fb active" onclick="setFilter('all',this)">All topics</button>
+      <button class="fb" onclick="setFilter('gdpr',this)">🇬🇧 GDPR & UK Data</button>
+      <button class="fb" onclick="setFilter('residency',this)">📍 Data Residency</button>
+      <button class="fb" onclick="setFilter('training',this)">🧠 Model Training</button>
+      <button class="fb" onclick="setFilter('guardrails',this)">🛡️ Guardrails & Safety</button>
+      <button class="fb" onclick="setFilter('certs',this)">📋 Certifications</button>
+      <button class="fb" onclick="setFilter('enterprise',this)">🏢 Enterprise Features</button>
+      <button class="fb" onclick="setFilter('pricing',this)">💷 Pricing</button>
+      <button class="fb" onclick="setFilter('integration',this)">🔗 M365 Integration</button>
+    </div>
+  </div>
+
+  <!-- Main comparison table -->
+  <div class="table-wrap">
+    <table id="comp-table">
+      <thead>
+        <tr>
+          <th style="width:200px;">Topic</th>
+          <th class="plat-th" data-plat="ms"><div class="plat-name" style="color:#0078d4;">🪟 Microsoft Copilot</div><div class="plat-sub">M365 Copilot (Enterprise)</div></th>
+          <th class="plat-th" data-plat="oai"><div class="plat-name" style="color:#10a37f;">🟢 ChatGPT Enterprise</div><div class="plat-sub">OpenAI</div></th>
+          <th class="plat-th" data-plat="ant"><div class="plat-name" style="color:#d97706;">🟠 Claude Enterprise</div><div class="plat-sub">Anthropic</div></th>
+          <th class="plat-th" data-plat="goo"><div class="plat-name" style="color:#4285f4;">🔵 Google Gemini</div><div class="plat-sub">Google Workspace AI</div></th>
+          <th class="plat-th" data-plat="meta"><div class="plat-name" style="color:#1877f2;">🦙 Meta Llama</div><div class="plat-sub">Self-hosted / Open Source</div></th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Platform detail cards -->
+  <div class="detail-section">
+    <div class="detail-title">Platform Summaries</div>
+    <div class="detail-grid" id="detail-cards"></div>
+  </div>
+
+  <!-- Use case guide -->
+  <div class="use-case-section">
+    <div class="detail-title">When to Choose Which</div>
+    <div class="uc-grid" id="uc-grid"></div>
+  </div>
+
+  <div class="disclaimer">
+    <strong>Important:</strong> This comparison is provided for general guidance only and reflects publicly available information as of May 2026.
+    The enterprise AI market changes rapidly — pricing, features, data residency options and certifications are updated frequently.
+    Always verify current terms directly with each vendor, review their Data Processing Agreements, and consult your Data Protection Officer
+    before making deployment decisions. The "no training on customer data" commitments apply to enterprise/API tiers — consumer free tiers
+    have different terms. <strong>This is not legal or compliance advice.</strong>
+  </div>
+</div>
+
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark/light" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){var b=document.getElementById("sw-theme-btn"),dk=document.documentElement.getAttribute("data-theme")==="dark";b.textContent=dk?"☀":"🌙";b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";}());
+function swToggle(){var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);var b=document.getElementById("sw-theme-btn");b.textContent=dk?"🌙":"☀";b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";}
+
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const PLATS = ['ms','oai','ant','goo','meta'];
+let activePlats = new Set(PLATS);
+let activeFilter = 'all';
+
+const ROWS = [
+  // GDPR
+  {cat:'gdpr',label:'GDPR Compliance',sub:'Enterprise tier',
+   ms:{v:'g',t:'Fully GDPR compliant. DPA included in Microsoft Product Terms. EU Data Boundary available.'},
+   oai:{v:'g',t:'GDPR compliant on Enterprise. DPA available. UK data residency added Oct 2025.'},
+   ant:{v:'g',t:'GDPR compliant on Business/Enterprise tiers. DPA available. API via AWS Bedrock (UK South) for UK residency.'},
+   goo:{v:'g',t:'GDPR compliant via Google Workspace. DPA included. EU/UK data regions available.'},
+   meta:{v:'g',t:'Self-hosted — GDPR compliance is entirely your responsibility. Full data sovereignty.'}},
+  {cat:'gdpr',label:'DPA Available?',sub:'Data Processing Agreement',
+   ms:{v:'g',t:'Yes — included in Microsoft Product Terms automatically.'},
+   oai:{v:'g',t:'Yes — available for Enterprise, Business and API Platform tiers.'},
+   ant:{v:'g',t:'Yes — available for Business and Enterprise tiers, and API customers.'},
+   goo:{v:'g',t:'Yes — included in Google Workspace Terms of Service.'},
+   meta:{v:'p',t:'N/A — self-hosted. You are the data controller and processor.'}},
+  {cat:'gdpr',label:'Consumer tier caution',sub:'Free/Plus tiers differ',
+   ms:{v:'a',t:'Copilot.microsoft.com (free) has different terms. Enterprise Copilot via M365 admin is governed separately.'},
+   oai:{v:'r',t:'ChatGPT Free and Plus tiers may use data for training by default. Enterprise tier has no-train guarantee.'},
+   ant:{v:'r',t:'Claude.ai free tier: conversations may be reviewed for safety. Business/Enterprise tier: no training.'},
+   goo:{v:'a',t:'Google Workspace AI has enterprise guarantees. Consumer gmail.com accounts have different terms.'},
+   meta:{v:'g',t:'Self-hosted — your data never leaves your infrastructure regardless of tier.'}},
+  // DATA RESIDENCY
+  {cat:'residency',label:'UK Data Residency',sub:'Data stays in UK',
+   ms:{v:'g',t:'Yes — UK-provisioned M365 tenants store data in UK datacentres. EU Data Boundary covers M365 Copilot.'},
+   oai:{v:'g',t:'Yes — UK data residency added October 2025 for ChatGPT Enterprise.'},
+   ant:{v:'a',t:'Via AWS Bedrock UK South or Google Cloud EU (Ireland). Direct claude.ai interface is US-based.'},
+   goo:{v:'g',t:'Yes — UK and EU data regions available for Workspace customers.'},
+   meta:{v:'g',t:'Complete data sovereignty — deploy wherever you choose.'}},
+  {cat:'residency',label:'EU Data Residency',sub:'GDPR Article 44 considerations',
+   ms:{v:'g',t:'Yes — EU Data Boundary programme. Data stored and processed within EU/EEA.'},
+   oai:{v:'g',t:'EU residency available on Enterprise. US SCCs apply for processing transfers.'},
+   ant:{v:'a',t:'Via AWS Bedrock EU (Ireland) or Google Cloud Vertex AI EU regions. Claude models in M365 Copilot currently excluded from EU Data Boundary.'},
+   goo:{v:'g',t:'EU data regions available. EU AI Act compliance roadmap published.'},
+   meta:{v:'g',t:'Self-hosted in any EU region you choose.'}},
+  {cat:'residency',label:'On-premise / Private Cloud',sub:'Run in your own infrastructure',
+   ms:{v:'a',t:'Azure OpenAI Service allows private deployment of OpenAI models on Azure. Not available fully on-premise.'},
+   oai:{v:'a',t:'Azure OpenAI Service provides private Azure deployment. No on-premise option from OpenAI directly.'},
+   ant:{v:'a',t:'Via AWS Bedrock (private endpoint) or Google Cloud Vertex AI. No on-premise option directly.'},
+   goo:{v:'a',t:'Google Cloud / Vertex AI allows VPC deployment. No on-premise.'},
+   meta:{v:'g',t:'Fully self-hostable. Run on your own servers, air-gapped if needed. Ideal for highly regulated sectors.'}},
+  // MODEL TRAINING
+  {cat:'training',label:'Enterprise data used for training?',sub:'Your data trains their models',
+   ms:{v:'g',t:'No. Microsoft contractually commits that M365 Copilot does not train on customer data.'},
+   oai:{v:'g',t:'No. ChatGPT Enterprise and API Platform data is not used for training by default under the DPA.'},
+   ant:{v:'g',t:'No. Business and Enterprise tier data is not used to train Claude models.'},
+   goo:{v:'g',t:'No. Google Workspace business data is not used to train AI models.'},
+   meta:{v:'g',t:'N/A — self-hosted. Model weights are fixed; your data never leaves your environment.'}},
+  {cat:'training',label:'Free tier data used for training?',sub:'Consumer/free account terms',
+   ms:{v:'a',t:'Copilot.microsoft.com (consumer) may use interactions for product improvement. M365 enterprise is separate.'},
+   oai:{v:'r',t:'ChatGPT Free/Plus: opt-out available but default may include training. Enterprise: guaranteed no training.'},
+   ant:{v:'r',t:'Claude.ai free tier: conversations may be reviewed for safety research. Business tier: no training.'},
+   goo:{v:'a',t:'Consumer Google accounts: data used for product improvement. Workspace: no training on business data.'},
+   meta:{v:'g',t:'Open source model — no data sent to Meta regardless of deployment method.'}},
+  {cat:'training',label:'Copyright indemnification',sub:'Protection if output infringes IP',
+   ms:{v:'g',t:'Yes — Microsoft Copilot Copyright Commitment. Microsoft will defend customers against IP claims from Copilot outputs used as intended.'},
+   oai:{v:'g',t:'Yes — OpenAI Copyright Shield for Enterprise customers. Covers legal costs for copyright infringement claims.'},
+   ant:{v:'g',t:'Yes — Anthropic Intellectual Property indemnification for API/Enterprise customers.'},
+   goo:{v:'g',t:'Yes — Google AI indemnification for Workspace and Cloud AI Enterprise customers.'},
+   meta:{v:'r',t:'No — self-hosted deployment means you bear all IP risk. Legal position of Llama training data is less clear.'}},
+  // GUARDRAILS
+  {cat:'guardrails',label:'Content filtering & safety',sub:'Built-in harmful content prevention',
+   ms:{v:'g',t:'Azure AI Content Safety integrated. Blocks harmful, violent, sexual and hate content. Configurable for enterprise needs.'},
+   oai:{v:'g',t:'OpenAI Moderation API. Strong safety systems across all models. Configurable system prompts for enterprise.'},
+   ant:{v:'g',t:'Constitutional AI — trained on a set of principles for safe, honest and harmless responses. Industry-leading safety research from Anthropic.'},
+   goo:{v:'g',t:'Google SafeSearch and responsible AI principles integrated. Gemini models have built-in safety filters.'},
+   meta:{v:'a',t:'Meta Llama Guard model available for safety classification, but implementation is your responsibility.'}},
+  {cat:'guardrails',label:'Prompt injection protection',sub:'Prevents manipulation of AI behaviour',
+   ms:{v:'g',t:'Microsoft Defender for Cloud Apps and Copilot safety systems provide prompt injection mitigations.'},
+   oai:{v:'a',t:'System prompt confidentiality and some injection mitigations. Active area of development.'},
+   ant:{v:'g',t:'Strong Constitutional AI training provides good resistance to prompt injection. Explicit safety against harmful instructions.'},
+   goo:{v:'a',t:'Gemini has safety filters but prompt injection is an active area of research across all providers.'},
+   meta:{v:'r',t:'Entirely your responsibility to implement. No built-in protections without additional tooling.'}},
+  {cat:'guardrails',label:'Admin controls & policies',sub:'Enterprise-wide AI governance',
+   ms:{v:'g',t:'Full admin control via M365 Admin Centre. Copilot usage policies, feature enablement, audit logs, and Purview integration.'},
+   oai:{v:'g',t:'ChatGPT Enterprise: domain verification, SSO, usage policies, admin dashboard, audit logs.'},
+   ant:{v:'a',t:'Claude Enterprise: SSO, role-based access, admin tools, custom knowledge bases. Less mature than Microsoft.'},
+   goo:{v:'g',t:'Google Workspace Admin: full policy controls, usage reporting, Vault integration for compliance.'},
+   meta:{v:'p',t:'You build your own governance layer. Complete control but significant implementation effort required.'}},
+  {cat:'guardrails',label:'EU AI Act alignment',sub:'Compliance with EU regulation',
+   ms:{v:'g',t:'Microsoft EU AI Act commitment published. Azure AI services include transparency documentation.'},
+   oai:{v:'a',t:'Working towards EU AI Act compliance. System Cards published for major models.'},
+   ant:{v:'a',t:'Anthropic publishes model cards and safety research. EU AI Act compliance roadmap in progress.'},
+   goo:{v:'g',t:'Google EU AI Act compliance programme published. Gemini model cards available.'},
+   meta:{v:'a',t:'Meta publishes model cards for Llama models. Self-hosted deployment compliance is your responsibility.'}},
+  // CERTIFICATIONS
+  {cat:'certs',label:'ISO 27001',sub:'Information security management',
+   ms:{v:'g',t:'Yes — Microsoft Azure (and M365) ISO 27001 certified.'},
+   oai:{v:'g',t:'Yes — OpenAI ISO 27001 certified for enterprise services.'},
+   ant:{v:'g',t:'Yes — Anthropic ISO 27001 certified.'},
+   goo:{v:'g',t:'Yes — Google Cloud ISO 27001 certified.'},
+   meta:{v:'a',t:'Meta has certifications for its cloud infrastructure. Self-hosted deployments require your own certification scope.'}},
+  {cat:'certs',label:'SOC 2 Type II',sub:'Security, availability, confidentiality',
+   ms:{v:'g',t:'Yes — Microsoft M365 SOC 2 Type II audited.'},
+   oai:{v:'g',t:'Yes — OpenAI SOC 2 Type II for enterprise services.'},
+   ant:{v:'g',t:'Yes — Anthropic SOC 2 Type II certified.'},
+   goo:{v:'g',t:'Yes — Google Cloud SOC 2 Type II audited.'},
+   meta:{v:'a',t:'Meta infrastructure is SOC 2 certified. Self-hosted = you inherit the certification burden.'}},
+  {cat:'certs',label:'Cyber Essentials / NCSC guidance',sub:'UK government framework',
+   ms:{v:'g',t:'Microsoft 365 is CE-compatible and widely used in CE-certified organisations. NCSC recommends MFA for all M365.'},
+   oai:{v:'a',t:'No specific CE guidance. Using ChatGPT Enterprise is generally CE-compatible with appropriate controls.'},
+   ant:{v:'a',t:'No specific CE guidance. API/Enterprise use is CE-compatible with appropriate data controls.'},
+   goo:{v:'a',t:'Google Workspace is widely used in CE-certified organisations. No specific CE certification.'},
+   meta:{v:'p',t:'Self-hosted deployment can be fully CE-compatible — complete control over all aspects.'}},
+  // ENTERPRISE FEATURES
+  {cat:'enterprise',label:'Single Sign-On (SSO)',sub:'Integrate with your identity provider',
+   ms:{v:'g',t:'Yes — native Entra ID integration. No additional configuration needed.'},
+   oai:{v:'g',t:'Yes — ChatGPT Enterprise supports SAML/SCIM SSO with major providers.'},
+   ant:{v:'g',t:'Yes — Claude Enterprise supports SSO via SAML.'},
+   goo:{v:'g',t:'Yes — Google Workspace native SSO. SAML for third-party IdPs.'},
+   meta:{v:'p',t:'You implement your own SSO as part of your deployment.'}},
+  {cat:'enterprise',label:'Audit logging',sub:'Track who used AI and how',
+   ms:{v:'g',t:'Full audit logging in Microsoft Purview. Copilot interactions logged as distinct event types. Retention configurable.'},
+   oai:{v:'g',t:'Admin usage dashboard and API logs available. Less mature than Microsoft\'s Purview integration.'},
+   ant:{v:'a',t:'Admin usage reporting available. Less comprehensive than Microsoft Purview integration.'},
+   goo:{v:'g',t:'Google Workspace Vault provides audit logging for AI interactions.'},
+   meta:{v:'p',t:'You implement all logging and monitoring. Complete control but significant effort.'}},
+  {cat:'enterprise',label:'eDiscovery / Legal Hold',sub:'AI data in legal proceedings',
+   ms:{v:'g',t:'Copilot interaction data is subject to Purview eDiscovery and legal hold. Only platform offering this currently.'},
+   oai:{v:'r',t:'Limited eDiscovery capability. Not recommended for organisations with strict retention/legal hold requirements.'},
+   ant:{v:'r',t:'No native eDiscovery integration. Legal hold not currently supported.'},
+   goo:{v:'a',t:'Google Workspace Vault covers some AI interaction data. Less mature than Purview.'},
+   meta:{v:'p',t:'You implement all discovery and retention tooling.'}},
+  {cat:'enterprise',label:'Custom knowledge bases',sub:'Ground AI in your own content',
+   ms:{v:'g',t:'Copilot automatically grounds in M365 content (SharePoint, OneDrive, Teams, Outlook). Copilot Studio for external sources.'},
+   oai:{v:'g',t:'Custom GPTs and Assistants API support custom knowledge bases and file uploads.'},
+   ant:{v:'g',t:'Claude Enterprise supports internal knowledge base ingestion for grounded responses.'},
+   goo:{v:'g',t:'Gemini for Workspace + Google Cloud integrations. NotebookLM for document grounding.'},
+   meta:{v:'g',t:'Retrieval-Augmented Generation (RAG) pipelines are standard for self-hosted Llama deployments.'}},
+  // PRICING
+  {cat:'pricing',label:'Enterprise pricing (indicative)',sub:'Per-user per-month, verify current',
+   ms:{v:'b',t:'~£24.70/user/month (Enterprise, 300+ seats). ~£21/user/month (Business, <300 seats). On top of base M365 licence.'},
+   oai:{v:'b',t:'ChatGPT Enterprise: custom pricing (contact sales). Typically $30–60/user/month at enterprise scale.'},
+   ant:{v:'b',t:'Claude Business: $30/user/month. Claude Enterprise: custom pricing. API pricing by token.'},
+   goo:{v:'b',t:'Gemini for Google Workspace: included in Workspace Business/Enterprise or as add-on. ~$20-30/user/month for AI features.'},
+   meta:{v:'p',t:'Model weights are free. You pay for compute, storage, and infrastructure. Highly variable based on deployment scale.'}},
+  {cat:'pricing',label:'Free tier available?',sub:'For evaluation or personal use',
+   ms:{v:'a',t:'Copilot Chat (basic) free with eligible M365 subscription. Full Copilot requires paid add-on.'},
+   oai:{v:'g',t:'ChatGPT Free tier available. Note: different data terms from Enterprise. Plus tier at $20/month.'},
+   ant:{v:'g',t:'Claude.ai free tier available. Note: different data terms from Business/Enterprise.'},
+   goo:{v:'g',t:'Gemini consumer free tier available. Workspace AI features require paid plan.'},
+   meta:{v:'g',t:'Model weights free to download and use. Llama 3 available for commercial use under Meta licence.'}},
+  // M365 INTEGRATION
+  {cat:'integration',label:'Microsoft 365 integration depth',sub:'Word, Excel, Teams, Outlook',
+   ms:{v:'g',t:'Native deep integration across all M365 apps. Microsoft Graph grounding. Meeting summaries, email drafting, document generation built-in.'},
+   oai:{v:'a',t:'ChatGPT plugins for some M365 apps. Azure OpenAI can integrate via APIs. Not native.'},
+   ant:{v:'a',t:'Claude available within M365 Copilot as of late 2025. Direct M365 app integration requires custom development.'},
+   goo:{v:'r',t:'Minimal native M365 integration. Strong Google Workspace integration instead.'},
+   meta:{v:'r',t:'No native M365 integration. Custom development required for any M365 connectivity.'}},
+  {cat:'integration',label:'Microsoft Sentinel / Defender',sub:'Security tool integration',
+   ms:{v:'g',t:'Copilot for Security integrates natively with Sentinel, Defender XDR, Intune and Purview.'},
+   oai:{v:'r',t:'No native Sentinel/Defender integration.'},
+   ant:{v:'r',t:'No native Sentinel/Defender integration.'},
+   goo:{v:'r',t:'No native Microsoft security tool integration.'},
+   meta:{v:'p',t:'Custom integration possible but requires significant development effort.'}},
+  {cat:'integration',label:'SharePoint / OneDrive grounding',sub:'AI knows your file content',
+   ms:{v:'g',t:'Native via Microsoft Graph. Copilot automatically searches SharePoint and OneDrive content the user has access to.'},
+   oai:{v:'a',t:'Possible via Microsoft Graph API connector in Copilot Studio or custom development.'},
+   ant:{v:'a',t:'Possible via API + custom RAG pipeline or through M365 Copilot integration.'},
+   goo:{v:'r',t:'No native SharePoint grounding. Google Drive grounding available for Workspace users.'},
+   meta:{v:'a',t:'Possible via custom RAG pipeline with SharePoint content extraction.'}},
+];
+
+const DETAIL_CARDS = [
+  {plat:'ms',name:'Microsoft 365 Copilot',vendor:'Microsoft',tag:'M365-native',tagColor:'#0078d4',
+   rows:[
+     {k:'Best for',v:'Microsoft-centric organisations',c:'blue'},
+     {k:'Unique strength',v:'Deep M365 integration & Purview',c:'blue'},
+     {k:'Biggest risk',v:'SharePoint oversharing',c:'amber'},
+     {k:'CE compatible',v:'Yes — widely used',c:'green'},
+     {k:'UK data residency',v:'Yes — native',c:'green'},
+     {k:'Trains on your data',v:'No',c:'green'},
+     {k:'eDiscovery',v:'Yes — only platform',c:'green'},
+   ]},
+  {plat:'oai',name:'ChatGPT Enterprise',vendor:'OpenAI',tag:'General purpose AI',tagColor:'#10a37f',
+   rows:[
+     {k:'Best for',v:'Versatile knowledge work',c:'blue'},
+     {k:'Unique strength',v:'Largest model, widest capability',c:'blue'},
+     {k:'Biggest risk',v:'Free tier confusion re: data terms',c:'amber'},
+     {k:'CE compatible',v:'Yes with controls',c:'green'},
+     {k:'UK data residency',v:'Yes — added Oct 2025',c:'green'},
+     {k:'Trains on your data',v:'No (Enterprise)',c:'green'},
+     {k:'eDiscovery',v:'Limited',c:'amber'},
+   ]},
+  {plat:'ant',name:'Claude Enterprise',vendor:'Anthropic',tag:'Safety-focused AI',tagColor:'#d97706',
+   rows:[
+     {k:'Best for',v:'Long documents, complex analysis',c:'blue'},
+     {k:'Unique strength',v:'Constitutional AI safety, 200K context',c:'blue'},
+     {k:'Biggest risk',v:'UK residency via Bedrock only (not claude.ai)',c:'amber'},
+     {k:'CE compatible',v:'Yes with controls',c:'green'},
+     {k:'UK data residency',v:'Via AWS Bedrock UK South',c:'amber'},
+     {k:'Trains on your data',v:'No (Business+)',c:'green'},
+     {k:'eDiscovery',v:'Not supported',c:'red'},
+   ]},
+  {plat:'goo',name:'Google Gemini',vendor:'Google',tag:'Google Workspace AI',tagColor:'#4285f4',
+   rows:[
+     {k:'Best for',v:'Google Workspace organisations',c:'blue'},
+     {k:'Unique strength',v:'Multimodal, huge context window',c:'blue'},
+     {k:'Biggest risk',v:'Limited M365 integration',c:'amber'},
+     {k:'CE compatible',v:'Yes with controls',c:'green'},
+     {k:'UK data residency',v:'Yes',c:'green'},
+     {k:'Trains on your data',v:'No (Workspace)',c:'green'},
+     {k:'eDiscovery',v:'Via Google Vault',c:'amber'},
+   ]},
+  {plat:'meta',name:'Meta Llama (Self-hosted)',vendor:'Meta / Open Source',tag:'Full data sovereignty',tagColor:'#1877f2',
+   rows:[
+     {k:'Best for',v:'Highest data sensitivity, regulated sectors',c:'blue'},
+     {k:'Unique strength',v:'Complete control, no data leaves your infra',c:'blue'},
+     {k:'Biggest risk',v:'Significant implementation burden',c:'amber'},
+     {k:'CE compatible',v:'Yes — you control everything',c:'green'},
+     {k:'UK data residency',v:'Yes — wherever you host',c:'green'},
+     {k:'Trains on your data',v:'N/A — model is fixed',c:'green'},
+     {k:'eDiscovery',v:'You implement',c:'amber'},
+   ]},
+];
+
+const USE_CASES = [
+  {title:'🏢 Microsoft-centric organisation',body:'Already running M365 E3/E5, using SharePoint, Teams and Outlook daily.',rec:'Microsoft 365 Copilot',recColor:'#0078d4',why:'Native integration means zero additional infrastructure. Copilot accesses your existing M365 data automatically. Governance via familiar admin tools.'},
+  {title:'🔒 Maximum data sovereignty required',body:'Regulated sector, air-gap requirement, or policy that data cannot leave your own infrastructure.',rec:'Meta Llama (self-hosted)',recColor:'#1877f2',why:'Only option where your data never touches a third-party cloud. Requires significant engineering capability to deploy and maintain effectively.'},
+  {title:'⚖️ UK GDPR compliance is the primary concern',body:'Processing significant volumes of UK/EU personal data, DPO has raised concerns.',rec:'Microsoft Copilot or ChatGPT Enterprise',recColor:'#0078d4',why:'Both offer native UK data residency, comprehensive DPAs, and are the most mature options for UK regulatory compliance. Microsoft is the only option with eDiscovery.'},
+  {title:'📄 Long document analysis',body:'Legal, financial, or research teams working with very long contracts, reports or case files.',rec:'Claude Enterprise',recColor:'#d97706',why:'200,000 token context window is the largest available. Constitutional AI training makes it highly reliable for careful analysis. Ideal for legal and compliance use cases.'},
+  {title:'🔑 Broadest AI capability needed',body:'Diverse use cases, R&D teams, developers building AI-powered applications.',rec:'ChatGPT Enterprise',recColor:'#10a37f',why:'GPT-5 series offers the strongest general reasoning and coding capability. Custom GPTs and Assistants API enable purpose-built tools. Largest ecosystem of integrations.'},
+  {title:'🌐 Google Workspace organisation',body:'Already using Gmail, Docs, Drive and Meet — minimal Microsoft 365 usage.',rec:'Google Gemini',recColor:'#4285f4',why:'Deep native Workspace integration mirrors what Microsoft Copilot offers for M365. Switching AI platforms to match your productivity suite makes deployment straightforward.'},
+];
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function g(v){return v==='g'?'cv-g':v==='r'?'cv-r':v==='a'?'cv-a':v==='b'?'cv-b':v==='p'?'cv-p':'cv-n';}
+function icon(v){return v==='g'?'✓':v==='r'?'✕':v==='a'?'◑':v==='b'?'ℹ':v==='p'?'—':'?';}
+
+function renderTable(){
+  var cats = {all:'',gdpr:'GDPR & Data Protection',residency:'Data Residency',training:'Model Training',guardrails:'Guardrails & Safety',certs:'Certifications',enterprise:'Enterprise Features',pricing:'Pricing',integration:'Microsoft 365 Integration'};
+  var body = '';
+  var lastCat = '';
+  var visPlats = PLATS.filter(function(p){return activePlats.has(p);});
+
+  ROWS.forEach(function(row){
+    if(activeFilter!=='all' && row.cat!==activeFilter) return;
+    if(row.cat!==lastCat){
+      lastCat=row.cat;
+      var catLabel=cats[row.cat]||row.cat;
+      var colspan=1+visPlats.length;
+      body+='<tr class="row-category"><td colspan="'+colspan+'">'+catLabel+'</td></tr>';
+    }
+    body+='<tr>';
+    body+='<td class="row-label">'+row.label+(row.sub?'<span class="rl-sub">'+row.sub+'</span>':'')+'</td>';
+    visPlats.forEach(function(p){
+      var cell=row[p];
+      if(!cell){body+='<td class="plat-cell"><span class="cv cv-n">—</span></td>';return;}
+      body+='<td class="plat-cell">';
+      body+='<span class="cv '+g(cell.v)+'">'+icon(cell.v)+'</span>';
+      if(cell.t) body+='<span class="cv-text">'+cell.t+'</span>';
+      body+='</td>';
+    });
+    body+='</tr>';
+  });
+  document.getElementById('table-body').innerHTML=body;
+
+  // Update header visibility
+  document.querySelectorAll('th[data-plat]').forEach(function(th){
+    th.style.display=activePlats.has(th.dataset.plat)?'':'none';
+  });
+}
+
+function renderCards(){
+  var html='';
+  DETAIL_CARDS.forEach(function(c){
+    if(!activePlats.has(c.plat)) return;
+    html+='<div class="detail-card">';
+    html+='<div class="dc-head">';
+    html+='<div class="dc-name">'+c.name+'</div>';
+    html+='<div class="dc-vendor">'+c.vendor+'</div>';
+    html+='<span class="dc-tag" style="background:'+c.tagColor+'1a;border-color:'+c.tagColor+'44;color:'+c.tagColor+';">'+c.tag+'</span>';
+    html+='</div><div class="dc-body">';
+    c.rows.forEach(function(r){
+      var cls=r.c==='green'?'green':r.c==='amber'?'amber':r.c==='red'?'red':'blue';
+      html+='<div class="dc-row"><span class="dc-key">'+r.k+'</span><span class="dc-val '+cls+'">'+r.v+'</span></div>';
+    });
+    html+='</div></div>';
+  });
+  document.getElementById('detail-cards').innerHTML=html;
+}
+
+function renderUseCases(){
+  var html='';
+  USE_CASES.forEach(function(u){
+    html+='<div class="uc-card">';
+    html+='<div class="uc-title">'+u.title+'</div>';
+    html+='<div class="uc-body">'+u.body+'</div>';
+    html+='<div class="uc-rec" style="background:'+u.recColor+'1a;border:1px solid '+u.recColor+'33;color:'+u.recColor+';margin-top:10px;"><strong>Recommended:</strong> '+u.rec+'</div>';
+    html+='<div class="uc-body" style="margin-top:8px;font-size:12px;">'+u.why+'</div>';
+    html+='</div>';
+  });
+  document.getElementById('uc-grid').innerHTML=html;
+}
+
+function render(){renderTable();renderCards();renderUseCases();}
+
+function togglePlat(p,btn){
+  if(activePlats.has(p)){
+    if(activePlats.size===1) return; // keep at least one
+    activePlats.delete(p);
+    btn.classList.add('off');
+  } else {
+    activePlats.add(p);
+    btn.classList.remove('off');
+  }
+  render();
+}
+
+function setFilter(f,btn){
+  activeFilter=f;
+  document.querySelectorAll('.fb').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
