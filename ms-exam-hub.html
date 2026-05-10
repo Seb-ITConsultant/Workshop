@@ -146,6 +146,7 @@ html[data-theme="dark"] .rl-name{color:#c8d8f0;}
 .tag-hands{background:rgba(0,120,212,.08);border-color:rgba(0,120,212,.25);color:#0078d4;}
 .tag-video{background:rgba(255,0,0,.08);border-color:rgba(255,0,0,.25);color:#cc0000;}
 .tag-assess{background:rgba(135,100,184,.08);border-color:rgba(135,100,184,.25);color:#8764b8;}
+.tag-warn{background:rgba(217,119,6,.10);border-color:rgba(217,119,6,.30);color:#d97706;}
 .rl-ext{margin-left:auto;color:var(--dim);font-size:12px;flex-shrink:0;}
 
 /* NO SAVILL NOTE */
@@ -184,7 +185,7 @@ html[data-theme="dark"] .prereq-note strong{color:#60a5fa;}
   <div class="hero">
     <div class="hero-eye">Microsoft Certifications · Study Hub</div>
     <div class="hero-title">📚 MS Exam Study Hub</div>
-    <p class="hero-sub">Click any exam for a breakdown of subject areas, official MS Learn paths, Applied Skills hands-on labs, and John Savill's YouTube resources. All links verified — no dumps, no guessing.</p>
+    <p class="hero-sub">Click any exam for a breakdown of subject areas, official MS Learn paths, Applied Skills hands-on labs, and John Savill's YouTube resources. No dumps, no guessing — and if any Applied Skills links are broken, there's a fallback to the full catalogue.</p>
     <div class="hero-note">⚠ Microsoft updates exam content regularly — always cross-check with the official study guide on learn.microsoft.com before your exam</div>
   </div>
 
@@ -254,8 +255,8 @@ const EXAMS = [
   studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305',label:'Official AZ-305 Study Guide'},
   practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/practice/assessment?assessment-type=practice&assessmentId=66',label:'Free Official Practice Assessment'},
   appliedSkills:[
-    {name:'Design and implement platform engineering',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/design-implement-platform-engineering/',time:'~2 hrs'},
-    {name:'Create and manage automated pipelines by using Azure DevOps',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/create-and-manage-automated-pipelines-by-using-azure-devops/',time:'~2 hrs'},
+    {name:'Design and implement platform engineering',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/',time:'~2 hrs',note:'Link may be outdated — search the Applied Skills catalogue for this title'},
+    {name:'Implement security through a pipeline using Azure DevOps',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/implement-security-through-pipeline-using-devops/',time:'~2 hrs'},
   ],
   savill:{
     cram:{url:'https://youtu.be/vq9LuCM4YP4',label:'AZ-305 Study Cram',time:'~4 hrs'},
@@ -386,8 +387,8 @@ const EXAMS = [
   studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300',label:'Official SC-300 Study Guide'},
   practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/identity-and-access-administrator/practice/assessment?assessment-type=practice&assessmentId=74',label:'Free Official Practice Assessment'},
   appliedSkills:[
-    {name:'Implement Microsoft Entra ID',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/implement-microsoft-entra-id/',time:'~2 hrs'},
-    {name:'Manage Microsoft Entra identities and governance',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/manage-microsoft-entra-identities-and-governance/',time:'~2 hrs'},
+    {name:'Get started with identities and access using Microsoft Entra',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/get-started-with-identities-and-access-using-microsoft-entra/',time:'~2 hrs'},
+    {name:'Manage Microsoft Entra identities and governance',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/',time:'~2 hrs',note:'Previous link may be retired — search the Applied Skills catalogue for this title'},
   ],
   savill:{
     cram:{url:'https://www.youtube.com/watch?v=LGpgqRVG65g',label:'SC-300 Study Cram',time:'~3 hrs'},
@@ -508,8 +509,9 @@ function renderDetail(e) {
     learnHtml += '<div class="res-group">';
     learnHtml += '<div class="rg-title">🧪 Applied Skills — Hands-On Labs</div>';
     learnHtml += '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">Free browser-based Azure sandboxes — no subscription needed. Each takes ~2 hours and gives you a scored credential on your MS Learn profile.</div>';
+    learnHtml += '<div style="font-size:11.5px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:9px 13px;margin-bottom:10px;line-height:1.65;">🔍 If any link below is broken, Microsoft may have renamed or retired that credential — <a href="https://learn.microsoft.com/en-us/credentials/applied-skills/" target="_blank" style="color:var(--accent);text-decoration:none;font-weight:500;">browse all Applied Skills credentials</a> and search by the title shown below.</div>';
     e.appliedSkills.forEach(function(a){
-      learnHtml += resLink('⚗️', a.name, 'Applied Skills lab — scored hands-on assessment in a real Azure environment. '+a.time, a.url, ['free','hands']);
+      learnHtml += resLink('⚗️', a.name, 'Applied Skills lab — scored hands-on assessment in a real Azure environment. '+a.time+(a.note?' · ⚠ '+a.note:''), a.url, a.note ? ['free','hands','warn'] : ['free','hands']);
     });
     learnHtml += '</div>';
   }
@@ -596,8 +598,9 @@ function renderDetail(e) {
 
 function resLink(icon, name, desc, url, tags) {
   var tagHtml = (tags||[]).map(function(t){
-    var cls = t==='free'?'tag-free':t==='hands'?'tag-hands':t==='video'?'tag-video':t==='assess'?'tag-assess':'';
-    var lbl = t==='free'?'Free':t==='hands'?'Hands-on':t==='video'?'Video':t==='assess'?'Practice Test':'';
+    var cls = t==='free'?'tag-free':t==='hands'?'tag-hands':t==='video'?'tag-video':t==='assess'?'tag-assess':t==='warn'?'tag-warn':'';
+    var lbl = t==='free'?'Free':t==='hands'?'Hands-on':t==='video'?'Video':t==='assess'?'Practice Test':t==='warn'?'⚠ Check link':'';
+    if(!lbl) return '';
     return '<span class="rl-tag '+cls+'">'+lbl+'</span>';
   }).join('');
   return '<a class="res-link" href="'+url+'" target="_blank" rel="noopener">'

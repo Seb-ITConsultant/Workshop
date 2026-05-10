@@ -9,10 +9,10 @@
 <style>
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#f4f6fb;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--bh:#cbd5e1;--text:#1e293b;--muted:#64748b;--dim:#94a3b8;--accent:#6366f1;--adim:rgba(99,102,241,.08);--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
-html[data-theme="dark"]{--bg:#080b11;--surface:#0e1420;--surface2:#111927;--border:#1c2535;--bh:#2d3f5a;--text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;--accent:#818cf8;--adim:rgba(129,140,248,.08);--shadow:0 2px 8px rgba(0,0,0,.3);}
+:root{--bg:#f4f6fb;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--bh:#cbd5e1;--text:#1e293b;--muted:#64748b;--dim:#94a3b8;--accent:#0d9488;--adim:rgba(13,148,136,.08);--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);}
+html[data-theme="dark"]{--bg:#080b11;--surface:#0e1420;--surface2:#111927;--border:#1c2535;--bh:#2d3f5a;--text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;--accent:#00dba8;--adim:rgba(0,219,168,.08);--shadow:0 2px 8px rgba(0,0,0,.3);}
 body{background:var(--bg);color:var(--text);font-family:'DM Sans','Segoe UI',system-ui,sans-serif;min-height:100vh;transition:background .2s,color .2s;}
-html[data-theme="dark"] body{background-image:linear-gradient(rgba(99,102,241,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(99,102,241,.02) 1px,transparent 1px);background-size:60px 60px;}
+html[data-theme="dark"] body{background-image:linear-gradient(rgba(13,148,136,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(13,148,136,.02) 1px,transparent 1px);background-size:60px 60px;}
 .wrap{max-width:880px;margin:0 auto;padding:32px 18px 60px;}
 .back-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s;}
@@ -23,7 +23,7 @@ html[data-theme="dark"] body{background-image:linear-gradient(rgba(99,102,241,.0
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 @media print{body{background:#fff;color:#000;}html[data-theme="dark"] body{filter:none;background:#fff;}.back-nav,#sw-theme-btn,.no-print{display:none!important;}}
 
-:root{--acc2:#6366f1;}
+
 /* HERO */
 .hero{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px;margin-bottom:22px;box-shadow:var(--shadow);animation:fadeUp .4s ease both;}
 .hero-eyebrow{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
@@ -33,7 +33,7 @@ html[data-theme="dark"] .hero-title{color:#e8f0ff;}
 .hero-badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
 .h-badge{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;}
 .hb-warn{background:rgba(245,158,11,.08);border-color:rgba(245,158,11,.3);color:#d97706;}
-.hb-info{background:rgba(99,102,241,.08);border-color:rgba(99,102,241,.3);color:var(--accent);}
+.hb-info{background:rgba(13,148,136,.08);border-color:rgba(13,148,136,.3);color:var(--accent);}
 /* STEPPER */
 .stepper{display:flex;align-items:center;margin-bottom:20px;overflow-x:auto;padding-bottom:2px;animation:fadeUp .4s .05s ease both;}
 .step{display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;position:relative;}
@@ -61,7 +61,7 @@ html[data-theme="dark"] .sec-title{color:#e8f0ff;}
 /* QUESTIONS */
 .q-item{padding:15px 22px;border-bottom:1px solid var(--border);transition:background .12s;}
 .q-item:last-child{border-bottom:none;}
-.q-item.ans{background:rgba(99,102,241,.012);}
+.q-item.ans{background:rgba(13,148,136,.012);}
 .q-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:8px;}
 .q-num{font-family:monospace;font-size:10px;color:var(--muted);padding-top:2px;flex-shrink:0;min-width:18px;}
 .q-text{font-size:13px;line-height:1.65;color:var(--text);flex:1;}
@@ -74,7 +74,7 @@ html[data-theme="dark"] .sec-title{color:#e8f0ff;}
 .ab.sy{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.35);color:#16a34a;}
 .ab.sp{background:rgba(217,119,6,.1);border-color:rgba(217,119,6,.35);color:#d97706;}
 .ab.sn{background:rgba(220,38,38,.1);border-color:rgba(220,38,38,.35);color:#dc2626;}
-.ab.sel{background:var(--adim);border-color:rgba(99,102,241,.4);color:var(--accent);}
+.ab.sel{background:var(--adim);border-color:rgba(13,148,136,.4);color:var(--accent);}
 /* NAV */
 .nav-bar{display:flex;align-items:center;justify-content:space-between;margin-top:15px;gap:10px;flex-wrap:wrap;}
 .prog-text{font-family:monospace;font-size:11px;color:var(--muted);}
@@ -215,7 +215,7 @@ function renderSection(){
     q.opts.forEach(function(o){
       var lbl=optLabels[o]||(o.replace(/_/g,' ').replace(/\b\w/g,function(c){return c.toUpperCase();}));
       var selCls=v===o?'sel':'';
-      html+='<button class="ab '+selCls+'" onclick="setAns(''+q.id+'',''+o+'',this)">'+lbl+'</button>';
+      html+='<button class="ab '+selCls+'" onclick="setAns(\''+q.id+'\',\''+o+'\',this)">'+lbl+'</button>';
     });
     html+='</div></div>';
   });
@@ -350,7 +350,7 @@ function showResults(){
         html+='<span class="gap-q-text">'+g.label+(isCrit?'<span class="badge-crit" style="margin-left:5px">⚡ Required</span>':'')+'</span></div>';
         html+='<div class="gap-fix" style="font-size:12px;color:var(--muted);margin-bottom:6px;font-style:italic;">'+g.impact+'</div>';
         html+='<div class="gap-fix">'+g.action+'</div>';
-        html+='<div class="rem-check-row"><input type="checkbox" class="rem-checkbox" id="rc-'+g.qid+'" '+(REM[g.qid]?'checked':'')+' onchange="setRem(''+g.qid+'',this.checked)"><label class="rem-label" for="rc-'+g.qid+'">Mark as addressed</label></div>';
+        html+='<div class="rem-check-row"><input type="checkbox" class="rem-checkbox" id="rc-'+g.qid+'" '+(REM[g.qid]?'checked':'')+' onchange="setRem(\''+g.qid+'\',this.checked)"><label class="rem-label" for="rc-'+g.qid+'">Mark as addressed</label></div>';
         html+='</div>';
       });
       html+='</div>';
@@ -363,7 +363,7 @@ function showResults(){
   html+='<span class="rf-note">Microsoft 365 Copilot · Danzell v3.3 compatible · Verify pricing at learn.microsoft.com</span>';
   html+='<div class="rf-btns">';
   html+='<button class="btn-sm bs-g" onclick="window.print()">🖨 Print</button>';
-  html+='<button class="btn-sm bs-teal" onclick="window.open('copilot-report.html','_blank')">📋 Customer Report →</button>';
+  html+='<button class="btn-sm bs-teal" onclick="window.open(\'copilot-report.html\',\'_blank\')">📋 Customer Report →</button>';
   html+='<button class="btn-sm bs-a" onclick="restart()">↺ New Assessment</button>';
   html+='</div></div>';
 
