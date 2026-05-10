@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>MS Exam Study Hub · Seb's Workshop</title>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f4f6fb;--surface:#fff;--surface2:#f8fafc;--border:#e2e8f0;--bh:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;--dim:#94a3b8;
+  --ms:#0078d4;--shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  /* Track colours */
+  --azure:#0078d4;--azure-dim:rgba(0,120,212,.08);--azure-brd:rgba(0,120,212,.22);
+  --sec:#107c10;--sec-dim:rgba(16,124,16,.08);--sec-brd:rgba(16,124,16,.22);
+  --net:#8764b8;--net-dim:rgba(135,100,184,.08);--net-brd:rgba(135,100,184,.22);
+  --m365:#d83b01;--m365-dim:rgba(216,59,1,.08);--m365-brd:rgba(216,59,1,.22);
+  --expert:#ffaa44;--exp-dim:rgba(255,170,68,.1);--exp-brd:rgba(255,170,68,.3);
+}
+html[data-theme="dark"]{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;--border:#1c2535;--bh:#2d3f5a;
+  --text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;--shadow:0 2px 8px rgba(0,0,0,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',system-ui,sans-serif;min-height:100vh;transition:background .2s,color .2s;}
+html[data-theme="dark"] body{background-image:linear-gradient(rgba(0,120,212,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,120,212,.02) 1px,transparent 1px);background-size:60px 60px;}
+.wrap{max-width:900px;margin:0 auto;padding:32px 18px 60px;}
+
+/* NAV */
+.back-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .15s;}
+.back-link:hover{color:var(--ms);}
+.nav-links{display:flex;gap:8px;flex-wrap:wrap;}
+.nav-pill{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:20px;border:1px solid var(--border);background:var(--surface);color:var(--muted);text-decoration:none;font-size:11.5px;font-weight:500;transition:all .15s;}
+.nav-pill:hover{border-color:var(--ms);color:var(--ms);}
+
+/* HERO */
+.hero{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px;box-shadow:var(--shadow);}
+.hero-eye{font-size:10.5px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--ms);margin-bottom:7px;}
+.hero-title{font-size:clamp(1.4rem,3.5vw,2rem);font-weight:800;color:var(--text);letter-spacing:-.4px;margin-bottom:8px;}
+html[data-theme="dark"] .hero-title{color:#e8f0ff;}
+.hero-sub{font-size:13px;color:var(--muted);line-height:1.7;}
+.hero-note{margin-top:12px;display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--exp-dim);border:1px solid var(--exp-brd);border-radius:20px;font-size:11px;color:#b07a00;}
+html[data-theme="dark"] .hero-note{color:var(--expert);background:var(--exp-dim);}
+
+/* LEGEND */
+.legend{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.legend-label{font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;color:var(--dim);margin-right:3px;}
+.leg-item{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;cursor:pointer;transition:all .15s;}
+.leg-item.azure{background:var(--azure-dim);border-color:var(--azure-brd);color:var(--azure);}
+.leg-item.sec{background:var(--sec-dim);border-color:var(--sec-brd);color:var(--sec);}
+.leg-item.net{background:var(--net-dim);border-color:var(--net-brd);color:var(--net);}
+.leg-item.m365{background:var(--m365-dim);border-color:var(--m365-brd);color:var(--m365);}
+.leg-item.off{opacity:.4;filter:grayscale(.8);}
+.leg-item:hover{opacity:1;filter:none;}
+
+/* EXAM GRID */
+.exam-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;margin-bottom:20px;}
+@media(max-width:580px){.exam-grid{grid-template-columns:1fr;}}
+
+.exam-card{background:var(--surface);border:1.5px solid var(--border);border-radius:14px;padding:18px 18px 15px;cursor:pointer;transition:all .2s;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+.exam-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:14px 14px 0 0;transition:height .2s;}
+.exam-card.azure::before{background:var(--azure);}
+.exam-card.sec::before{background:var(--sec);}
+.exam-card.net::before{background:var(--net);}
+.exam-card.m365::before{background:var(--m365);}
+.exam-card:hover,.exam-card.active{transform:translateY(-2px);box-shadow:0 6px 20px rgba(0,0,0,.08);}
+.exam-card.azure:hover,.exam-card.azure.active{border-color:var(--azure);}
+.exam-card.sec:hover,.exam-card.sec.active{border-color:var(--sec);}
+.exam-card.net:hover,.exam-card.net.active{border-color:var(--net);}
+.exam-card.m365:hover,.exam-card.m365.active{border-color:var(--m365);}
+.exam-card.off{opacity:.35;pointer-events:none;}
+
+.ec-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.ec-code{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:700;color:var(--text);}
+html[data-theme="dark"] .ec-code{color:#e8f0ff;}
+.ec-level{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:700;border:1px solid;}
+.level-assoc{background:rgba(16,124,16,.08);border-color:rgba(16,124,16,.3);color:#107c10;}
+.level-expert{background:var(--exp-dim);border-color:var(--exp-brd);color:#b07a00;}
+html[data-theme="dark"] .level-expert{color:var(--expert);}
+.ec-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:5px;line-height:1.35;}
+html[data-theme="dark"] .ec-name{color:#c8d8f0;}
+.ec-desc{font-size:12px;color:var(--muted);line-height:1.55;}
+.ec-footer{display:flex;align-items:center;justify-content:space-between;margin-top:11px;padding-top:10px;border-top:1px solid var(--border);}
+.ec-track{font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;}
+.ec-arrow{font-size:13px;color:var(--dim);transition:transform .2s;}
+.exam-card.active .ec-arrow{transform:rotate(90deg);}
+
+/* DETAIL PANEL */
+.detail-panel{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:18px;overflow:hidden;box-shadow:var(--shadow);display:none;animation:slideDown .25s ease both;}
+.detail-panel.open{display:block;}
+@keyframes slideDown{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+
+.dp-header{padding:22px 24px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:16px;flex-wrap:wrap;}
+.dp-badge{flex-shrink:0;width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:24px;}
+.dp-badge.azure{background:var(--azure-dim);border:1px solid var(--azure-brd);}
+.dp-badge.sec{background:var(--sec-dim);border:1px solid var(--sec-brd);}
+.dp-badge.net{background:var(--net-dim);border:1px solid var(--net-brd);}
+.dp-badge.m365{background:var(--m365-dim);border:1px solid var(--m365-brd);}
+.dp-info{flex:1;}
+.dp-code{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--muted);margin-bottom:3px;}
+.dp-title{font-size:1.15rem;font-weight:800;color:var(--text);letter-spacing:-.2px;}
+html[data-theme="dark"] .dp-title{color:#e8f0ff;}
+.dp-sub{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6;}
+.dp-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;}
+.dp-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-size:11px;color:var(--muted);}
+
+/* TABS */
+.dp-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--surface2);overflow-x:auto;}
+.dp-tab{padding:12px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;transition:all .15s;}
+.dp-tab:hover{color:var(--text);}
+.dp-tab.active{color:var(--ms);border-bottom-color:var(--ms);}
+html[data-theme="dark"] .dp-tab.active{color:#60a5fa;border-bottom-color:#60a5fa;}
+
+/* TAB CONTENT */
+.dp-body{padding:20px 24px;}
+.tab-pane{display:none;}
+.tab-pane.active{display:block;}
+
+/* SUBJECT AREAS */
+.subject-list{display:flex;flex-direction:column;gap:10px;}
+.subject-item{padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;}
+.si-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:10px;}
+.si-name{font-size:13px;font-weight:600;color:var(--text);}
+html[data-theme="dark"] .si-name{color:#c8d8f0;}
+.si-pct{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;white-space:nowrap;}
+.si-bar{height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.si-fill{height:100%;border-radius:3px;transition:width .6s ease;}
+.si-topics{margin-top:8px;font-size:12px;color:var(--muted);line-height:1.65;}
+
+/* RESOURCE LINKS */
+.res-group{margin-bottom:18px;}
+.rg-title{font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.res-link{display:flex;align-items:flex-start;gap:11px;padding:11px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);transition:all .15s;margin-bottom:7px;}
+.res-link:hover{border-color:var(--ms);background:var(--bg);}
+html[data-theme="dark"] .res-link:hover{background:var(--surface2);}
+.rl-icon{font-size:18px;flex-shrink:0;margin-top:1px;}
+.rl-body{flex:1;min-width:0;}
+.rl-name{font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px;}
+html[data-theme="dark"] .rl-name{color:#c8d8f0;}
+.rl-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.rl-meta{display:flex;align-items:center;gap:6px;margin-top:5px;}
+.rl-tag{font-size:10px;font-weight:600;padding:1px 7px;border-radius:3px;border:1px solid;}
+.tag-free{background:rgba(16,124,16,.08);border-color:rgba(16,124,16,.25);color:#107c10;}
+.tag-hands{background:rgba(0,120,212,.08);border-color:rgba(0,120,212,.25);color:#0078d4;}
+.tag-video{background:rgba(255,0,0,.08);border-color:rgba(255,0,0,.25);color:#cc0000;}
+.tag-assess{background:rgba(135,100,184,.08);border-color:rgba(135,100,184,.25);color:#8764b8;}
+.rl-ext{margin-left:auto;color:var(--dim);font-size:12px;flex-shrink:0;}
+
+/* NO SAVILL NOTE */
+.no-savill{padding:14px;background:var(--exp-dim);border:1px solid var(--exp-brd);border-radius:9px;font-size:12.5px;color:var(--muted);line-height:1.6;}
+html[data-theme="dark"] .no-savill{border-color:rgba(255,170,68,.2);}
+
+/* OVERVIEW TAB */
+.overview-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+@media(max-width:520px){.overview-grid{grid-template-columns:1fr;}}
+.ov-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:13px 15px;}
+.ov-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--dim);margin-bottom:4px;}
+.ov-val{font-size:14px;font-weight:700;color:var(--text);}
+html[data-theme="dark"] .ov-val{color:#c8d8f0;}
+.ov-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.prereq-note{padding:12px 14px;background:var(--azure-dim);border:1px solid var(--azure-brd);border-radius:9px;font-size:12.5px;color:var(--muted);margin-top:2px;line-height:1.6;}
+.prereq-note strong{color:var(--azure);}
+html[data-theme="dark"] .prereq-note strong{color:#60a5fa;}
+
+/* PROGRESS */
+.close-btn{padding:7px 16px;border-radius:7px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:12px;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;margin-top:16px;}
+.close-btn:hover{border-color:var(--bh);color:var(--text);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media print{body{background:#fff;color:#000;}html[data-theme="dark"] body{filter:none;background:#fff;}.back-nav,#sw-theme-btn{display:none!important;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-nav">
+    <a href="index.html" class="back-link">← Workshop</a>
+    <div class="nav-links">
+      <a href="pdfexam.html" class="nav-pill">📄 PDF Exam Questioner</a>
+    </div>
+  </div>
+
+  <div class="hero">
+    <div class="hero-eye">Microsoft Certifications · Study Hub</div>
+    <div class="hero-title">📚 MS Exam Study Hub</div>
+    <p class="hero-sub">Click any exam for a breakdown of subject areas, official MS Learn paths, Applied Skills hands-on labs, and John Savill's YouTube resources. All links verified — no dumps, no guessing.</p>
+    <div class="hero-note">⚠ Microsoft updates exam content regularly — always cross-check with the official study guide on learn.microsoft.com before your exam</div>
+  </div>
+
+  <div class="legend">
+    <span class="legend-label">Track:</span>
+    <span class="leg-item azure" onclick="filterTrack('azure',this)">🔷 Azure Infrastructure</span>
+    <span class="leg-item sec" onclick="filterTrack('sec',this)">🛡️ Security</span>
+    <span class="leg-item net" onclick="filterTrack('net',this)">🌐 Networking</span>
+    <span class="leg-item m365" onclick="filterTrack('m365',this)">☁️ M365 / Purview</span>
+    <span class="leg-item azure" style="background:transparent;border-style:dashed;cursor:pointer;opacity:.7;" onclick="filterTrack('all',this)">Show all</span>
+  </div>
+
+  <div class="exam-grid" id="exam-grid"></div>
+  <div id="detail-panel-container"></div>
+</div>
+
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark/light" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){var b=document.getElementById("sw-theme-btn"),dk=document.documentElement.getAttribute("data-theme")==="dark";b.textContent=dk?"☀":"🌙";b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";}());
+function swToggle(){var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);var b=document.getElementById("sw-theme-btn");b.textContent=dk?"🌙":"☀";b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";}
+
+// ── EXAM DATA ─────────────────────────────────────────────────────────────────
+const EXAMS = [
+{
+  id:'az104', code:'AZ-104', name:'Microsoft Azure Administrator', icon:'⚙️',
+  track:'azure', level:'Associate',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'AZ-900 recommended. Practical Azure experience strongly advised.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/',
+  desc:'Manage Azure subscriptions, resources, storage, virtual machines, networking, and identities. A core "working knowledge" exam — expect scenario-based questions with real Azure tasks.',
+  subjects:[
+    {name:'Manage Azure identities and governance',pct:20,range:'15–20%',topics:'Entra ID users/groups, RBAC, subscriptions, management groups, Azure Policy, resource locks, cost management'},
+    {name:'Implement and manage storage',pct:18,range:'15–20%',topics:'Storage accounts, blob, file shares, access control, SAS tokens, storage replication, Azure Backup'},
+    {name:'Deploy and manage Azure compute resources',pct:23,range:'20–25%',topics:'VMs, availability sets/zones, scale sets, containers (ACI, AKS basics), App Service, ARM templates'},
+    {name:'Implement and manage virtual networking',pct:18,range:'15–20%',topics:'VNets, subnets, NSGs, Azure DNS, VNet peering, VPN gateways, Load Balancer, Traffic Manager'},
+    {name:'Monitor and maintain Azure resources',pct:12,range:'10–15%',topics:'Azure Monitor, Log Analytics, VM alerts, backup & recovery, Azure Site Recovery'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/',label:'AZ-104 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-104',label:'Official AZ-104 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-administrator/practice/assessment?assessment-type=practice&assessmentId=21',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Deploy and configure Azure Monitor',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/deploy-and-configure-azure-monitor/',time:'~2 hrs'},
+    {name:'Configure secure access to workloads using virtual networking',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/configure-secure-workloads-use-azure-virtual-networking/',time:'~2 hrs'},
+    {name:'Secure storage for Azure Files and Azure Blob Storage',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/secure-storage-for-azure-files-and-azure-blob-storage/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://youtu.be/VOod_VNgdJk',label:'AZ-104 Study Cram (v1)',time:'~3 hrs'},
+    cramV2:{url:'https://youtu.be/m08j4nzmz7I',label:'AZ-104 Study Cram v2 (Updated 2024)',time:'~4 hrs'},
+    playlist:{url:'https://youtube.com/playlist?list=PLlVtbbG169nGlGPWs9xaLKT1KfwqREHbs',label:'AZ-104 Full Study Playlist (30 videos)'},
+    whiteboard:{url:'https://github.com/johnthebrit/CertificationMaterials/raw/main/whiteboards/AZ-104-Whiteboard.png',label:'Study Whiteboard (PNG)'},
+  }
+},
+{
+  id:'az305', code:'AZ-305', name:'Designing Microsoft Azure Infrastructure Solutions', icon:'🏗️',
+  track:'azure', level:'Expert',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'AZ-104 is a required prerequisite for this expert-level certification.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/',
+  desc:'Design scalable, resilient Azure infrastructure solutions. Focuses on architecture decisions across identity, storage, compute, networking and business continuity. Expect design scenario questions — "which solution best meets these requirements?"',
+  subjects:[
+    {name:'Design identity, governance, and monitoring solutions',pct:28,range:'25–30%',topics:'Entra ID design, hybrid identity, Azure AD B2B/B2C, governance with Policy/Blueprints, Log Analytics, Azure Monitor design'},
+    {name:'Design data storage solutions',pct:23,range:'20–25%',topics:'Storage account design, SQL Database vs Managed Instance vs Cosmos DB, data migration strategies, data redundancy'},
+    {name:'Design business continuity solutions',pct:18,range:'15–20%',topics:'High availability design, disaster recovery, Azure Backup strategy, RTO/RPO requirements, Azure Site Recovery'},
+    {name:'Design infrastructure solutions',pct:33,range:'30–35%',topics:'Compute design (VMs, App Service, AKS, container strategy), network topology, hub-spoke, ExpressRoute, migration strategy'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/',label:'AZ-305 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-305',label:'Official AZ-305 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-solutions-architect/practice/assessment?assessment-type=practice&assessmentId=66',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Design and implement platform engineering',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/design-implement-platform-engineering/',time:'~2 hrs'},
+    {name:'Create and manage automated pipelines by using Azure DevOps',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/create-and-manage-automated-pipelines-by-using-azure-devops/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://youtu.be/vq9LuCM4YP4',label:'AZ-305 Study Cram',time:'~4 hrs'},
+    playlist:{url:'https://youtube.com/playlist?list=PLlVtbbG169nHSnaP4ae33yQUI3zcmP5nP',label:'AZ-305 Full Study Playlist (20 videos)'},
+    whiteboard:{url:'https://github.com/johnthebrit/CertificationMaterials/raw/main/whiteboards/AZ-305-Whiteboard.png',label:'Study Whiteboard (PNG)'},
+  }
+},
+{
+  id:'az500', code:'AZ-500', name:'Microsoft Azure Security Technologies', icon:'🔐',
+  track:'sec', level:'Associate',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'AZ-104 knowledge strongly recommended. Practical security experience in Azure advised.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/azure-security-engineer/',
+  desc:'Implement and manage Azure security controls across identity, networking, compute, storage, and databases. Includes Defender for Cloud, Sentinel, Key Vault, and Entra ID security features. Hands-on lab questions are common.',
+  subjects:[
+    {name:'Manage identity and access',pct:28,range:'25–30%',topics:'Entra ID security, MFA, Conditional Access, PIM, Managed Identities, service principals, Key Vault access policies'},
+    {name:'Secure networking',pct:23,range:'20–25%',topics:'NSGs, ASGs, Azure Firewall, DDoS Protection, VPN/ExpressRoute security, Private Endpoints, WAF, Bastion'},
+    {name:'Secure compute, storage, and databases',pct:23,range:'20–25%',topics:'VM security, Defender for Servers, AKS security, storage encryption, SAS tokens, SQL TDE, Advanced Threat Protection'},
+    {name:'Manage security operations',pct:28,range:'25–30%',topics:'Microsoft Sentinel (SIEM/SOAR), Defender for Cloud, security alerts, KQL queries, playbooks, security posture management'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-security-engineer/',label:'AZ-500 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-500',label:'Official AZ-500 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-security-engineer/practice/assessment?assessment-type=practice&assessmentId=57',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Secure Azure resources for Microsoft Azure Security Engineers',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/secure-azure-resources-for-microsoft-azure-security-engineer/',time:'~2 hrs'},
+    {name:'Configure SIEM security operations using Microsoft Sentinel',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/configure-siem-security-operations-microsoft-sentinel/',time:'~2 hrs'},
+    {name:'Configure secure workloads using Azure virtual networking',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/configure-secure-workloads-use-azure-virtual-networking/',time:'~2 hrs'},
+    {name:'Secure storage for Azure Files and Azure Blob Storage',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/secure-storage-for-azure-files-and-azure-blob-storage/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://www.youtube.com/watch?v=6vISzj-z8k4',label:'AZ-500 Study Cram',time:'~3 hrs'},
+    cramV2:{url:'https://www.youtube.com/watch?v=9hfphXHeP1s',label:'AZ-500 Study Cram v2 (Updated)',time:'~3 hrs'},
+    playlist:{url:'https://www.youtube.com/playlist?list=PLlVtbbG169nHw9T1L_CiLxC-DTwKu-BZG',label:'AZ-500 Full Study Playlist (32 videos)'},
+  }
+},
+{
+  id:'az700', code:'AZ-700', name:'Designing & Implementing Microsoft Azure Networking Solutions', icon:'🌐',
+  track:'net', level:'Associate',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'AZ-104 knowledge strongly recommended. Practical networking experience in Azure advised.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer/',
+  desc:'Design and implement core Azure networking infrastructure, hybrid connectivity, routing, network security, and private access. Deep focus on real networking scenarios including BGP, ExpressRoute, and Azure Virtual WAN.',
+  subjects:[
+    {name:'Design, implement, and manage hybrid networking',pct:13,range:'10–15%',topics:'VPN gateways, ExpressRoute circuits, Virtual WAN, site-to-site and point-to-site VPN, BGP with Azure'},
+    {name:'Design and implement core networking infrastructure',pct:23,range:'20–25%',topics:'VNets, subnets, IP addressing, DNS (public/private), Azure Virtual WAN topology, peering'},
+    {name:'Design and implement routing',pct:28,range:'25–30%',topics:'User-defined routes, route tables, BGP, NVA routing, Azure Route Server, traffic inspection patterns'},
+    {name:'Secure and monitor networks',pct:18,range:'15–20%',topics:'NSGs, ASGs, Azure Firewall (policies, DNAT, SNAT), DDoS Protection, Network Watcher, Connection Monitor'},
+    {name:'Design and implement Private access to Azure Services',pct:13,range:'10–15%',topics:'Private Endpoints, Private Link Service, Service Endpoints, App Gateway, Azure Front Door'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer/',label:'AZ-700 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-700',label:'Official AZ-700 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-network-engineer/practice/assessment?assessment-type=practice&assessmentId=70',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Configure secure access to workloads using Azure virtual networking',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/configure-secure-workloads-use-azure-virtual-networking/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://youtu.be/nVZYDhB_M64',label:'AZ-700 Study Cram',time:'~3 hrs'},
+    playlist:{url:'https://youtube.com/playlist?list=PLlVtbbG169nGeFODKRZhjqdSxFpSPXVOa',label:'AZ-700 Full Study Playlist (24 videos)'},
+    whiteboard:{url:'https://github.com/johnthebrit/CertificationMaterials/raw/main/whiteboards/AZ-700-Whiteboard.png',label:'Study Whiteboard (PNG)'},
+  }
+},
+{
+  id:'az140', code:'AZ-140', name:'Configuring & Operating Microsoft Azure Virtual Desktop', icon:'🖥️',
+  track:'azure', level:'Associate',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'AZ-104 knowledge recommended. Experience with AVD or RDS/Citrix environments is helpful.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/',
+  desc:'Plan, implement, manage, and monitor Azure Virtual Desktop (AVD) environments. Covers host pools, session hosts, user profiles, FSLogix, MSIX app attach, identity, networking, and monitoring.',
+  subjects:[
+    {name:'Plan and implement an AVD infrastructure',pct:43,range:'40–45%',topics:'Host pools, session hosts, workspace design, networking (VNet, private endpoints), storage for profiles (FSLogix), image management, scaling plans'},
+    {name:'Plan and implement identity and security',pct:18,range:'15–20%',topics:'Entra ID join vs hybrid join, RBAC for AVD, Conditional Access, RDP properties, screen capture protection, watermarking'},
+    {name:'Plan and implement user environments and applications',pct:23,range:'20–25%',topics:'FSLogix profile containers, MSIX app attach, RemoteApp vs Desktop, OneDrive for Business in AVD, Teams optimisation'},
+    {name:'Monitor and maintain an AVD infrastructure',pct:13,range:'10–15%',topics:'Azure Monitor for AVD, Insights workbook, diagnostics settings, update management, autoscaling, troubleshooting'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/',label:'AZ-140 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/az-140',label:'Official AZ-140 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/azure-virtual-desktop-specialty/practice/assessment?assessment-type=practice&assessmentId=69',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Deploy Microsoft Azure Virtual Desktop',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/deploy-microsoft-azure-virtual-desktop/',time:'~2 hrs'},
+  ],
+  savill:{
+    note:'John Savill does not currently have a dedicated AZ-140 cram video. His channel has Azure Virtual Desktop content within the Azure Master Class and Entra ID playlists — search his channel for "AVD" or "Virtual Desktop". The AZ-140 series below (from another creator) is the most recommended free resource.',
+    extra:[
+      {name:'AZ-140 Series (Entire Study Guide walkthrough)',url:'https://www.youtube.com/watch?v=yWiyR9YTALU',desc:'Community series covering all AZ-140 topics',time:'Multi-part'},
+      {name:'John Savill\'s Azure Master Class',url:'https://youtube.com/playlist?list=PLlVtbbG169nGccbp8VSpAozu3w9xSQJoY',desc:'Deep Azure content including AVD coverage'},
+    ]
+  }
+},
+{
+  id:'sc100', code:'SC-100', name:'Microsoft Cybersecurity Architect', icon:'🏛️',
+  track:'sec', level:'Expert',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'Expert level. SC-200, SC-300, AZ-500 or equivalent experience recommended. Requires breadth across all security domains.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/cybersecurity-architect-expert/',
+  desc:'Design end-to-end cybersecurity architecture across Zero Trust, identity, security operations, infrastructure, data, and applications. Unlike other exams — this tests architectural thinking, not just implementation knowledge.',
+  subjects:[
+    {name:'Design solutions that align with security best practices',pct:23,range:'20–25%',topics:'Zero Trust design, Microsoft Security Best Practices, CAF/WAF security, ransomware resilience, business resilience strategies'},
+    {name:'Design security operations, identity, and compliance capabilities',pct:28,range:'25–30%',topics:'Security operations design, XDR/SIEM strategy, identity architecture (Entra ID, hybrid), privileged access, compliance and privacy'},
+    {name:'Design security solutions for infrastructure',pct:28,range:'25–30%',topics:'Security posture for cloud/hybrid/multicloud, Azure security services design, DevSecOps, container security, endpoint security strategy'},
+    {name:'Design security solutions for applications and data',pct:23,range:'20–25%',topics:'Application security design (OWASP, threat modelling), API security, data security strategy, Purview, encryption architecture'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/cybersecurity-architect-expert/',label:'SC-100 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-100',label:'Official SC-100 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/cybersecurity-architect-expert/practice/assessment?assessment-type=practice&assessmentId=87',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Secure Azure resources for Microsoft Azure Security Engineers',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/secure-azure-resources-for-microsoft-azure-security-engineer/',time:'~2 hrs'},
+    {name:'Configure SIEM security operations using Microsoft Sentinel',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/configure-siem-security-operations-microsoft-sentinel/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://www.youtube.com/watch?v=2Qu5gQjNQh4',label:'SC-100 Study Cram',time:'~3 hrs'},
+    playlist:{url:'https://youtube.com/playlist?list=PLlVtbbG169nH-oFIUZECBnxsR7m14iG1A',label:'SC-100 Full Study Playlist (13 videos)'},
+  }
+},
+{
+  id:'sc300', code:'SC-300', name:'Microsoft Identity and Access Administrator', icon:'🪪',
+  track:'sec', level:'Associate',
+  questions:'40–60', time:'120 min', pass:'700/1000',
+  prereq:'Practical experience with Microsoft Entra ID recommended. Some AZ-104 overlap.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/identity-and-access-administrator/',
+  desc:'Plan and implement Microsoft Entra ID identity and access management. Covers authentication, MFA, Conditional Access, PIM, app registrations, SSPR, B2B/B2C, and identity governance. Heavy Entra ID focus.',
+  subjects:[
+    {name:'Implement identities in Microsoft Entra ID',pct:23,range:'20–25%',topics:'Tenant configuration, users and groups, SSPR, passwordless authentication, external identities (B2B/B2C), custom domains'},
+    {name:'Implement authentication and access management',pct:28,range:'25–30%',topics:'MFA implementation, Conditional Access policies, Entra ID Protection, authentication methods policy, Continuous Access Evaluation'},
+    {name:'Implement access management for applications',pct:18,range:'15–20%',topics:'App registrations, service principals, Managed Identities, OAuth 2.0/OIDC, enterprise app SSO (SAML/OIDC), app provisioning'},
+    {name:'Plan and implement identity governance',pct:23,range:'20–25%',topics:'PIM (Privileged Identity Management), Entra ID Access Reviews, entitlement management, lifecycle workflows, Terms of Use'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/identity-and-access-administrator/',label:'SC-300 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-300',label:'Official SC-300 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/identity-and-access-administrator/practice/assessment?assessment-type=practice&assessmentId=74',label:'Free Official Practice Assessment'},
+  appliedSkills:[
+    {name:'Implement Microsoft Entra ID',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/implement-microsoft-entra-id/',time:'~2 hrs'},
+    {name:'Manage Microsoft Entra identities and governance',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/manage-microsoft-entra-identities-and-governance/',time:'~2 hrs'},
+  ],
+  savill:{
+    cram:{url:'https://www.youtube.com/watch?v=LGpgqRVG65g',label:'SC-300 Study Cram',time:'~3 hrs'},
+    playlist:{url:'https://www.youtube.com/playlist?list=PLlVtbbG169nGj4rfaMUQiKiBZNDlxoo0y',label:'SC-300 Full Study Playlist (14 videos)'},
+    extra:[
+      {name:'Entra ID Deep Dives Playlist',url:'https://youtube.com/playlist?list=PLlVtbbG169nGJT7mNxCBWS0p7QQ5LlWVC',desc:'97 in-depth Entra ID videos from John Savill'},
+    ]
+  }
+},
+{
+  id:'sc401', code:'SC-401', name:'Administering Information Security in Microsoft 365', icon:'🔏',
+  track:'m365', level:'Associate',
+  questions:'40–72', time:'150 min', pass:'700/1000',
+  prereq:'New exam (April 2025 — replaces SC-400). Practical Microsoft Purview experience recommended.',
+  prereqUrl:'https://learn.microsoft.com/en-us/credentials/certifications/information-security-administrator/',
+  desc:'Plan and implement information security using Microsoft Purview. Covers sensitivity labels, DLP, insider risk management, information barriers, and data lifecycle management. Replaced SC-400 in May 2025.',
+  subjects:[
+    {name:'Implement information protection',pct:35,range:'30–40%',topics:'Sensitivity labels (auto-labelling, inheritance, mandatory labelling), label policies, SharePoint/Teams/Exchange integration, Purview Information Protection Scanner'},
+    {name:'Implement data loss prevention',pct:25,range:'20–30%',topics:'DLP policies across M365 workloads (Exchange, SharePoint, Teams, Endpoint DLP), sensitive information types, trainable classifiers, DLP alerts'},
+    {name:'Implement and manage information barriers and insider risk',pct:20,range:'15–25%',topics:'Insider Risk Management policies, communication compliance, information barriers, adaptive protection, forensic evidence'},
+    {name:'Implement data lifecycle and records management',pct:20,range:'15–25%',topics:'Retention labels and policies, records management, file plan, disposition review, Purview Data Lifecycle Management'},
+  ],
+  msLearn:{url:'https://learn.microsoft.com/en-us/credentials/certifications/information-security-administrator/',label:'SC-401 Certification Overview'},
+  studyGuide:{url:'https://learn.microsoft.com/en-us/credentials/certifications/resources/study-guides/sc-401',label:'Official SC-401 Study Guide'},
+  practiceAssessment:{url:'https://learn.microsoft.com/en-us/credentials/certifications/information-security-administrator/#two-ways-practice-assessment',label:'Practice Assessment (check MS Learn for availability)'},
+  appliedSkills:[
+    {name:'Apply sensitivity labels in Microsoft Purview',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/apply-sensitivity-labels-using-microsoft-purview-information-protection/',time:'~2 hrs'},
+    {name:'Implement retention labels and policies using Microsoft Purview',url:'https://learn.microsoft.com/en-us/credentials/applied-skills/implement-retention-labels-and-policies-using-microsoft-purview/',time:'~2 hrs'},
+  ],
+  savill:{
+    note:'SC-401 is a new exam (April 2025) and John Savill has not yet published dedicated SC-401 content. The SC-400 content (now retired) covered similar material. Check his channel and Entra/Purview playlists for relevant content.',
+    extra:[
+      {name:'John Savill\'s Full Certifications Playlist',url:'https://youtube.com/playlist?list=PLlVtbbG169nHz2qfLvPsAz9CnnXofhmcA',desc:'All cram videos — check for any new SC-401 content'},
+      {name:'MS Learn SC-401 Learning Path',url:'https://learn.microsoft.com/en-us/training/paths/purview-implement-information-protection/',desc:'Official self-paced training on Microsoft Learn'},
+    ]
+  }
+},
+];
+
+// ── TRACK FILTER ──────────────────────────────────────────────────────────────
+let activeTrack = 'all';
+let activeExam = null;
+
+function filterTrack(t, btn) {
+  activeTrack = t;
+  document.querySelectorAll('.leg-item').forEach(function(b){b.classList.remove('off');});
+  if(t !== 'all') {
+    document.querySelectorAll('.leg-item').forEach(function(b){
+      if(!b.getAttribute('onclick').includes("'all'") && !b.getAttribute('onclick').includes("'"+t+"'")) b.classList.add('off');
+    });
+  }
+  renderGrid();
+  closeDetail();
+}
+
+// ── RENDER GRID ───────────────────────────────────────────────────────────────
+function renderGrid() {
+  var html = '';
+  var trackLabels = {azure:'Azure Infrastructure', sec:'Security', net:'Networking', m365:'M365 / Purview'};
+  EXAMS.forEach(function(e) {
+    var hide = activeTrack !== 'all' && e.track !== activeTrack;
+    html += '<div class="exam-card '+e.track+(hide?' off':'')+'" id="card-'+e.id+'" onclick="toggleExam(\''+e.id+'\')">';
+    html += '<div class="ec-top"><span class="ec-code">'+e.code+'</span>';
+    html += '<span class="ec-level '+(e.level==='Expert'?'level-expert':'level-assoc')+'">'+e.level+'</span></div>';
+    html += '<div class="ec-name">'+e.name+'</div>';
+    html += '<div class="ec-desc">'+e.desc.split('.')[0]+'.</div>';
+    html += '<div class="ec-footer"><span class="ec-track '+e.track+'">'+trackLabels[e.track]+'</span>';
+    html += '<span class="ec-arrow">▶</span></div></div>';
+  });
+  document.getElementById('exam-grid').innerHTML = html;
+}
+
+// ── DETAIL PANEL ──────────────────────────────────────────────────────────────
+function toggleExam(id) {
+  if(activeExam === id) { closeDetail(); return; }
+  activeExam = id;
+  document.querySelectorAll('.exam-card').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('card-'+id).classList.add('active');
+  var e = EXAMS.find(function(x){return x.id===id;});
+  renderDetail(e);
+  // Scroll to detail
+  setTimeout(function(){
+    document.getElementById('detail-panel-container').scrollIntoView({behavior:'smooth',block:'start'});
+  },50);
+}
+
+function closeDetail() {
+  activeExam = null;
+  document.querySelectorAll('.exam-card').forEach(function(c){c.classList.remove('active');});
+  document.getElementById('detail-panel-container').innerHTML='';
+}
+
+function renderDetail(e) {
+  var trackCols = {azure:'#0078d4',sec:'#107c10',net:'#8764b8',m365:'#d83b01'};
+  var fillCol = trackCols[e.track] || '#0078d4';
+
+  // Subjects HTML
+  var subjectsHtml = '<div class="subject-list">';
+  e.subjects.forEach(function(s){
+    subjectsHtml += '<div class="subject-item">';
+    subjectsHtml += '<div class="si-top"><span class="si-name">'+s.name+'</span><span class="si-pct" style="color:'+fillCol+'">'+s.range+'</span></div>';
+    subjectsHtml += '<div class="si-bar"><div class="si-fill" style="width:'+s.pct+'%;background:'+fillCol+'"></div></div>';
+    subjectsHtml += '<div class="si-topics">'+s.topics+'</div>';
+    subjectsHtml += '</div>';
+  });
+  subjectsHtml += '</div>';
+
+  // MS Learn resources HTML
+  var learnHtml = '<div class="res-group">';
+  learnHtml += '<div class="rg-title">📚 Official Microsoft Learn</div>';
+  learnHtml += resLink('🎯', e.msLearn.label, 'Certification overview, exam details, and links to all official learning paths', e.msLearn.url, ['free']);
+  learnHtml += resLink('📖', e.studyGuide.label, 'Full list of skills measured — the definitive guide to exactly what is on the exam', e.studyGuide.url, ['free']);
+  learnHtml += resLink('✅', e.practiceAssessment.label, 'Free official practice questions from Microsoft — aim for 80%+ consistently before booking', e.practiceAssessment.url, ['free','assess']);
+  learnHtml += '</div>';
+
+  // Applied Skills HTML
+  if(e.appliedSkills && e.appliedSkills.length) {
+    learnHtml += '<div class="res-group">';
+    learnHtml += '<div class="rg-title">🧪 Applied Skills — Hands-On Labs</div>';
+    learnHtml += '<div style="font-size:12px;color:var(--muted);margin-bottom:10px;line-height:1.6;">Free browser-based Azure sandboxes — no subscription needed. Each takes ~2 hours and gives you a scored credential on your MS Learn profile.</div>';
+    e.appliedSkills.forEach(function(a){
+      learnHtml += resLink('⚗️', a.name, 'Applied Skills lab — scored hands-on assessment in a real Azure environment. '+a.time, a.url, ['free','hands']);
+    });
+    learnHtml += '</div>';
+  }
+
+  // John Savill HTML
+  var savillHtml = '';
+  if(e.savill.note) {
+    savillHtml += '<div class="no-savill">ℹ️ '+e.savill.note+'</div>';
+    if(e.savill.extra && e.savill.extra.length) {
+      savillHtml += '<div class="res-group" style="margin-top:14px;"><div class="rg-title">🎬 Recommended Resources</div>';
+      e.savill.extra.forEach(function(x){
+        savillHtml += resLink('▶️', x.name, x.desc+(x.time?' · '+x.time:''), x.url, ['video','free']);
+      });
+      savillHtml += '</div>';
+    }
+  } else {
+    savillHtml += '<div class="res-group"><div class="rg-title">🎬 John Savill — Study Crams</div>';
+    if(e.savill.cramV2) savillHtml += resLink('⭐', e.savill.cramV2.label, 'Updated version — watch this if available, covers latest exam content · '+e.savill.cramV2.time, e.savill.cramV2.url, ['free','video']);
+    if(e.savill.cram) savillHtml += resLink('▶️', e.savill.cram.label, 'Core study cram — comprehensive exam revision · '+e.savill.cram.time, e.savill.cram.url, ['free','video']);
+    savillHtml += '</div>';
+    savillHtml += '<div class="res-group"><div class="rg-title">📺 Playlists & Extras</div>';
+    if(e.savill.playlist) savillHtml += resLink('🎵', e.savill.playlist.label, 'In-depth video series covering every topic in detail', e.savill.playlist.url, ['free','video']);
+    if(e.savill.whiteboard) savillHtml += resLink('🗺️', e.savill.whiteboard.label, 'Full-page whiteboard summary — great for last-minute review before the exam', e.savill.whiteboard.url, ['free']);
+    if(e.savill.extra) {
+      e.savill.extra.forEach(function(x){
+        savillHtml += resLink('▶️', x.name, x.desc+(x.time?' · '+x.time:''), x.url, ['free','video']);
+      });
+    }
+    savillHtml += '</div>';
+    savillHtml += '<div style="padding:12px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;font-size:12px;color:var(--muted);">';
+    savillHtml += '💡 <strong>John\'s recommended study approach:</strong> (1) Work through the MS Learn module, (2) Do hands-on practice in Azure, (3) Watch the study cram, (4) Use official practice assessments until scoring 80%+ consistently.';
+    savillHtml += '</div>';
+  }
+
+  var html = '<div class="detail-panel open" id="detail-panel">';
+  // Header
+  html += '<div class="dp-header">';
+  html += '<div class="dp-badge '+e.track+'">'+e.icon+'</div>';
+  html += '<div class="dp-info">';
+  html += '<div class="dp-code">'+e.code+' · '+e.level+'</div>';
+  html += '<div class="dp-title">'+e.name+'</div>';
+  html += '<div class="dp-sub">'+e.desc+'</div>';
+  html += '<div class="dp-meta">';
+  html += '<span class="dp-chip">❓ '+e.questions+' questions</span>';
+  html += '<span class="dp-chip">⏱ '+e.time+'</span>';
+  html += '<span class="dp-chip">🎯 Pass: '+e.pass+'</span>';
+  html += '</div>';
+  html += '</div></div>';
+
+  // Tabs
+  html += '<div class="dp-tabs">';
+  html += '<div class="dp-tab active" onclick="setTab(\'overview\',this)">Overview</div>';
+  html += '<div class="dp-tab" onclick="setTab(\'subjects\',this)">Subject Areas</div>';
+  html += '<div class="dp-tab" onclick="setTab(\'learn\',this)">MS Learn & Labs</div>';
+  html += '<div class="dp-tab" onclick="setTab(\'savill\',this)">John Savill</div>';
+  html += '</div>';
+
+  // Tab bodies
+  html += '<div class="dp-body">';
+
+  // Overview tab
+  html += '<div class="tab-pane active" id="tab-overview">';
+  html += '<div class="overview-grid">';
+  html += '<div class="ov-card"><div class="ov-label">Exam Code</div><div class="ov-val">'+e.code+'</div></div>';
+  html += '<div class="ov-card"><div class="ov-label">Level</div><div class="ov-val">'+e.level+'</div><div class="ov-sub">'+(e.level==='Expert'?'Requires broad, deep experience':'Hands-on implementation knowledge')+'</div></div>';
+  html += '<div class="ov-card"><div class="ov-label">Questions</div><div class="ov-val">'+e.questions+'</div><div class="ov-sub">Mixed: MCQ, case studies, drag-drop</div></div>';
+  html += '<div class="ov-card"><div class="ov-label">Time Allowed</div><div class="ov-val">'+e.time+'</div><div class="ov-sub">Plus NDA & survey time</div></div>';
+  html += '<div class="ov-card"><div class="ov-label">Passing Score</div><div class="ov-val">'+e.pass+'</div><div class="ov-sub">Scaled scoring — not a raw %</div></div>';
+  html += '<div class="ov-card"><div class="ov-label">Open Book</div><div class="ov-val">Yes ✓</div><div class="ov-sub">MS Learn docs accessible during exam</div></div>';
+  html += '</div>';
+  html += '<div class="prereq-note"><strong>Prerequisites / Recommended experience:</strong> '+e.prereq+' <a href="'+e.prereqUrl+'" target="_blank" style="color:var(--azure);">View certification page →</a></div>';
+  html += '</div>';
+
+  html += '<div class="tab-pane" id="tab-subjects">'+subjectsHtml+'</div>';
+  html += '<div class="tab-pane" id="tab-learn">'+learnHtml+'</div>';
+  html += '<div class="tab-pane" id="tab-savill">'+savillHtml+'</div>';
+  html += '</div>';
+
+  html += '<div style="padding:0 24px 20px;"><button class="close-btn" onclick="closeDetail()">✕ Close</button></div>';
+  html += '</div>';
+
+  document.getElementById('detail-panel-container').innerHTML = html;
+}
+
+function resLink(icon, name, desc, url, tags) {
+  var tagHtml = (tags||[]).map(function(t){
+    var cls = t==='free'?'tag-free':t==='hands'?'tag-hands':t==='video'?'tag-video':t==='assess'?'tag-assess':'';
+    var lbl = t==='free'?'Free':t==='hands'?'Hands-on':t==='video'?'Video':t==='assess'?'Practice Test':'';
+    return '<span class="rl-tag '+cls+'">'+lbl+'</span>';
+  }).join('');
+  return '<a class="res-link" href="'+url+'" target="_blank" rel="noopener">'
+    +'<span class="rl-icon">'+icon+'</span>'
+    +'<div class="rl-body">'
+    +'<div class="rl-name">'+name+'</div>'
+    +'<div class="rl-desc">'+desc+'</div>'
+    +'<div class="rl-meta">'+tagHtml+'</div>'
+    +'</div>'
+    +'<span class="rl-ext">↗</span>'
+    +'</a>';
+}
+
+function setTab(id, btn) {
+  document.querySelectorAll('.dp-tab').forEach(function(t){t.classList.remove('active');});
+  document.querySelectorAll('.tab-pane').forEach(function(p){p.classList.remove('active');});
+  btn.classList.add('active');
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+renderGrid();
+</script>
+</body>
+</html>
