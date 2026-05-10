@@ -1,0 +1,1555 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CE Readiness Check · Seb's Workshop</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;
+  --border:#1c2535;--bh:#2d3f5a;
+  --text:#c8d8f0;--muted:#4a5a78;
+  --accent:#00dba8;--adim:rgba(0,219,168,.08);
+  --green:#00dba8;--gdim:rgba(0,219,168,.10);--gbrd:rgba(0,219,168,.28);
+  --amber:#f5a623;--adm2:rgba(245,166,35,.10);--abrd:rgba(245,166,35,.28);
+  --red:#ff4757;--rdim:rgba(255,71,87,.10);--rbrd:rgba(255,71,87,.28);
+  --blue:#4a9eff;--bdim:rgba(74,158,255,.10);--bbrd:rgba(74,158,255,.28);
+  --font:'Sora',sans-serif;--mono:'JetBrains Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--font);min-height:100vh;
+  padding:32px 16px 80px;
+  background-image:linear-gradient(rgba(0,219,168,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,219,168,.025) 1px,transparent 1px);
+  background-size:60px 60px;}
+body::before{content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:800px;height:500px;background:radial-gradient(ellipse,rgba(0,219,168,.05) 0%,transparent 70%);
+  pointer-events:none;z-index:0;}
+.wrap{position:relative;z-index:1;max-width:820px;margin:0 auto;}
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.topbar a{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;text-decoration:none;}
+.topbar a span{color:var(--accent);}
+.ver-badge{padding:4px 12px;border-radius:20px;background:var(--adm2);border:1px solid var(--abrd);font-family:var(--mono);font-size:10px;color:var(--amber);letter-spacing:.5px;}
+/* PAGE HEADER */
+.ph{text-align:center;margin-bottom:28px;animation:fadeUp .4s ease both;}
+.ph-eye{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--accent);opacity:.7;margin-bottom:10px;}
+.ph h1{font-size:clamp(1.8rem,4vw,2.6rem);font-weight:800;color:#e8f0ff;letter-spacing:-1px;line-height:1.1;}
+.ph h1 em{font-style:normal;color:var(--accent);}
+.ph p{margin-top:8px;font-size:13px;color:var(--muted);font-weight:300;}
+.ph-badges{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.badge-red{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--rdim);border:1px solid var(--rbrd);border-radius:20px;font-family:var(--mono);font-size:10px;color:var(--red);letter-spacing:.5px;}
+.badge-green{display:inline-flex;align-items:center;gap:6px;padding:5px 14px;background:var(--gdim);border:1px solid var(--gbrd);border-radius:20px;font-family:var(--mono);font-size:10px;color:var(--green);letter-spacing:.5px;}
+/* CHANGES PANEL */
+.changes-panel{background:var(--surface);border:1px solid var(--border);border-radius:14px;margin-bottom:20px;overflow:hidden;animation:fadeUp .4s .04s ease both;}
+.changes-toggle{width:100%;background:none;border:none;padding:13px 20px;display:flex;align-items:center;justify-content:space-between;cursor:pointer;gap:12px;}
+.ct-l{display:flex;align-items:center;gap:9px;}
+.ct-title{font-family:var(--mono);font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--amber);}
+.ct-sub{font-size:11px;color:var(--muted);font-weight:300;margin-left:3px;}
+.ct-arr{font-family:var(--mono);font-size:11px;color:var(--muted);transition:transform .22s;flex-shrink:0;}
+.ct-arr.open{transform:rotate(180deg);}
+.changes-body{display:none;border-top:1px solid var(--border);padding:16px 20px 18px;}
+.changes-body.open{display:block;}
+.ch-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:14px;}
+@media(max-width:540px){.ch-grid{grid-template-columns:1fr;}}
+.ch-item{background:var(--surface2);border:1px solid var(--border);border-radius:9px;padding:11px 13px;}
+.ch-tag{font-family:var(--mono);font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;}
+.ch-tag.red{color:var(--red);}
+.ch-tag.amber{color:var(--amber);}
+.ch-tag.green{color:var(--green);}
+.ch-text{font-size:12px;color:var(--text);line-height:1.55;}
+.ch-links{display:flex;gap:9px;flex-wrap:wrap;}
+.ext-link{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;background:var(--adim);border:1px solid var(--gbrd);color:var(--accent);font-family:var(--mono);font-size:10px;letter-spacing:.4px;text-decoration:none;transition:all .2s;}
+.ext-link:hover{background:rgba(0,219,168,.14);}
+/* RESUME BANNER */
+.resume-banner{background:var(--bdim);border:1px solid var(--bbrd);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;animation:fadeUp .4s ease both;}
+.rb-text{font-size:13px;color:var(--text);}
+.rb-text span{font-family:var(--mono);font-size:10px;color:var(--blue);}
+.rb-btns{display:flex;gap:8px;}
+.rb-btn{padding:6px 16px;border-radius:7px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;}
+.rb-yes{background:var(--blue);color:#fff;}
+.rb-no{background:transparent;border:1px solid var(--border);color:var(--muted);}
+/* STEPPER */
+.stepper{display:flex;align-items:center;margin-bottom:24px;overflow-x:auto;padding-bottom:2px;animation:fadeUp .4s .06s ease both;}
+.step{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;min-width:0;position:relative;}
+.step::after{content:'';position:absolute;top:13px;left:calc(50% + 15px);right:calc(-50% + 15px);height:1px;background:var(--border);z-index:0;}
+.step:last-child::after{display:none;}
+.sd{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:var(--muted);z-index:1;position:relative;transition:all .2s;}
+.step.active .sd{border-color:var(--accent);color:var(--accent);background:var(--adim);}
+.step.done .sd{border-color:var(--green);background:var(--gdim);color:var(--green);}
+.sl{font-size:9px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.8px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:72px;}
+.step.active .sl{color:var(--accent);}
+.step.done .sl{color:var(--green);opacity:.65;}
+/* SCOPE CARD */
+.scope-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .35s ease both;}
+.scope-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);}
+.scope-title{font-size:15px;font-weight:700;color:#e8f0ff;}
+.scope-sub{font-size:12px;color:var(--muted);font-weight:300;margin-top:3px;}
+.scope-q{padding:16px 24px;border-bottom:1px solid var(--border);}
+.scope-q:last-child{border-bottom:none;}
+.scope-q-text{font-size:13px;color:var(--text);margin-bottom:10px;font-weight:500;line-height:1.5;}
+.scope-hint{font-size:11.5px;color:var(--muted);font-style:italic;margin-bottom:10px;}
+.scope-opts{display:flex;gap:7px;flex-wrap:wrap;}
+.scope-btn{padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font);font-size:12px;cursor:pointer;transition:all .15s;}
+.scope-btn:hover{border-color:var(--bh);color:var(--text);}
+.scope-btn.sel{background:var(--gdim);border-color:var(--gbrd);color:var(--green);}
+/* SECTION CARD */
+.sec-card{background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;animation:fadeUp .35s ease both;}
+.sec-head{padding:20px 24px 16px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.sec-head-l{display:flex;align-items:center;gap:13px;}
+.sec-icon{font-size:24px;flex-shrink:0;}
+.sec-title{font-size:15px;font-weight:700;color:#e8f0ff;}
+.sec-tag{font-size:11px;color:var(--muted);font-weight:300;margin-top:2px;font-family:var(--mono);}
+.sec-rag{padding:4px 11px;border-radius:20px;font-family:var(--mono);font-size:9.5px;letter-spacing:1px;text-transform:uppercase;flex-shrink:0;transition:all .3s;}
+.sec-rag.pend{background:var(--surface2);border:1px solid var(--border);color:var(--muted);}
+.sec-rag.green{background:var(--gdim);border:1px solid var(--gbrd);color:var(--green);}
+.sec-rag.amber{background:var(--adm2);border:1px solid var(--abrd);color:var(--amber);}
+.sec-rag.red{background:var(--rdim);border:1px solid var(--rbrd);color:var(--red);}
+.ab.sk{background:rgba(74,90,120,.10);border-color:rgba(74,90,120,.3);color:var(--muted);}
+.ab.sk:hover{border-color:var(--bh);color:var(--text);}
+.q-item.deferred{background:rgba(74,90,120,.04);}
+.q-deferred-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:6px 0 8px 29px;padding:6px 10px;background:rgba(74,90,120,.10);border:1px dashed rgba(74,90,120,.35);border-radius:7px;}
+.q-deferred-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.5px;}
+.q-unskip-btn{padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--mono);font-size:10px;cursor:pointer;transition:all .15s;}
+.q-unskip-btn:hover{border-color:var(--bh);color:var(--text);}
+/* Deferred block in results */
+.deferred-block{background:var(--surface);border:1px dashed var(--bh);border-radius:14px;overflow:hidden;margin-bottom:12px;animation:fadeUp .35s ease both;}
+.deferred-hdr{padding:12px 18px;border-bottom:1px dashed var(--bh);display:flex;align-items:center;gap:8px;}
+.deferred-hdr-title{font-size:12px;font-weight:600;font-family:var(--mono);color:var(--muted);flex:1;}
+.deferred-hdr-badge{padding:3px 10px;border-radius:20px;background:rgba(74,90,120,.15);border:1px solid rgba(74,90,120,.3);font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;}
+.deferred-row{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:8px;}
+.deferred-row:last-child{border-bottom:none;}
+.def-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.def-text{font-size:12.5px;color:var(--muted);flex:1;line-height:1.5;}
+.def-sec{font-family:var(--mono);font-size:9.5px;color:var(--muted);opacity:.6;display:block;margin-top:2px;}
+.badge-adv{display:inline-flex;padding:1px 6px;border-radius:3px;background:var(--bdim);border:1px solid var(--bbrd);font-family:var(--mono);font-size:8px;color:var(--blue);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+.gap-sev.advisory{color:var(--blue);}
+.gap-row.advisory-row .gap-fix{border-left-color:var(--bbrd);}
+/* Info button */
+.info-btn{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;
+  border-radius:50%;border:1px solid var(--border);background:transparent;color:var(--muted);
+  font-family:var(--mono);font-size:10px;font-weight:700;cursor:pointer;flex-shrink:0;
+  transition:all .15s;vertical-align:middle;margin-left:6px;line-height:1;pointer-events:all;}
+.info-btn:hover{border-color:var(--blue);color:var(--blue);background:var(--bdim);}
+.info-btn.open{border-color:var(--blue);color:var(--blue);background:var(--bdim);}
+/* Info panel */
+.info-panel{display:none;margin:0 0 8px 29px;border:1px solid var(--bbrd);border-radius:10px;overflow:hidden;}
+.info-panel.open{display:block;}
+.ip-pass{padding:11px 14px;background:rgba(0,219,168,.04);border-bottom:1px solid var(--bbrd);}
+.ip-pass-hdr{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--green);margin-bottom:6px;}
+.ip-pass-body{font-size:12px;color:var(--text);line-height:1.65;}
+.ip-fail{padding:11px 14px;background:rgba(255,71,87,.03);}
+.ip-fail-hdr{font-family:var(--mono);font-size:9px;letter-spacing:.8px;text-transform:uppercase;color:var(--red);margin-bottom:6px;}
+.ip-fail-list{display:flex;flex-direction:column;gap:4px;}
+.ip-fail-item{display:flex;align-items:flex-start;gap:6px;font-size:12px;color:var(--text);line-height:1.55;}
+.ip-fail-x{color:var(--red);font-weight:700;flex-shrink:0;margin-top:1px;}
+.ip-ncsc{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-family:var(--mono);font-size:10px;color:var(--muted);text-decoration:none;transition:color .15s;}
+.ip-ncsc:hover{color:var(--accent);}
+/* Scope-skipped question */
+.q-item.skipped{opacity:.45;pointer-events:none;}
+.q-skip-note{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:11.5px;color:var(--muted);margin:0 0 0 29px;}
+.q-skip-note .sk-icon{font-size:13px;flex-shrink:0;}
+/* Scope callout */
+.scope-callout{margin:0 0 8px 29px;padding:9px 12px;background:var(--bdim);border:1px solid var(--bbrd);border-radius:8px;font-size:11.5px;color:var(--blue);line-height:1.6;}
+.scope-callout strong{font-weight:600;}
+/* Skipped question indicator in results */
+.q-item.skipped .ans-btns{display:none;}
+/* QUESTIONS */
+.q-item{padding:16px 24px;border-bottom:1px solid var(--border);transition:background .15s;}
+.q-item:last-child{border-bottom:none;}
+.q-item.ans{background:rgba(0,219,168,.015);}
+.q-row{display:flex;align-items:flex-start;gap:9px;margin-bottom:9px;}
+.q-num{font-family:var(--mono);font-size:10px;color:var(--muted);padding-top:2px;flex-shrink:0;min-width:20px;}
+.q-text{font-size:13px;line-height:1.65;color:var(--text);flex:1;}
+.badges{display:inline-flex;gap:4px;flex-wrap:wrap;margin-left:5px;vertical-align:middle;}
+.badge-af{display:inline-flex;padding:1px 6px;border-radius:3px;background:var(--rdim);border:1px solid var(--rbrd);font-family:var(--mono);font-size:8px;color:var(--red);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+.badge-26{display:inline-flex;padding:1px 6px;border-radius:3px;background:var(--adm2);border:1px solid var(--abrd);font-family:var(--mono);font-size:8px;color:var(--amber);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+.badge-cp{display:inline-flex;padding:1px 6px;border-radius:3px;background:var(--bdim);border:1px solid var(--bbrd);font-family:var(--mono);font-size:8px;color:var(--blue);letter-spacing:.4px;text-transform:uppercase;white-space:nowrap;}
+.q-hint{font-size:11.5px;color:var(--muted);font-style:italic;margin:0 0 9px 29px;line-height:1.55;}
+.ans-btns{display:flex;gap:6px;flex-wrap:wrap;padding-left:29px;}
+.ab{padding:6px 15px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-family:var(--font);font-size:11.5px;font-weight:500;cursor:pointer;transition:all .15s;}
+.ab:hover{border-color:var(--bh);color:var(--text);}
+.ab.sy{background:var(--gdim);border-color:var(--gbrd);color:var(--green);}
+.ab.sp{background:var(--adm2);border-color:var(--abrd);color:var(--amber);}
+.ab.sn{background:var(--rdim);border-color:var(--rbrd);color:var(--red);}
+.ab.sna{background:rgba(74,90,120,.12);border-color:rgba(74,90,120,.35);color:var(--muted);}
+/* CE+ panel on question */
+.cp-panel{margin:8px 0 4px 29px;padding:10px 12px;background:var(--bdim);border:1px solid var(--bbrd);border-radius:8px;font-size:11.5px;color:var(--blue);line-height:1.55;display:none;}
+.cp-panel.show{display:block;}
+/* NAV */
+.nav-bar{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:12px;flex-wrap:wrap;}
+.prog-text{font-family:var(--mono);font-size:11px;color:var(--muted);}
+.prog-text b{color:var(--accent);}
+.btn{padding:10px 24px;border-radius:10px;border:none;font-family:var(--font);font-size:13px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:7px;}
+.btn-p{background:var(--accent);color:#080b11;}
+.btn-p:hover{background:#00f0ba;transform:translateY(-1px);}
+.btn-p:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;transform:none;}
+.btn-g{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-g:hover{border-color:var(--bh);color:var(--text);}
+/* RESULTS */
+#results{display:none;}
+#results.show{display:block;}
+.res-hero{border-radius:18px;padding:28px 24px;text-align:center;margin-bottom:14px;border:1px solid;}
+.res-hero.green{background:var(--gdim);border-color:var(--gbrd);}
+.res-hero.amber{background:var(--adm2);border-color:var(--abrd);}
+.res-hero.red{background:var(--rdim);border-color:var(--rbrd);}
+.rh-lbl{font-family:var(--mono);font-size:10px;letter-spacing:3px;text-transform:uppercase;opacity:.7;margin-bottom:5px;}
+.rh-lbl.green{color:var(--green);}
+.rh-lbl.amber{color:var(--amber);}
+.rh-lbl.red{color:var(--red);}
+.rh-score{font-family:var(--mono);font-size:3rem;font-weight:700;margin:6px 0 4px;}
+.rh-score.green{color:var(--green);}
+.rh-score.amber{color:var(--amber);}
+.rh-score.red{color:var(--red);}
+.rh-title{font-size:1.35rem;font-weight:800;color:#e8f0ff;letter-spacing:-.3px;}
+.rh-sub{font-size:12px;color:var(--muted);font-weight:300;margin-top:4px;}
+/* Scope summary pill */
+.scope-summary{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:12px;}
+.scope-pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;background:var(--surface2);border:1px solid var(--border);font-family:var(--mono);font-size:9.5px;color:var(--muted);}
+/* Remediation progress */
+.rem-progress{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;}
+.rem-prog-text{font-size:12.5px;color:var(--text);font-weight:500;flex:1;}
+.rem-prog-text b{color:var(--accent);}
+.rem-track{flex:1;min-width:120px;height:4px;background:var(--border);border-radius:2px;overflow:hidden;}
+.rem-fill{height:100%;background:var(--green);border-radius:2px;transition:width .4s ease;}
+.rem-pct{font-family:var(--mono);font-size:11px;color:var(--green);min-width:36px;text-align:right;}
+/* CE+ toggle */
+.ceplus-toggle-bar{display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:12px;}
+.ceplus-toggle-bar label{font-size:12.5px;color:var(--text);cursor:pointer;display:flex;align-items:center;gap:8px;flex:1;}
+.ceplus-desc{font-size:11.5px;color:var(--muted);font-weight:300;}
+.toggle-sw{position:relative;width:38px;height:20px;flex-shrink:0;}
+.toggle-sw input{opacity:0;width:0;height:0;position:absolute;}
+.toggle-sw .knob{position:absolute;inset:0;border-radius:20px;background:var(--border);transition:all .25s;cursor:pointer;}
+.toggle-sw .knob::after{content:'';position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .25s;}
+.toggle-sw input:checked + .knob{background:var(--blue);}
+.toggle-sw input:checked + .knob::after{transform:translateX(18px);}
+/* Auto-fail banner */
+.af-banner{background:var(--rdim);border:1px solid var(--rbrd);border-radius:12px;padding:14px 18px;margin-bottom:12px;}
+.af-hdr{display:flex;align-items:center;gap:7px;font-size:12.5px;font-weight:700;color:var(--red);margin-bottom:9px;}
+.af-item{font-size:12px;color:var(--text);padding:6px 0;border-bottom:1px solid rgba(255,71,87,.12);display:flex;align-items:flex-start;gap:7px;line-height:1.5;}
+.af-item:last-child{border-bottom:none;padding-bottom:0;}
+.af-x{color:var(--red);font-weight:700;flex-shrink:0;}
+.af-sec{font-family:var(--mono);font-size:9px;color:var(--muted);display:block;margin-top:1px;}
+/* Section summaries */
+.ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+@media(max-width:540px){.ss-grid{grid-template-columns:1fr;}}
+.ss-card{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:13px 16px;}
+.ss-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.ss-name{font-size:12px;font-weight:600;color:#e8f0ff;display:flex;align-items:center;gap:6px;}
+.ss-dot{width:8px;height:8px;border-radius:50%;}
+.ss-dot.green{background:var(--green);box-shadow:0 0 5px rgba(0,219,168,.5);}
+.ss-dot.amber{background:var(--amber);box-shadow:0 0 5px rgba(245,166,35,.4);}
+.ss-dot.red{background:var(--red);box-shadow:0 0 5px rgba(255,71,87,.4);}
+.ss-track{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-bottom:5px;}
+.ss-fill{height:100%;border-radius:2px;transition:width .5s ease;}
+.ss-fill.green{background:var(--green);}
+.ss-fill.amber{background:var(--amber);}
+.ss-fill.red{background:var(--red);}
+.ss-meta{font-family:var(--mono);font-size:9.5px;color:var(--muted);}
+/* Gap analysis */
+.gap-section-label{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin:16px 0 8px;}
+.gap-block{background:var(--surface);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;}
+.gap-hdr{padding:11px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.gap-hdr-title{font-size:12px;font-weight:600;color:var(--text);font-family:var(--mono);flex:1;}
+.gap-hdr-rag{font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;}
+.gap-hdr-rag.red{color:var(--red);}
+.gap-hdr-rag.amber{color:var(--amber);}
+.gap-row{padding:13px 18px;border-bottom:1px solid var(--border);}
+.gap-row:last-child{border-bottom:none;}
+.gap-row.remediated{opacity:.45;}
+.gap-q-row{display:flex;align-items:flex-start;gap:7px;margin-bottom:7px;}
+.gap-sev{font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:.5px;flex-shrink:0;padding-top:1px;}
+.gap-sev.red{color:var(--red);}
+.gap-sev.amber{color:var(--amber);}
+.gap-q-text{font-size:12.5px;color:var(--text);font-weight:500;line-height:1.5;}
+.gap-fix{font-size:12px;color:var(--muted);line-height:1.6;padding-left:9px;border-left:2px solid var(--border);margin-bottom:8px;}
+/* Evidence accordion */
+.ev-toggle{background:none;border:none;cursor:pointer;padding:4px 0;font-family:var(--mono);font-size:10px;color:var(--muted);display:flex;align-items:center;gap:5px;letter-spacing:.5px;transition:color .2s;}
+.ev-toggle:hover{color:var(--text);}
+.ev-toggle .ev-arr{transition:transform .2s;font-size:9px;}
+.ev-toggle.open .ev-arr{transform:rotate(90deg);}
+.ev-list{display:none;margin-top:7px;padding-left:2px;}
+.ev-list.open{display:block;}
+.ev-item{font-size:11.5px;color:var(--text);padding:4px 0 4px 14px;position:relative;line-height:1.5;}
+.ev-item::before{content:'📎';position:absolute;left:0;font-size:11px;}
+/* CE+ in gap */
+.cp-note{margin-top:8px;padding:8px 11px;background:var(--bdim);border:1px solid var(--bbrd);border-radius:7px;font-size:11.5px;color:var(--blue);line-height:1.5;display:none;}
+.cp-note.show{display:block;}
+/* Remediation checkbox */
+.rem-check-row{display:flex;align-items:center;gap:8px;margin-top:9px;padding-top:9px;border-top:1px dashed var(--border);}
+.rem-checkbox{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--border);background:transparent;appearance:none;-webkit-appearance:none;cursor:pointer;flex-shrink:0;position:relative;transition:all .15s;}
+.rem-checkbox:checked{background:var(--green);border-color:var(--green);}
+.rem-checkbox:checked::after{content:'✓';position:absolute;top:-1px;left:2px;font-size:11px;color:#080b11;font-weight:700;}
+.rem-label{font-size:12px;color:var(--muted);cursor:pointer;}
+/* Results footer */
+.res-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:20px;flex-wrap:wrap;}
+.ver-note{font-family:var(--mono);font-size:10px;color:var(--muted);}
+.res-btns{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-sm{padding:8px 18px;border-radius:8px;font-family:var(--font);font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;border:none;}
+.btn-sm-g{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.btn-sm-g:hover{border-color:var(--bh);color:var(--text);}
+.btn-sm-a{background:var(--accent);color:#080b11;}
+.btn-sm-a:hover{background:#00f0ba;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media print{
+  body{background:#fff;color:#000;background-image:none;padding:16px;}
+  body::before,.topbar,.ph,.stepper,.nav-bar,#quiz,.res-btns,.ceplus-toggle-bar,.rem-progress,.changes-panel{display:none!important;}
+  #results{display:block!important;}
+  .sec-card,.res-hero,.ss-card,.gap-block,.af-banner{border:1px solid #ccc!important;background:#fff!important;}
+}
+</style>
+
+<style id="light-override">
+:root{
+  --bg:#f4f6fb;--surface:#ffffff;--surface2:#f8fafc;
+  --border:#e2e8f0;--bh:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;
+  --accent:#0d9488;--adim:rgba(13,148,136,.08);
+  --green:#0d9488;--gdim:rgba(13,148,136,.08);--gbrd:rgba(13,148,136,.28);
+  --amber:#d97706;--adm2:rgba(217,119,6,.08);--abrd:rgba(217,119,6,.28);
+  --red:#dc2626;--rdim:rgba(220,38,38,.08);--rbrd:rgba(220,38,38,.28);
+  --blue:#2563eb;--bdim:rgba(37,99,235,.08);--bbrd:rgba(37,99,235,.28);
+  --purple:#7c3aed;--pdim:rgba(124,58,237,.08);--pbrd:rgba(124,58,237,.28);
+}
+body{background:#f4f6fb;background-image:linear-gradient(rgba(13,148,136,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(13,148,136,.02) 1px,transparent 1px);}
+body::before{background:radial-gradient(ellipse,rgba(13,148,136,.04) 0%,transparent 70%);}
+.topbar a{color:#64748b;}
+.topbar a span{color:#0d9488;}
+.ver-badge{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.28);color:#d97706;}
+.ph h1{color:#1e293b;}
+.ph-eye{color:#0d9488;}
+.scope-card,.sec-card,.summary-table,.gap-block,.ce-note,.changes-panel,.deferred-block,
+.ss-card,.res-hero.clean,.af-banner,.rem-progress,.ceplus-toggle-bar,.rec-card,.score-hero{
+  background:#ffffff;}
+.scope-btn,.ab,.btn-g{background:#ffffff;}
+.btn-p,.search-btn,.scan-btn,.btn-sm-a,.btn-restart{background:#0d9488;color:#fff;}
+.btn-p:hover,.search-btn:hover,.btn-sm-a:hover{background:#0f766e;}
+.domain-input,.target-input,.dkim-sel-input{background:#f8fafc;color:#1e293b;}
+.domain-input::placeholder,.target-input::placeholder{color:#94a3b8;}
+.raw-record{background:#f8fafc;color:#1e293b;}
+.raw-record.missing{color:#94a3b8;}
+.ip-pass{background:rgba(13,148,136,.04);}
+.ip-pass-body{color:#1e293b;}
+.ip-fail-item{color:#1e293b;}
+.info-panel{border-color:rgba(37,99,235,.2);}
+.bk-row{background:#f8fafc;}
+.bk-label{color:#1e293b;}
+.pd-item{background:#f8fafc;}
+.pd-value{color:#1e293b;}
+</style>
+<style id="dark-override">
+html[data-theme="dark"]{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;
+  --border:#1c2535;--bh:#2d3f5a;--text:#c8d8f0;--muted:#4a5a78;
+  --accent:#00dba8;--adim:rgba(0,219,168,.08);
+  --green:#00dba8;--gdim:rgba(0,219,168,.10);--gbrd:rgba(0,219,168,.28);
+  --amber:#f5a623;--adm2:rgba(245,166,35,.10);--abrd:rgba(245,166,35,.28);
+  --red:#ff4757;--rdim:rgba(255,71,87,.10);--rbrd:rgba(255,71,87,.28);
+  --blue:#4a9eff;--bdim:rgba(74,158,255,.10);--bbrd:rgba(74,158,255,.28);
+  --purple:#a78bfa;--pdim:rgba(167,139,250,.10);--pbrd:rgba(167,139,250,.28);
+}
+html[data-theme="dark"] body{background:#080b11;background-image:linear-gradient(rgba(0,219,168,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,219,168,.025) 1px,transparent 1px);background-size:60px 60px;}
+html[data-theme="dark"] body::before{background:radial-gradient(ellipse,rgba(0,219,168,.05) 0%,transparent 70%);}
+html[data-theme="dark"] .ph h1{color:#e8f0ff;}
+html[data-theme="dark"] .ph-eye{color:var(--accent);}
+html[data-theme="dark"] .topbar a{color:var(--muted);}
+html[data-theme="dark"] .topbar a span{color:var(--accent);}
+html[data-theme="dark"] .ver-badge{background:var(--adm2);border-color:var(--abrd);color:var(--amber);}
+html[data-theme="dark"] .scope-card,html[data-theme="dark"] .sec-card,
+html[data-theme="dark"] .summary-table,html[data-theme="dark"] .gap-block,
+html[data-theme="dark"] .changes-panel,html[data-theme="dark"] .deferred-block,
+html[data-theme="dark"] .ss-card,html[data-theme="dark"] .rem-progress,
+html[data-theme="dark"] .ceplus-toggle-bar,html[data-theme="dark"] .rec-card,
+html[data-theme="dark"] .port-table,html[data-theme="dark"] .res-hero.clean{background:var(--surface);}
+html[data-theme="dark"] .scope-btn,html[data-theme="dark"] .ab,
+html[data-theme="dark"] .btn-g,html[data-theme="dark"] .mode-btn{background:transparent;}
+html[data-theme="dark"] .btn-p,html[data-theme="dark"] .search-btn,
+html[data-theme="dark"] .scan-btn,html[data-theme="dark"] .btn-sm-a,
+html[data-theme="dark"] .btn-restart{background:var(--accent);color:#080b11;}
+html[data-theme="dark"] .domain-input,html[data-theme="dark"] .target-input,
+html[data-theme="dark"] .dkim-sel-input{background:var(--surface2);color:var(--text);border-color:var(--border);}
+html[data-theme="dark"] .domain-input::placeholder,html[data-theme="dark"] .target-input::placeholder{color:var(--muted);}
+html[data-theme="dark"] .raw-record{background:var(--surface2);color:var(--text);}
+html[data-theme="dark"] .raw-record.missing{color:var(--muted);}
+html[data-theme="dark"] .bk-row,html[data-theme="dark"] .pd-item,
+html[data-theme="dark"] .ch-item,html[data-theme="dark"] .scope-q{background:var(--surface2);}
+html[data-theme="dark"] .ip-pass{background:rgba(0,219,168,.04);}
+html[data-theme="dark"] .info-panel{border-color:rgba(74,158,255,.22);}
+html[data-theme="dark"] .ip-fail-item,html[data-theme="dark"] .bk-label,
+html[data-theme="dark"] .pd-value,html[data-theme="dark"] .gap-q-text{color:var(--text);}
+</style>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
+</head>
+<body>
+<div class="wrap">
+  <div class="topbar">
+    <a href="index.html">← Seb's <span>Workshop</span></a>
+    <span class="ver-badge">Danzell v3.3 · April 2026</span>
+  </div>
+  <header class="ph">
+    <div class="ph-eye">Cyber Essentials</div>
+    <h1>CE <em>Readiness</em> Check</h1>
+    <p>Gap analysis against the Danzell question set (Requirements for IT Infrastructure v3.3)</p>
+    <div class="ph-badges">
+      <span class="badge-red">🔴 New auto-fail rules · April 2026</span>
+      <span class="badge-green">💾 Auto-saves progress</span>
+    </div>
+  </header>
+  <div class="changes-panel">
+    <button class="changes-toggle" onclick="toggleChanges()">
+      <div class="ct-l">
+        <span>📋</span>
+        <span class="ct-title">What changed in Danzell v3.3?</span>
+        <span class="ct-sub">Key 2026 updates · tap to expand</span>
+      </div>
+      <span class="ct-arr" id="ct-arr">▼</span>
+    </button>
+    <div class="changes-body" id="ct-body">
+      <div class="ch-grid">
+        <div class="ch-item"><div class="ch-tag red">🔴 New Auto-Fail</div><div class="ch-text"><strong>MFA on cloud services</strong> — if MFA is available on any cloud platform and you haven't enabled it, assessment fails immediately. Cost is not an excuse.</div></div>
+        <div class="ch-item"><div class="ch-tag red">🔴 New Auto-Fail</div><div class="ch-text"><strong>14-day patching (A6.4 &amp; A6.5)</strong> — missing the window for OS/firmware or application fixes is now immediate failure. Previous tolerance removed.</div></div>
+        <div class="ch-item"><div class="ch-tag amber">⚠️ Changed</div><div class="ch-text"><strong>Password minimum → 12 characters</strong> (up from 8). MFA or passwordless authentication satisfies this independently.</div></div>
+        <div class="ch-item"><div class="ch-tag amber">⚠️ Changed</div><div class="ch-text"><strong>Point-in-time = certificate issue date</strong> — your systems must be compliant on the day the certificate is issued, not submission day.</div></div>
+        <div class="ch-item"><div class="ch-tag green">✦ Clarified</div><div class="ch-text"><strong>Passkeys are now the NCSC's preferred auth method</strong>. FIDO2, biometrics, OTPs, security keys and push notifications all formally accepted.</div></div>
+        <div class="ch-item"><div class="ch-tag green">✦ Clarified</div><div class="ch-text"><strong>Cloud services formally defined</strong> for the first time — they cannot be excluded from scope. Scope descriptions are now unlimited in length on certificates.</div></div>
+        <div class="ch-item"><div class="ch-tag green">✦ Clarified</div><div class="ch-text"><strong>Director declaration updated</strong> — now includes explicit acknowledgement of responsibility for maintaining CE compliance throughout the full certification period.</div></div>
+        <div class="ch-item"><div class="ch-tag amber">⚠️ CE+ Only</div><div class="ch-text"><strong>Self-assessment locked before CE+ audit</strong> — VSA responses cannot be amended after testing begins. "Selective patching" workaround closed.</div></div>
+      </div>
+      <div class="ch-links">
+        <a class="ext-link" href="https://iasme.co.uk/articles/important-update-changes-to-cyber-essentials-for-april-2026/" target="_blank" rel="noopener">↗ IASME · April 2026 Changes</a>
+        <a class="ext-link" href="https://www.ncsc.gov.uk/cyberessentials/resources" target="_blank" rel="noopener">↗ NCSC · CE Resources &amp; v3.3 PDF</a>
+        <a class="ext-link" href="https://iasme.co.uk/articles/upcoming-changes-to-the-cyber-essentials-scheme-april-2026-update/" target="_blank" rel="noopener">↗ IASME · v3.3 Requirements Preview</a>
+      </div>
+    </div>
+  </div>
+  <div id="resume-banner"></div>
+  <nav class="stepper" id="stepper"></nav>
+  <div id="quiz"></div>
+  <div id="results"></div>
+</div>
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const SCOPE_QS = [
+  { id:'org',    text:'What does this assessment cover?',
+    opts:[['whole','Whole organisation'],['subset','A specific subset / business unit']] },
+  { id:'cloud',  text:'Do you use cloud services?',
+    hint:'e.g. Microsoft 365, Google Workspace, AWS, Azure, Salesforce, Xero',
+    opts:[['yes','Yes — we use cloud services'],['no','No cloud services in use']] },
+  { id:'remote', text:'Do staff work from home or remote locations?',
+    opts:[['yes','Yes — home / remote workers'],['no','Office-based only']] },
+  { id:'mobile', text:'Are mobile devices (phones or tablets) used for work?',
+    hint:'Select "Both" if you have a mix of MDM-managed company devices and personal BYOD devices — CE treats these differently.',
+    opts:[['mdm','Yes — MDM managed only'],['byod','Yes — BYOD only'],['both','Both MDM and BYOD'],['no','No mobile devices in scope']] },
+];
+
+const SECTIONS = [
+  { id:'fw', num:1, icon:'🛡️', title:'Firewalls', tag:'Boundary Protection', qs:[
+    { id:'fw1', text:'Do all internet connections pass through a boundary firewall or router with firewall capabilities?',
+      hint:null, af:true, n26:false, opts:['yes','no'],
+      rem:'A boundary firewall is mandatory for CE. Install and configure a firewall between every internet connection and your network before applying.',
+      ev:['Firewall inventory confirming boundary device in place','Network diagram or topology confirming firewall position between internet and internal network'],
+      cp:'CE+ assessor will technically verify firewall placement and attempt to connect to your network without going through the firewall.' },
+    { id:'fw2', text:'Do home and remote workers use a software firewall when connecting from untrusted networks (cafés, hotels, home broadband without a managed router)?',
+      hint:'Danzell updated "home working" to "home and remote working" to cover all untrusted network scenarios.',
+      af:false, n26:false, opts:['yes','partial','no','na'], naLabel:'No remote workers',
+      rem:'Enable and enforce the OS software firewall (Windows Defender Firewall / macOS Firewall) on all laptops via MDM or Group Policy. Prevent standard users from disabling it.',
+      ev:['MDM/Group Policy screenshot showing software firewall enforced on managed laptops','Evidence remote workers cannot disable the firewall'],
+      cp:'CE+ assessor will inspect sampled remote-worker devices to verify the software firewall is active and policy-enforced.' },
+    { id:'fw3', text:'Have all default administrative passwords on firewalls and routers been changed — or is passwordless authentication (passkeys / FIDO2) used?',
+      hint:null, af:true, n26:false, opts:['yes','no'],
+      rem:'Change all default credentials on every firewall and router. Use a strong unique password or passwordless auth. Default credentials are an automatic CE failure.',
+      ev:['Build/configuration record confirming default credentials changed on each device','Password or credential management policy covering network equipment'],
+      cp:'CE+ assessor will attempt to log in to sampled network devices using known default credentials.' },
+    { id:'fw4', text:'Do firewalls block all inbound connections by default, only permitting specifically approved and documented services?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Implement a default-deny inbound policy. Review every open inbound rule and ensure each has a documented business justification. Remove unjustified rules.',
+      ev:['Firewall ruleset export or screenshot showing default-deny inbound','Business justification document for each permitted inbound service'],
+      cp:'CE+ assessor will review firewall rules and attempt to access services that should be blocked.' },
+    { id:'fw5', text:'Do you restrict access to only the ports and services necessary for your business?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Audit all open ports and services. Close anything not actively required. Use a port scanner to verify what is externally exposed.',
+      ev:['Port scan results confirming only required ports are open','Change record showing closure of unnecessary ports'],
+      cp:'CE+ assessor will run a port scan against your external IP(s) to verify only necessary services are accessible.' },
+    { id:'fw6', text:'Do you regularly review firewall rules and remove rules that are no longer needed?',
+      hint:'Regular rule reviews are emphasised in the Danzell requirements.',
+      af:false, n26:false, advisory:true, opts:['yes','partial','no'],
+      rem:'Establish at least a quarterly firewall rule review process. Document each review with dates and findings. Remove or re-justify any legacy rules.',
+      ev:['Dated record of most recent firewall rule review (within last 12 months)','List of rules reviewed and any removed or re-justified'],
+      cp:'CE+ assessor may ask to see evidence of the most recent rule review and its outcomes.' },
+    { id:'fw7', text:'Have you documented a network equipment inventory listing firewalls and routers with their make and model?',
+      hint:'CE requires only firewalls and routers — not switches, hubs or other devices. Firmware version should also be recorded.',
+      af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Create and maintain a register of all in-scope firewalls and routers, including make, model and current firmware version.',
+      ev:['Network equipment register listing each firewall/router by make, model and firmware version'],
+      cp:'CE+ assessor will cross-reference your inventory against devices found during the technical assessment.' },
+  ]},
+  { id:'sc', num:2, icon:'⚙️', title:'Secure Configuration', tag:'Device Hardening', qs:[
+    { id:'sc1', text:'Do you remove or disable unnecessary default user accounts before deploying devices?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Build a device hardening checklist. Remove guest accounts, default service accounts and any pre-configured accounts not required for your deployment before devices go live.',
+      ev:['Device build standard / hardening checklist confirming default accounts removed','Screenshot of local user accounts on a sample device'],
+      cp:'CE+ assessor will inspect sampled devices for the presence of unnecessary default accounts (e.g. Guest, DefaultAccount).' },
+    { id:'sc2', text:'Do you change all default passwords on all devices and software before deployment?',
+      hint:null, af:true, n26:false, opts:['yes','no'],
+      rem:'Default credentials must always be changed on all devices: servers, workstations, printers, IoT, network equipment and applications.',
+      ev:['Device build standard confirming default passwords changed pre-deployment','Change record or configuration evidence for each device type'],
+      cp:'CE+ assessor will attempt to authenticate to sampled devices using known default credentials.' },
+    { id:'sc3', text:'Have you disabled unnecessary services, software and network protocols on all in-scope devices?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Audit running services on all devices. Disable anything not required (e.g. Telnet, FTP, SMBv1). Follow NCSC OS hardening guidance.',
+      ev:['Running services list on sample devices showing unnecessary services disabled','Group Policy / MDM screenshot confirming restrictions applied'],
+      cp:'CE+ assessor will inspect sampled devices for unnecessary services, including legacy protocols such as SMBv1.' },
+    { id:'sc4', text:'Is auto-run and auto-play disabled on all in-scope devices?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Disable AutoRun and AutoPlay via Group Policy or MDM to prevent malware spreading via removable media.',
+      ev:['Group Policy or MDM screenshot confirming AutoRun/AutoPlay disabled'],
+      cp:'CE+ assessor will check AutoRun settings on sampled Windows devices.' },
+    { id:'sc5', text:'Do screens automatically lock after a period of inactivity and require authentication to unlock?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Enable automatic screen lock (NCSC recommends ≤10 minutes) via Group Policy or MDM. Ensure it cannot be bypassed by standard users.',
+      ev:['Group Policy or MDM screenshot confirming screen lock timeout and authentication requirement'],
+      cp:'CE+ assessor will verify screen lock settings on sampled devices.' },
+    { id:'sc6', text:'Is all software installed on in-scope devices properly licensed?',
+      hint:'CE v3.2 added an explicit requirement that all in-scope software must be legitimately licensed.',
+      af:false, n26:false, opts:['yes','no'],
+      rem:'Audit all installed software and ensure everything is legitimately licensed. Remove any unlicensed software.',
+      ev:['Software asset register confirming all installed software is licensed','Licence inventory or SAM tool report'],
+      cp:null },
+    { id:'sc7', text:'Have you removed all End-of-Life software and operating systems that no longer receive security updates?',
+      hint:'EOL software is an automatic CE failure. Key EOL dates: Windows 10 (Oct 2025), Exchange 2016 &amp; 2019 (Oct 2025). The 2026 update confirms compliance is assessed at certificate issue date.',
+      af:true, n26:false, opts:['yes','no'],
+      rem:'Upgrade or remove all EOL software and operating systems. EOL is an automatic failure with no workaround. Plan lifecycle upgrades well in advance.',
+      ev:['Software asset register or SCCM/Intune report confirming no EOL products installed','OS version report from RMM tool'],
+      cp:'CE+ assessor will check OS and application versions on all sampled devices against current EOL dates.' },
+    { id:'sc8', text:'Are user passwords required to be at least 12 characters long — or is MFA / passwordless authentication enforced as an alternative?',
+      hint:'Danzell v3.3 (2026) increased the minimum from 8 to 12 characters. MFA or passwordless authentication satisfies this requirement independently.',
+      af:false, n26:true, opts:['yes','partial','no'],
+      rem:'Update password policy (Group Policy / Entra ID / identity provider) to enforce a minimum of 12 characters. Where MFA or passkeys are deployed this supplements the requirement.',
+      ev:['Screenshot of password policy settings (Group Policy or Entra ID) showing 12-character minimum','Evidence of MFA enforcement if used as the alternative'],
+      cp:'CE+ assessor will inspect password policy settings on sampled devices and in your identity provider.' },
+  ]},
+  { id:'sum', num:3, icon:'🔄', title:'Security Updates', tag:'Vulnerability Fixes', qs:[
+    { id:'sum1', text:'Are all high-risk or critical security updates and vulnerability fixes for operating systems and router/firewall firmware installed within 14 days of release? (CVSS 7.0+)',
+      hint:'AUTO-FAIL (NEW — Danzell 2026, A6.4): This is now a hard automatic failure. The previous ability to remediate and resubmit has been removed entirely.',
+      af:true, n26:true, opts:['yes','partial','no'],
+      rem:'Implement automated patch management (WSUS, Intune, RMM). Vulnerability fixes include patches, config changes, registry edits and vendor scripts — not just traditional patches.',
+      ev:['Patch management compliance report (last 90 days) showing critical patches applied within 14 days','Screenshot of patching console showing OS compliance across fleet','Firmware update records for firewalls and routers'],
+      cp:'CE+ assessor will check OS and firmware patch levels on all sampled devices against live CVE databases.' },
+    { id:'sum2', text:'Are all high-risk or critical security updates and vulnerability fixes for applications (including associated files, frameworks and extensions) installed within 14 days of release?',
+      hint:'AUTO-FAIL (NEW — Danzell 2026, A6.5): Separate from OS/firmware — applications have their own auto-fail question in Danzell.',
+      af:true, n26:true, opts:['yes','partial','no'],
+      rem:'Ensure your patch management process covers all applications, not just the OS. Includes browser extensions, web frameworks, plugins and third-party libraries.',
+      ev:['Application patch compliance report showing ≤14 days for critical fixes','Evidence of third-party application update management (browser, Office, Adobe etc.)'],
+      cp:'CE+ assessor will check application versions on sampled devices against current vulnerability data.' },
+    { id:'sum3', text:'Do you have a documented, evidenced process to identify when new vulnerability fixes are released for all in-scope software?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Subscribe to vendor security advisories, enable automatic update notifications, and use vulnerability scanning tools to detect missing fixes across your estate.',
+      ev:['Vulnerability management policy or procedure document','Evidence of advisory subscription (e.g. vendor security bulletins, NCSC alerts)'],
+      cp:null },
+    { id:'sum4', text:'Does your vulnerability fix management explicitly include firmware updates for firewalls, routers and other in-scope network devices?',
+      hint:'Willow v3.2 included firmware within the definition of "software" — unpatched firmware is a common CE failure.',
+      af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Add firewall and router firmware checks to your patching schedule. Check vendor portals regularly. Apply critical firmware fixes within the 14-day window.',
+      ev:['Firmware update log for all in-scope network devices','Process document confirming firmware included in patch management'],
+      cp:'CE+ assessor will check current firmware versions on all in-scope network devices.' },
+    { id:'sum5', text:'Does your vulnerability fix process cover mobile devices (phones and tablets) used for work?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no','na'], naLabel:'No mobiles in scope',
+      rem:'Use an MDM solution (Intune, Jamf) to enforce OS update policies on all managed mobile devices. For BYOD, require devices to be within a defined OS version of current.',
+      ev:['MDM compliance report showing mobile OS versions','MDM policy screenshot showing update enforcement'],
+      cp:'CE+ assessor will verify mobile OS versions on sampled managed devices.' },
+  ]},
+  { id:'uac', num:4, icon:'🔐', title:'User Access Control', tag:'Identity & Authentication', qs:[
+    { id:'uac1', text:'Does every user have their own unique account — no shared or generic accounts in use?',
+      hint:null, af:false, n26:false, opts:['yes','no'],
+      rem:'Assign individual accounts to every user. Remove all shared accounts. Individual accounts are fundamental for accountability and CE compliance.',
+      ev:['User account list export from AD/Entra ID confirming no shared accounts','Evidence of decommissioned shared accounts'],
+      cp:'CE+ assessor will review user account lists for shared or generic accounts.' },
+    { id:'uac2', text:'Are users only given the minimum permissions needed for their current role (principle of least privilege)?',
+      hint:'Danzell strengthened this — access rights must reflect current job functions, not legacy or accumulated permissions.',
+      af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Conduct a user access review. Remove excessive permissions and implement RBAC. Review access whenever staff change roles.',
+      ev:['User access review records (completed within last 12 months)','Evidence of RBAC implementation or role-based group membership'],
+      cp:'CE+ assessor will review permissions on sampled user accounts to verify least privilege.' },
+    { id:'uac3', text:'Do you use separate administrator accounts used only for admin tasks — not for email, browsing or general daily work?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Create dedicated admin accounts for privileged tasks. Standard daily activity must use non-admin accounts to limit blast radius from phishing.',
+      ev:['AD/Entra ID evidence of separate named admin accounts','Policy document confirming admin account usage rules'],
+      cp:'CE+ assessor will inspect admin accounts on sampled devices to verify separation from standard accounts.' },
+    { id:'uac4', text:'Is MFA or passwordless authentication (passkeys, FIDO2, biometrics, security keys, one-time codes) enabled for ALL cloud services where it is available?',
+      hint:'AUTO-FAIL (NEW — Danzell 2026): If MFA is available on any cloud service and you have not enabled it, this is an immediate automatic failure. Cost is NOT an acceptable reason. Applies to M365, Google Workspace, AWS, Xero, Salesforce, GitHub and all other cloud platforms in use.',
+      af:true, n26:true, opts:['yes','partial','no'],
+      rem:'Audit every cloud service and enable MFA immediately. NCSC recommends passkeys as the preferred method. Even one cloud service without MFA (where MFA is available) causes automatic failure — cost is not an exemption.',
+      ev:['Screenshot of MFA enabled on each cloud service in use','Conditional Access policy confirming MFA enforcement (for M365)','MFA registration report showing 100% user enrollment','Evidence of passkey / FIDO2 deployment where used'],
+      cp:'CE+ assessor will attempt to authenticate to your cloud services without MFA to verify technical enforcement (not just policy).' },
+    { id:'uac5', text:'Is MFA or passwordless authentication required for all administrator and privileged accounts?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Enable MFA for all accounts with administrative privileges across cloud services, on-premise AD and local admin accounts where technically feasible.',
+      ev:['Evidence of MFA enabled on all admin accounts','Conditional Access policy targeting admin roles','PIM configuration if used for just-in-time access'],
+      cp:'CE+ assessor will inspect MFA settings on sampled admin accounts.' },
+    { id:'uac6', text:'Do you promptly remove or disable accounts when staff leave or change roles?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Implement an offboarding process covering same-day account disabling. Integrate with HR systems where possible. Run quarterly access reviews to catch stale accounts.',
+      ev:['Evidence of offboarding process / IT checklist','Account removal records for recent leavers (last 6 months)','Quarterly access review results showing stale accounts removed'],
+      cp:null },
+    { id:'uac7', text:'Are technical brute-force protections in place — account lockout after a maximum of 10 failed login attempts?',
+      hint:'Passwordless systems should have equivalent protection against repeated authentication attempts where applicable.',
+      af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Configure account lockout policy (max 10 attempts, minimum 5-minute lockout) via Group Policy or identity provider. Enable for both cloud and on-premise accounts.',
+      ev:['Screenshot of account lockout policy settings (Group Policy or Entra ID)','Evidence of equivalent brute-force protection on cloud services'],
+      cp:'CE+ assessor will inspect account lockout settings on sampled devices and in the identity provider.' },
+    { id:'uac8', text:'Do you regularly audit user accounts and permissions to confirm they remain appropriate throughout the year?',
+      hint:'Danzell v3.3 emphasises ongoing compliance — the director declaration now explicitly covers responsibility throughout the full certification period.',
+      af:false, n26:true, opts:['yes','partial','no'],
+      rem:'Establish a minimum quarterly access review process. Use Entra ID Access Reviews or equivalent tooling to automate and evidence reviews.',
+      ev:['Quarterly access review records (last 12 months)','Access governance tool report or Entra ID Access Reviews results'],
+      cp:null },
+  ]},
+  { id:'mal', num:5, icon:'🦠', title:'Malware Protection', tag:'Anti-Malware Controls', qs:[
+    { id:'mal1', text:'Is anti-malware software (or an equivalent technical control such as application allowlisting) installed and active on all in-scope devices?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Deploy an enterprise anti-malware solution to all in-scope devices. Microsoft Defender for Endpoint is CE-compliant when properly configured.',
+      ev:['AV management console screenshot showing all in-scope devices are protected','Compliance report showing AV coverage across fleet'],
+      cp:'CE+ assessor will verify AV or application control is installed and active on all sampled devices.' },
+    { id:'mal2', text:'Are anti-malware definitions updated automatically and kept current (at least daily)?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Enable automatic definition updates. Monitor for devices with stale definitions via your security management console or RMM tool.',
+      ev:['AV console screenshot showing automatic update schedule and current definition version','Alert evidence for devices with stale definitions'],
+      cp:'CE+ assessor will check definition version currency on sampled devices.' },
+    { id:'mal3', text:'Is real-time (on-access) scanning enabled on all in-scope devices and protected from being disabled by standard users?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Enable real-time scanning via Group Policy or MDM. Ensure standard users cannot disable protection. Alert on any tamper events.',
+      ev:['Screenshot showing real-time protection enabled and locked via Group Policy or MDM','Tamper protection policy evidence'],
+      cp:'CE+ assessor will attempt to disable AV protection on sampled devices to verify it is policy-enforced.' },
+    { id:'mal4', text:'Do you use application allowlisting (application control) to prevent unapproved software from executing?',
+      hint:'Application allowlisting is CE-compliant as an alternative or supplement to signature-based anti-malware.',
+      af:false, n26:false, advisory:true, opts:['yes','partial','no','na'], naLabel:'Relying on AV only',
+      rem:'Application allowlisting provides stronger protection than AV alone. Options include AppLocker, Windows Defender Application Control (WDAC), or Intune application policies.',
+      ev:['AppLocker or WDAC policy screenshot','Evidence of policy applied to all in-scope devices'],
+      cp:'CE+ assessor will attempt to execute an unapproved application on sampled devices.' },
+    { id:'mal5', text:'Do you block access to known malicious websites using DNS filtering or web content filtering?',
+      hint:null, af:false, n26:false, advisory:true, opts:['yes','partial','no'],
+      rem:'Deploy DNS filtering (Cloudflare Gateway, Cisco Umbrella, Windows Defender SmartScreen) to block malicious domains across all devices including remote workers.',
+      ev:['DNS filtering or web proxy configuration screenshot','Policy evidence showing coverage for remote workers'],
+      cp:null },
+    { id:'mal6', text:'Are users prevented from disabling or circumventing malware protection controls?',
+      hint:null, af:false, n26:false, opts:['yes','partial','no'],
+      rem:'Use Group Policy, MDM or EPP management consoles to lock AV/EDR protection. Monitor for override or tamper events.',
+      ev:['Group Policy or MDM policy screenshot showing AV tamper protection enforced','Alert configuration evidence for tamper events'],
+      cp:'CE+ assessor will verify tamper protection is enforced on sampled devices.' },
+  ]},
+];
+
+// ─── QUESTION INFO (pass criteria & what's not accepted) ─────────────────────
+const Q_INFO = {
+  // ── FIREWALLS ───────────────────────────────────────────────────────────────
+  fw1:{
+    pass:'Any router or dedicated firewall appliance that can enforce inbound and outbound rules between your network and the internet qualifies. It must be actively enforcing a ruleset — not in a "monitor only" or default-pass mode. Software firewalls on individual devices do not satisfy this on their own.',
+    notAccepted:['A consumer broadband router left on factory settings with no ruleset','Relying on host-based (device) firewalls alone without a boundary device','A firewall in monitoring/detection mode with no blocking capability','No firewall at all between internet and internal network'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw2:{
+    pass:'The OS built-in firewall (Windows Defender Firewall or macOS Firewall) must be enabled and enforced via Group Policy or MDM so end users cannot disable it. A VPN alone is not sufficient — the software firewall must be active even before the VPN connects.',
+    notAccepted:['Users are told to keep it on but can disable it','Relying on a VPN as the only protection when away from the office','AV suite firewall module only (if the OS firewall is off)','No policy enforcement — users manage their own firewall settings'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw3:{
+    pass:'Every single default credential on every firewall, router, switch and network device must be changed to a strong unique password before or immediately upon deployment. This must be documented in your build standard.',
+    notAccepted:['Any device still using manufacturer default credentials (admin/admin, admin/password, blank password)','Changing passwords only after being prompted or after an incident','No documented evidence that default passwords were changed','The same password reused across multiple network devices'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw4:{
+    pass:'Your firewall\'s default inbound policy must be "deny all" with only explicitly approved and documented services permitted through. Every inbound rule must have a written business justification on record.',
+    notAccepted:['A default-allow inbound policy even if "nothing bad has happened"','Rules with no documented business reason','Broad "allow any to any" or "allow any on port 443" rules','Rules that were added for testing and never removed'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw5:{
+    pass:'Only ports and protocols actively required by your business should be open. This must be verified by a port scan — not assumed. Common examples of ports that should be closed if not actively used: 21 (FTP), 23 (Telnet), 3389 (RDP), 445 (SMB).',
+    notAccepted:['"We think only the right ports are open" without a port scan to verify','Leaving services running "just in case they\'re needed"','Open ports that no one can explain the business purpose of','Management ports (SSH, RDP, WinRM) exposed directly to the internet'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw6:{
+    pass:'A documented review must have taken place within the last 12 months showing each rule was examined, its business purpose confirmed, and any rules without a valid justification removed. The review must be dated and evidence retained.',
+    notAccepted:['No review process at all','A verbal review with no written record','A review that noted stale rules but didn\'t remove them','Rules accumulating indefinitely with no audit trail'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  fw7:{
+    pass:'A written inventory listing every in-scope firewall and router by make, model and current firmware version. Must be kept up to date — CE compliance is assessed at certificate issue date.',
+    notAccepted:['No inventory document','Inventory that doesn\'t include firmware versions','An outdated inventory that doesn\'t reflect your current estate','Including switches, hubs and access points is not required — only firewalls and routers'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+
+  // ── SECURE CONFIGURATION ────────────────────────────────────────────────────
+  sc1:{
+    pass:'A build standard or hardening checklist that explicitly confirms default/unnecessary accounts are removed or disabled before a device is deployed. Evidence such as a screenshot of local accounts on a sample device is expected.',
+    notAccepted:['Guest account left enabled on Windows devices','Default service accounts not reviewed or removed','No documented build standard covering account removal','Removing accounts reactively after the CE assessment is flagged'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc2:{
+    pass:'Your build standard must require all default passwords to be changed before deployment. This applies to every device type: workstations, servers, printers, IoT devices, applications and network equipment.',
+    notAccepted:['Any device or application still on a manufacturer default password','Changing passwords only after they were used maliciously','No documented requirement in your build process','Relying on staff memory — must be a documented, enforced process'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc3:{
+    pass:'Unnecessary services, protocols and software must be disabled. At a minimum: Telnet, FTP, SMBv1, LLMNR (if not required), and any remote access services not needed. Group Policy or MDM evidence expected.',
+    notAccepted:['Services left enabled "just in case"','Telnet or FTP still active on any in-scope device','SMBv1 enabled on any device (no exceptions)','No audit of running services has been performed'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc4:{
+    pass:'AutoRun and AutoPlay must be disabled via Group Policy (Windows) or MDM profile. The setting must be enforced so users cannot re-enable it.',
+    notAccepted:['Users manually disabling AutoRun — it must be policy-enforced','Relying on AV to catch anything that would have autorun','No evidence the setting is enforced across all in-scope Windows devices'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc5:{
+    pass:'Screen lock must activate automatically (NCSC recommends ≤10 minutes of inactivity) and require authentication to unlock. Must be enforced via Group Policy or MDM — users must not be able to change or bypass the timeout.',
+    notAccepted:['Screen lock enabled but timeout set by individual users','No automatic lock — users lock manually "when they remember"','Lock enabled but not requiring a password to unlock','Timeout longer than 10 minutes without a documented business justification'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc6:{
+    pass:'Every piece of software on every in-scope device must be covered by a valid licence. Maintain a software asset register. Volume licence agreements, subscriptions and OEM licences all qualify.',
+    notAccepted:['Expired licences','Trial versions being used in production past their trial period','Open source software used in violation of its licence terms','No software inventory — you cannot attest to this without one'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc7:{
+    pass:'Zero End-of-Life software anywhere in scope — no exceptions. EOL means the vendor no longer issues security patches. Key recent EOL dates: Windows 10 (Oct 2025), Exchange 2016 & 2019 (Oct 2025), Windows Server 2012/R2 (Oct 2023). Compliance is assessed at certificate issue date.',
+    notAccepted:['"We keep it patched" — EOL means no patches exist, so this is impossible','Extended Security Updates (ESU) may extend EOL for Windows but must be actively paid for and applied','Compensating controls (extra monitoring, network isolation) are NOT accepted as alternatives','Any EOL product regardless of how critical it is to the business — there is no waiver process'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sc8:{
+    pass:'Password policy must technically enforce a minimum of 12 characters. MFA or passwordless authentication deployed across all accounts satisfies this requirement independently. Password complexity rules (upper, lower, number, symbol) are NOT required if the length minimum is met.',
+    notAccepted:['A policy document saying 12 characters if it\'s not technically enforced','Minimum of 8 characters (this was the old requirement — Danzell raised it to 12)','Relying on user compliance without technical enforcement','Password hints that effectively reduce password strength'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+
+  // ── SECURITY UPDATES ────────────────────────────────────────────────────────
+  sum1:{
+    pass:'High and critical vulnerability fixes (CVSS 7.0+) for operating systems and router/firmware must be applied within 14 calendar days of release. "Applied" includes patches, configuration changes, vendor-supplied scripts or any other fix method the vendor documents. Evidenced by a patch compliance report.',
+    notAccepted:['"We patch on Patch Tuesday every month" — monthly cycles are too slow for critical fixes','Being aware of a critical patch but delaying application beyond 14 days for any reason','Patches applied to servers but not workstations, or vice versa','Firmware excluded from the 14-day window — it applies to firmware too (see A6.4)'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sum2:{
+    pass:'High and critical fixes for all applications — including browsers, Office suites, PDF readers, media players, browser extensions, frameworks and plugins — must be applied within 14 calendar days. Evidenced by application patch compliance data from your RMM or patch management tool.',
+    notAccepted:['"Browsers auto-update" without evidence they actually have','Patching the OS but not the applications running on it','No process for tracking third-party application vulnerabilities','Browser extensions excluded — these are explicitly included in Danzell v3.3'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sum3:{
+    pass:'You must have a documented process for identifying when new vulnerability fixes are released. This typically means: vendor security advisory subscriptions, NCSC alerts, automated vulnerability scanning, or a patch management tool with active monitoring.',
+    notAccepted:['"We check for updates when we think of it"','No subscription to vendor security notifications','Relying solely on Windows Update with no visibility of third-party apps','No documented process — verbal awareness is not sufficient'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sum4:{
+    pass:'Firmware updates for all in-scope firewalls, routers and network devices must be included in your patch management process with the same 14-day window for critical fixes. Evidence: firmware version records and update history.',
+    notAccepted:['"We update firmware when we replace devices"','Firmware excluded from your vulnerability management scope','No record of current firmware versions on network devices','Checking for firmware updates annually — must match the 14-day window for critical fixes'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  sum5:{
+    pass:'For MDM-managed devices: a compliance report showing all devices are running a supported OS version within one major release of current. For BYOD: a written policy defining the minimum OS version, communicated to users, with a mechanism to prevent non-compliant devices from accessing org data.',
+    notAccepted:['"Users are responsible for updating their own phones" without any enforcement or policy','No visibility of mobile OS versions across your estate','BYOD devices running versions more than one major release behind current','No way to prevent an unpatched personal device from accessing org email or data'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+
+  // ── USER ACCESS CONTROL ─────────────────────────────────────────────────────
+  uac1:{
+    pass:'Every person must have their own uniquely named account. This includes admin accounts — one person, one account. Shared service accounts for automated processes are acceptable if they are not used by humans for interactive login.',
+    notAccepted:['A shared "reception" or "front desk" login used by multiple staff','Generic accounts like "user1", "temp", "admin" actively used by people','Shared mailboxes used as primary login accounts','One admin account used by multiple IT staff members'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac2:{
+    pass:'Users must only have the permissions they need for their current role — no more. Must be evidenced by a formal access review showing permissions were checked and excess access removed. Accumulated permissions from previous roles must be reviewed.',
+    notAccepted:['"Everyone is a local admin for convenience"','All users in Domain Admins or equivalent','Access never reviewed since accounts were created','No RBAC or role-based approach — permissions assigned individually with no structure'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac3:{
+    pass:'Admin accounts must be separate named accounts (e.g. a.smith.admin) used only for administrative tasks. Staff must use a standard (non-admin) account for all daily work: email, web browsing, Office apps. The separation must be documented in policy.',
+    notAccepted:['Using an admin account as your daily-use account','A single account that has admin rights "just in case"','"I\'m careful about what I do with my admin account" — the separation must be structural, not behavioural','Admin and standard user being the same account with admin rights'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac4:{
+    pass:'MFA must be technically enforced on every cloud service that supports it. "Enforced" means users cannot bypass it — Conditional Access policies (Entra ID) or equivalent are required, not just MFA being available to users who choose to enable it. Passkeys, FIDO2, authenticator apps, SMS codes and push notifications all qualify.',
+    notAccepted:['MFA available but not enforced (users can opt in/out)','MFA enforced on some services but not all','"Most of our users have MFA set up"','Using cost as a reason — if MFA is available at any tier (free or paid), it must be enabled','SMS-only MFA on its own is weak but accepted for CE — push notifications or FIDO2 are preferred'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac5:{
+    pass:'All accounts with administrative or privileged access must have MFA enforced — including cloud admin accounts, on-premise domain admin accounts, local admin accounts on servers and privileged access to management tools. Technically enforced, not optional.',
+    notAccepted:['"Admins are trusted so they don\'t need MFA"','MFA on standard accounts but not admin accounts','MFA on cloud admin but not on-premise admin','Admin accounts with weak or no MFA where a standard implementation is available'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac6:{
+    pass:'Accounts must be disabled or deleted on the user\'s last working day. A formal offboarding process must exist and be evidenced — IT teams must be notified promptly by HR or management when someone leaves or changes role.',
+    notAccepted:['"We get to it within a week or two"','Active accounts for people who have left the organisation','No formal offboarding process — accounts removed reactively','Role changes where old permissions were never removed'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac7:{
+    pass:'Account lockout must be configured to activate after no more than 10 consecutive failed login attempts. The lockout duration must be at least 5 minutes or require admin unlock. Must apply to both cloud and on-premise accounts.',
+    notAccepted:['No account lockout policy configured','Lockout threshold set to more than 10 attempts','Lockout applies to on-premise but not cloud accounts or vice versa','"Admins would notice if someone was being brute-forced" — must be a technical control not a detective one'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  uac8:{
+    pass:'Access reviews must be performed at least quarterly, with written evidence retained. Reviews must check that permissions remain appropriate, remove access for leavers and role-changers, and confirm no accounts have accumulated excess permissions. Under Danzell, this is explicitly part of the director declaration.',
+    notAccepted:['Annual review only','A review that was done once for the CE application and then abandoned','"We\'d know if something was wrong" — must be a formal documented process','Reviews done but not documented — no evidence means it didn\'t happen for CE purposes'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+
+  // ── MALWARE PROTECTION ──────────────────────────────────────────────────────
+  mal1:{
+    pass:'Enterprise-grade AV or application control must be deployed to every in-scope device and managed centrally so you have visibility of coverage. A management console compliance report is the expected evidence. Microsoft Defender for Endpoint (properly configured, not just Defender) is CE-compliant.',
+    notAccepted:['Free consumer AV with no management console or coverage reporting','AV installed on some devices but not all — must be 100% coverage','No central visibility of AV status','Relying on users to install and maintain their own AV'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mal2:{
+    pass:'Anti-malware definitions must update automatically and be no more than 24 hours old on any in-scope device. Your management console must alert on devices with stale definitions.',
+    notAccepted:['Manual definition updates','Definitions older than 24 hours on any device','No alerting when definitions become stale','Devices that are offline long-term with no process to ensure they update before reconnecting'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mal3:{
+    pass:'Real-time (on-access) scanning must be enabled and technically locked so standard users cannot disable or pause it. Tamper protection must be configured via Group Policy, MDM or your EPP management console. Evidence: policy screenshot showing tamper protection enforced.',
+    notAccepted:['Real-time scanning enabled but users can disable it from the system tray','AV that can be paused "for 10 minutes" by any user','Tamper protection awareness without technical enforcement','No audit of whether protection is actually running on all devices'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mal4:{
+    pass:'Application allowlisting (AppLocker, WDAC, or equivalent) deployed and enforced, preventing any unapproved executable from running. When used as an alternative to AV: must cover all code execution paths including scripts and interpreted languages.',
+    notAccepted:['Allowlisting deployed in "audit only" mode — must be enforced/block mode','A partial allowlist that only covers some application types','Users who can bypass allowlisting by running scripts','Allowlisting deployed but with so many exceptions it provides no real protection'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mal5:{
+    pass:'DNS filtering or web proxy must block access to known malicious domains and categories for all in-scope devices — including remote workers and mobile devices. Coverage must extend beyond the office network.',
+    notAccepted:['Relying solely on browser warnings (SmartScreen/Safe Browsing) — these are reactive not proactive','DNS filtering that only applies in the office but not to remote workers','No filtering at all — "users know not to click bad links"','Content filtering only — must specifically target malicious/phishing domains'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mal6:{
+    pass:'Standard users must be technically unable to disable, pause or uninstall AV/EDR protection. This requires tamper protection to be enabled in your endpoint protection platform and enforced via MDM or Group Policy. Alerts must fire if protection is tampered with.',
+    notAccepted:['"Users are told not to disable AV" — must be a technical control','AV that can be paused by any user for any duration','No tamper protection configured on your AV/EDR platform','Standard users with local admin rights who can uninstall security software'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+};
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+let cur = -1; // -1=scope, 0-4=sections, 5=results
+const A = {};        // answers
+const scope = {};    // scope helper answers
+const REM = {};      // remediated gaps
+let showCEPlus = false;
+
+const SAVE_KEY = 'ce_v33_seb';
+
+function saveState(){
+  try{ localStorage.setItem(SAVE_KEY, JSON.stringify({A, scope, cur, REM, showCEPlus})); }catch(e){}
+}
+function loadState(){
+  try{ const s = localStorage.getItem(SAVE_KEY); return s ? JSON.parse(s) : null; }catch(e){ return null; }
+}
+function clearState(){
+  try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+}
+
+// ─── SCOPE INFO ──────────────────────────────────────────────────────────────
+const SCOPE_INFO = {
+  org:{
+    pass:'You can certify the whole organisation or a defined subset (e.g. a specific business unit, office location or product). A subset scope must be clearly defined and defensible — assessors will check it is a genuine boundary, not a way to avoid awkward systems.',
+    notAccepted:['Scoping out devices or systems purely because they are hard to fix','A subset scope that includes some users but not their supporting infrastructure','Excluding cloud services used by in-scope users — they must be included','Changing the scope after the assessment to exclude failing systems'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/scope'
+  },
+  cloud:{
+    pass:'Any service accessed over the internet where data is processed or stored by a third party counts as a cloud service: Microsoft 365, Google Workspace, AWS, Azure, Salesforce, Xero, GitHub, Dropbox, etc. If in-scope users access it, it is in scope.',
+    notAccepted:['Excluding cloud services because "they are the provider\'s responsibility" — you are responsible for your configuration of them','Treating SaaS applications as out of scope — they are explicitly in scope under Danzell','Excluding a cloud service because MFA would cost extra to enable'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  remote:{
+    pass:'Any staff member who connects to your network or cloud services from a location other than a company-controlled office counts as a remote worker. This includes home workers, staff using hotel/café Wi-Fi, and hybrid workers on non-office days.',
+    notAccepted:['Treating hybrid workers as office-only because they come in some days','Excluding staff who "only check email" remotely — if they access org data or systems, they are in scope','Assuming VPN usage means remote devices are covered by office controls — device-level controls still apply'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+  mobile:{
+    pass:'Any phone or tablet used to access organisation email, data, applications or cloud services is in scope — regardless of ownership. MDM-managed company devices are easiest to evidence. BYOD devices are harder but not impossible to include — they require a formal BYOD policy and a way to enforce minimum security standards.',
+    notAccepted:['Excluding personal phones that access company email on the grounds they are "personal devices"','Including BYOD devices with no policy or technical controls in place','Claiming mobile devices are not in scope when staff use them to access Microsoft 365 or similar'],
+    link:'https://www.ncsc.gov.uk/cyberessentials/requirements-for-it-infrastructure'
+  },
+};
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+(function init(){
+  const saved = loadState();
+  if(saved && Object.keys(saved.A||{}).length > 0){
+    const banner = document.getElementById('resume-banner');
+    const sectionName = saved.cur === -1 ? 'Scope' :
+      saved.cur >= 0 && saved.cur < 5 ? SECTIONS[saved.cur].title : 'Results';
+    banner.innerHTML = `<div class="resume-banner">
+      <div class="rb-text">You have a saved session <span>· Last at: ${sectionName}</span></div>
+      <div class="rb-btns">
+        <button class="rb-btn rb-yes" onclick="resumeSession()">Resume</button>
+        <button class="rb-btn rb-no" onclick="clearResume()">Start fresh</button>
+      </div>
+    </div>`;
+  }
+  renderStepper();
+  renderScope();
+})();
+
+function resumeSession(){
+  const saved = loadState();
+  if(!saved) return;
+  Object.assign(A, saved.A||{});
+  Object.assign(scope, saved.scope||{});
+  Object.assign(REM, saved.REM||{});
+  showCEPlus = saved.showCEPlus || false;
+  cur = saved.cur !== undefined ? saved.cur : -1;
+  document.getElementById('resume-banner').innerHTML = '';
+  renderStepper();
+  if(cur === 5) showResults();
+  else if(cur >= 0) renderSection();
+  else renderScope();
+}
+function clearResume(){
+  clearState();
+  document.getElementById('resume-banner').innerHTML = '';
+}
+
+// ─── STEPPER ─────────────────────────────────────────────────────────────────
+function renderStepper(){
+  const labels = ['Scope','Firewalls','Sec Config','Updates','Access Ctrl','Malware','Results'];
+  document.getElementById('stepper').innerHTML = labels.map((l,i) => {
+    const sIdx = i - 1; // scope=-1, s0..s4, results=5
+    const stepCur = cur + 1; // scope=0, s0=1..s4=5, results=6
+    let cls = '';
+    if(i < stepCur) cls = 'done';
+    else if(i === stepCur) cls = 'active';
+    const dot = cls==='done' ? '✓' : (i===6 ? '★' : i===0 ? '◎' : i);
+    return `<div class="step ${cls}"><div class="sd">${dot}</div><div class="sl">${l}</div></div>`;
+  }).join('');
+}
+
+// ─── SCOPE ───────────────────────────────────────────────────────────────────
+function renderScope(){
+  let html = '<div class="scope-card">'
+    + '<div class="scope-head">'
+    + '<div class="scope-title">◎ Scope &amp; Context</div>'
+    + '<div class="scope-sub">Answer these 4 questions to tailor the assessment to your environment</div>'
+    + '</div>';
+
+  SCOPE_QS.forEach(function(q){
+    const info = SCOPE_INFO[q.id];
+    const infoBtn = info
+      ? '<button class="info-btn" id="sib-' + q.id + '" onclick="event.stopPropagation();toggleScopeInfo(\'' + q.id + '\')" title="What counts for CE?">i</button>'
+      : '';
+    const infoPanel = info ? buildScopeInfoPanel(q.id) : '';
+    const optsHtml = q.opts.map(function(pair){
+      const v = pair[0], l = pair[1];
+      return '<button class="scope-btn ' + (scope[q.id]===v?'sel':'') + '" onclick="setScope(\'' + q.id + '\',\'' + v + '\')">' + l + '</button>';
+    }).join('');
+
+    html += '<div class="scope-q">'
+      + '<div class="scope-q-text">' + q.text + infoBtn + '</div>'
+      + infoPanel
+      + (q.hint ? '<div class="scope-hint">' + q.hint + '</div>' : '')
+      + '<div class="scope-opts">' + optsHtml + '</div>'
+      + '</div>';
+  });
+
+  html += '</div>';
+  const answeredCount = SCOPE_QS.filter(function(q){ return scope[q.id] !== undefined; }).length;
+  const totalScope = SCOPE_QS.length;
+  const allScopeDone = answeredCount === totalScope;
+  html += '<div class="nav-bar">'
+    + '<div style="display:flex;flex-direction:column;gap:3px;">'
+    + '<div class="prog-text"><b>' + answeredCount + '</b> of ' + totalScope + ' scope questions answered</div>'
+    + (!allScopeDone ? '<div style="font-size:11px;color:var(--muted);">Unanswered questions won\'t be tailored — you can still proceed</div>' : '')
+    + '</div>'
+    + '<button class="btn btn-p" onclick="goNext()">Start Assessment →</button>'
+    + '</div>';
+  document.getElementById('quiz').innerHTML = html;
+}
+
+function buildScopeInfoPanel(qid){
+  const info = SCOPE_INFO[qid];
+  if(!info) return '';
+  const failItems = info.notAccepted.map(function(n){
+    return '<div class="ip-fail-item"><span class="ip-fail-x">\u2715</span><span>' + n + '</span></div>';
+  }).join('');
+  return '<div class="info-panel" id="sip-' + qid + '">'
+    + '<div class="ip-pass">'
+    + '<div class="ip-pass-hdr">\u2713 What counts</div>'
+    + '<div class="ip-pass-body">' + info.pass + '</div>'
+    + '</div>'
+    + '<div class="ip-fail">'
+    + '<div class="ip-fail-hdr">\u2715 Common mistakes</div>'
+    + '<div class="ip-fail-list">' + failItems + '</div>'
+    + '<a class="ip-ncsc" href="' + info.link + '" target="_blank" rel="noopener">\u2197 NCSC CE Scoping Guidance</a>'
+    + '</div>'
+    + '</div>';
+}
+
+function toggleScopeInfo(qid){
+  const panel = document.getElementById('sip-' + qid);
+  const btn   = document.getElementById('sib-' + qid);
+  if(!panel) return;
+  const open = panel.classList.toggle('open');
+  if(btn){ btn.classList.toggle('open', open); btn.textContent = open ? '\u00d7' : 'i'; }
+}
+
+function setScope(id, val){
+  scope[id] = val;
+  saveState();
+  // Re-render scope to update button states + enable next
+  renderScope();
+}
+
+// ─── SCOPE OVERRIDES ─────────────────────────────────────────────────────────
+// Returns null (ask normally), {skip, reason} (auto N/A), or {note} (show extra callout)
+function getScopeOverride(qid){
+  const noCloud  = scope.cloud  === 'no';
+  const noRemote = scope.remote === 'no';
+  const noMobile = scope.mobile === 'no';
+  const hasByod  = scope.mobile === 'byod' || scope.mobile === 'both';
+  const hasMdm   = scope.mobile === 'mdm'  || scope.mobile === 'both';
+  const mixedMob = scope.mobile === 'both';
+
+  const map = {
+    // ── FIREWALLS ────────────────────────────────────────────────────────────
+    'fw2': noRemote
+      ? { skip:true, reason:'Not applicable — no remote workers in your scope' }
+      : hasByod
+      ? { note:'<strong>BYOD note:</strong> Personal devices connecting from home must also have a software firewall active. This is difficult to enforce technically on BYOD — consider requiring it as a condition of access in your BYOD policy and including it in user onboarding.' }
+      : null,
+
+    // ── SECURITY UPDATES ─────────────────────────────────────────────────────
+    'sum5': noMobile
+      ? { skip:true, reason:'Not applicable — no mobile devices in your scope' }
+      : hasByod && !hasMdm
+      ? { note:'<strong>BYOD only:</strong> You cannot enforce OS updates on personal devices via MDM. CE requires a defined minimum OS version policy. Evidence needed: a written BYOD policy stating the minimum supported OS version, and evidence it has been communicated to users (e.g. email, signed acceptance). Users on older OS versions should be blocked from accessing org data.' }
+      : mixedMob
+      ? { note:'<strong>Mixed MDM + BYOD:</strong> MDM-managed devices can be evidenced via your MDM compliance report. For BYOD devices you need a written minimum OS version policy and evidence of user communication separately.' }
+      : null,
+
+    // ── USER ACCESS CONTROL ──────────────────────────────────────────────────
+    'uac4': noCloud
+      ? { skip:true, reason:'Not applicable — no cloud services in your scope' }
+      : hasByod
+      ? { note:'<strong>BYOD note:</strong> MFA must be enforced when personal devices access cloud services — this is especially important because you cannot control the security of the device itself. Conditional Access policies in Entra ID or equivalent are strongly recommended to ensure MFA is always required from unmanaged devices.' }
+      : null,
+
+    'uac5': noCloud
+      ? { note:'<strong>On-premise only:</strong> MFA for admin accounts still applies to any on-premise systems where MFA is technically feasible (e.g. VPN, RDP gateway, server admin portals). Answer based on your on-premise admin accounts.' }
+      : null,
+
+    // ── MALWARE ──────────────────────────────────────────────────────────────
+    'mal1': noMobile ? null
+      : hasByod
+      ? { note:'<strong>BYOD note:</strong> CE requires AV or equivalent protection on all in-scope devices that access org data, including personal ones. You cannot silently push AV to personal devices. Options: (1) Require users to install a specific AV app as a condition of BYOD access. (2) Use Mobile Application Management (MAM) to containerise org data so it never touches the personal device storage. (3) Exclude BYOD from CE scope entirely and restrict access accordingly.' }
+      : null,
+
+    'mal5': noRemote
+      ? { note:'<strong>Office only:</strong> DNS filtering applies to your office network. Ensure your boundary firewall or DNS resolver blocks malicious domains for all office-connected devices.' }
+      : null,
+
+    // ── SECURE CONFIG ────────────────────────────────────────────────────────
+    'sc5': hasByod
+      ? { note:'<strong>BYOD note:</strong> Screen lock on personal devices cannot be enforced via Group Policy. Use MDM (if enrolled) or include a screen lock requirement in your BYOD acceptable use policy. For CE evidence, a policy document plus a sample of device screenshots may be accepted.' }
+      : null,
+  };
+
+  return map[qid] || null;
+}
+
+// ─── SECTION ─────────────────────────────────────────────────────────────────
+function buildInfoPanel(qid){
+  const info = Q_INFO[qid];
+  if(!info) return '';
+  const failItems = info.notAccepted.map(n =>
+    '<div class="ip-fail-item"><span class="ip-fail-x">\u2715</span><span>' + n + '</span></div>'
+  ).join('');
+  return '<div class="info-panel" id="ip-' + qid + '">'
+    + '<div class="ip-pass">'
+    + '<div class="ip-pass-hdr">\u2713 What passes</div>'
+    + '<div class="ip-pass-body">' + info.pass + '</div>'
+    + '</div>'
+    + '<div class="ip-fail">'
+    + '<div class="ip-fail-hdr">\u2715 Not accepted</div>'
+    + '<div class="ip-fail-list">' + failItems + '</div>'
+    + '<a class="ip-ncsc" href="' + info.link + '" target="_blank" rel="noopener">\u2197 NCSC CE Requirements</a>'
+    + '</div>'
+    + '</div>';
+}
+
+function renderSection(){
+  const sec = SECTIONS[cur];
+
+  // Auto-answer scope-excluded questions as 'na'
+  sec.qs.forEach(q => {
+    const ov = getScopeOverride(q.id);
+    if(ov && ov.skip && A[q.id] === undefined){ A[q.id] = 'na'; saveState(); }
+  });
+
+  const total = sec.qs.length;
+  const answered = sec.qs.filter(q => A[q.id] !== undefined).length;
+  const deferred = sec.qs.filter(q => A[q.id] === 'skip').length;
+  const allDone = answered === total; // includes skipped-by-user and scope-na
+  const rag = allDone ? sectionRAG(cur) : 'pend';
+  const scopeSkipped = sec.qs.filter(q => { const o = getScopeOverride(q.id); return o && o.skip; }).length;
+
+  let ragText;
+  if(rag === 'pend') ragText = (answered - deferred) + '/' + (total - scopeSkipped) + ' answered';
+  else if(deferred) ragText = rag==='green'?'COMPLIANT':rag==='amber'?'GAPS':'NON-COMPLIANT';
+  else ragText = rag==='green'?'COMPLIANT':rag==='amber'?'GAPS':'NON-COMPLIANT';
+
+  let html = '<div class="sec-card">'
+    + '<div class="sec-head">'
+    + '<div class="sec-head-l">'
+    + '<span class="sec-icon">' + sec.icon + '</span>'
+    + '<div>'
+    + '<div class="sec-title">' + sec.num + '. ' + sec.title + '</div>'
+    + '<div class="sec-tag">' + sec.tag
+    + (scopeSkipped ? ' &nbsp;·&nbsp; <span style="color:var(--muted)">' + scopeSkipped + ' N/A by scope</span>' : '')
+    + (deferred ? ' &nbsp;·&nbsp; <span style="color:var(--muted)">' + deferred + ' deferred</span>' : '')
+    + '</div>'
+    + '</div></div>'
+    + '<span class="sec-rag ' + rag + '" id="sec-rag">' + ragText + '</span>'
+    + '</div>';
+
+  sec.qs.forEach(function(q, qi){
+    const v = A[q.id];
+    const ov = getScopeOverride(q.id);
+    const isScopeSkipped = ov && ov.skip === true;
+    const isDeferred = v === 'skip';
+    const hasInfo = !!Q_INFO[q.id];
+
+    const infoBtnHtml = hasInfo
+      ? '<button class="info-btn" id="ib-' + q.id + '" onclick="event.stopPropagation();toggleInfo(\'' + q.id + '\')" title="What\'s required to pass?">i</button>'
+      : '';
+
+    const badgesHtml = (q.af ? '<span class="badge-af">Auto-fail</span>' : '')
+      + (q.n26 ? '<span class="badge-26">2026</span>' : '')
+      + (q.advisory ? '<span class="badge-adv">Advisory</span>' : '')
+      + (q.cp && showCEPlus ? '<span class="badge-cp">CE+</span>' : '');
+
+    let bodyHtml;
+    if(isScopeSkipped){
+      bodyHtml = '<div class="q-skip-note"><span class="sk-icon">\u2298</span>' + ov.reason + '</div>';
+    } else {
+      const ansOpts = ['yes','partial','no','na'].filter(function(o){ return q.opts.includes(o); }).map(function(o){
+        const label = o==='yes'?'Yes':o==='partial'?'Partial':o==='no'?'No':(q.naLabel||'N/A');
+        const selCls = v===o ? (o==='yes'?'sy':o==='partial'?'sp':o==='no'?'sn':'sna') : '';
+        return '<button class="ab ' + selCls + '" onclick="setAns(\'' + q.id + '\',\'' + o + '\')">' + label + '</button>';
+      }).join('');
+
+      const skipBtn = '<button class="ab ' + (isDeferred?'sk':'') + '" onclick="setAns(\'' + q.id + '\',\'' + (isDeferred?'clear':'skip') + '\')">'
+        + (isDeferred ? '↩ Answer' : 'Skip for now') + '</button>';
+
+      const deferredBar = isDeferred
+        ? '<div class="q-deferred-bar"><span class="q-deferred-label">⏸ Deferred — come back to this</span></div>'
+        : '';
+
+      bodyHtml = buildInfoPanel(q.id)
+        + (q.hint ? '<div class="q-hint">' + q.hint + '</div>' : '')
+        + (ov && ov.note ? '<div class="scope-callout">\ud83c\udfaf ' + ov.note + '</div>' : '')
+        + (q.cp && showCEPlus ? '<div class="cp-panel show">\ud83d\udd0d <strong>CE+ check:</strong> ' + q.cp + '</div>' : '')
+        + deferredBar
+        + '<div class="ans-btns">' + ansOpts + skipBtn + '</div>';
+    }
+
+    const itemCls = 'q-item '
+      + (v!==undefined && !isDeferred ? 'ans ' : '')
+      + (isScopeSkipped ? 'skipped ' : '')
+      + (isDeferred ? 'deferred ' : '');
+
+    html += '<div class="' + itemCls.trim() + '" id="qi-' + q.id + '">'
+      + '<div class="q-row">'
+      + '<span class="q-num">' + (qi+1) + '.</span>'
+      + '<span class="q-text">' + q.text
+      + '<span class="badges">' + badgesHtml + '</span>'
+      + infoBtnHtml
+      + '</span>'
+      + '</div>'
+      + bodyHtml
+      + '</div>';
+  });
+
+  html += '</div>';
+
+  const isLast = cur === SECTIONS.length - 1;
+  const unanswered = sec.qs.filter(q => A[q.id] === undefined).length;
+  html += '<div class="nav-bar">'
+    + '<div style="display:flex;flex-direction:column;gap:3px;">'
+    + '<div class="prog-text">Section <b>' + (cur+1) + '</b> of ' + SECTIONS.length + (deferred?' &nbsp;·&nbsp; <span style="color:var(--muted)">'+deferred+' deferred</span>':'') + '</div>'
+    + (unanswered > 0 ? '<div style="font-size:11px;color:var(--muted);">' + unanswered + ' unanswered — will be marked as skipped if you proceed</div>' : '')
+    + '</div>'
+    + '<div style="display:flex;gap:9px;align-items:center;flex-wrap:wrap;">'
+    + '<button class="btn btn-g" onclick="goBack()">← Back</button>'
+    + '<button class="btn btn-p" id="next-btn" onclick="goNext()">'
+    + (isLast ? 'View Results →' : 'Next →')
+    + '</button></div></div>';
+
+  document.getElementById('quiz').innerHTML = html;
+}
+
+function setAns(qid, val){
+  if(val === 'clear'){ delete A[qid]; saveState(); renderSection(); return; }
+  if(val === 'skip'){ A[qid] = 'skip'; saveState(); renderSection(); return; }
+  A[qid] = val;
+  saveState();
+  // Update the question row styling inline
+  const qi = document.getElementById('qi-'+qid);
+  if(qi){
+    qi.classList.remove('deferred');
+    qi.classList.add('ans');
+    qi.querySelectorAll('.ab').forEach(b=>{
+      const t = b.textContent;
+      b.className = 'ab';
+      if((t==='Yes'&&val==='yes')||(t==='Partial'&&val==='partial')||
+         (t==='No'&&val==='no')||((t!=='Yes'&&t!=='Partial'&&t!=='No'&&t!=='Skip for now'&&t!=='↩ Answer')&&val==='na'))
+        b.classList.add(val==='yes'?'sy':val==='partial'?'sp':val==='no'?'sn':'sna');
+    });
+    // Remove deferred bar if present
+    const db = qi.querySelector('.q-deferred-bar');
+    if(db) db.remove();
+    // Reset skip button label
+    const skipBtns = qi.querySelectorAll('.ab');
+    skipBtns.forEach(b=>{ if(b.textContent==='↩ Answer'){ b.textContent='Skip for now'; b.classList.remove('sk'); } });
+  }
+  const sec = SECTIONS[cur];
+  const total = sec.qs.length;
+  const answered = sec.qs.filter(q=>A[q.id]!==undefined).length;
+  const deferred = sec.qs.filter(q=>A[q.id]==='skip').length;
+  const allDone = answered===total;
+  const rag = allDone ? sectionRAG(cur) : 'pend';
+  const ragEl = document.getElementById('sec-rag');
+  if(ragEl){
+    ragEl.className = 'sec-rag '+(rag||'pend');
+    const realAnswered = answered - deferred;
+    const scopeSkipped = sec.qs.filter(q=>{ const o=getScopeOverride(q.id); return o&&o.skip; }).length;
+    ragEl.textContent = rag==='pend'
+      ? (realAnswered + '/' + (total-scopeSkipped) + ' answered')
+      : rag==='green'?'COMPLIANT':rag==='amber'?'GAPS':'NON-COMPLIANT';
+  }
+  const btn = document.getElementById('next-btn');
+  if(btn) btn.disabled = !allDone;
+}
+
+function skipRemaining(){
+  const sec = SECTIONS[cur];
+  sec.qs.forEach(q=>{ if(A[q.id]===undefined) A[q.id]='skip'; });
+  saveState();
+  renderSection();
+}
+
+function getDeferredQuestions(){
+  const d=[];
+  SECTIONS.forEach(s=>s.qs.forEach(q=>{
+    if(A[q.id]==='skip') d.push({sec:s.title, icon:s.icon, id:q.id, q:q.text, af:q.af, advisory:q.advisory||false});
+  }));
+  return d;
+}
+
+function goNext(){
+  // Auto-skip any unanswered questions in the current section before advancing
+  if(cur >= 0 && cur < SECTIONS.length){
+    SECTIONS[cur].qs.forEach(q => { if(A[q.id] === undefined) A[q.id] = 'skip'; });
+    saveState();
+  }
+  if(cur === -1){ cur=0; }
+  else if(cur < SECTIONS.length-1){ cur++; }
+  else { showResults(); return; }
+  saveState();
+  renderStepper();
+  if(cur>=0) renderSection();
+  window.scrollTo(0,0);
+}
+function goBack(){
+  if(cur===0){ cur=-1; renderStepper(); renderScope(); }
+  else if(cur>0){ cur--; renderStepper(); renderSection(); }
+  window.scrollTo(0,0);
+}
+
+// ─── SCORING ─────────────────────────────────────────────────────────────────
+function sectionScore(si){
+  let pts=0,max=0;
+  SECTIONS[si].qs.forEach(q=>{
+    if(q.advisory) return;
+    if(A[q.id]==='skip') return; // deferred — don't count
+    const w = q.af?3:2;
+    max += w;
+    const v = A[q.id];
+    if(v==='yes'||v==='na') pts+=w;
+    else if(v==='partial') pts+=w*0.5;
+  });
+  return max ? Math.round((pts/max)*100) : 0;
+}
+function sectionRAG(si){
+  if(SECTIONS[si].qs.some(q=>q.af&&!q.advisory&&A[q.id]==='no')) return 'red';
+  if(SECTIONS[si].qs.some(q=>!getScopeOverride(q.id)?.skip&&A[q.id]==='skip')) return 'amber'; // has deferred
+  const sc = sectionScore(si);
+  return sc>=85?'green':sc>=60?'amber':'red';
+}
+function overallRAG(){
+  const rags = SECTIONS.map((_,i)=>sectionRAG(i));
+  return rags.includes('red')?'red':rags.includes('amber')?'amber':'green';
+}
+function overallScore(){
+  return Math.round(SECTIONS.reduce((s,_,i)=>s+sectionScore(i),0)/SECTIONS.length);
+}
+function getAutoFails(){
+  const f=[];
+  SECTIONS.forEach(s=>s.qs.forEach(q=>{ if(q.af&&!q.advisory&&A[q.id]==='no') f.push({sec:s.title,q:q.text}); }));
+  return f;
+}
+function getGaps(){
+  const g=[];
+  SECTIONS.forEach(s=>s.qs.forEach(q=>{
+    const v=A[q.id];
+    const ov=getScopeOverride(q.id);
+    if(ov&&ov.skip) return;
+    if(v==='no'||v==='partial') g.push({sec:s.title,icon:s.icon,id:q.id,q:q.text,sev:v,rem:q.rem,ev:q.ev||[],cp:q.cp,af:q.af,n26:q.n26,advisory:q.advisory||false});
+  }));
+  return g;
+}
+
+// ─── RESULTS ─────────────────────────────────────────────────────────────────
+function showResults(){
+  cur=5; saveState(); renderStepper();
+  document.getElementById('quiz').innerHTML='';
+  const rag=overallRAG(), sc=overallScore(), afs=getAutoFails(), gaps=getGaps();
+
+  const ragLabel = rag==='green'?'READY':rag==='amber'?'GAPS FOUND':'NOT READY';
+  const ragTitle = afs.length?`${afs.length} Automatic Failure${afs.length>1?'s':''} Detected`:
+    rag==='green'?'Strong CE Readiness':rag==='amber'?'Improvements Required':'Significant Gaps Found';
+  const ragSub = afs.length?'Automatic failures must be resolved before submitting under Danzell v3.3.':
+    rag==='green'?`Overall score ${sc}% — broadly CE-ready. Review any amber items before submitting.`:
+    `Overall score ${sc}% — address the gaps below before submitting your application.`;
+
+  // Scope summary pills
+  const scopePills = [
+    scope.org==='subset' ? '⚠️ Subset scope defined' : null,
+    scope.cloud==='yes'  ? '☁️ Cloud services in scope' : '🚫 No cloud services',
+    scope.remote==='yes' ? '🏠 Remote workers in scope' : '🏢 Office-based only',
+    scope.mobile==='both'? '📱 MDM + BYOD in scope' :
+    scope.mobile==='mdm' ? '📱 MDM-managed mobiles' :
+    scope.mobile==='byod'? '📱 BYOD devices in scope' : '🚫 No mobile devices',
+  ].filter(Boolean);
+
+  let html = `<div class="res-hero ${rag}">
+    <div class="rh-lbl ${rag}">${ragLabel}</div>
+    <div class="rh-score ${rag}">${sc}%</div>
+    <div class="rh-title">${ragTitle}</div>
+    <div class="rh-sub">${ragSub}</div>
+    ${scopePills.length?`<div class="scope-summary">${scopePills.map(p=>`<span class="scope-pill">${p}</span>`).join('')}</div>`:''}
+  </div>`;
+
+  // Remediation progress
+  const remTotal = gaps.length;
+  const remDone = gaps.filter(g=>REM[g.id]).length;
+  const remPct = remTotal ? Math.round((remDone/remTotal)*100) : 100;
+  if(remTotal>0){
+    html += `<div class="rem-progress" id="rem-progress">
+      <div class="rem-prog-text">Remediation tracker: <b>${remDone}/${remTotal}</b> gaps addressed</div>
+      <div class="rem-track"><div class="rem-fill" id="rem-fill" style="width:${remPct}%"></div></div>
+      <div class="rem-pct" id="rem-pct">${remPct}%</div>
+    </div>`;
+  }
+
+  // CE+ toggle
+  html += `<div class="ceplus-toggle-bar">
+    <label for="cp-toggle">
+      <span class="toggle-sw"><input type="checkbox" id="cp-toggle" ${showCEPlus?'checked':''} onchange="toggleCEPlus(this.checked)"><span class="knob"></span></span>
+      Show CE+ additional checks
+    </label>
+    <span class="ceplus-desc">Highlights what a CE+ assessor will technically verify beyond the self-assessment</span>
+  </div>`;
+
+  // Auto-fails
+  if(afs.length){
+    html += `<div class="af-banner"><div class="af-hdr">⛔ ${afs.length} Automatic Failure${afs.length>1?'s':''} — must be resolved before submitting</div>`;
+    afs.forEach(f=>{ html+=`<div class="af-item"><span class="af-x">✕</span><div>${f.q}<span class="af-sec">${f.sec}</span></div></div>`; });
+    html += `</div>`;
+  }
+
+  // Section summaries
+  html += `<div class="ss-grid">`;
+  SECTIONS.forEach((_,i)=>{
+    const sr=sectionRAG(i), ss=sectionScore(i);
+    const fails=SECTIONS[i].qs.filter(q=>A[q.id]==='no').length;
+    const parts=SECTIONS[i].qs.filter(q=>A[q.id]==='partial').length;
+    html+=`<div class="ss-card">
+      <div class="ss-top"><span class="ss-name">${SECTIONS[i].icon} ${SECTIONS[i].title}</span><span class="ss-dot ${sr}"></span></div>
+      <div class="ss-track"><div class="ss-fill ${sr}" style="width:${ss}%"></div></div>
+      <div class="ss-meta">${ss}% &nbsp;·&nbsp; ${fails} fail${fails!==1?'s':''} &nbsp;·&nbsp; ${parts} partial</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // Deferred questions block
+  const deferred = getDeferredQuestions();
+  if(deferred.length){
+    html += `<div class="deferred-block">
+      <div class="deferred-hdr">
+        <span style="font-size:14px">⏸</span>
+        <span class="deferred-hdr-title">Deferred Questions — ${deferred.length} not yet answered</span>
+        <span class="deferred-hdr-badge">Incomplete</span>
+      </div>`;
+    deferred.forEach(d=>{
+      html += `<div class="deferred-row">
+        <span class="def-icon">${d.icon}</span>
+        <div class="def-text">${d.q}
+          ${d.af?'<span class="badge-af" style="margin-left:5px">Auto-fail</span>':''}
+          <span class="def-sec">${d.sec}</span>
+        </div>
+      </div>`;
+    });
+    html += `<div style="padding:10px 18px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);">
+      These questions were skipped and are not included in the score above. Go back to complete them for an accurate result.
+      <button onclick="goBackToSection()" style="margin-left:10px;padding:4px 12px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--accent);font-family:var(--mono);font-size:10px;cursor:pointer;">← Go back &amp; answer</button>
+    </div></div>`;
+  }
+
+  // Gap analysis
+  if(gaps.length){
+    html += `<div class="gap-section-label">Gap Analysis &amp; Remediation</div>`;
+    const bySec = {};
+    gaps.forEach(g=>{ if(!bySec[g.sec]) bySec[g.sec]={icon:g.icon,items:[]}; bySec[g.sec].items.push(g); });
+    Object.entries(bySec).forEach(([sn,data])=>{
+      const nonAdvisoryFails = data.items.filter(g=>!g.advisory&&g.sev==='no');
+      const nonAdvisoryPartial = data.items.filter(g=>!g.advisory&&g.sev==='partial');
+      const sRag = nonAdvisoryFails.length?'red':nonAdvisoryPartial.length?'amber':'info';
+      const sLabel = sRag==='red'?'NON-COMPLIANT':sRag==='amber'?'PARTIAL':'ADVISORY ONLY';
+      html += `<div class="gap-block">
+        <div class="gap-hdr">
+          <span>${data.icon}</span>
+          <span class="gap-hdr-title">${sn}</span>
+          <span class="gap-hdr-rag ${sRag}">${sLabel}</span>
+        </div>`;
+      data.items.forEach(g=>{
+        const isRem = REM[g.id];
+        const sevClass = g.advisory ? 'advisory' : g.sev==='no' ? 'red' : 'amber';
+        const sevLabel = g.advisory ? 'ADVISORY' : g.sev==='no' ? 'FAIL' : 'PARTIAL';
+        html += `<div class="gap-row ${isRem?'remediated':''} ${g.advisory?'advisory-row':''}" id="gr-${g.id}">
+          <div class="gap-q-row">
+            <span class="gap-sev ${sevClass}">${sevLabel}</span>
+            <span class="gap-q-text">${g.q}
+              ${g.af?'<span class="badge-af" style="margin-left:5px">Auto-fail</span>':''}
+              ${g.n26?'<span class="badge-26" style="margin-left:4px">2026</span>':''}
+              ${g.advisory?'<span class="badge-adv" style="margin-left:4px">Advisory</span>':''}
+            </span>
+          </div>
+          ${g.advisory?'<div style="font-size:11px;color:var(--blue);font-family:var(--mono);margin-bottom:6px;padding-left:2px;">ℹ This is best practice — it will not cause a CE failure on its own</div>':''}
+          <div class="gap-fix">${g.rem}</div>`;
+        if(g.ev && g.ev.length){
+          html += `<button class="ev-toggle" onclick="toggleEv(this)" data-id="${g.id}">
+            <span class="ev-arr">▶</span> Evidence required (${g.ev.length} item${g.ev.length>1?'s':''})
+          </button>
+          <div class="ev-list" id="ev-${g.id}">
+            ${g.ev.map(e=>`<div class="ev-item">${e}</div>`).join('')}
+          </div>`;
+        }
+        if(g.cp){
+          html += `<div class="cp-note ${showCEPlus?'show':''}" id="cp-${g.id}">🔍 <strong>CE+ check:</strong> ${g.cp}</div>`;
+        }
+        html += `<div class="rem-check-row">
+          <input type="checkbox" class="rem-checkbox" id="rc-${g.id}" ${isRem?'checked':''} onchange="setRemediated('${g.id}',this.checked)">
+          <label class="rem-label" for="rc-${g.id}">Mark as remediated</label>
+        </div></div>`;
+      });
+      html += `</div>`;
+    });
+  } else if(!deferred.length) {
+    html += `<div style="background:var(--gdim);border:1px solid var(--gbrd);border-radius:12px;padding:16px 20px;text-align:center;color:var(--green);font-size:13px;font-weight:600;">✓ No gaps identified — you appear fully compliant with Danzell v3.3</div>`;
+  } else {
+    html += `<div style="background:var(--adm2);border:1px solid var(--abrd);border-radius:12px;padding:16px 20px;text-align:center;color:var(--amber);font-size:13px;font-weight:500;">⏸ No gaps in answered questions — but ${deferred.length} deferred question${deferred.length>1?'s remain':' remains'}. Go back and answer them for a complete result.</div>`;
+  }
+
+  html += `<div class="res-footer">
+    <span class="ver-note">CE · Danzell v3.3 · Requirements for IT Infrastructure v3.3 · From 27 April 2026</span>
+    <div class="res-btns">
+      <button class="btn-sm btn-sm-g" onclick="window.print()">🖨 Print</button>
+      <button class="btn-sm btn-sm-g" onclick="goBackToSection()">← Edit Answers</button>
+      <button class="btn-sm btn-sm-a" onclick="restart()">↺ Start Again</button>
+    </div>
+  </div>`;
+
+  const el = document.getElementById('results');
+  el.innerHTML = html;
+  el.classList.add('show');
+  window.scrollTo(0,0);
+}
+
+function toggleEv(btn){
+  const id = btn.dataset.id;
+  const list = document.getElementById('ev-'+id);
+  const open = list.classList.toggle('open');
+  btn.classList.toggle('open', open);
+}
+function toggleCEPlus(on){
+  showCEPlus = on;
+  saveState();
+  // Toggle all cp-note divs
+  document.querySelectorAll('.cp-note').forEach(el=>el.classList.toggle('show',on));
+}
+function setRemediated(qid, val){
+  REM[qid] = val;
+  saveState();
+  const row = document.getElementById('gr-'+qid);
+  if(row) row.classList.toggle('remediated', val);
+  // Update progress
+  const gaps = getGaps();
+  const done = gaps.filter(g=>REM[g.id]).length;
+  const pct = gaps.length ? Math.round((done/gaps.length)*100) : 100;
+  const fill = document.getElementById('rem-fill');
+  const pctEl = document.getElementById('rem-pct');
+  const txtEl = document.querySelector('.rem-prog-text');
+  if(fill) fill.style.width = pct+'%';
+  if(pctEl) pctEl.textContent = pct+'%';
+  if(txtEl) txtEl.innerHTML = `Remediation tracker: <b>${done}/${gaps.length}</b> gaps addressed`;
+}
+function goBackToSection(){
+  cur = SECTIONS.length - 1;
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('results').innerHTML = '';
+  renderStepper();
+  renderSection();
+  window.scrollTo(0,0);
+}
+function restart(){
+  Object.keys(A).forEach(k=>delete A[k]);
+  Object.keys(scope).forEach(k=>delete scope[k]);
+  Object.keys(REM).forEach(k=>delete REM[k]);
+  showCEPlus = false;
+  clearState();
+  cur=-1;
+  document.getElementById('results').classList.remove('show');
+  document.getElementById('results').innerHTML='';
+  renderStepper();
+  renderScope();
+  window.scrollTo(0,0);
+}
+function toggleInfo(qid){
+  const panel = document.getElementById('ip-'+qid);
+  const btn   = document.getElementById('ib-'+qid);
+  if(!panel) return;
+  const open = panel.classList.toggle('open');
+  btn.classList.toggle('open', open);
+  btn.textContent = open ? '×' : 'i';
+}
+
+function toggleChanges(){
+  const b = document.getElementById('ct-body');
+  const a = document.getElementById('ct-arr');
+  const open = b.classList.toggle('open');
+  a.classList.toggle('open', open);
+}
+</script>
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark / light mode" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){
+  var b=document.getElementById("sw-theme-btn");
+  var dk=document.documentElement.getAttribute("data-theme")==="dark";
+  b.textContent=dk?"☀":"🌙";
+  b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";
+})();
+function swToggle(){
+  var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";
+  d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);
+  var b=document.getElementById("sw-theme-btn");
+  b.textContent=dk?"🌙":"☀";
+  b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";
+}
+</script>
+</body>
+</html>

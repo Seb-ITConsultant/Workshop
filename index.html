@@ -4,267 +4,232 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Seb's Workshop</title>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* ── LIGHT (default) ─────────────────────── */
+:root{
+  --bg:#f4f6fb;--surface:#ffffff;--surface2:#f8fafc;
+  --border:#e2e8f0;--bh:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;
+  --accent:#0d9488;--adim:rgba(13,148,136,.08);
+  --card-shadow:0 1px 4px rgba(13,148,136,.06),0 1px 2px rgba(0,0,0,.04);
+}
+/* ── DARK ────────────────────────────────── */
+html[data-theme="dark"]{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;
+  --border:#1c2535;--bh:#2d3f5a;
+  --text:#c8d8f0;--muted:#4a5a78;
+  --accent:#00dba8;--adim:rgba(0,219,168,.08);
+  --card-shadow:0 12px 36px rgba(0,219,168,.06);
+}
+/* ── BASE ─────────────────────────────────── */
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Sora',sans-serif;min-height:100vh;
+  display:flex;flex-direction:column;align-items:center;
+  padding:48px 20px 60px;transition:background .25s,color .25s;
+}
+html:not([data-theme="dark"]) body{
+  background-image:none;
+}
+html[data-theme="dark"] body{
+  background-image:linear-gradient(rgba(0,219,168,.03) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,219,168,.03) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+html[data-theme="dark"] body::before{
+  content:'';position:fixed;top:-200px;left:50%;transform:translateX(-50%);
+  width:600px;height:400px;
+  background:radial-gradient(ellipse,rgba(0,219,168,.06) 0%,transparent 70%);
+  pointer-events:none;z-index:0;
+}
+.wrap{position:relative;z-index:1;width:100%;max-width:900px;}
 
-  :root {
-    --bg: #080b11;
-    --surface: #0e1420;
-    --border: #1c2535;
-    --border-hover: #2d3f5a;
-    --text: #c8d8f0;
-    --muted: #4a5a78;
-    --accent: #00dba8;
-    --accent-dim: rgba(0,219,168,.08);
-    --accent-glow: rgba(0,219,168,.15);
-    --font-display: 'Sora', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
-  }
+/* ── HEADER ─────────────────────────────────*/
+.header{text-align:center;margin-bottom:44px;animation:fadeUp .4s ease both;}
+.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:3px;
+  text-transform:uppercase;color:var(--accent);opacity:.8;margin-bottom:12px;}
+.header h1{font-size:clamp(2.1rem,5vw,3rem);font-weight:800;color:var(--text);
+  letter-spacing:-1.5px;line-height:1.05;}
+html[data-theme="dark"] .header h1{color:#e8f0ff;}
+.header h1 em{font-style:normal;color:var(--accent);}
+.header-sub{margin-top:10px;font-size:13.5px;color:var(--muted);font-weight:300;}
+.divider{width:40px;height:2px;background:var(--accent);margin:18px auto 0;opacity:.5;border-radius:2px;}
 
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: var(--font-display);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 40px 20px;
-    background-image:
-      linear-gradient(rgba(0,219,168,.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(0,219,168,.03) 1px, transparent 1px);
-    background-size: 60px 60px;
-  }
+/* ── SECTION LABELS ─────────────────────────*/
+.sec-label{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2.5px;
+  text-transform:uppercase;color:var(--muted);margin:34px 0 13px 2px;}
 
-  body::before {
-    content: '';
-    position: fixed;
-    top: -200px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 600px;
-    height: 400px;
-    background: radial-gradient(ellipse, rgba(0,219,168,.06) 0%, transparent 70%);
-    pointer-events: none;
-    z-index: 0;
-  }
+/* ── GRIDS ───────────────────────────────── */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:13px;}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;}
+@media(max-width:700px){.grid-2,.grid-3{grid-template-columns:1fr;}}
+@media(max-width:900px){.grid-3{grid-template-columns:repeat(2,1fr);}}
 
-  .wrapper {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 860px;
-  }
+/* ── CARDS ────────────────────────────────── */
+.card{
+  background:var(--surface);border:1px solid var(--border);border-radius:16px;
+  padding:22px 20px;text-decoration:none;color:var(--text);
+  display:flex;flex-direction:column;position:relative;overflow:hidden;
+  box-shadow:var(--card-shadow);
+  transition:border-color .22s,transform .22s,box-shadow .22s;
+  animation:fadeUp .45s ease both;
+}
+.card:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,0,0,.08);}
+html[data-theme="dark"] .card:hover{box-shadow:0 10px 30px rgba(0,219,168,.08);}
+.card::before{content:'';position:absolute;top:0;left:20%;right:20%;height:1px;
+  background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity .22s;}
+.card:hover::before{opacity:.5;}
+.card-badge{position:absolute;top:13px;right:13px;padding:2px 8px;border-radius:4px;
+  font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.5px;text-transform:uppercase;}
+.badge-new{background:rgba(13,148,136,.12);border:1px solid rgba(13,148,136,.3);color:var(--accent);}
+html[data-theme="dark"] .badge-new{background:rgba(0,219,168,.12);border-color:rgba(0,219,168,.3);color:#00dba8;}
+.badge-local{background:rgba(37,99,235,.10);border:1px solid rgba(37,99,235,.28);color:#2563eb;}
+html[data-theme="dark"] .badge-local{background:rgba(74,158,255,.10);border-color:rgba(74,158,255,.28);color:#4a9eff;}
+.badge-beta{background:rgba(217,119,6,.10);border:1px solid rgba(217,119,6,.28);color:#d97706;}
+html[data-theme="dark"] .badge-beta{background:rgba(245,166,35,.10);border-color:rgba(245,166,35,.28);color:#f5a623;}
+.card-icon{font-size:26px;margin-bottom:11px;display:block;}
+.card-title{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:7px;letter-spacing:-.2px;padding-right:56px;}
+html[data-theme="dark"] .card-title{color:#e8f0ff;}
+.card-desc{font-size:12.5px;color:var(--muted);line-height:1.65;font-weight:300;flex:1;}
+.card-tag{margin-top:14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1px;
+  text-transform:uppercase;color:var(--accent);opacity:.65;transition:opacity .2s;
+  display:inline-flex;align-items:center;gap:4px;}
+.card-tag::after{content:'→';transition:transform .2s;}
+.card:hover .card-tag{opacity:1;}
+.card:hover .card-tag::after{transform:translateX(3px);}
+.card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.10s}
+.card:nth-child(3){animation-delay:.15s}.card:nth-child(4){animation-delay:.20s}
+.card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.30s}
+.card:nth-child(7){animation-delay:.35s}.card:nth-child(8){animation-delay:.40s}
 
-  .header {
-    text-align: center;
-    margin-bottom: 56px;
-  }
-  .header-eyebrow {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 3px;
-    text-transform: uppercase;
-    color: var(--accent);
-    margin-bottom: 14px;
-    opacity: .8;
-  }
-  .header h1 {
-    font-size: clamp(2.4rem, 5vw, 3.4rem);
-    font-weight: 800;
-    line-height: 1.05;
-    color: #e8f0ff;
-    letter-spacing: -1.5px;
-  }
-  .header h1 em {
-    font-style: normal;
-    color: var(--accent);
-    position: relative;
-  }
-  .header-sub {
-    margin-top: 14px;
-    font-size: 14px;
-    color: var(--muted);
-    font-weight: 300;
-    letter-spacing: .3px;
-  }
-
-  .divider {
-    width: 40px;
-    height: 2px;
-    background: var(--accent);
-    margin: 22px auto 0;
-    opacity: .5;
-    border-radius: 2px;
-  }
-
-  .grid {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
-  }
-
-  @media (max-width: 600px) {
-    .grid { grid-template-columns: 1fr; }
-  }
-
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 28px 26px;
-    text-decoration: none;
-    color: var(--text);
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-    position: relative;
-    overflow: hidden;
-    transition: border-color .25s, transform .25s, background .25s, box-shadow .25s;
-  }
-
-  .card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    background: var(--accent-dim);
-    opacity: 0;
-    transition: opacity .25s;
-    pointer-events: none;
-  }
-  .card:hover { border-color: var(--accent); transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,219,168,.08); }
-  .card:hover::before { opacity: 1; }
-
-  .card::after {
-    content: '';
-    position: absolute;
-    top: 0; left: 20%; right: 20%;
-    height: 1px;
-    background: linear-gradient(90deg, transparent, var(--accent), transparent);
-    opacity: 0;
-    transition: opacity .25s;
-  }
-  .card:hover::after { opacity: .6; }
-
-  .card-icon {
-    font-size: 28px;
-    margin-bottom: 14px;
-    display: block;
-    filter: drop-shadow(0 0 8px rgba(0,219,168,.3));
-  }
-
-  .card-title {
-    font-size: 16px;
-    font-weight: 600;
-    color: #e8f0ff;
-    margin-bottom: 8px;
-    letter-spacing: -.3px;
-  }
-
-  .card-desc {
-    font-size: 13px;
-    color: var(--muted);
-    line-height: 1.65;
-    font-weight: 300;
-    flex: 1;
-  }
-
-  .card-tag {
-    margin-top: 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    color: var(--accent);
-    opacity: .6;
-    transition: opacity .2s;
-  }
-  .card:hover .card-tag { opacity: 1; }
-  .card-tag::after { content: '→'; transition: transform .2s; }
-  .card:hover .card-tag::after { transform: translateX(3px); }
-
-  .footer {
-    text-align: center;
-    margin-top: 48px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--muted);
-    letter-spacing: .5px;
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .header            { animation: fadeUp .5s ease both; }
-  .card:nth-child(1) { animation: fadeUp .5s .10s ease both; }
-  .card:nth-child(2) { animation: fadeUp .5s .18s ease both; }
-  .card:nth-child(3) { animation: fadeUp .5s .26s ease both; }
-  .card:nth-child(4) { animation: fadeUp .5s .34s ease both; }
-  .card:nth-child(5) { animation: fadeUp .5s .42s ease both; }
+/* ── DISCLAIMER ──────────────────────────── */
+.disclaimer{
+  margin-top:40px;padding:20px 22px;background:var(--surface);
+  border:1px solid var(--border);border-radius:14px;
+  animation:fadeUp .45s .38s ease both;
+}
+.disc-title{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.disc-body{font-size:12.5px;color:var(--muted);line-height:1.8;font-weight:300;}
+.disc-body strong{color:var(--text);font-weight:500;}
+.disc-body a{color:var(--accent);text-decoration:none;opacity:.8;}
+.disc-body a:hover{opacity:1;}
+.footer{margin-top:24px;font-family:'JetBrains Mono',monospace;font-size:11px;
+  color:var(--muted);text-align:center;letter-spacing:.5px;animation:fadeUp .45s .42s ease both;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(13px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
-
-<div class="wrapper">
+<div class="wrap">
 
   <header class="header">
-    <div class="header-eyebrow">IT Tools &amp; Utilities</div>
+    <div class="eyebrow">IT Tools &amp; Utilities</div>
     <h1>Seb's <em>Workshop</em></h1>
-    <p class="header-sub">A collection of tools for infrastructure, licensing &amp; fleet management</p>
+    <p class="header-sub">A personal collection of tools for IT infrastructure, licensing, security &amp; fleet management</p>
     <div class="divider"></div>
   </header>
 
-  <div class="grid">
-
-    <a href="ws-license-calc.html" class="card">
-      <span class="card-icon">⚡</span>
-      <div class="card-title">Windows Server &amp; SQL Calculator</div>
-      <p class="card-desc">Estimate licensing costs for Windows Server and SQL Server deployments. Input your hardware spec, core counts and edition requirements to get an accurate cost breakdown before you commit to a purchase.</p>
-      <span class="card-tag">Licensing</span>
-    </a>
-
+  <div class="sec-label">Licensing &amp; Management</div>
+  <div class="grid-2">
     <a href="Seb365Navigator.html" class="card">
       <span class="card-icon">☁️</span>
       <div class="card-title">Microsoft 365 Navigator</div>
-      <p class="card-desc">Instantly look up which Microsoft 365 features are included in which licence tier. Cut through the noise of Microsoft's licensing matrix to find the right plan for your users without overspending.</p>
+      <p class="card-desc">Instantly look up which Microsoft 365 features are included in which licence tier. Cut through Microsoft's licensing matrix to find the right plan without overspending.</p>
       <span class="card-tag">M365</span>
     </a>
-
     <a href="sebs-permission-calculator.html" class="card">
       <span class="card-icon">🔒</span>
       <div class="card-title">Permission Calculator</div>
-      <p class="card-desc">A least-privilege reference for Microsoft Entra ID and Active Directory. Look up built-in roles, understand what each permission grants, and design access policies that follow zero-trust principles.</p>
+      <p class="card-desc">A least-privilege reference for Microsoft Entra ID and Active Directory. Look up built-in roles, understand permissions, and design access policies following zero-trust principles.</p>
       <span class="card-tag">Security</span>
     </a>
-
-    <a href="pc-fleet-auditor.html" class="card">
+    <a href="system-scout.html" class="card">
       <span class="card-icon">🖥️</span>
-      <div class="card-title">Seb's System Scout</div>
-      <p class="card-desc">Upload a CSV export from your RMM tool to instantly audit your device fleet. Flags EOL operating systems, Win11 compatibility, ageing hardware, low disk and RAM, warranty status, and stale devices — all in one view.</p>
+      <div class="card-title">System Scout</div>
+      <p class="card-desc">Upload a CSV from your RMM tool to audit your device fleet. Flags EOL operating systems, Win11 compatibility, ageing hardware, low disk, warranty status and stale devices.</p>
       <span class="card-tag">Fleet Management</span>
     </a>
-
     <a href="pdfexam.html" class="card">
       <span class="card-icon">📄</span>
       <div class="card-title">PDF Exam Questioner</div>
-      <p class="card-desc">Upload any multiple-choice exam PDF and practice interactively. Questions are presented without answers, instant right/wrong feedback is shown on selection, and a live score tracks your progress throughout.</p>
+      <p class="card-desc">Upload any multiple-choice exam PDF and practise interactively. Questions presented without answers, instant feedback on selection, with a live score throughout.</p>
       <span class="card-tag">Study Tools</span>
     </a>
-
   </div>
 
-  <footer class="footer">
-    Seb's Workshop &nbsp;·&nbsp; Built for IT pros
-  </footer>
+  <div class="sec-label">Security &amp; Compliance</div>
+  <div class="grid-2">
+    <a href="ce-readiness.html" class="card">
+      <span class="card-badge badge-new">Updated</span>
+      <span class="card-icon">🛡️</span>
+      <div class="card-title">CE Readiness Check</div>
+      <p class="card-desc">Gap analysis against Cyber Essentials Danzell v3.3 (April 2026). Covers all 5 controls with scope helper, evidence checklists, CE+ view and remediation tracker.</p>
+      <span class="card-tag">Cyber Essentials</span>
+    </a>
+    <a href="email-security-check.html" class="card">
+      <span class="card-badge badge-new">New</span>
+      <span class="card-icon">📨</span>
+      <div class="card-title">Email Security Check</div>
+      <p class="card-desc">Live SPF, DKIM and DMARC lookup for any domain via DNS-over-HTTPS. Plain-English breakdown of each record, spoofability risk and a step-by-step fix guide.</p>
+      <span class="card-tag">Email Security</span>
+    </a>
+    <a href="port-scanner.html" class="card">
+      <span class="card-badge badge-local">Local only</span>
+      <span class="card-icon">🔍</span>
+      <div class="card-title">Port Scanner</div>
+      <p class="card-desc">Run an nmap scan against any IP or hostname and get a plain-English risk analysis per port, CE concern flags and service version detection. Requires the local Python backend.</p>
+      <span class="card-tag">Network Security</span>
+    </a>
+  </div>
+
+  <div class="sec-label">Beta &amp; Experimental</div>
+  <div class="grid-2" style="grid-template-columns:1fr 1fr;">
+    <a href="ws-license-calc.html" class="card">
+      <span class="card-badge badge-beta">⚗ Beta</span>
+      <span class="card-icon">⚡</span>
+      <div class="card-title">Windows Server &amp; SQL Calculator</div>
+      <p class="card-desc">Estimate licensing costs for Windows Server and SQL Server deployments. Input hardware spec, core counts and edition requirements for a cost breakdown.<br><br>
+      <span style="font-size:11.5px;color:#d97706;font-weight:500;">⚗ Beta — not fully tested. Verify all figures against official Microsoft pricing before use.</span></p>
+      <span class="card-tag">Licensing</span>
+    </a>
+  </div>
+
+  <div class="disclaimer">
+    <div class="disc-title">⚠ Disclaimer</div>
+    <div class="disc-body">
+      Seb's Workshop is a <strong>personal hobby project</strong> built in my spare time — these tools are provided free of charge and entirely as-is.
+      While I do my best to keep information accurate and up to date, <strong>I cannot guarantee the accuracy of any content</strong>, particularly around licensing costs, compliance requirements or security guidance, which can change without notice.
+      Always verify critical decisions with official sources such as Microsoft, NCSC or IASME before acting on anything here.
+      <br><br>
+      If you spot something wrong or out of date, I'd genuinely love to hear about it — drop feedback via
+      <a href="https://github.com" target="_blank">GitHub</a> and I'll get it fixed.
+      <br><br>
+      Built with ☕, curiosity, and a lot of help from <strong>Seb AI</strong> (Claude · Anthropic).
+    </div>
+  </div>
+
+  <footer class="footer">Seb's Workshop &nbsp;·&nbsp; Built for IT pros &nbsp;·&nbsp; Not for commercial use</footer>
 
 </div>
 
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark / light mode" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){
+  var b=document.getElementById("sw-theme-btn");
+  var dk=document.documentElement.getAttribute("data-theme")==="dark";
+  b.textContent=dk?"☀":"🌙";
+  b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";
+})();
+function swToggle(){
+  var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";
+  d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);
+  var b=document.getElementById("sw-theme-btn");
+  b.textContent=dk?"🌙":"☀";
+  b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";
+}
+</script>
 </body>
 </html>

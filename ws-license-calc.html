@@ -624,10 +624,42 @@ select option { background: var(--surface2); }
   .btn, .btn-ghost, .presets { display: none; }
 }
 </style>
+
+<style id="light-override">
+:root {
+  --bg:#f4f6fb;--surface:#ffffff;--surface2:#f8fafc;
+  --surface3:#f1f5f9;--border:#e2e8f0;--border-bright:#cbd5e1;
+  --text:#1e293b;--text-muted:#64748b;--text-dim:#475569;
+  --amber:#c2690a;--amber-dim:#9a5208;--amber-glow:rgba(194,105,10,.10);
+  --blue:#2563eb;--blue-dim:#1d4ed8;--blue-glow:rgba(37,99,235,.08);
+  --green:#0d9488;--green-glow:rgba(13,148,136,.10);
+  --red:#dc2626;--red-glow:rgba(220,38,38,.10);--yellow:#d97706;
+}
+body{background:#f4f6fb;}
+input[type="number"],select{background:#f8fafc;color:#1e293b;border-color:#e2e8f0;}
+.tooltip-box{background:#1e293b;color:#f8fafc;}
+</style>
+<style id="dark-override">
+html[data-theme="dark"]{
+  --bg:#0c0f14;--surface:#131720;--surface2:#1a2030;--surface3:#1e2639;
+  --border:#2a3347;--border-bright:#3d4f6e;
+  --text:#dce6f5;--text-muted:#6b7fa3;--text-dim:#8fa3c7;
+  --amber:#f0a020;--amber-dim:#b87a16;--amber-glow:rgba(240,160,32,.12);
+  --blue:#4a9eff;--blue-dim:#2d6eb8;--blue-glow:rgba(74,158,255,.10);
+  --green:#34d399;--green-glow:rgba(52,211,153,.10);
+  --red:#f87171;--red-glow:rgba(248,113,113,.10);
+}
+html[data-theme="dark"] body{background:var(--bg);}
+html[data-theme="dark"] input[type="number"],html[data-theme="dark"] select{
+  background:var(--surface2);color:var(--text);border-color:var(--border);}
+html[data-theme="dark"] .tooltip-box{background:var(--bg);color:var(--text);}
+</style>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
 </head>
 <body>
 
 <header>
+  <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid var(--border);color:var(--text-muted);text-decoration:none;font-size:12px;font-weight:500;margin-right:12px;white-space:nowrap;transition:all .15s;">← Workshop</a>
   <div class="logo">
     <div class="logo-icon">⚡</div>
     <div class="logo-text">Win<span>Lic</span></div>
@@ -1542,6 +1574,22 @@ function exportSummary() {
 // ═══════════════════════════════════════════════════════════
 toggleSqlModel();
 calc();
+</script>
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark / light mode" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){
+  var b=document.getElementById("sw-theme-btn");
+  var dk=document.documentElement.getAttribute("data-theme")==="dark";
+  b.textContent=dk?"☀":"🌙";
+  b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";
+})();
+function swToggle(){
+  var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";
+  d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);
+  var b=document.getElementById("sw-theme-btn");
+  b.textContent=dk?"🌙":"☀";
+  b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";
+}
 </script>
 </body>
 </html>

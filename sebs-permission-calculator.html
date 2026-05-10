@@ -214,10 +214,49 @@ main{max-width:940px;margin:0 auto;padding:22px;}
 @media(max-width:400px){.pds{display:none;}.stat-n{font-size:21px;}}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-track{background:transparent;}::-webkit-scrollbar-thumb{background:var(--border-mid);border-radius:3px;}
 </style>
+
+<style id="light-override">
+:root {
+  --bg:#f4f6fb;--bg-card:#ffffff;--bg-row:#f8fafc;--bg-hover:#f1f5f9;
+  --border:#e2e8f0;--border-mid:#cbd5e1;
+  --text:#1e293b;--text-muted:#94a3b8;--text-dim:#64748b;
+  --accent:#0d9488;--accent-glow:rgba(13,148,136,.10);--accent-border:rgba(13,148,136,.32);
+  --c:#2563eb;--c-bg:rgba(37,99,235,.10);--c-b:rgba(37,99,235,.35);
+  --r:#0d9488;--r-bg:rgba(13,148,136,.10);--r-b:rgba(13,148,136,.35);
+  --u:#d97706;--u-bg:rgba(217,119,6,.10);--u-b:rgba(217,119,6,.35);
+  --d:#dc2626;--d-bg:rgba(220,38,38,.10);--d-b:rgba(220,38,38,.35);
+  --rl:#16a34a;--rm:#d97706;--rh:#ea580c;--rc:#dc2626;
+}
+body{background:#f4f6fb;background-image:radial-gradient(circle,#e2e8f0 1px,transparent 1px);}
+header{background:rgba(244,246,251,.97);}
+.hdr-logo{background:linear-gradient(135deg,#0d9488,#2563eb);box-shadow:0 0 12px rgba(13,148,136,.2);}
+#searchInput{background:#ffffff;color:#1e293b;border-color:#e2e8f0;}
+#searchInput::placeholder{color:#94a3b8;}
+</style>
+<style id="dark-override">
+html[data-theme="dark"]{
+  --bg:#0b0c10;--bg-card:#12141a;--bg-row:#0e1015;--bg-hover:#181b24;
+  --border:#1c1f2a;--border-mid:#252935;
+  --text:#dde1ef;--text-muted:#484f62;--text-dim:#7a8098;
+  --accent:#00dba8;--accent-glow:rgba(0,219,168,.10);--accent-border:rgba(0,219,168,.32);
+  --c:#60a5fa;--c-bg:rgba(96,165,250,.13);--c-b:rgba(96,165,250,.38);
+  --r:#34d399;--r-bg:rgba(52,211,153,.13);--r-b:rgba(52,211,153,.38);
+  --u:#fbbf24;--u-bg:rgba(251,191,36,.13);--u-b:rgba(251,191,36,.38);
+  --d:#f87171;--d-bg:rgba(248,113,113,.13);--d-b:rgba(248,113,113,.38);
+  --rl:#22c55e;--rm:#f59e0b;--rh:#f97316;--rc:#ef4444;
+}
+html[data-theme="dark"] body{background:var(--bg);background-image:radial-gradient(circle,#181b25 1px,transparent 1px);}
+html[data-theme="dark"] header{background:rgba(11,12,16,.94);}
+html[data-theme="dark"] .hdr-logo{background:linear-gradient(135deg,#00dba8,#0ea5e9);box-shadow:0 0 22px rgba(0,219,168,.28);}
+html[data-theme="dark"] #searchInput{background:#12141a;color:var(--text);border-color:var(--border);}
+html[data-theme="dark"] #searchInput::placeholder{color:var(--text-muted);}
+</style>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
 </head>
 <body>
 <header>
   <div class="hdr">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid var(--border);color:var(--text-muted);text-decoration:none;font-size:12px;font-weight:500;margin-right:12px;white-space:nowrap;transition:all .15s;">← Workshop</a>
     <div class="hdr-logo">S↗</div>
     <div class="hdr-info">
       <h1>Seb's Permission Calculator</h1>
@@ -829,6 +868,22 @@ document.addEventListener('DOMContentLoaded',()=>{
   document.getElementById('copyBtn').addEventListener('click',e=>{ e.stopPropagation(); copyRoles(); });
   document.getElementById('searchInput').addEventListener('input',applyFilters);
 });
+</script>
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark / light mode" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){
+  var b=document.getElementById("sw-theme-btn");
+  var dk=document.documentElement.getAttribute("data-theme")==="dark";
+  b.textContent=dk?"☀":"🌙";
+  b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";
+})();
+function swToggle(){
+  var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";
+  d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);
+  var b=document.getElementById("sw-theme-btn");
+  b.textContent=dk?"🌙":"☀";
+  b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";
+}
 </script>
 </body>
 </html>

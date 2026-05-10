@@ -141,12 +141,19 @@ td { padding: 9px 12px; font-size: 12px; vertical-align: middle; white-space: no
 .sec-hdr { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
 .hidden { display: none; }
 </style>
+<style id="dark-override">
+html[data-theme="dark"] body{filter:invert(1) hue-rotate(180deg);background:#fff;}
+html[data-theme="dark"] img,html[data-theme="dark"] canvas,
+html[data-theme="dark"] video,html[data-theme="dark"] iframe{filter:invert(1) hue-rotate(180deg);}
+</style>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
 </head>
 <body>
 <div class="page">
 
   <!-- TITLE -->
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;background:#fff;border:1px solid #e2e8f0;border-radius:14px;padding:14px 20px;box-shadow:0 1px 4px rgba(79,70,229,.08)">
+    <a href="index.html" style="display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:7px;border:1px solid #e2e8f0;color:#64748b;text-decoration:none;font-size:12px;font-weight:500;white-space:nowrap;font-family:'Inter',system-ui,sans-serif;">← Workshop</a>
     <h1>🖥 Seb's System Scout <span id="hdr-count"></span></h1>
     <div style="display:flex;gap:8px">
       <button class="btn-sm hidden" id="btn-adjust" onclick="showAdjustMapper()">⚙ Adjust Columns</button>
@@ -1456,7 +1463,23 @@ function doPDF(issuesOnly){
 
     +'<div style="margin-top:14px;font-size:10px;color:#9ca3af;border-top:1px solid #e5e7eb;padding-top:8px">'
     +'Seb\'s System Scout · '+now+' · Ages estimated from CPU model where not provided'
-    +'</div></body></html>';
+    +'</div><button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark / light mode" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){
+  var b=document.getElementById("sw-theme-btn");
+  var dk=document.documentElement.getAttribute("data-theme")==="dark";
+  b.textContent=dk?"☀":"🌙";
+  b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";
+})();
+function swToggle(){
+  var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";
+  d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);
+  var b=document.getElementById("sw-theme-btn");
+  b.textContent=dk?"🌙":"☀";
+  b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";
+}
+</script>
+</body></html>';
 
   var w=window.open('','_blank');
   if(!w){alert('Please allow pop-ups to open the PDF report.');return;}
