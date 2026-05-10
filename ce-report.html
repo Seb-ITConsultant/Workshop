@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CE Assessment Report</title>
+<script>(function(){var t=localStorage.getItem("sw-theme")||"light";if(t==="dark")document.documentElement.setAttribute("data-theme","dark");})()</script>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5f9;
+  --border:#e2e8f0;--bh:#cbd5e1;
+  --text:#1e293b;--muted:#64748b;--dim:#94a3b8;
+  --accent:#0f766e;
+  --c1:#0f766e;--c2:#2563eb;--c3:#d97706;--c4:#7c3aed;--c5:#dc2626;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+}
+html[data-theme="dark"]{
+  --bg:#080b11;--surface:#0e1420;--surface2:#111927;
+  --border:#1c2535;--bh:#2d3f5a;--text:#c8d8f0;--muted:#64748b;--dim:#4a5a78;
+  --accent:#0d9488;--shadow:0 1px 8px rgba(0,0,0,.3);
+}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans','Segoe UI',system-ui,sans-serif;
+  min-height:100vh;line-height:1.6;transition:background .2s,color .2s;}
+html[data-theme="dark"] body{
+  background-image:linear-gradient(rgba(13,148,136,.02) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(13,148,136,.02) 1px,transparent 1px);
+  background-size:60px 60px;}
+.wrap{max-width:860px;margin:0 auto;padding:36px 20px 60px;}
+/* BACK NAV */
+.back-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:28px;}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);text-decoration:none;
+  font-size:13px;font-weight:500;transition:color .15s;}
+.back-link:hover{color:var(--accent);}
+.nav-links{display:flex;gap:10px;flex-wrap:wrap;}
+.nav-pill{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;
+  border:1px solid var(--border);background:var(--surface);color:var(--muted);
+  text-decoration:none;font-size:11.5px;font-weight:500;transition:all .15s;}
+.nav-pill:hover{border-color:var(--accent);color:var(--accent);}
+/* HEADINGS */
+.page-title{font-size:clamp(1.6rem,4vw,2.3rem);font-weight:800;color:var(--text);
+  letter-spacing:-.5px;line-height:1.15;margin-bottom:8px;}
+html[data-theme="dark"] .page-title{color:#e8f0ff;}
+.page-sub{font-size:14px;color:var(--muted);font-weight:400;margin-bottom:28px;}
+/* CONTROL COLOURS */
+.col-1{color:var(--c1);}.col-2{color:var(--c2);}.col-3{color:var(--c3);}.col-4{color:var(--c4);}.col-5{color:var(--c5);}
+.bg-1{background:rgba(15,118,110,.08);border-color:rgba(15,118,110,.25);}
+.bg-2{background:rgba(37,99,235,.08);border-color:rgba(37,99,235,.25);}
+.bg-3{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.25);}
+.bg-4{background:rgba(124,58,237,.08);border-color:rgba(124,58,237,.25);}
+.bg-5{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.25);}
+/* PRINT */
+@media print{
+  body{background:#fff;color:#000;}
+  html[data-theme="dark"] body{background:#fff;color:#000;filter:none;}
+  .back-nav,#sw-theme-btn,.no-print{display:none!important;}
+  .wrap{padding:0;}
+  .page-break{page-break-before:always;}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.no-data{text-align:center;padding:60px 20px;background:var(--surface);border:1px solid var(--border);
+  border-radius:14px;}
+.nd-title{font-size:18px;font-weight:700;color:var(--text);margin-bottom:10px;}
+.nd-sub{font-size:13px;color:var(--muted);margin-bottom:20px;}
+.btn-go{display:inline-flex;align-items:center;gap:6px;padding:10px 22px;background:var(--accent);
+  color:#fff;border-radius:9px;text-decoration:none;font-size:13.5px;font-weight:600;transition:opacity .15s;}
+html[data-theme="dark"] .btn-go{color:#0e1420;}
+.btn-go:hover{opacity:.85;}
+/* REPORT */
+#report{display:none;}
+#report.show{display:block;}
+/* EDIT FIELDS */
+.field-editable{border:none;border-bottom:2px dashed var(--border);background:transparent;
+  color:var(--text);font-family:inherit;font-size:inherit;font-weight:inherit;
+  outline:none;min-width:180px;transition:border-color .15s;padding:2px 4px;}
+.field-editable:focus{border-color:var(--accent);}
+.field-editable::placeholder{color:var(--dim);}
+/* REPORT HEADER */
+.rpt-header{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:26px;margin-bottom:20px;box-shadow:var(--shadow);}
+.rpt-meta{display:flex;align-items:flex-start;justify-content:space-between;
+  gap:16px;flex-wrap:wrap;margin-bottom:16px;}
+.rpt-title-block{flex:1;}
+.rpt-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px;}
+.rpt-title{font-size:1.5rem;font-weight:800;color:var(--text);letter-spacing:-.3px;}
+html[data-theme="dark"] .rpt-title{color:#e8f0ff;}
+.rpt-subtitle{font-size:13px;color:var(--muted);margin-top:4px;}
+.rpt-meta-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;
+  padding-top:16px;border-top:1px solid var(--border);}
+.rpt-meta-item{font-size:12.5px;color:var(--muted);}
+.rpt-meta-item strong{color:var(--text);font-weight:600;display:block;font-size:11px;
+  letter-spacing:.5px;text-transform:uppercase;margin-bottom:2px;}
+html[data-theme="dark"] .rpt-meta-item strong{color:#94a3b8;}
+/* EXEC SUMMARY */
+.exec-card{border-radius:14px;padding:22px;margin-bottom:18px;border:1px solid;box-shadow:var(--shadow);}
+.exec-card.green{background:rgba(22,163,74,.06);border-color:rgba(22,163,74,.25);}
+.exec-card.amber{background:rgba(217,119,6,.06);border-color:rgba(217,119,6,.25);}
+.exec-card.red{background:rgba(220,38,38,.06);border-color:rgba(220,38,38,.25);}
+.exec-top{display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;}
+.exec-score{font-size:2.8rem;font-weight:800;font-family:monospace;line-height:1;}
+.exec-score.green{color:#16a34a;}
+.exec-score.amber{color:#d97706;}
+.exec-score.red{color:#dc2626;}
+.exec-label{font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;}
+.exec-label.green{color:#16a34a;}
+.exec-label.amber{color:#d97706;}
+.exec-label.red{color:#dc2626;}
+.exec-verdict{font-size:1.05rem;font-weight:700;color:var(--text);}
+html[data-theme="dark"] .exec-verdict{color:#e8f0ff;}
+.exec-body{font-size:13px;color:var(--muted);line-height:1.75;}
+.exec-pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;}
+.exec-pill{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;border:1px solid;}
+.pill-red{background:rgba(220,38,38,.08);border-color:rgba(220,38,38,.28);color:#dc2626;}
+.pill-amber{background:rgba(217,119,6,.08);border-color:rgba(217,119,6,.28);color:#d97706;}
+.pill-green{background:rgba(22,163,74,.08);border-color:rgba(22,163,74,.28);color:#16a34a;}
+/* AUTO-FAIL BANNER */
+.af-banner{background:rgba(220,38,38,.06);border:1px solid rgba(220,38,38,.25);border-radius:12px;
+  padding:16px 20px;margin-bottom:16px;}
+.af-title{font-size:12.5px;font-weight:700;color:#dc2626;margin-bottom:8px;}
+.af-item{font-size:12.5px;color:var(--text);padding:5px 0;border-bottom:1px solid rgba(220,38,38,.1);
+  display:flex;align-items:flex-start;gap:7px;}
+.af-item:last-child{border-bottom:none;padding-bottom:0;}
+/* SECTION CARDS */
+.section-card{background:var(--surface);border:1px solid var(--border);border-radius:13px;
+  overflow:hidden;margin-bottom:14px;box-shadow:var(--shadow);}
+.sc-head{padding:13px 18px;border-bottom:1px solid var(--border);display:flex;
+  align-items:center;gap:10px;}
+.sc-icon{font-size:16px;}
+.sc-title{font-size:13.5px;font-weight:700;color:var(--text);flex:1;}
+html[data-theme="dark"] .sc-title{color:#e8f0ff;}
+.sc-rag{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;
+  letter-spacing:.8px;text-transform:uppercase;}
+.rag-green{background:rgba(22,163,74,.08);border:1px solid rgba(22,163,74,.28);color:#16a34a;}
+.rag-amber{background:rgba(217,119,6,.08);border:1px solid rgba(217,119,6,.28);color:#d97706;}
+.rag-red{background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.28);color:#dc2626;}
+.sc-body{padding:14px 18px;}
+/* GAP ROWS */
+.gap-row{padding:12px 0;border-bottom:1px solid var(--border);}
+.gap-row:last-child{border-bottom:none;}
+.gap-header{display:flex;align-items:flex-start;gap:8px;margin-bottom:7px;}
+.gap-priority{font-size:9.5px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  padding:2px 8px;border-radius:4px;flex-shrink:0;margin-top:1px;}
+.p-critical{background:rgba(220,38,38,.1);color:#dc2626;}
+.p-high{background:rgba(217,119,6,.1);color:#d97706;}
+.p-medium{background:rgba(37,99,235,.1);color:#2563eb;}
+.p-advisory{background:rgba(100,116,139,.1);color:#64748b;}
+.gap-label{font-size:13px;font-weight:600;color:var(--text);line-height:1.4;}
+html[data-theme="dark"] .gap-label{color:#c8d8f0;}
+.gap-impact{font-size:12.5px;color:var(--muted);line-height:1.65;margin-bottom:7px;padding-left:4px;
+  border-left:2px solid var(--border);padding-left:10px;}
+.gap-action{font-size:12px;color:var(--text);background:var(--surface2);border:1px solid var(--border);
+  border-radius:7px;padding:8px 11px;line-height:1.6;}
+html[data-theme="dark"] .gap-action{color:#94a3b8;}
+.gap-action strong{color:var(--accent);font-size:10px;font-weight:700;letter-spacing:.5px;
+  text-transform:uppercase;display:block;margin-bottom:3px;}
+.effort-badge{display:inline-flex;align-items:center;gap:4px;margin-top:8px;
+  font-size:10.5px;color:var(--muted);}
+/* COMPLIANT SECTION */
+.compliant-section{margin-top:10px;}
+.comp-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;
+  color:var(--muted);margin-bottom:8px;}
+.comp-items{display:flex;flex-direction:column;gap:3px;}
+.comp-item{font-size:12.5px;color:var(--muted);display:flex;align-items:center;gap:7px;}
+.comp-check{color:#16a34a;font-weight:700;font-size:13px;}
+/* NEXT STEPS */
+.next-steps{background:var(--surface);border:1px solid var(--border);border-radius:14px;
+  padding:22px;margin-top:18px;box-shadow:var(--shadow);}
+.ns-title{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;}
+html[data-theme="dark"] .ns-title{color:#e8f0ff;}
+.ns-list{display:flex;flex-direction:column;gap:10px;}
+.ns-item{display:flex;align-items:flex-start;gap:12px;padding:10px 12px;
+  background:var(--surface2);border:1px solid var(--border);border-radius:9px;}
+.ns-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;
+  flex-shrink:0;}
+html[data-theme="dark"] .ns-num{color:#0e1420;}
+.ns-text{font-size:13px;color:var(--muted);line-height:1.55;}
+.ns-text strong{color:var(--text);font-weight:600;}
+html[data-theme="dark"] .ns-text strong{color:#c8d8f0;}
+/* REPORT FOOTER */
+.rpt-footer{margin-top:18px;padding:16px 20px;background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;}
+.rft-disc{font-size:11.5px;color:var(--dim);line-height:1.65;}
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:20px;flex-wrap:wrap;gap:10px;}
+.toolbar-left{font-size:13px;color:var(--muted);}
+.toolbar-btns{display:flex;gap:8px;}
+.tbtn{padding:8px 18px;border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;
+  transition:all .2s;border:none;font-family:inherit;}
+.tbtn-p{background:var(--accent);color:#fff;}
+html[data-theme="dark"] .tbtn-p{color:#0e1420;}
+.tbtn-p:hover{opacity:.85;}
+.tbtn-s{background:transparent;border:1px solid var(--border);color:var(--muted);}
+.tbtn-s:hover{border-color:var(--accent);color:var(--accent);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="back-nav no-print">
+    <a href="index.html" class="back-link">← Workshop</a>
+    <div class="nav-links">
+      <a href="ce-explainer.html" class="nav-pill">📖 CE Explainer</a>
+      <a href="ce-risk-visualiser.html" class="nav-pill">🎯 Risk Visualiser</a>
+      <a href="ce-readiness.html" class="nav-pill">🛡️ Readiness Check</a>
+    </div>
+  </div>
+
+  <div id="no-data" class="no-data">
+    <div class="nd-title">No assessment data found</div>
+    <p class="nd-sub">Complete the CE Readiness Check first — your results will be used to generate this report automatically.</p>
+    <a href="ce-readiness.html" class="btn-go">🛡️ Start the Readiness Check →</a>
+  </div>
+
+  <div id="report">
+    <div class="toolbar no-print">
+      <div class="toolbar-left">Edit the customer and assessor fields below before printing.</div>
+      <div class="toolbar-btns">
+        <button class="tbtn tbtn-s" onclick="window.location.href='ce-readiness.html'">← Back to Assessment</button>
+        <button class="tbtn tbtn-p" onclick="window.print()">🖨 Print / Save as PDF</button>
+      </div>
+    </div>
+
+    <div class="rpt-header">
+      <div class="rpt-meta">
+        <div class="rpt-title-block">
+          <div class="rpt-label">Cyber Essentials Assessment Report</div>
+          <div class="rpt-title">Readiness Assessment</div>
+          <div class="rpt-subtitle">Based on Danzell v3.3 (Requirements for IT Infrastructure, April 2026)</div>
+        </div>
+      </div>
+      <div class="rpt-meta-grid">
+        <div class="rpt-meta-item"><strong>Organisation</strong>
+          <input class="field-editable" id="f-org" placeholder="Enter organisation name" /></div>
+        <div class="rpt-meta-item"><strong>Assessment Date</strong>
+          <input class="field-editable" id="f-date" placeholder="Date" /></div>
+        <div class="rpt-meta-item"><strong>Prepared By</strong>
+          <input class="field-editable" id="f-by" placeholder="Name / company" /></div>
+        <div class="rpt-meta-item"><strong>Reference</strong>
+          <input class="field-editable" id="f-ref" placeholder="e.g. CE-2026-001" /></div>
+      </div>
+    </div>
+
+    <div id="exec-summary"></div>
+    <div id="af-section"></div>
+    <div id="sections-output"></div>
+    <div id="next-steps-section"></div>
+
+    <div class="rpt-footer">
+      <p class="rft-disc">
+        This report has been generated from a self-assessment against the Cyber Essentials Danzell v3.3 question set.
+        It represents the position as of the assessment date and is subject to change.
+        Cyber Essentials self-assessment is not a substitute for formal certification — for official certification
+        please contact an IASME-accredited Certification Body.
+        All information is provided in good faith; no liability is accepted for decisions made based on this report.
+      </p>
+    </div>
+  </div>
+</div>
+<button id="sw-theme-btn" onclick="swToggle()" title="Toggle dark/light" style="position:fixed;top:12px;right:14px;z-index:10000;width:34px;height:34px;border-radius:50%;border:1px solid rgba(128,128,128,.22);cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(6px);box-shadow:0 1px 6px rgba(0,0,0,.13);transition:background .2s;"></button>
+<script>
+(function(){var b=document.getElementById("sw-theme-btn"),dk=document.documentElement.getAttribute("data-theme")==="dark";b.textContent=dk?"☀":"🌙";b.style.background=dk?"rgba(14,20,32,.9)":"rgba(255,255,255,.9)";}());
+function swToggle(){var d=document.documentElement,dk=d.getAttribute("data-theme")==="dark",t=dk?"light":"dark";d.setAttribute("data-theme",t);localStorage.setItem("sw-theme",t);var b=document.getElementById("sw-theme-btn");b.textContent=dk?"🌙":"☀";b.style.background=dk?"rgba(255,255,255,.9)":"rgba(14,20,32,.9)";}
+</script>
+<script>
+const META={"fw1": {"label": "No boundary firewall in place", "impact": "Your network is directly accessible from the internet. Automated attackers can reach internal systems without any obstacle.", "action": "Install and configure a boundary firewall between every internet connection and your internal network.", "effort": "Medium", "priority": "Critical"}, "fw2": {"label": "Remote workers have no software firewall protection", "impact": "Staff working from home or public Wi-Fi have no protection from network-based attacks when outside the office.", "action": "Enforce software firewall on all laptops via MDM or Group Policy — ensure users cannot disable it.", "effort": "Low", "priority": "High"}, "fw3": {"label": "Default passwords on network devices unchanged", "impact": "Your firewall or router can be accessed by anyone who knows the manufacturer default credentials — which are publicly documented.", "action": "Change all default credentials on every network device immediately. Use strong unique passwords.", "effort": "Low", "priority": "Critical"}, "fw4": {"label": "Inbound connections not restricted by default", "impact": "Your firewall does not block unexpected inbound connections, leaving systems exposed to opportunistic access attempts.", "action": "Configure a default-deny inbound policy. Every permitted service must have a documented business justification.", "effort": "Medium", "priority": "High"}, "fw5": {"label": "Unnecessary ports and services exposed", "impact": "Services that are not required for business are accessible externally, each representing a potential entry point.", "action": "Audit all open ports. Close anything without a current business need. Verify with an external port scan.", "effort": "Medium", "priority": "High"}, "fw6": {"label": "No regular firewall rule review process", "impact": "Firewall rules accumulate over time. Old rules for services no longer in use create unnecessary attack surface.", "action": "Implement a quarterly firewall rule review. Document each review with dates and outcomes.", "effort": "Low", "priority": "Advisory"}, "fw7": {"label": "No network equipment inventory", "impact": "Without a record of your network devices, firmware patch status cannot be tracked and CE compliance cannot be evidenced.", "action": "Create a register of all firewalls and routers including make, model and current firmware version.", "effort": "Low", "priority": "Medium"}, "sc1": {"label": "Default user accounts not removed on devices", "impact": "Default accounts (Guest, DefaultUser etc.) present additional potential access routes for attackers.", "action": "Add default account removal to your device build checklist. Verify with a local accounts audit on sample devices.", "effort": "Low", "priority": "Medium"}, "sc2": {"label": "Default software passwords unchanged", "impact": "Software or systems are accessible using factory credentials that are publicly documented and well-known to attackers.", "action": "Change all default passwords on all software and systems before deployment. Document this in your build process.", "effort": "Low", "priority": "Critical"}, "sc3": {"label": "Unnecessary services and protocols enabled", "impact": "Running services that are not required for business (e.g. Telnet, FTP, SMBv1) provide additional attack pathways.", "action": "Audit running services on all devices. Disable anything not actively required. Follow NCSC OS hardening guidance.", "effort": "Medium", "priority": "High"}, "sc4": {"label": "AutoRun/AutoPlay not disabled", "impact": "Malware can execute automatically when removable media (USB drives etc.) are connected to devices.", "action": "Disable AutoRun and AutoPlay via Group Policy or MDM on all Windows devices.", "effort": "Low", "priority": "Medium"}, "sc5": {"label": "No automatic screen lock enforced", "impact": "Unattended devices can be accessed by anyone nearby, with no authentication required.", "action": "Enforce automatic screen lock (10 minutes maximum) via Group Policy or MDM.", "effort": "Low", "priority": "Medium"}, "sc6": {"label": "Unlicensed software in use", "impact": "Unlicensed software is a CE compliance failure and carries legal risk from software publishers.", "action": "Audit all installed software. Remove anything unlicensed. Ensure all products have valid licence records.", "effort": "Medium", "priority": "Medium"}, "sc7": {"label": "End-of-life software in use", "impact": "Software past its end-of-life receives no security patches. Known vulnerabilities cannot be fixed regardless of other controls.", "action": "Upgrade or remove all end-of-life products immediately. There are no acceptable workarounds — this is an automatic CE failure.", "effort": "High", "priority": "Critical"}, "sc8": {"label": "Password policy below 12-character minimum", "impact": "Short passwords are vulnerable to brute-force and credential-stuffing attacks, especially if MFA is not in place.", "action": "Update password policy to enforce a minimum of 12 characters, or deploy MFA which satisfies this requirement independently.", "effort": "Low", "priority": "High"}, "sum1": {"label": "OS and firmware patches not applied within 14 days", "impact": "Known vulnerabilities in operating systems and firmware remain exploitable. This is an automatic CE failure under Danzell v3.3.", "action": "Implement automated patch management. Critical and high-severity OS/firmware fixes must be applied within 14 days of release.", "effort": "Medium", "priority": "Critical"}, "sum2": {"label": "Application patches not applied within 14 days", "impact": "Known vulnerabilities in applications, browsers and extensions remain open. This is a separate automatic CE failure under Danzell v3.3.", "action": "Extend patch management to cover all applications. Browser extensions, plugins and frameworks are explicitly included.", "effort": "Medium", "priority": "Critical"}, "sum3": {"label": "No documented process for identifying new vulnerability fixes", "impact": "Without a monitoring process, security patches may be missed entirely and the 14-day window cannot be reliably met.", "action": "Subscribe to vendor security advisories. Use vulnerability scanning or a patch management tool with active monitoring.", "effort": "Low", "priority": "High"}, "sum4": {"label": "Firmware updates not included in patch management", "impact": "Network device firmware with known vulnerabilities remains unpatched, undermining perimeter security.", "action": "Add firmware update checks to the patching schedule. Apply critical firmware fixes within the 14-day window.", "effort": "Low", "priority": "High"}, "sum5": {"label": "Mobile devices not covered by patch management", "impact": "Unmanaged mobile devices accessing business data may run outdated OS versions with known vulnerabilities.", "action": "Use MDM to enforce OS update policies. For BYOD, define and communicate a minimum supported OS version policy.", "effort": "Medium", "priority": "High"}, "uac1": {"label": "Shared user accounts in use", "impact": "Shared accounts prevent individual accountability. Actions cannot be attributed to a specific individual — a compliance and audit risk.", "action": "Assign individual accounts to every user. Remove or decommission all shared accounts.", "effort": "Medium", "priority": "High"}, "uac2": {"label": "Users have excessive permissions beyond their role", "impact": "Compromised accounts with excessive permissions cause greater damage. A single breach can affect systems beyond the individual"s role.", "action": "Conduct an access review. Remove permissions not required for current roles. Implement RBAC where possible.", "effort": "Medium", "priority": "High"}, "uac3": {"label": "No separate administrator accounts", "impact": "Administrators performing daily tasks (email, browsing) with admin-level accounts amplifies the impact of any phishing compromise.", "action": "Create dedicated named admin accounts used only for administrative tasks. All daily work to be done from standard accounts.", "effort": "Low", "priority": "High"}, "uac4": {"label": "MFA not enforced on cloud services", "impact": "A stolen or guessed password alone is sufficient to access all cloud services. This is an automatic CE failure under Danzell v3.3 where MFA is available.", "action": "Enable and enforce MFA on every cloud service immediately. Conditional Access policies should prevent bypassing it.", "effort": "Low", "priority": "Critical"}, "uac5": {"label": "MFA not enforced on administrator accounts", "impact": "Admin accounts without MFA are high-value targets. Compromise gives full control over the systems they manage.", "action": "Enable MFA on all accounts with administrative privileges across cloud services and on-premise systems.", "effort": "Low", "priority": "High"}, "uac6": {"label": "Leaver accounts not promptly removed or disabled", "impact": "Active accounts for former employees represent a persistent access risk, particularly if those individuals leave on poor terms.", "action": "Implement a same-day offboarding process. Integrate with HR where possible. Run quarterly stale account reviews.", "effort": "Low", "priority": "High"}, "uac7": {"label": "No brute-force protection on accounts", "impact": "Accounts can be attacked by repeated login attempts until the password is guessed, with no automatic lockout.", "action": "Configure account lockout after a maximum of 10 failed attempts with at least a 5-minute lockout period.", "effort": "Low", "priority": "High"}, "uac8": {"label": "No regular user access reviews", "impact": "Permissions accumulate over time as roles change. Without reviews, excessive access builds up unchecked.", "action": "Establish at least quarterly access reviews. Use Entra ID Access Reviews or equivalent tooling to evidence them.", "effort": "Low", "priority": "Medium"}, "mal1": {"label": "No anti-malware protection on devices", "impact": "Malicious files and processes can execute without detection. Ransomware, spyware and viruses have no barrier to running.", "action": "Deploy enterprise-managed anti-malware to all devices. Use a management console to monitor coverage.", "effort": "Medium", "priority": "High"}, "mal2": {"label": "Anti-malware definitions not kept current", "impact": "New malware variants released after the last definition update will not be detected.", "action": "Enable automatic definition updates. Alert on any devices with definitions older than 24 hours.", "effort": "Low", "priority": "High"}, "mal3": {"label": "Real-time scanning disabled or bypassable", "impact": "Malicious files can be written to disk and executed without being scanned.", "action": "Enable real-time scanning and enforce tamper protection via Group Policy or MDM so users cannot disable it.", "effort": "Low", "priority": "High"}, "mal4": {"label": "No application allowlisting in place", "impact": "Unauthorised software including malware can execute freely. This is an advisory improvement rather than a CE requirement.", "action": "Consider deploying WDAC or AppLocker to restrict execution to approved applications. This provides stronger protection than AV alone.", "effort": "Medium", "priority": "Advisory"}, "mal5": {"label": "No DNS or web content filtering", "impact": "Users can connect to known malicious domains. Phishing sites and malware delivery infrastructure are accessible.", "action": "Deploy DNS filtering (Cloudflare Gateway, Cisco Umbrella or equivalent) to block malicious domains for all users including remote workers.", "effort": "Medium", "priority": "Advisory"}, "mal6": {"label": "Users can disable malware protection", "impact": "Security software can be turned off by end users, removing protection entirely during periods of deliberate or accidental bypass.", "action": "Enable tamper protection in your endpoint protection platform and enforce it via MDM or Group Policy.", "effort": "Low", "priority": "High"}};
+
+const SAVE_KEY = 'ce_v33_seb';
+const SECTIONS_DEF = [
+  {id:'fw',icon:'🛡️',name:'Firewalls',qs:['fw1','fw2','fw3','fw4','fw5','fw6','fw7']},
+  {id:'sc',icon:'⚙️',name:'Secure Configuration',qs:['sc1','sc2','sc3','sc4','sc5','sc6','sc7','sc8']},
+  {id:'sum',icon:'🔄',name:'Security Updates',qs:['sum1','sum2','sum3','sum4','sum5']},
+  {id:'uac',icon:'🔐',name:'User Access Control',qs:['uac1','uac2','uac3','uac4','uac5','uac6','uac7','uac8']},
+  {id:'mal',icon:'🦠',name:'Malware Protection',qs:['mal1','mal2','mal3','mal4','mal5','mal6']},
+];
+const ADVISORY_IDS = ['fw6','mal4','mal5'];
+const AUTO_FAIL_IDS = ['fw1','fw3','sc2','sc7','sum1','sum2','uac4'];
+
+function load(){
+  var raw = localStorage.getItem(SAVE_KEY);
+  if(!raw){ document.getElementById('no-data').style.display='block'; return; }
+  var state;
+  try{ state=JSON.parse(raw); }catch(e){ document.getElementById('no-data').style.display='block'; return; }
+  var A = state.A||{};
+  var answered = Object.keys(A).filter(k=>A[k]&&A[k]!=='skip').length;
+  if(answered<3){ document.getElementById('no-data').style.display='block'; return; }
+  document.getElementById('no-data').style.display='none';
+  document.getElementById('report').classList.add('show');
+  document.getElementById('f-date').value = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  buildReport(A, state.REM||{});
+}
+
+function buildReport(A, REM){
+  var allGaps = [];
+  var autoFails = [];
+
+  // Executive summary stats
+  var totalQ=0,passQ=0,failQ=0,partQ=0,skipQ=0;
+  SECTIONS_DEF.forEach(function(s){
+    s.qs.forEach(function(qid){
+      if(ADVISORY_IDS.includes(qid)) return;
+      totalQ++;
+      var v=A[qid];
+      if(v==='yes'||v==='na') passQ++;
+      else if(v==='no') failQ++;
+      else if(v==='partial') partQ++;
+      else skipQ++;
+    });
+  });
+
+  // Auto-fails
+  AUTO_FAIL_IDS.forEach(function(qid){
+    if(A[qid]==='no' && META[qid]) autoFails.push(qid);
+  });
+
+  var score = totalQ>0 ? Math.round((passQ/(totalQ-skipQ))*100) : 0;
+  var rag = autoFails.length>0?'red': score>=85?'green':score>=60?'amber':'red';
+  var deferred = skipQ>0;
+
+  // Exec summary
+  var verdicts = {
+    green:'Based on this assessment, your organisation appears broadly ready to apply for Cyber Essentials certification. Review any remaining gaps before submitting.',
+    amber:'This assessment has identified a number of gaps that should be addressed before applying for Cyber Essentials certification. Priority items are highlighted below.',
+    red:'This assessment has identified significant gaps — including '+(autoFails.length>0?autoFails.length+' automatic failure'+(autoFails.length>1?'s':'')+' that':'items that')+' must be resolved before Cyber Essentials certification can be achieved.'
+  };
+  var statusLabels={green:'CE Ready',amber:'Gaps Found',red:'Not Ready'};
+
+  var execHtml = '<div class="exec-card '+rag+'">';
+  execHtml += '<div class="exec-top">';
+  execHtml += '<div><div class="exec-label '+rag+'">'+statusLabels[rag]+'</div>';
+  execHtml += '<div class="exec-score '+rag+'">'+(skipQ>0?'~':'')+score+'%</div></div>';
+  execHtml += '<div><div class="exec-verdict">Executive Summary</div>';
+  execHtml += '<p class="exec-body">'+verdicts[rag]+'</p>';
+  if(deferred) execHtml += '<p class="exec-body" style="margin-top:8px;color:#d97706;"><strong>Note:</strong> '+skipQ+' question'+(skipQ>1?'s were':' was')+' deferred during the assessment. The score above reflects answered questions only and should be treated as indicative.</p>';
+  execHtml += '</div></div>';
+  execHtml += '<div class="exec-pills">';
+  execHtml += '<span class="exec-pill pill-green">✓ '+passQ+' compliant</span>';
+  if(failQ) execHtml += '<span class="exec-pill pill-red">✕ '+failQ+' failing</span>';
+  if(partQ) execHtml += '<span class="exec-pill pill-amber">◑ '+partQ+' partial</span>';
+  if(skipQ) execHtml += '<span class="exec-pill" style="background:rgba(100,116,139,.1);border-color:rgba(100,116,139,.3);color:#64748b;">⏸ '+skipQ+' deferred</span>';
+  execHtml += '</div></div>';
+  document.getElementById('exec-summary').innerHTML = execHtml;
+
+  // Auto-fails
+  if(autoFails.length){
+    var afHtml = '<div class="af-banner">';
+    afHtml += '<div class="af-title">⛔ '+autoFails.length+' Automatic Failure'+(autoFails.length>1?'s':'')+' — these must be resolved before applying for certification</div>';
+    autoFails.forEach(function(qid){
+      var m=META[qid];
+      if(m) afHtml += '<div class="af-item"><span style="color:#dc2626;font-weight:700">✕</span> '+m.label+'</div>';
+    });
+    afHtml += '</div>';
+    document.getElementById('af-section').innerHTML = afHtml;
+  }
+
+  // Sections
+  var sectionsHtml = '';
+  SECTIONS_DEF.forEach(function(s){
+    var gaps=[],comp=[];
+    s.qs.forEach(function(qid){
+      var v=A[qid], m=META[qid];
+      if(!m) return;
+      var isAdvisory=ADVISORY_IDS.includes(qid);
+      if(v==='no'||v==='partial'||v==='skip'){
+        gaps.push({qid,v,m,isAdvisory,remediated:REM[qid]});
+        if(v!=='skip') allGaps.push({qid,v,m,isAdvisory,section:s.name});
+      } else if(v==='yes'||v==='na'){
+        comp.push(m.label);
+      }
+    });
+
+    var sRag = gaps.some(g=>!g.isAdvisory&&!g.remediated&&(g.v==='no'||AUTO_FAIL_IDS.includes(g.qid)))?'red':
+               gaps.some(g=>!g.isAdvisory&&!g.remediated)?'amber':'green';
+
+    sectionsHtml += '<div class="section-card">';
+    sectionsHtml += '<div class="sc-head"><span class="sc-icon">'+s.icon+'</span>';
+    sectionsHtml += '<span class="sc-title">'+s.name+'</span>';
+    sectionsHtml += '<span class="sc-rag rag-'+sRag+'">'+(sRag==='green'?'Compliant':sRag==='amber'?'Partial':'Non-Compliant')+'</span>';
+    sectionsHtml += '</div><div class="sc-body">';
+
+    if(gaps.length){
+      gaps.forEach(function(g){
+        var pc = g.isAdvisory?'p-advisory':g.v==='no'?'p-critical':g.v==='skip'?'p-medium':'p-high';
+        var pl = g.isAdvisory?'Advisory':g.v==='no'?'Fail':g.v==='skip'?'Deferred':'Partial';
+        var effortCols = {Low:'#16a34a',Medium:'#d97706',High:'#dc2626'};
+        sectionsHtml += '<div class="gap-row"'+(g.remediated?' style="opacity:.45"':'')+'>';
+        sectionsHtml += '<div class="gap-header"><span class="gap-priority '+pc+'">'+pl+'</span>';
+        sectionsHtml += '<span class="gap-label">'+g.m.label+(g.remediated?' ✓':'')+' '+(AUTO_FAIL_IDS.includes(g.qid)?'<span style="font-size:10px;background:rgba(220,38,38,.1);color:#dc2626;padding:1px 6px;border-radius:3px;margin-left:4px;">Auto-fail</span>':'')+'</span></div>';
+        sectionsHtml += '<div class="gap-impact">'+g.m.impact+'</div>';
+        if(g.v!=='skip'){
+          sectionsHtml += '<div class="gap-action"><strong>Recommended action</strong>'+g.m.action+'</div>';
+          sectionsHtml += '<div class="effort-badge">Effort: <span style="color:'+effortCols[g.m.effort]+';font-weight:700">'+g.m.effort+'</span></div>';
+        } else {
+          sectionsHtml += '<div class="gap-action" style="color:#64748b;font-style:italic;">This question was deferred during assessment — review and complete before applying for certification.</div>';
+        }
+        sectionsHtml += '</div>';
+      });
+    }
+
+    if(comp.length){
+      sectionsHtml += '<div class="compliant-section'+(gaps.length?' no-print':'')+'"><div class="comp-label">Compliant items</div><div class="comp-items">';
+      comp.forEach(function(c){ sectionsHtml += '<div class="comp-item"><span class="comp-check">✓</span>'+c+'</div>'; });
+      sectionsHtml += '</div></div>';
+    }
+    sectionsHtml += '</div></div>';
+  });
+  document.getElementById('sections-output').innerHTML = sectionsHtml;
+
+  // Next steps
+  var ns = [];
+  if(autoFails.length) ns.push({n:1,text:'<strong>Resolve automatic failures first.</strong> The '+autoFails.length+' automatic failure'+(autoFails.length>1?'s':'')+' identified above must be resolved before any application for certification will succeed. These take priority over all other remediation.'});
+  var critGaps = allGaps.filter(g=>!g.isAdvisory&&g.m.priority==='Critical'&&!autoFails.includes(g.qid));
+  if(critGaps.length) ns.push({n:ns.length+1,text:'<strong>Address '+critGaps.length+' critical gap'+(critGaps.length>1?'s':'')+'.</strong> These represent the highest risk to your organisation and the most likely CE failures outside of automatic failures.'});
+  if(skipQ) ns.push({n:ns.length+1,text:'<strong>Complete the '+skipQ+' deferred question'+(skipQ>1?'s':'')+'.</strong> Return to the CE Readiness Check to answer all outstanding questions — the report score is indicative only until these are answered.'});
+  ns.push({n:ns.length+1,text:'<strong>Evidence collection.</strong> For each compliant area, gather the required evidence — screenshots of policies, MDM reports, patch compliance data — ready for the self-assessment submission portal.'});
+  ns.push({n:ns.length+1,text:'<strong>Consider Cyber Essentials Plus.</strong> CE+ adds an independent technical audit on top of the self-assessment, providing stronger assurance and is increasingly required by enterprise customers and insurers.'});
+
+  var nsHtml = '<div class="next-steps"><div class="ns-title">Recommended Next Steps</div><div class="ns-list">';
+  ns.forEach(function(s){ nsHtml += '<div class="ns-item"><div class="ns-num">'+s.n+'</div><div class="ns-text">'+s.text+'</div></div>'; });
+  nsHtml += '</div></div>';
+  document.getElementById('next-steps-section').innerHTML = nsHtml;
+}
+
+window.addEventListener('load', load);
+</script>
+</body>
+</html>
