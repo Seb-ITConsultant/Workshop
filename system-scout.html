@@ -595,18 +595,33 @@ function detectCpu(str){
 }
 
 var EOL={
-  'windows xp':{eol:'2014-04-08',col:'red'},
-  'windows 7':{eol:'2020-01-14',col:'red'},
-  'windows 8':{eol:'2016-01-12',col:'red'},
-  'windows 8.1':{eol:'2023-01-10',col:'red'},
-  'windows 10':{eol:'2025-10-14',col:'amber'},
-  'windows 11':{eol:'2027-10-14',col:'green'},
+  // Desktop / Client
+  'windows xp':        {eol:'2014-04-08',col:'red'},
+  'windows vista':     {eol:'2017-04-11',col:'red'},
+  'windows 7':         {eol:'2020-01-14',col:'red'},
+  'windows 8.1':       {eol:'2023-01-10',col:'red'},
+  'windows 8':         {eol:'2016-01-12',col:'red'},
+  'windows 10':        {eol:'2025-10-14',col:'red'},
+  'windows 11':        {eol:'2027-10-14',col:'green'},
+  // Server — list more specific strings first to avoid partial matches
+  'windows server 2003': {eol:'2015-07-14',col:'red'},
+  'windows server 2008 r2':{eol:'2020-01-14',col:'red'},
+  'windows server 2008': {eol:'2020-01-14',col:'red'},
+  'windows server 2012 r2':{eol:'2023-10-10',col:'red'},
+  'windows server 2012': {eol:'2023-10-10',col:'red'},
+  'windows server 2016': {eol:'2027-01-12',col:'green'},
+  'windows server 2019': {eol:'2029-01-09',col:'green'},
+  'windows server 2022': {eol:'2031-10-14',col:'green'},
+  'windows server 2025': {eol:'2034-10-10',col:'green'},
 };
 
 function getEol(osStr){
   if(!osStr)return null;
   var ol=osStr.toLowerCase();
-  for(var k in EOL){if(ol.includes(k))return EOL[k];}
+  // Sort keys longest-first so more specific entries match before generic ones
+  // e.g. "windows server 2012 r2" matches before "windows server 2012"
+  var keys=Object.keys(EOL).sort(function(a,b){return b.length-a.length;});
+  for(var i=0;i<keys.length;i++){if(ol.includes(keys[i]))return EOL[keys[i]];}
   return null;
 }
 
@@ -713,18 +728,41 @@ function analyse(){
     var w11=detectW11(r);
     var os=(gv(r,M.os)||'').toLowerCase();
     var eol=getEol(os);
+    var isServer=os.includes('server');
+
+    // Effective EOL colour — amber if within 12 months even if table says green
+    var eolCol='grey';
+    if(eol){
+      var eolDate=new Date(eol.eol);
+      var nowMs=now.getTime();
+      var twelveMonths=new Date(now);twelveMonths.setMonth(twelveMonths.getMonth()+12);
+      if(eolDate<now) eolCol='red';
+      else if(eolDate<=twelveMonths) eolCol='amber';
+      else eolCol='green';
+    }
 
     // Build issues
     var iss=[];
-    if(age==='legacy')iss.push({m:'Legacy device (8+ yrs)',sev:'red',cat:'age'});
-    else if(age==='old')iss.push({m:'Aging device (5–8 yrs)',sev:'amber',cat:'age'});
-    if(eol&&eol.col==='red')iss.push({m:'OS End of Life',sev:'red',cat:'eol'});
-    else if(eol&&eol.col==='amber')iss.push({m:'OS Approaching EOL',sev:'amber',cat:'eol'});
+    // Age flags — skip for servers, they have different refresh cycles
+    if(!isServer){
+      if(age==='legacy'){
+        // If OS is also EOL or approaching, make that the primary message
+        if(eolCol==='red') iss.push({m:'Legacy device — OS already EOL',sev:'red',cat:'age'});
+        else if(eolCol==='amber') iss.push({m:'Legacy device — OS EOL within 12 months',sev:'amber',cat:'age'});
+        else iss.push({m:'Legacy device (8+ yrs) — plan replacement',sev:'amber',cat:'age'});
+      } else if(age==='old'){
+        if(eolCol==='amber') iss.push({m:'Aging device — OS EOL within 12 months',sev:'amber',cat:'age'});
+        else if(eolCol!=='red') iss.push({m:'Aging device (5–8 yrs) — monitor for refresh',sev:'amber',cat:'age'});
+        // if eolCol==='red' the EOL issue below covers it, no need to double up
+      }
+    }
+    if(eolCol==='red')iss.push({m:'OS End of Life',sev:'red',cat:'eol'});
+    else if(eolCol==='amber')iss.push({m:'OS EOL within 12 months',sev:'amber',cat:'eol'});
     if(ram&&ram<4)iss.push({m:'RAM < 4GB',sev:'red',cat:'ram'});
     else if(ram&&ram<8)iss.push({m:'RAM < 8GB',sev:'amber',cat:'ram'});
     if(freeP!=null&&freeP<10)iss.push({m:'Disk < 10% free',sev:'red',cat:'disk'});
     else if(freeP!=null&&freeP<20)iss.push({m:'Disk < 20% free',sev:'amber',cat:'disk'});
-    if(w11.st==='not-ready')iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
+    if(!isServer&&w11.st==='not-ready')iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
     if(war==='Expired')iss.push({m:'Warranty Expired',sev:'amber',cat:'war'});
     if(stale)iss.push({m:'Stale (90+ days)',sev:'amber',cat:'stale'});
 
@@ -734,7 +772,7 @@ function analyse(){
     else if(iss.length>0)action='schedule';
 
     return{r:r,ageY:ageY,age:age,ram:ram,td:td,fd:fd,freeP:freeP,war:war,
-      cpu:cpuInfo,w11:w11,stale:stale,iss:iss,action:action,eol:eol};
+      cpu:cpuInfo,w11:w11,stale:stale,iss:iss,action:action,eol:eol,eolCol:eolCol,isServer:isServer};
   });
 
   filterFn=null;page=1;
@@ -942,8 +980,10 @@ function renderOsVersions(){
     var os=gv(d.r,M.os)||'Unknown';
     var ver=gv(d.r,M.osVer)||'';
     var key=os+(ver?' — '+ver:'');
-    map[key]=(map[key]||{count:0,os:os,ver:ver,eol:getEol(os.toLowerCase())});
+    if(!map[key]){map[key]={count:0,os:os,ver:ver,eol:getEol(os.toLowerCase())};}
     map[key].count++;
+    // If eol wasn't found yet, keep trying with each device's os string
+    if(!map[key].eol)map[key].eol=getEol(os.toLowerCase());
   });
   var entries=Object.keys(map).sort(function(a,b){return map[b].count-map[a].count;});
   if(entries.length<2){card.classList.add('hidden');return;}
@@ -951,12 +991,13 @@ function renderOsVersions(){
   entries.forEach(function(k){
     var e=map[k];
     var now2=new Date();
-    var col=e.eol?e.eol.col:'grey';
-    // Override to amber if EOL is within 6 months but not yet past
-    if(e.eol&&e.eol.col==='green'){
-      var eolSoon=new Date(e.eol.eol);
-      var sixMonths=new Date(now2);sixMonths.setMonth(sixMonths.getMonth()+12);
-      if(eolSoon<=sixMonths&&eolSoon>now2)col='amber';
+    var col='grey';
+    if(e.eol){
+      var eolD=new Date(e.eol.eol);
+      var twelveM=new Date(now2);twelveM.setMonth(twelveM.getMonth()+12);
+      if(eolD<now2) col='red';
+      else if(eolD<=twelveM) col='amber';
+      else col='green';
     }
     var bg={'green':'var(--green-lt)','amber':'var(--amber-lt)','red':'var(--red-lt)','grey':'var(--bg)'}[col];
     var tc={'green':'var(--green)','amber':'var(--amber)','red':'var(--red)','grey':'var(--muted)'}[col];
@@ -1119,8 +1160,7 @@ function renderCell(d,colId){
     case 'user':return esc(gv(d.r,M.user)||'—');
     case 'os':
       var os=gv(d.r,M.os)||'—';
-      var eol=d.eol;
-      var col=eol?eol.col:'grey';
+      var col=d.eolCol||'grey';
       return '<span class="pill pill-'+col+'">'+esc(os)+'</span>';
     case 'osVer':return esc(gv(d.r,M.osVer)||'—');
     case 'cpu':return esc(gv(d.r,M.cpu)||'—');
