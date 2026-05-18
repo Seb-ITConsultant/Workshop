@@ -807,6 +807,9 @@ function analyse(){
     else if(blStatus==='partial')iss.push({m:'BitLocker Encryption In Progress',sev:'amber',cat:'bitlocker'});
     if(avStatus==='none')iss.push({m:'No Antivirus Detected',sev:'red',cat:'av'});
     else if(avStatus==='inactive')iss.push({m:'Antivirus Inactive/Expired',sev:'red',cat:'av'});
+    // Home edition on corporate fleet
+    var osRaw=gv(r,M.os)||'';
+    if(/\bhome\b/i.test(osRaw))iss.push({m:'Home Edition — cannot Entra join or apply Group Policy',sev:'red',cat:'home'});
 
     // Action
     var action='ok';
@@ -1010,6 +1013,7 @@ var ISS_CATS=[
   {cat:'stale',     label:'Stale Devices',     sev:'amber'},
   {cat:'bitlocker', label:'BitLocker Issues',  sev:'red'},
   {cat:'av',        label:'Antivirus Issues',  sev:'red'},
+  {cat:'home',      label:'Home Editions',     sev:'red'},
 ];
 
 function renderChips(){
@@ -1058,9 +1062,27 @@ function renderOsVersions(){
     // If eol wasn't found yet, keep trying with each device's os string
     if(!map[key].eol)map[key].eol=getEol(os.toLowerCase());
   });
-  var entries=Object.keys(map).sort(function(a,b){return map[b].count-map[a].count;});
-  if(entries.length<2){card.classList.add('hidden');return;}
-  row.innerHTML='';
+  var entries=Object.keys(map);
+  // Pre-compute colour and OS family for each entry so we can sort by them
+  var sevOrder={red:0,amber:1,green:2,grey:3};
+  // OS family extraction — pulls the base OS name without edition/version suffixes
+  // e.g. "Microsoft Windows 11 Pro 25H2" → "Windows 11"
+  //      "Windows Server 2016 Standard"  → "Windows Server 2016"
+  //      "macOS 26.2"                    → "macOS"
+  function osFamily(osStr){
+    var s=osStr.toLowerCase();
+    if(s.includes('windows server')){
+      var m=s.match(/windows server (\d{4})/);
+      return m?'Windows Server '+m[1]:'Windows Server';
+    }
+    if(s.includes('windows 11')) return 'Windows 11';
+    if(s.includes('windows 10')) return 'Windows 10';
+    if(s.includes('windows 7'))  return 'Windows 7';
+    if(s.includes('windows 8'))  return 'Windows 8';
+    if(s.includes('macos')||s.includes('mac os')) return 'macOS';
+    // Fallback — take first two words
+    return osStr.split(' ').slice(0,2).join(' ');
+  }
   entries.forEach(function(k){
     var e=map[k];
     var now2=new Date();
@@ -1072,6 +1094,45 @@ function renderOsVersions(){
       else if(eolD<=twelveM) col='amber';
       else col='green';
     }
+    e._col=col;
+    e._family=osFamily(e.os);
+  });
+  // Sort: 1) severity  2) OS family alphabetically  3) version string  4) count desc
+  entries.sort(function(a,b){
+    var ea=map[a], eb=map[b];
+    var sa=sevOrder[ea._col]||3, sb=sevOrder[eb._col]||3;
+    if(sa!==sb) return sa-sb;
+    if(ea._family!==eb._family) return ea._family.localeCompare(eb._family);
+    // Within same family sort by version label (ver string) — newer versions last isn't ideal
+    // so use natural sort: extract trailing version like "22H2","25H2","21H2" and sort numerically
+    function verScore(ver){
+      // HxHz style: extract year+half e.g. 25H2 → 252, 22H2 → 222
+      var hMatch=(ver||'').match(/(\d{2})H(\d)/i);
+      if(hMatch) return parseInt(hMatch[1])*10+parseInt(hMatch[2]);
+      // Build number style
+      var bMatch=(ver||'').match(/\d{5}/);
+      if(bMatch) return parseInt(bMatch[0]);
+      return 0;
+    }
+    var vs=verScore(ea.ver)-verScore(eb.ver);
+    if(vs!==0) return vs; // older versions first within family
+    return eb.count-ea.count; // then count desc
+  });
+  if(entries.length<2){card.classList.add('hidden');return;}
+
+  // Collapse long lists — show first 20, rest behind a toggle
+  var SHOW_LIMIT=20;
+  var isCollapsed=entries.length>SHOW_LIMIT;
+
+  row.innerHTML='';
+
+  function renderPills(collapsed){
+    row.innerHTML='';
+    var visible=collapsed?entries.slice(0,SHOW_LIMIT):entries;
+    visible.forEach(function(k){
+      var e=map[k];
+      var col=e._col;
+      var now2=new Date();
     var bg={'green':'var(--green-lt)','amber':'var(--amber-lt)','red':'var(--red-lt)','grey':'var(--bg)'}[col];
     var tc={'green':'var(--green)','amber':'var(--amber)','red':'var(--red)','grey':'var(--muted)'}[col];
     var eolLabel='';
@@ -1082,10 +1143,15 @@ function renderOsVersions(){
       var fmtDate=eolDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
       eolLabel=' · EOL: '+fmtDate+(isPast?' (expired)':(monthsLeft<=12?' ('+monthsLeft+'mo)':''));
     }
+    var isHome=/\bhome\b/i.test(e.os)||/\bhome\b/i.test(e.ver||'');
+    // Home editions override to amber — can't domain/Entra join or apply GPO
+    if(isHome){
+      bg='var(--amber-lt)';tc='var(--amber)';
+    }
     var pill=document.createElement('div');
     pill.className='ver-pill';
     pill.style.cssText='background:'+bg+';color:'+tc+';border-color:'+tc;
-    pill.innerHTML='<span style="font-weight:700">'+esc(k)+'</span>'+
+    pill.innerHTML='<span style="font-weight:700">'+(isHome?'🏠 ':'')+esc(k)+'</span>'+
       ' <span style="opacity:.75">('+e.count+')</span>'+
       (eolLabel?'<span style="font-size:.65rem;opacity:.8;margin-left:2px">'+esc(eolLabel)+'</span>':'');
     pill.onclick=function(){
@@ -1102,7 +1168,21 @@ function renderOsVersions(){
       page=1;renderTable();
     };
     row.appendChild(pill);
-  });
+    });
+
+    // Show more / less toggle
+    if(entries.length>SHOW_LIMIT){
+      var toggle=document.createElement('div');
+      var remaining=entries.length-SHOW_LIMIT;
+      toggle.className='ver-pill';
+      toggle.style.cssText='background:var(--surface2);color:var(--acc);border-color:var(--acc);cursor:pointer';
+      toggle.textContent=collapsed?'+ '+remaining+' more…':'− Show fewer';
+      toggle.onclick=function(){renderPills(!collapsed);};
+      row.appendChild(toggle);
+    }
+  }
+
+  renderPills(isCollapsed);
   card.classList.remove('hidden');
 }
 
