@@ -284,7 +284,7 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
       <b>Accepted formats:</b> Drop in an Excel file (.xlsx / .xls) or a CSV directly — no conversion needed.<br>
       PDQ Inventory → right-click report → Export &nbsp;|&nbsp; Lansweeper → Reports → Export to CSV or Excel<br>
       <b>Supported columns:</b>
-      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type
+      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type · Manufacturer · BitLocker Status · Antivirus
     </div>
   </div>
 
@@ -437,6 +437,9 @@ var COL_DEFS=[
   {id:'issues',   label:'Issues',       on:true},
   {id:'action',   label:'Action',       on:true},
   {id:'serial',   label:'Serial',       on:false},
+  {id:'manufacturer', label:'Manufacturer', on:false},
+  {id:'bitlocker',    label:'BitLocker',    on:true},
+  {id:'antivirus',    label:'Antivirus',    on:true},
 ];
 var colState={};
 COL_DEFS.forEach(function(c){colState[c.id]=c.always||c.on||false;});
@@ -465,11 +468,11 @@ function parseCSV(text){
 function gv(row,idx){return idx!=null&&idx>=0&&idx<row.length?row[idx]:'';}
 
 // ── COLUMN MAPPING ─────────────────────────────────────────────────────────
-var MAP_KEYS=['pcName','user','os','osVer','cpu','ramGb','diskTotal','diskFree','serial','installDate','deviceAge','site','lastLogon','deviceType','model'];
+var MAP_KEYS=['pcName','user','os','osVer','cpu','ramGb','diskTotal','diskFree','serial','installDate','deviceAge','site','lastLogon','deviceType','model','manufacturer','bitlocker','antivirus'];
 var MAP_LABELS={'pcName':'PC Name','user':'Username','os':'OS','osVer':'OS Version','cpu':'CPU',
   'ramGb':'RAM (GB)','diskTotal':'Disk Total (GB)','diskFree':'Disk Free (GB)','serial':'Serial',
   'installDate':'Install Date','deviceAge':'Device Age','site':'Site','lastLogon':'Last Logon',
-  'deviceType':'Device Type','model':'Model'};
+  'deviceType':'Device Type','model':'Model','manufacturer':'Manufacturer','bitlocker':'BitLocker Status','antivirus':'Antivirus'};
 var COMMON={'pcName':['pc name','computer name','hostname','device name','name'],
   'user':['user','username','logged in user','last user','owner'],
   'os':['os','operating system','windows'],
@@ -484,7 +487,10 @@ var COMMON={'pcName':['pc name','computer name','hostname','device name','name']
   'site':['site','location','branch','office'],
   'lastLogon':['last logon','last login','last seen','last contact'],
   'deviceType':['device type','type','form factor'],
-  'model':['model','device model','pc model']};
+  'model':['model','device model','pc model'],
+  'manufacturer':['manufacturer','make','vendor','oem','mfr','brand'],
+  'bitlocker':['bitlocker','bit locker','encryption','bitlocker status','drive encryption','encrypted'],
+  'antivirus':['antivirus','anti-virus','av product','av status','security product','endpoint protection','endpoint security','antivirus product','antivirus name','virus protection','malware protection']};
 
 function autoMap(headers){
   var m={};
@@ -493,7 +499,14 @@ function autoMap(headers){
     var hl=h.toLowerCase().trim();
     MAP_KEYS.forEach(function(k){
       if(m[k]>=0)return;
-      if((COMMON[k]||[]).some(function(s){return hl===s||hl.includes(s);})) m[k]=i;
+      if((COMMON[k]||[]).some(function(s){
+        // Exact match always works
+        if(hl===s)return true;
+        // For short terms (<=4 chars) only allow exact match to avoid substring false positives
+        if(s.length<=4)return false;
+        // For longer terms, allow contains
+        return hl.includes(s);
+      })) m[k]=i;
     });
   });
   return m;
@@ -682,10 +695,14 @@ function detectW11(row){
 
   var blockers=[];
   var cInfo=detectCpu(cpu);
-  if(cInfo.score<5)blockers.push('CPU too old for Win11');
-  if(ram<4)blockers.push('RAM < 4GB');
+  var cpuKnown=cpu.trim()!=='';
+  // Only flag CPU as a blocker if we actually have CPU data and it's too old
+  if(cpuKnown&&cInfo.score<5)blockers.push('CPU too old for Win11');
+  // Only flag RAM if we actually have RAM data
+  if(ram>0&&ram<4)blockers.push('RAM < 4GB');
   if(blockers.length)return{st:'not-ready',iss:blockers};
-  if(cInfo.score===5)return{st:'partial',iss:['CPU compatibility check required']};
+  // If CPU is unknown, flag for manual check rather than assuming incompatible
+  if(!cpuKnown||cInfo.score===5)return{st:'partial',iss:[cpuKnown?'CPU compatibility check required':'No CPU data — manual check required']};
   return{st:'ready',iss:[]};
 }
 
@@ -762,9 +779,34 @@ function analyse(){
     else if(ram&&ram<8)iss.push({m:'RAM < 8GB',sev:'amber',cat:'ram'});
     if(freeP!=null&&freeP<10)iss.push({m:'Disk < 10% free',sev:'red',cat:'disk'});
     else if(freeP!=null&&freeP<20)iss.push({m:'Disk < 20% free',sev:'amber',cat:'disk'});
+    // ── BitLocker ──────────────────────────────────────────────────────────
+    var blRaw=(gv(r,M.bitlocker)||'').toLowerCase().trim();
+    var blStatus='unknown'; // unknown = data not present
+    if(blRaw){
+      if(/fully.?encrypted|encrypted|enabled|on|protected|bitlocker on/i.test(blRaw)) blStatus='on';
+      else if(/not.?encrypted|decrypted|off|disabled|unprotected|no/i.test(blRaw)) blStatus='off';
+      else if(/encrypting|in progress|partially/i.test(blRaw)) blStatus='partial';
+      else blStatus='unknown-data'; // data present but unrecognised
+    }
+
+    // ── Antivirus ──────────────────────────────────────────────────────────
+    var avRaw=(gv(r,M.antivirus)||'').trim();
+    var avStatus='unknown'; // unknown = data not present
+    if(avRaw){
+      var avLower=avRaw.toLowerCase();
+      if(/none|not installed|no av|missing|not found/i.test(avLower)) avStatus='none';
+      else if(/disabled|inactive|expired|out.?of.?date|not.?up.?to.?date/i.test(avLower)) avStatus='inactive';
+      else avStatus='active'; // has a named product and not flagged as bad
+    }
+
     if(!isServer&&w11.st==='not-ready')iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
     if(war==='Expired')iss.push({m:'Warranty Expired',sev:'amber',cat:'war'});
     if(stale)iss.push({m:'Stale (90+ days)',sev:'amber',cat:'stale'});
+    // Only flag BitLocker/AV if we actually have data — never flag 'unknown'
+    if(blStatus==='off')iss.push({m:'BitLocker Not Enabled',sev:'red',cat:'bitlocker'});
+    else if(blStatus==='partial')iss.push({m:'BitLocker Encryption In Progress',sev:'amber',cat:'bitlocker'});
+    if(avStatus==='none')iss.push({m:'No Antivirus Detected',sev:'red',cat:'av'});
+    else if(avStatus==='inactive')iss.push({m:'Antivirus Inactive/Expired',sev:'red',cat:'av'});
 
     // Action
     var action='ok';
@@ -772,7 +814,8 @@ function analyse(){
     else if(iss.length>0)action='schedule';
 
     return{r:r,ageY:ageY,age:age,ram:ram,td:td,fd:fd,freeP:freeP,war:war,
-      cpu:cpuInfo,w11:w11,stale:stale,iss:iss,action:action,eol:eol,eolCol:eolCol,isServer:isServer};
+      cpu:cpuInfo,w11:w11,stale:stale,iss:iss,action:action,eol:eol,eolCol:eolCol,
+      isServer:isServer,blStatus:blStatus,avStatus:avStatus,avRaw:avRaw};
   });
 
   filterFn=null;page=1;
@@ -925,18 +968,48 @@ function renderCharts(){
   ];
   grid.innerHTML+=barChart('Actions Required',actData,function(d){return actColors[d.t];});
 
+  // BitLocker — only show chart if column is mapped
+  if(M.bitlocker>=0){
+    var blMap={'on':0,'off':0,'partial':0,'unknown-data':0};
+    DATA.forEach(function(d){if(d.blStatus!=='unknown'&&blMap[d.blStatus]!=null)blMap[d.blStatus]++;});
+    var blData=[
+      {k:'🔒 Encrypted',v:blMap.on,t:'on'},
+      {k:'🔓 Not Encrypted',v:blMap.off,t:'off'},
+      {k:'⏳ In Progress',v:blMap.partial,t:'partial'},
+      {k:'Unknown',v:blMap['unknown-data'],t:'unknown-data'},
+    ].filter(function(d){return d.v>0;});
+    var blColors={'on':'#15803d','off':'#be1c1c','partial':'#c26b00','unknown-data':'#a8b3bf'};
+    if(blData.length)grid.innerHTML+=barChart('BitLocker Status',blData,function(d){return blColors[d.t];});
+  }
+
+  // Antivirus — only show chart if column is mapped
+  if(M.antivirus>=0){
+    var avMap={};
+    DATA.forEach(function(d){
+      if(d.avStatus==='unknown')return;
+      var label=d.avStatus==='none'?'None detected':d.avStatus==='inactive'?'Inactive/Expired':(d.avRaw||'Active');
+      avMap[label]=(avMap[label]||0)+1;
+    });
+    var avData=Object.keys(avMap).map(function(k){return{k:k,v:avMap[k]};}).sort(function(a,b){return b.v-a.v;});
+    if(avData.length)grid.innerHTML+=barChart('Antivirus Products',avData,function(d){
+      return d.k==='None detected'||d.k==='Inactive/Expired'?'#be1c1c':'#15803d';
+    });
+  }
+
   card.classList.remove('hidden');
 }
 
 // ── CHIPS ───────────────────────────────────────────────────────────────────
 var ISS_CATS=[
-  {cat:'age',   label:'Age Issues',    sev:'amber'},
-  {cat:'eol',   label:'OS End of Life',sev:'red'},
-  {cat:'ram',   label:'RAM Issues',    sev:'amber'},
-  {cat:'disk',  label:'Disk Issues',   sev:'red'},
-  {cat:'w11',   label:'Win11 Issues',  sev:'red'},
-  {cat:'war',   label:'Warranty',      sev:'amber'},
-  {cat:'stale', label:'Stale Devices', sev:'amber'},
+  {cat:'age',       label:'Age Issues',        sev:'amber'},
+  {cat:'eol',       label:'OS End of Life',    sev:'red'},
+  {cat:'ram',       label:'RAM Issues',        sev:'amber'},
+  {cat:'disk',      label:'Disk Issues',       sev:'red'},
+  {cat:'w11',       label:'Win11 Issues',      sev:'red'},
+  {cat:'war',       label:'Warranty',          sev:'amber'},
+  {cat:'stale',     label:'Stale Devices',     sev:'amber'},
+  {cat:'bitlocker', label:'BitLocker Issues',  sev:'red'},
+  {cat:'av',        label:'Antivirus Issues',  sev:'red'},
 ];
 
 function renderChips(){
@@ -1149,6 +1222,9 @@ function getCellVal(d,colId){
     case 'issues':return d.iss.length;
     case 'action':return d.action||'';
     case 'serial':return gv(d.r,M.serial)||'';
+    case 'manufacturer':return gv(d.r,M.manufacturer)||'';
+    case 'bitlocker':return d.blStatus||'';
+    case 'antivirus':return d.avRaw||d.avStatus||'';
     default:return '';
   }
 }
@@ -1190,6 +1266,21 @@ function renderCell(d,colId){
         'schedule':'<span class="act-sched">📅 Schedule</span>','ok':'<span class="act-ok">✅ OK</span>'};
       return acMap[d.action]||d.action;
     case 'serial':return esc(gv(d.r,M.serial)||'—');
+    case 'manufacturer':return esc(gv(d.r,M.manufacturer)||'—');
+    case 'bitlocker':
+      if(d.blStatus==='unknown')return '<span class="pill pill-grey">—</span>';
+      var blMap={
+        'on':    '<span class="pill pill-green">🔒 Encrypted</span>',
+        'off':   '<span class="pill pill-red">🔓 Not Encrypted</span>',
+        'partial':'<span class="pill pill-amber">⏳ In Progress</span>',
+        'unknown-data':'<span class="pill pill-grey">Unknown</span>'
+      };
+      return blMap[d.blStatus]||'<span class="pill pill-grey">—</span>';
+    case 'antivirus':
+      if(d.avStatus==='unknown')return '<span class="pill pill-grey">—</span>';
+      if(d.avStatus==='none')return '<span class="pill pill-red">❌ None</span>';
+      if(d.avStatus==='inactive')return '<span class="pill pill-red">⚠ '+esc(d.avRaw||'Inactive')+'</span>';
+      return '<span class="pill pill-green">✓ '+esc(d.avRaw||'Active')+'</span>';
     default:return '—';
   }
 }
@@ -1220,6 +1311,8 @@ function openModal(idx){
   var d=DATA[idx];if(!d)return;
   var rows=[
     ['PC Name',gv(d.r,M.pcName)||'—'],
+    ['Manufacturer',gv(d.r,M.manufacturer)||'—'],
+    ['Model',gv(d.r,M.model)||'—'],
     ['User',gv(d.r,M.user)||'—'],
     ['Site',gv(d.r,M.site)||'—'],
     ['OS',gv(d.r,M.os)||'—'],
@@ -1231,6 +1324,8 @@ function openModal(idx){
     ['Disk Free',d.fd!=null?d.fd.toFixed(1)+'GB ('+d.freeP.toFixed(0)+'%)':'—'],
     ['Age',d.ageY!=null?d.ageY.toFixed(1)+' yrs ('+d.age+')':'—'],
     ['Win11',W11_LABELS[d.w11.st]||d.w11.st],
+    ['BitLocker',{on:'🔒 Encrypted',off:'🔓 Not Encrypted',partial:'⏳ In Progress','unknown-data':'Unknown',unknown:'No data'}[d.blStatus]||'—'],
+    ['Antivirus',d.avStatus==='unknown'?'No data':d.avStatus==='none'?'None detected':(d.avRaw||d.avStatus)],
     ['Warranty',d.war],
     ['Serial',gv(d.r,M.serial)||'—'],
     ['Last Logon',gv(d.r,M.lastLogon)||'—'],
@@ -1276,6 +1371,9 @@ function doExport(){
     ['Win11 Blockers',function(d){return (d.w11.iss||[]).join(' | ');}],
     ['Warranty',function(d){return d.war;}],
     ['Stale',function(d){return d.stale?'Yes':'No';}],
+    ['BitLocker',function(d){return d.blStatus==='unknown'?'':d.blStatus;}],
+    ['Antivirus',function(d){return d.avStatus==='unknown'?'':d.avRaw||d.avStatus;}],
+    ['Manufacturer',function(d){return gv(d.r,M.manufacturer);}],
     ['Issue Count',function(d){return d.iss.length;}],
     ['Issues',function(d){return d.iss.map(function(i){return i.m;}).join(' | ');}],
     ['Action',function(d){return d.action;}],
