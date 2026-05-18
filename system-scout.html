@@ -275,16 +275,14 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
 
   <!-- UPLOAD -->
   <div class="card" id="card-upload">
-    <div class="stitle">📂 Load Inventory CSV</div>
+    <div class="stitle">📂 Load Inventory File — Excel or CSV</div>
     <div class="pick-row">
       <input type="file" id="csv-file" accept=".csv,.xlsx,.xls">
     </div>
     <div id="status"></div>
     <div class="upload-hint">
-      <b>How to export:</b>
-      Excel → use directly (.xlsx/.xls) or File → Save As → CSV UTF-8 &nbsp;|&nbsp;
-      PDQ Inventory → right-click report → Export &nbsp;|&nbsp;
-      Lansweeper → Reports → Export to CSV<br>
+      <b>Accepted formats:</b> Drop in an Excel file (.xlsx / .xls) or a CSV directly — no conversion needed.<br>
+      PDQ Inventory → right-click report → Export &nbsp;|&nbsp; Lansweeper → Reports → Export to CSV or Excel<br>
       <b>Supported columns:</b>
       PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type
     </div>
