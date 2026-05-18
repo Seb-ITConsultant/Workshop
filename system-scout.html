@@ -260,6 +260,7 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
   <div class="hdr-title">🖥 Seb's System Scout <span id="hdr-count" class="hidden"></span></div>
   <div class="hdr-right">
     <button class="btn-sm hidden" id="btn-adjust" onclick="openMapper()">⚙ Columns</button>
+    <button class="btn-sm hidden" id="btn-exec" onclick="doPdfExec()">📋 Exec Summary</button>
     <button class="btn-sm hidden" id="btn-pdf" onclick="doPdf(false)">🖨 Full PDF</button>
     <button class="btn-sm danger hidden" id="btn-pdf-iss" onclick="doPdf(true)">🔴 Issues PDF</button>
     <button class="btn-sm hidden" id="btn-exp" onclick="doExport()">⬇ Export CSV</button>
@@ -577,7 +578,7 @@ var EOL={
   'windows 8':{eol:'2016-01-12',col:'red'},
   'windows 8.1':{eol:'2023-01-10',col:'red'},
   'windows 10':{eol:'2025-10-14',col:'amber'},
-  'windows 11':{eol:'2026-10-14',col:'green'},
+  'windows 11':{eol:'2027-10-14',col:'green'},
 };
 
 function getEol(osStr){
@@ -587,6 +588,22 @@ function getEol(osStr){
   return null;
 }
 
+// ── WIN11 BUILD → VERSION MAP ─────────────────────────────────────────────
+// Build numbers for each Win11 feature update release
+// "Current" = the latest GA release (25H2 as of late 2025)
+// Builds >= 26200 = 25H2 (current)
+// Builds >= 26100 = 24H2 (still recent, one behind)
+// Builds >= 22631 = 23H2
+// Builds >= 22621 = 22H2
+// Anything older = flag as needing update
+var W11_BUILDS=[
+  {min:26200, label:'25H2', current:true},
+  {min:26100, label:'24H2', current:true},   // 24H2 still supported & recent
+  {min:22631, label:'23H2', current:false},
+  {min:22621, label:'22H2', current:false},
+  {min:22000, label:'21H2', current:false},
+];
+
 function detectW11(row){
   var os=(gv(row,M.os)||'').toLowerCase();
   var ver=gv(row,M.osVer)||'';
@@ -594,10 +611,36 @@ function detectW11(row){
   var ram=parseFloat(gv(row,M.ramGb)||'0')||0;
 
   if(os.includes('windows 11')){
-    var build=parseInt((ver.match(/\d{5}/)||['0'])[0]);
-    if(build>=22631)return{st:'on-current',iss:[]};
-    return{st:'on-old',iss:['Update to Win11 23H2+']};
+    // Try to extract a 5-digit build number from the version string
+    var buildMatch=ver.match(/\b(2[2-9]\d{3}|[3-9]\d{4})\b/);
+    var build=buildMatch?parseInt(buildMatch[1]):0;
+
+    // Also check for version strings like "24H2", "25H2", "23H2" directly
+    var verLabel='';
+    var hvMatch=ver.match(/(\d{2}H\d)/i);
+    if(hvMatch)verLabel=hvMatch[1].toUpperCase();
+
+    // Determine if current based on build OR version label
+    if(build>=26100||verLabel==='24H2'||verLabel==='25H2'){
+      return{st:'on-current',label:verLabel||(build>=26200?'25H2':'24H2'),iss:[]};
+    }
+    if(build>=22631||verLabel==='23H2'){
+      return{st:'on-old',label:verLabel||'23H2',iss:['Update to Win11 24H2/25H2']};
+    }
+    if(build>=22621||verLabel==='22H2'){
+      return{st:'on-old',label:verLabel||'22H2',iss:['Update to Win11 24H2/25H2']};
+    }
+    if(build>=22000||verLabel==='21H2'){
+      return{st:'on-old',label:verLabel||'21H2',iss:['Update to Win11 24H2/25H2']};
+    }
+    // Build present but unrecognised — treat as old if non-zero, else unknown
+    if(build>0){
+      return{st:'on-old',label:'Build '+build,iss:['Update recommended — version not current']};
+    }
+    // No build info at all — assume current to avoid false positives
+    return{st:'on-current',label:'Win11',iss:[]};
   }
+
   if(!os.includes('windows 10'))return{st:'na',iss:[]};
 
   var blockers=[];
@@ -676,7 +719,7 @@ function analyse(){
   document.getElementById('card-upload').style.display='none';
   document.getElementById('status').style.display='none';
   document.getElementById('dash').classList.remove('hidden');
-  ['btn-adjust','btn-pdf','btn-pdf-iss','btn-exp','btn-rst'].forEach(function(id){
+  ['btn-adjust','btn-exec','btn-pdf','btn-pdf-iss','btn-exp','btn-rst'].forEach(function(id){
     document.getElementById(id).classList.remove('hidden');
   });
   var hdrCount=document.getElementById('hdr-count');
@@ -787,20 +830,40 @@ function renderCharts(){
   var osMap={};
   DATA.forEach(function(d){var o=gv(d.r,M.os)||'Unknown';osMap[o]=(osMap[o]||0)+1;});
   var osData=Object.keys(osMap).map(function(k){return{k:k,v:osMap[k]};}).sort(function(a,b){return b.v-a.v;});
-  grid.innerHTML+=barChart('Operating Systems',osData,function(){return 'var(--blue)';});
+  grid.innerHTML+=barChart('Operating Systems',osData,function(){return '#1d60d4';});
 
   // Win11 status
   var w11Map={};
   DATA.forEach(function(d){w11Map[d.w11.st]=(w11Map[d.w11.st]||0)+1;});
-  var w11Colors={'on-current':'var(--green)','on-old':'var(--amber)','ready':'var(--blue)','partial':'var(--amber)','not-ready':'var(--red)','na':'var(--faint)'};
+  var w11Colors={'on-current':'#15803d','on-old':'#c26b00','ready':'#1d60d4','partial':'#c26b00','not-ready':'#be1c1c','na':'#a8b3bf'};
   var w11Data=Object.keys(w11Map).map(function(k){return{k:W11_LABELS[k]||k,v:w11Map[k],t:k};}).sort(function(a,b){return b.v-a.v;});
-  grid.innerHTML+=barChart('Win11 Status',w11Data,function(d){return w11Colors[d.t]||'var(--acc)';});
+  grid.innerHTML+=barChart('Win11 Status',w11Data,function(d){return w11Colors[d.t]||'#0d9488';});
 
   // CPU Gen
   var cpuMap={};
   DATA.forEach(function(d){var g=d.cpu.gen;cpuMap[g]=(cpuMap[g]||0)+1;});
   var cpuData=Object.keys(cpuMap).map(function(k){return{k:k,v:cpuMap[k]};}).sort(function(a,b){return b.v-a.v;});
-  grid.innerHTML+=barChart('CPU Generations',cpuData,function(){return 'var(--acc)';});
+  grid.innerHTML+=barChart('CPU Generations',cpuData,function(){return '#0d9488';});
+
+  // Issues breakdown
+  var issMap={};
+  var ISS_LABEL_MAP={'age':'Age Issues','eol':'OS End of Life','ram':'RAM Issues','disk':'Disk Issues','w11':'Win11 Issues','war':'Warranty Expired','stale':'Stale Devices'};
+  DATA.forEach(function(d){d.iss.forEach(function(i){issMap[i.cat]=(issMap[i.cat]||0)+1;});});
+  var issColors={age:'#c26b00',eol:'#be1c1c',ram:'#c26b00',disk:'#be1c1c',w11:'#be1c1c',war:'#c26b00',stale:'#6b7a8d'};
+  var issData=Object.keys(issMap).map(function(k){return{k:ISS_LABEL_MAP[k]||k,v:issMap[k],t:k};}).sort(function(a,b){return b.v-a.v;});
+  if(issData.length)grid.innerHTML+=barChart('Issue Breakdown',issData,function(d){return issColors[d.t]||'#c26b00';});
+
+  // Action required
+  var actMap={'fix-today':0,'procure':0,'schedule':0,'ok':0};
+  DATA.forEach(function(d){if(actMap[d.action]!=null)actMap[d.action]++;});
+  var actColors={'fix-today':'#be1c1c','procure':'#c26b00','schedule':'#1d60d4','ok':'#15803d'};
+  var actData=[
+    {k:'Fix Today',v:actMap['fix-today'],t:'fix-today'},
+    {k:'Needs Procurement',v:actMap['procure'],t:'procure'},
+    {k:'Schedule',v:actMap['schedule'],t:'schedule'},
+    {k:'No Action',v:actMap['ok'],t:'ok'}
+  ];
+  grid.innerHTML+=barChart('Actions Required',actData,function(d){return actColors[d.t];});
 
   card.classList.remove('hidden');
 }
@@ -969,17 +1032,14 @@ function renderTable(){
 
   document.getElementById('tbl-cnt').textContent=FILT.length+' of '+DATA.length+' devices';
 
-  // Columns to show
   var cols=COL_DEFS.filter(function(c){return c.always||colState[c.id];});
 
-  // Header
   var th=document.getElementById('th');
   th.innerHTML='<tr>'+cols.map(function(c){
     var arrow=sortCol===c.id?(sortDir===1?' ↑':' ↓'):'';
     return '<th onclick="doSort(\''+c.id+'\')">'+c.label+arrow+'</th>';
   }).join('')+'</tr>';
 
-  // Body
   var tb=document.getElementById('tb');
   if(!slice.length){tb.innerHTML='<tr><td colspan="'+cols.length+'" style="text-align:center;padding:24px;color:var(--muted)">No devices match the current filters</td></tr>';renderPager(0,1,1);return;}
   tb.innerHTML=slice.map(function(d){
@@ -1150,40 +1210,313 @@ function doExport(){
   a.download='system-scout.csv';a.click();
 }
 
-// ── PDF ──────────────────────────────────────────────────────────────────────
+// ── PDF HELPERS ──────────────────────────────────────────────────────────────
+function pdfStyles(){
+  return '<style>'+
+    '@import url("https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap");'+
+    '*{box-sizing:border-box;margin:0;padding:0}'+
+    'body{font-family:"DM Sans",Arial,sans-serif;font-size:11px;color:#0d1b2a;background:#fff;padding:32px}'+
+    'h1{font-size:22px;font-weight:800;color:#0d1b2a;margin-bottom:4px}'+
+    '.sub{color:#6b7a8d;font-size:11px;margin-bottom:28px}'+
+    'h2{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7a8d;'+
+      'margin:24px 0 10px;font-family:"JetBrains Mono",monospace;border-bottom:2px solid #dde3ea;padding-bottom:6px}'+
+    /* score block */
+    '.score-row{display:flex;gap:16px;align-items:center;background:#f8fafc;border:1px solid #dde3ea;border-radius:10px;padding:16px 20px;margin-bottom:20px}'+
+    '.score-num{font-size:44px;font-weight:800;font-family:"JetBrains Mono",monospace;min-width:80px}'+
+    '.score-bar-bg{height:10px;background:#dde3ea;border-radius:5px;overflow:hidden;margin-bottom:8px}'+
+    '.score-bar-fill{height:100%;border-radius:5px}'+
+    '.score-leg{display:flex;flex-wrap:wrap;gap:8px}'+
+    '.leg-pill{padding:2px 10px;border-radius:20px;font-size:10px;font-weight:700;font-family:"JetBrains Mono",monospace}'+
+    /* stat boxes */
+    '.stat-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:20px}'+
+    '.stat-box{border:1px solid #dde3ea;border-radius:8px;padding:10px;border-top:3px solid #0d9488}'+
+    '.stat-label{font-size:8px;color:#6b7a8d;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px;font-family:"JetBrains Mono",monospace}'+
+    '.stat-val{font-size:22px;font-weight:800;font-family:"JetBrains Mono",monospace}'+
+    /* recommendation boxes */
+    '.rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}'+
+    '.rec-box{border:1px solid #dde3ea;border-radius:8px;padding:12px}'+
+    '.rec-box h4{font-size:11px;font-weight:700;margin-bottom:6px}'+
+    '.rec-box ul{padding-left:14px}'+
+    '.rec-box li{font-size:10px;color:#374151;margin-bottom:3px;line-height:1.5}'+
+    '.rec-box.red{border-left:4px solid #be1c1c}'+
+    '.rec-box.amber{border-left:4px solid #c26b00}'+
+    '.rec-box.blue{border-left:4px solid #1d60d4}'+
+    '.rec-box.green{border-left:4px solid #15803d}'+
+    /* charts */
+    '.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px}'+
+    '.chart-box{background:#f8fafc;border:1px solid #dde3ea;border-radius:8px;padding:12px}'+
+    '.chart-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#6b7a8d;margin-bottom:8px;font-family:"JetBrains Mono",monospace}'+
+    '.bar-row{display:flex;align-items:center;gap:6px;margin-bottom:4px}'+
+    '.bar-label{font-size:9px;color:#374151;min-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}'+
+    '.bar-track{flex:1;height:12px;background:#dde3ea;border-radius:2px;overflow:hidden}'+
+    '.bar-fill{height:100%;border-radius:2px}'+
+    '.bar-count{font-size:9px;font-weight:700;color:#6b7a8d;min-width:22px;text-align:right;font-family:"JetBrains Mono",monospace}'+
+    /* table */
+    'table{width:100%;border-collapse:collapse}'+
+    'th{background:#0d9488;color:#fff;padding:6px 8px;text-align:left;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;font-family:"JetBrains Mono",monospace}'+
+    'td{padding:5px 8px;border-bottom:1px solid #e2e8f0;font-size:10px;vertical-align:middle}'+
+    'tr:nth-child(even) td{background:#f8fafc}'+
+    '.pill{display:inline-block;padding:1px 7px;border-radius:20px;font-size:9px;font-weight:700;white-space:nowrap;font-family:"JetBrains Mono",monospace}'+
+    '.p-green{background:#f0faf4;color:#15803d}'+
+    '.p-red{background:#fff1f1;color:#be1c1c}'+
+    '.p-amber{background:#fff8ee;color:#c26b00}'+
+    '.p-blue{background:#eef3fd;color:#1d60d4}'+
+    '.p-grey{background:#f0f4f8;color:#6b7a8d}'+
+    '.footer{margin-top:24px;padding-top:12px;border-top:1px solid #dde3ea;font-size:9px;color:#a8b3bf;display:flex;justify-content:space-between}'+
+    '@media print{body{padding:16px}@page{margin:12mm}}'+
+    '</style>';
+}
+
+function buildBarChartHtml(title,data,colorFn){
+  var max=Math.max.apply(null,data.map(function(d){return d.v;}));
+  if(max===0)return '';
+  var rows=data.slice(0,8).map(function(d){
+    var pct=max>0?d.v/max*100:0;
+    return '<div class="bar-row">'+
+      '<div class="bar-label" title="'+esc(d.k)+'">'+esc(d.k)+'</div>'+
+      '<div class="bar-track"><div class="bar-fill" style="width:'+pct+'%;background:'+colorFn(d)+'"></div></div>'+
+      '<div class="bar-count">'+d.v+'</div></div>';
+  }).join('');
+  return '<div class="chart-box"><div class="chart-title">'+title+'</div>'+rows+'</div>';
+}
+
+function getChartData(){
+  var ageMap={new:0,aging:0,old:0,legacy:0};
+  DATA.forEach(function(d){if(ageMap[d.age]!=null)ageMap[d.age]++;});
+  var ageData=[{k:'New (<3yr)',v:ageMap.new,t:'new'},{k:'Aging (3-5yr)',v:ageMap.aging,t:'aging'},{k:'Old (5-8yr)',v:ageMap.old,t:'old'},{k:'Legacy (8+yr)',v:ageMap.legacy,t:'legacy'}];
+  var ageColors={new:'#15803d',aging:'#0d9488',old:'#c26b00',legacy:'#be1c1c'};
+
+  var osMap={};
+  DATA.forEach(function(d){var o=gv(d.r,M.os)||'Unknown';osMap[o]=(osMap[o]||0)+1;});
+  var osData=Object.keys(osMap).map(function(k){return{k:k,v:osMap[k]};}).sort(function(a,b){return b.v-a.v;});
+
+  var w11Map={};
+  DATA.forEach(function(d){w11Map[d.w11.st]=(w11Map[d.w11.st]||0)+1;});
+  var w11Colors={'on-current':'#15803d','on-old':'#c26b00','ready':'#1d60d4','partial':'#c26b00','not-ready':'#be1c1c','na':'#a8b3bf'};
+  var w11Data=Object.keys(w11Map).map(function(k){return{k:W11_LABELS[k]||k,v:w11Map[k],t:k};}).sort(function(a,b){return b.v-a.v;});
+
+  var cpuMap={};
+  DATA.forEach(function(d){var g=d.cpu.gen;cpuMap[g]=(cpuMap[g]||0)+1;});
+  var cpuData=Object.keys(cpuMap).map(function(k){return{k:k,v:cpuMap[k]};}).sort(function(a,b){return b.v-a.v;});
+
+  var issMap={};
+  var ISS_LABEL_MAP={'age':'Age Issues','eol':'OS End of Life','ram':'RAM Issues','disk':'Disk Issues','w11':'Win11 Issues','war':'Warranty Expired','stale':'Stale Devices'};
+  DATA.forEach(function(d){d.iss.forEach(function(i){issMap[i.cat]=(issMap[i.cat]||0)+1;});});
+  var issColors={age:'#c26b00',eol:'#be1c1c',ram:'#c26b00',disk:'#be1c1c',w11:'#be1c1c',war:'#c26b00',stale:'#6b7a8d'};
+  var issData=Object.keys(issMap).map(function(k){return{k:ISS_LABEL_MAP[k]||k,v:issMap[k],t:k};}).sort(function(a,b){return b.v-a.v;});
+
+  var actMap={'fix-today':0,'procure':0,'schedule':0,'ok':0};
+  DATA.forEach(function(d){if(actMap[d.action]!=null)actMap[d.action]++;});
+  var actColors={'fix-today':'#be1c1c','procure':'#c26b00','schedule':'#1d60d4','ok':'#15803d'};
+  var actData=[{k:'Fix Today',v:actMap['fix-today'],t:'fix-today'},{k:'Needs Procurement',v:actMap['procure'],t:'procure'},{k:'Schedule',v:actMap['schedule'],t:'schedule'},{k:'No Action',v:actMap['ok'],t:'ok'}];
+
+  return {
+    age:{data:ageData,fn:function(d){return ageColors[d.t]||'#0d9488';}},
+    os:{data:osData,fn:function(){return '#1d60d4';}},
+    w11:{data:w11Data,fn:function(d){return w11Colors[d.t]||'#0d9488';}},
+    cpu:{data:cpuData,fn:function(){return '#0d9488';}},
+    iss:{data:issData,fn:function(d){return issColors[d.t]||'#c26b00';}},
+    act:{data:actData,fn:function(d){return actColors[d.t]||'#c26b00';}}
+  };
+}
+
+function buildScoreBlock(){
+  var total=DATA.length;
+  var ok=DATA.filter(function(d){return d.iss.length===0;}).length;
+  var warn=DATA.filter(function(d){return d.iss.length>0&&d.iss.every(function(i){return i.sev==='amber';});}).length;
+  var crit=DATA.filter(function(d){return d.iss.some(function(i){return i.sev==='red';});}).length;
+  var pct=Math.round(ok/total*100);
+  var col=pct>=80?'#15803d':pct>=60?'#c26b00':'#be1c1c';
+  return '<div class="score-row">'+
+    '<div class="score-num" style="color:'+col+'">'+pct+'%</div>'+
+    '<div style="flex:1">'+
+      '<div style="font-size:11px;color:#6b7a8d;margin-bottom:6px;font-weight:600">Fleet Health Score &mdash; '+ok+' healthy of '+total+' devices</div>'+
+      '<div class="score-bar-bg"><div class="score-bar-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'+
+      '<div class="score-leg">'+
+        '<span class="leg-pill" style="background:#f0faf4;color:#15803d">'+ok+' Healthy</span>'+
+        '<span class="leg-pill" style="background:#fff8ee;color:#c26b00">'+warn+' Warnings</span>'+
+        '<span class="leg-pill" style="background:#fff1f1;color:#be1c1c">'+crit+' Critical</span>'+
+      '</div>'+
+    '</div>'+
+  '</div>';
+}
+
+function buildStatBoxes(){
+  var total=DATA.length;
+  var osMap={};
+  DATA.forEach(function(d){var o=gv(d.r,M.os)||'Unknown';var k=o.split(' ').slice(0,2).join(' ');osMap[k]=(osMap[k]||0)+1;});
+  var topOs=Object.keys(osMap).sort(function(a,b){return osMap[b]-osMap[a];})[0]||'—';
+  var withAge=DATA.filter(function(d){return d.ageY!=null;});
+  var avgAge=withAge.length?(withAge.reduce(function(s,d){return s+d.ageY;},0)/withAge.length).toFixed(1):'—';
+  var legCount=DATA.filter(function(d){return d.age==='legacy';}).length;
+  var critCount=DATA.filter(function(d){return d.iss.some(function(i){return i.sev==='red';});}).length;
+  var w11Ready=DATA.filter(function(d){return d.w11.st==='on-current'||d.w11.st==='ready';}).length;
+  var boxes=[
+    {label:'Total Devices',val:total,col:'#0d9488'},
+    {label:'Critical Issues',val:critCount,col:'#be1c1c'},
+    {label:'Legacy (8+ yr)',val:legCount,col:'#c26b00'},
+    {label:'Win11 Ready',val:w11Ready,col:'#1d60d4'},
+    {label:'Avg Age (yr)',val:avgAge,col:'#6b7a8d'},
+    {label:'Top OS',val:topOs,col:'#15803d'},
+  ];
+  return '<div class="stat-grid">'+boxes.map(function(b){
+    var fs=String(b.val).length>5?'12px':String(b.val).length>3?'16px':'22px';
+    return '<div class="stat-box" style="border-top-color:'+b.col+'">'+
+      '<div class="stat-label">'+b.label+'</div>'+
+      '<div class="stat-val" style="color:'+b.col+';font-size:'+fs+'">'+b.val+'</div></div>';
+  }).join('')+'</div>';
+}
+
+// ── EXECUTIVE SUMMARY PDF ────────────────────────────────────────────────────
+function doPdfExec(){
+  var date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+  var total=DATA.length;
+  var crit=DATA.filter(function(d){return d.iss.some(function(i){return i.sev==='red';});}).length;
+  var warn=DATA.filter(function(d){return d.iss.length>0&&d.iss.every(function(i){return i.sev==='amber';});}).length;
+  var ok=DATA.filter(function(d){return d.iss.length===0;}).length;
+  var fixToday=DATA.filter(function(d){return d.action==='fix-today';}).length;
+  var procure=DATA.filter(function(d){return d.action==='procure';}).length;
+  var schedule=DATA.filter(function(d){return d.action==='schedule';}).length;
+  var legacy=DATA.filter(function(d){return d.age==='legacy';}).length;
+  var eolCount=DATA.filter(function(d){return d.iss.some(function(i){return i.cat==='eol'&&i.sev==='red';});}).length;
+  var w11Inc=DATA.filter(function(d){return d.w11.st==='not-ready';}).length;
+  var w11Old=DATA.filter(function(d){return d.w11.st==='on-old';}).length;
+  var w11Cur=DATA.filter(function(d){return d.w11.st==='on-current';}).length;
+  var staleCount=DATA.filter(function(d){return d.stale;}).length;
+  var diskCrit=DATA.filter(function(d){return d.iss.some(function(i){return i.cat==='disk'&&i.sev==='red';});}).length;
+  var ramCrit=DATA.filter(function(d){return d.iss.some(function(i){return i.cat==='ram'&&i.sev==='red';});}).length;
+  var pct=Math.round(ok/total*100);
+
+  // Top sites by issue count
+  var siteIss={};
+  DATA.forEach(function(d){
+    var s=gv(d.r,M.site)||'Unknown';
+    if(!siteIss[s])siteIss[s]={total:0,crit:0};
+    siteIss[s].total++;
+    if(d.iss.some(function(i){return i.sev==='red';}))siteIss[s].crit++;
+  });
+  var siteList=Object.keys(siteIss).filter(function(s){return siteIss[s].crit>0;})
+    .sort(function(a,b){return siteIss[b].crit-siteIss[a].crit;}).slice(0,5);
+
+  var cd=getChartData();
+
+  var recs='<div class="rec-grid">'+
+    '<div class="rec-box red"><h4 style="color:#be1c1c">🔴 Immediate Actions</h4><ul>'+
+      (fixToday?'<li>'+fixToday+' device'+(fixToday>1?'s':'')+' flagged Fix Today — resolve critical OS/hardware issues</li>':'')+
+      (eolCount?'<li>'+eolCount+' device'+(eolCount>1?'s':'')+' running End-of-Life operating system — upgrade urgently</li>':'')+
+      (ramCrit?'<li>'+ramCrit+' device'+(ramCrit>1?'s':'')+' with less than 4GB RAM — performance risk</li>':'')+
+      (diskCrit?'<li>'+diskCrit+' device'+(diskCrit>1?'s':'')+' with less than 10% disk free — urgent cleanup or expansion needed</li>':'')+
+      (!fixToday&&!eolCount&&!ramCrit&&!diskCrit?'<li style="color:#15803d">No immediate critical actions required</li>':'')+
+    '</ul></div>'+
+    '<div class="rec-box amber"><h4 style="color:#c26b00">🟡 Procurement Planning</h4><ul>'+
+      (procure?'<li>'+procure+' device'+(procure>1?'s':'')+' identified for replacement procurement</li>':'')+
+      (legacy?'<li>'+legacy+' legacy device'+(legacy>1?'s':'')+' (8+ years) — budget for hardware refresh</li>':'')+
+      (w11Inc?'<li>'+w11Inc+' device'+(w11Inc>1?'s':'')+' Win11 incompatible — replacement candidates</li>':'')+
+      (!procure&&!legacy&&!w11Inc?'<li style="color:#15803d">No immediate procurement required</li>':'')+
+    '</ul></div>'+
+    '<div class="rec-box blue"><h4 style="color:#1d60d4">🔵 Windows 11 Migration</h4><ul>'+
+      (w11Cur?'<li>'+w11Cur+' device'+(w11Cur>1?'s':'')+' already on Win11 current — no action needed</li>':'')+
+      (w11Old?'<li>'+w11Old+' device'+(w11Old>1?'s':'')+' on older Win11 build — schedule update to 24H2/25H2</li>':'')+
+      (w11Inc?'<li>'+w11Inc+' device'+(w11Inc>1?'s':'')+' Win11 incompatible — hardware replacement required</li>':'')+
+      '<li>Windows 10 support ended October 2025 — migration priority</li>'+
+    '</ul></div>'+
+    '<div class="rec-box green"><h4 style="color:#15803d">✅ Scheduled Maintenance</h4><ul>'+
+      (schedule?'<li>'+schedule+' device'+(schedule>1?'s':'')+' scheduled for non-critical remediation</li>':'')+
+      (staleCount?'<li>'+staleCount+' stale device'+(staleCount>1?'s':'')+' (90+ days inactive) — verify still in use</li>':'')+
+      (warn?'<li>'+warn+' device'+(warn>1?'s':'')+' with warnings — plan maintenance window</li>':'')+
+      (!schedule&&!staleCount&&!warn?'<li>Fleet maintenance is up to date</li>':'')+
+    '</ul></div>'+
+  '</div>';
+
+  var siteSection='';
+  if(siteList.length){
+    siteSection='<h2>Sites Requiring Attention</h2>'+
+      '<table style="margin-bottom:20px"><thead><tr><th>Site</th><th>Total Devices</th><th>Critical Issues</th><th>Issue Rate</th></tr></thead><tbody>'+
+      siteList.map(function(s){
+        var rate=Math.round(siteIss[s].crit/siteIss[s].total*100);
+        var col=rate>50?'#be1c1c':rate>25?'#c26b00':'#374151';
+        return '<tr><td><strong>'+esc(s)+'</strong></td><td>'+siteIss[s].total+'</td>'+
+          '<td><span class="pill p-red">'+siteIss[s].crit+'</span></td>'+
+          '<td style="color:'+col+';font-weight:700">'+rate+'%</td></tr>';
+      }).join('')+
+      '</tbody></table>';
+  }
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Fleet Executive Summary</title>'+pdfStyles()+'</head><body>'+
+    '<h1>Fleet Executive Summary</h1>'+
+    '<div class="sub">Seb\'s System Scout &nbsp;|&nbsp; Generated: '+date+' &nbsp;|&nbsp; '+total+' devices analysed</div>'+
+    buildScoreBlock()+
+    '<h2>Key Metrics</h2>'+
+    buildStatBoxes()+
+    '<h2>Recommendations</h2>'+
+    recs+
+    siteSection+
+    '<h2>Fleet Snapshot Charts</h2>'+
+    '<div class="charts-grid">'+
+      buildBarChartHtml('Device Age',cd.age.data,cd.age.fn)+
+      buildBarChartHtml('Win11 Status',cd.w11.data,cd.w11.fn)+
+      buildBarChartHtml('Issue Breakdown',cd.iss.data,cd.iss.fn)+
+      buildBarChartHtml('Actions Required',cd.act.data,cd.act.fn)+
+    '</div>'+
+    '<div class="footer"><span>Seb\'s System Scout — Executive Summary</span><span>'+date+'</span></div>'+
+    '</body></html>';
+
+  var w=window.open('','_blank');
+  if(!w){alert('Please allow pop-ups to open the report.');return;}
+  w.document.write(html);w.document.close();
+  setTimeout(function(){w.print();},700);
+}
+
+// ── FULL / ISSUES PDF ─────────────────────────────────────────────────────────
 function doPdf(issuesOnly){
   var rows=issuesOnly?FILT.filter(function(d){return d.iss.length>0;}):FILT;
   var title=issuesOnly?'System Scout — Issues Report':'System Scout — Full Fleet Report';
-  var date=new Date().toLocaleDateString('en-GB');
+  var date=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'long',year:'numeric'});
+
+  var cd=getChartData();
+
+  var chartsHtml='<h2>Fleet Snapshot Charts</h2>'+
+    '<div class="charts-grid">'+
+      buildBarChartHtml('Device Age',cd.age.data,cd.age.fn)+
+      buildBarChartHtml('Operating Systems',cd.os.data,cd.os.fn)+
+      buildBarChartHtml('Win11 Status',cd.w11.data,cd.w11.fn)+
+      buildBarChartHtml('CPU Generations',cd.cpu.data,cd.cpu.fn)+
+      (cd.iss.data.length?buildBarChartHtml('Issue Breakdown',cd.iss.data,cd.iss.fn):'')+
+      buildBarChartHtml('Actions Required',cd.act.data,cd.act.fn)+
+    '</div>';
 
   var tRows=rows.map(function(d){
-    var issCss=d.iss.some(function(i){return i.sev==='red';})?'color:#dc2626':d.iss.length?'color:#c26b00':'color:#15803d';
+    var issCss=d.iss.some(function(i){return i.sev==='red';})?'p-red':d.iss.length?'p-amber':'p-green';
+    var w11c={'on-current':'p-green','on-old':'p-amber','ready':'p-blue','partial':'p-amber','not-ready':'p-red','na':'p-grey'}[d.w11.st]||'p-grey';
+    var agec={'new':'p-green','aging':'p-grey','old':'p-amber','legacy':'p-red'}[d.age]||'p-grey';
     return '<tr>'+
-      '<td>'+esc(gv(d.r,M.pcName)||'—')+'</td>'+
+      '<td><strong>'+esc(gv(d.r,M.pcName)||'—')+'</strong></td>'+
       '<td>'+esc(gv(d.r,M.user)||'—')+'</td>'+
+      '<td>'+esc(gv(d.r,M.site)||'—')+'</td>'+
       '<td>'+esc(gv(d.r,M.os)||'—')+'</td>'+
-      '<td>'+(d.ageY!=null?d.ageY.toFixed(1)+'yr':'—')+'</td>'+
-      '<td>'+W11_LABELS[d.w11.st]+'</td>'+
-      '<td style="'+issCss+';font-weight:600">'+(d.iss.length?d.iss.map(function(i){return i.m;}).join(', '):'✓ None')+'</td>'+
+      '<td><span class="pill '+agec+'">'+(d.ageY!=null?d.ageY.toFixed(1)+'yr':'—')+'</span></td>'+
+      '<td><span class="pill '+w11c+'">'+W11_LABELS[d.w11.st]+'</span></td>'+
+      '<td><span class="pill '+issCss+'">'+(d.iss.length?d.iss.map(function(i){return i.m;}).join(', '):'✓ None')+'</span></td>'+
       '</tr>';
   }).join('');
 
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'+
-    '<style>body{font-family:Arial,sans-serif;font-size:11px;color:#1e293b}'+
-    'h1{font-size:16px;margin-bottom:4px}p{color:#64748b;margin-bottom:12px}'+
-    'table{width:100%;border-collapse:collapse}'+
-    'th{background:#0d9488;color:#fff;padding:6px 8px;text-align:left;font-size:10px}'+
-    'td{padding:5px 8px;border-bottom:1px solid #e2e8f0}'+
-    'tr:nth-child(even) td{background:#f8fafc}</style></head><body>'+
-    '<h1>'+title+'</h1><p>Generated: '+date+' &nbsp;|&nbsp; Devices: '+rows.length+'</p>'+
-    '<table><thead><tr><th>PC Name</th><th>User</th><th>OS</th><th>Age</th><th>Win11</th><th>Issues</th></tr></thead>'+
-    '<tbody>'+tRows+'</tbody></table></body></html>';
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>'+title+'</title>'+pdfStyles()+'</head><body>'+
+    '<h1>'+title+'</h1>'+
+    '<div class="sub">Seb\'s System Scout &nbsp;|&nbsp; Generated: '+date+' &nbsp;|&nbsp; Devices: '+rows.length+(issuesOnly?' (issues only)':'')+' of '+DATA.length+'</div>'+
+    buildScoreBlock()+
+    '<h2>Key Metrics</h2>'+
+    buildStatBoxes()+
+    chartsHtml+
+    '<h2>Device List</h2>'+
+    '<table><thead><tr><th>PC Name</th><th>User</th><th>Site</th><th>OS</th><th>Age</th><th>Win11</th><th>Issues</th></tr></thead>'+
+    '<tbody>'+tRows+'</tbody></table>'+
+    '<div class="footer"><span>Seb\'s System Scout</span><span>'+date+'</span></div>'+
+    '</body></html>';
 
   var w=window.open('','_blank');
   if(!w){alert('Please allow pop-ups to open the PDF report.');return;}
-  w.document.write(html);
-  w.document.close();
-  setTimeout(function(){w.print();},600);
+  w.document.write(html);w.document.close();
+  setTimeout(function(){w.print();},700);
 }
 
 // ── RESET ────────────────────────────────────────────────────────────────────
@@ -1195,14 +1528,13 @@ function doReset(){
   document.getElementById('card-map').style.display='none';
   document.getElementById('dash').classList.add('hidden');
   document.getElementById('card-upload').style.display='block';
-  ['btn-adjust','btn-pdf','btn-pdf-iss','btn-exp','btn-rst'].forEach(function(id){
+  ['btn-adjust','btn-exec','btn-pdf','btn-pdf-iss','btn-exp','btn-rst'].forEach(function(id){
     document.getElementById(id).classList.add('hidden');
   });
   document.getElementById('hdr-count').classList.add('hidden');
   document.getElementById('hdr-count').textContent='';
   document.getElementById('status').style.display='none';
   document.getElementById('csv-file').value='';
-  // Reset filter dropdowns
   ['f-site','f-type'].forEach(function(id){
     var sel=document.getElementById(id);
     while(sel.options.length>1)sel.remove(1);
