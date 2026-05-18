@@ -950,13 +950,30 @@ function renderOsVersions(){
   row.innerHTML='';
   entries.forEach(function(k){
     var e=map[k];
+    var now2=new Date();
     var col=e.eol?e.eol.col:'grey';
+    // Override to amber if EOL is within 6 months but not yet past
+    if(e.eol&&e.eol.col==='green'){
+      var eolSoon=new Date(e.eol.eol);
+      var sixMonths=new Date(now2);sixMonths.setMonth(sixMonths.getMonth()+12);
+      if(eolSoon<=sixMonths&&eolSoon>now2)col='amber';
+    }
     var bg={'green':'var(--green-lt)','amber':'var(--amber-lt)','red':'var(--red-lt)','grey':'var(--bg)'}[col];
     var tc={'green':'var(--green)','amber':'var(--amber)','red':'var(--red)','grey':'var(--muted)'}[col];
+    var eolLabel='';
+    if(e.eol){
+      var eolDate=new Date(e.eol.eol);
+      var isPast=eolDate<now2;
+      var monthsLeft=Math.round((eolDate-now2)/(1000*60*60*24*30));
+      var fmtDate=eolDate.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+      eolLabel=' · EOL: '+fmtDate+(isPast?' (expired)':(monthsLeft<=12?' ('+monthsLeft+'mo)':''));
+    }
     var pill=document.createElement('div');
     pill.className='ver-pill';
     pill.style.cssText='background:'+bg+';color:'+tc+';border-color:'+tc;
-    pill.textContent=k+' ('+e.count+')';
+    pill.innerHTML='<span style="font-weight:700">'+esc(k)+'</span>'+
+      ' <span style="opacity:.75">('+e.count+')</span>'+
+      (eolLabel?'<span style="font-size:.65rem;opacity:.8;margin-left:2px">'+esc(eolLabel)+'</span>':'');
     pill.onclick=function(){
       if(filterFn&&filterFn._ver===k){clearFilter();return;}
       filterFn=function(d){
