@@ -251,6 +251,7 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
 .btn-go:hover{background:var(--acc-dk)}
 .btn-go:disabled{background:var(--border2);color:var(--faint);cursor:not-allowed}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -276,12 +277,12 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
   <div class="card" id="card-upload">
     <div class="stitle">📂 Load Inventory CSV</div>
     <div class="pick-row">
-      <input type="file" id="csv-file" accept=".csv">
+      <input type="file" id="csv-file" accept=".csv,.xlsx,.xls">
     </div>
     <div id="status"></div>
     <div class="upload-hint">
-      <b>How to export CSV:</b>
-      Excel → File → Save As → CSV UTF-8 &nbsp;|&nbsp;
+      <b>How to export:</b>
+      Excel → use directly (.xlsx/.xls) or File → Save As → CSV UTF-8 &nbsp;|&nbsp;
       PDQ Inventory → right-click report → Export &nbsp;|&nbsp;
       Lansweeper → Reports → Export to CSV<br>
       <b>Supported columns:</b>
@@ -504,17 +505,40 @@ function autoMap(headers){
 document.getElementById('csv-file').addEventListener('change',function(e){
   var file=e.target.files[0];if(!file)return;
   setStatus('Reading '+file.name+'…');
+  var isExcel=/\.(xlsx|xls)$/i.test(file.name);
   var reader=new FileReader();
-  reader.onload=function(ev){
-    var rows=parseCSV(ev.target.result);
-    if(rows.length<2){setStatus('File appears empty or invalid.',true);return;}
-    HDRS=rows[0];RAW=rows.slice(1);
-    M=autoMap(HDRS);
-    if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
-    analyse();
-  };
-  reader.onerror=function(){setStatus('Error reading file.',true);};
-  reader.readAsText(file,'utf-8');
+
+  if(isExcel){
+    reader.onload=function(ev){
+      try{
+        var wb=XLSX.read(ev.target.result,{type:'array'});
+        var ws=wb.Sheets[wb.SheetNames[0]];
+        var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+        // Remove completely empty rows
+        rows=rows.filter(function(r){return r.some(function(c){return String(c).trim()!=='';});});
+        // Normalise all cells to strings
+        rows=rows.map(function(r){return r.map(function(c){return String(c==null?'':c).trim();});});
+        if(rows.length<2){setStatus('Spreadsheet appears empty or invalid.',true);return;}
+        HDRS=rows[0];RAW=rows.slice(1);
+        M=autoMap(HDRS);
+        if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
+        analyse();
+      }catch(err){setStatus('Error reading Excel file: '+err.message,true);}
+    };
+    reader.onerror=function(){setStatus('Error reading file.',true);};
+    reader.readAsArrayBuffer(file);
+  } else {
+    reader.onload=function(ev){
+      var rows=parseCSV(ev.target.result);
+      if(rows.length<2){setStatus('File appears empty or invalid.',true);return;}
+      HDRS=rows[0];RAW=rows.slice(1);
+      M=autoMap(HDRS);
+      if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
+      analyse();
+    };
+    reader.onerror=function(){setStatus('Error reading file.',true);};
+    reader.readAsText(file,'utf-8');
+  }
 });
 
 function setStatus(msg,err){
