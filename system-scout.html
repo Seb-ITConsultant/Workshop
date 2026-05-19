@@ -1606,7 +1606,7 @@ function warrantyUrl(manufacturer,serial){
   if(m.includes('dell'))
     return{label:'Dell Warranty Check',url:'https://www.dell.com/support/home/en-gb/product-support/servicetag/'+s+'/warranty'};
   if(m.includes('hp')||m.includes('hewlett'))
-    return{label:'HP Warranty Check',url:'https://support.hp.com/gb-en/checkwarranty/product/serial/'+s};
+    return{label:'HP Warranty Check',url:'https://support.hp.com/gb-en/warrantyresult?serialNo='+s};
   if(m.includes('lenovo'))
     return{label:'Lenovo Warranty Check',url:'https://pcsupport.lenovo.com/gb/en/products/'+s};
   if(m.includes('microsoft')||m.includes('surface'))
@@ -1619,8 +1619,8 @@ function warrantyUrl(manufacturer,serial){
     return{label:'ASUS Warranty Check',url:'https://www.asus.com/support/warranty-status-inquiry/?serial='+s};
   if(m.includes('fujitsu'))
     return{label:'Fujitsu Warranty Check',url:'https://support.ts.fujitsu.com/warranty?serial='+s};
-  // Unknown manufacturer — offer generic serial search
-  return{label:'Search by Serial',url:'https://www.google.com/search?q='+s+'+warranty+check'};
+  // No recognised manufacturer but serial present — show nothing rather than a Google search
+  return null;
 }
 
 function openModal(idx){
@@ -1668,8 +1668,10 @@ function openModal(idx){
   if(wUrl){
     warLinkHtml='<div style="margin:10px 0 4px">'+
       '<a class="war-link" href="'+wUrl.url+'" target="_blank" rel="noopener">🔍 '+esc(wUrl.label)+' ↗</a>'+
-      '<div class="override-note">Opens vendor site with serial pre-filled — then update below with confirmed details</div>'+
+      '<div class="override-note">Opens vendor page with serial pre-filled — confirm details then update below</div>'+
     '</div>';
+  } else if(serial&&serial!=='—'){
+    warLinkHtml='<div class="override-note" style="margin:8px 0">No direct warranty lookup available for this manufacturer — check vendor website manually then update below.</div>';
   }
 
   // Override form
