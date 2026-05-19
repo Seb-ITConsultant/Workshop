@@ -227,6 +227,18 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
 .mbox-row:last-child{border-bottom:none}
 .mbox-row .mk{color:var(--muted);font-weight:600}
 .mbox-row .mv{color:var(--text);text-align:right;max-width:300px;word-break:break-word}
+.mbox-section{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);margin:14px 0 6px;font-family:var(--mono);padding-bottom:4px;border-bottom:2px solid var(--border)}
+.war-link{display:inline-flex;align-items:center;gap:5px;font-size:.75rem;font-weight:600;
+  color:var(--acc);text-decoration:none;padding:3px 8px;border:1.5px solid var(--acc);
+  border-radius:5px;transition:all .13s}
+.war-link:hover{background:var(--acc-lt)}
+.override-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px}
+.override-field label{font-size:.7rem;font-weight:600;color:var(--muted);display:block;margin-bottom:3px;font-family:var(--mono)}
+.override-field input,.override-field select{width:100%;padding:5px 8px;border:1.5px solid var(--border);
+  border-radius:6px;background:var(--surface);color:var(--text);font-family:var(--font);font-size:.8rem}
+.override-field input:focus,.override-field select:focus{outline:none;border-color:var(--acc)}
+.override-note{font-size:.7rem;color:var(--muted);margin-top:4px;font-style:italic}
 
 /* ── BADGES / PILLS ────────────────────────────────────────────────────── */
 .pill{display:inline-block;padding:2px 8px;border-radius:20px;font-size:.67rem;font-weight:700;white-space:nowrap;font-family:var(--mono)}
@@ -243,6 +255,27 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
 .act-proc{color:var(--amber);font-weight:700}
 .act-sched{color:var(--blue);font-weight:700}
 .act-ok{color:var(--green);font-weight:700}
+
+/* ── DROP ZONE ─────────────────────────────────────────────────────────── */
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius);padding:28px 20px;
+  text-align:center;transition:all .15s;cursor:pointer;background:var(--surface2);margin-bottom:12px}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--acc);background:var(--acc-lt)}
+.drop-zone.drag-over .dz-icon{transform:scale(1.15)}
+.dz-icon{font-size:2rem;margin-bottom:8px;transition:transform .15s;display:block}
+.dz-text{font-size:.85rem;font-weight:600;color:var(--text2);margin-bottom:4px}
+.dz-sub{font-size:.75rem;color:var(--muted)}
+.dz-sub b{color:var(--acc);cursor:pointer}
+.dz-sub b:hover{text-decoration:underline}
+
+/* ── FILE TAGS ─────────────────────────────────────────────────────────── */
+.file-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:6px;
+  font-size:.75rem;font-weight:600;border:1.5px solid var(--border);background:var(--surface2);
+  color:var(--text2);font-family:var(--mono)}
+.file-tag.loading{border-color:var(--amber);color:var(--amber)}
+.file-tag.ok{border-color:var(--green);color:var(--green)}
+.file-tag.err{border-color:var(--red);color:var(--red)}
+.file-tag .ft-remove{cursor:pointer;opacity:.5;font-size:.85rem;margin-left:2px}
+.file-tag .ft-remove:hover{opacity:1}
 
 /* ── BTN ───────────────────────────────────────────────────────────────── */
 .btn{padding:7px 16px;border-radius:7px;border:none;font-size:.82rem;font-family:var(--font);
@@ -275,13 +308,21 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
 
   <!-- UPLOAD -->
   <div class="card" id="card-upload">
-    <div class="stitle">📂 Load Inventory File — Excel or CSV</div>
-    <div class="pick-row">
-      <input type="file" id="csv-file" accept=".csv,.xlsx,.xls">
+    <div class="stitle">📂 Load Inventory Files</div>
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('csv-file').click()">
+      <span class="dz-icon">📁</span>
+      <div class="dz-text">Drag &amp; drop files here</div>
+      <div class="dz-sub">or <b>browse to select</b> &nbsp;·&nbsp; Excel (.xlsx / .xls) or CSV &nbsp;·&nbsp; multiple files supported</div>
     </div>
+    <input type="file" id="csv-file" accept=".csv,.xlsx,.xls" multiple style="display:none">
+    <div id="file-list" style="display:flex;flex-wrap:wrap;gap:6px"></div>
     <div id="status"></div>
-    <div class="upload-hint">
-      <b>Accepted formats:</b> Drop in an Excel file (.xlsx / .xls) or a CSV directly — no conversion needed.<br>
+    <div id="analyse-row" style="display:none;margin-top:12px;align-items:center;gap:10px">
+      <button class="btn btn-go" id="btn-analyse" onclick="doAnalyse()">✓ Analyse Merged Data</button>
+      <span id="merge-summary" style="font-size:.78rem;color:var(--muted)"></span>
+    </div>
+    <div class="upload-hint" style="margin-top:10px">
+      <b>Tip:</b> Load a hardware export + a software export + a network export — they'll be joined on PC Name automatically.<br>
       PDQ Inventory → right-click report → Export &nbsp;|&nbsp; Lansweeper → Reports → Export to CSV or Excel<br>
       <b>Supported columns:</b>
       PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type · Manufacturer · BitLocker Status · Antivirus
@@ -512,45 +553,208 @@ function autoMap(headers){
   return m;
 }
 
-// ── FILE HANDLER ────────────────────────────────────────────────────────────
+// ── DRAG & DROP ──────────────────────────────────────────────────────────────
+(function(){
+  var dz=document.getElementById('drop-zone');
+
+  dz.addEventListener('dragenter',function(e){
+    e.preventDefault();e.stopPropagation();
+    dz.classList.add('drag-over');
+    dz.querySelector('.dz-icon').textContent='📂';
+  });
+  dz.addEventListener('dragover',function(e){
+    e.preventDefault();e.stopPropagation();
+    e.dataTransfer.dropEffect='copy';
+  });
+  dz.addEventListener('dragleave',function(e){
+    // Only fire if leaving the drop zone entirely (not a child element)
+    if(!dz.contains(e.relatedTarget)){
+      dz.classList.remove('drag-over');
+      dz.querySelector('.dz-icon').textContent='📁';
+    }
+  });
+  dz.addEventListener('drop',function(e){
+    e.preventDefault();e.stopPropagation();
+    dz.classList.remove('drag-over');
+    dz.querySelector('.dz-icon').textContent='📁';
+    var files=Array.prototype.slice.call(e.dataTransfer.files);
+    var valid=files.filter(function(f){return /\.(csv|xlsx|xls)$/i.test(f.name);});
+    var invalid=files.filter(function(f){return !/\.(csv|xlsx|xls)$/i.test(f.name);});
+    if(invalid.length){
+      setStatus(invalid.map(function(f){return f.name;}).join(', ')+' — only CSV and Excel files are supported',true);
+    }
+    if(valid.length) processFiles(valid);
+  });
+})();
+
+// ── FILE HANDLER ─────────────────────────────────────────────────────────────
+function processFiles(files){
+  files.forEach(function(file){
+    if(loadedFiles.some(function(f){return f.name===file.name;})){
+      setStatus(file.name+' already loaded — skipped.',false);return;
+    }
+    addFileTag(file.name,'loading','⏳ '+file.name);
+    readFile(file,function(rows,err){
+      if(err||!rows||rows.length<2){
+        updateFileTag(file.name,'err','❌ '+file.name+' — '+(err||'empty file'));
+        setStatus('Error reading '+file.name,true);
+        return;
+      }
+      var hdrs=rows[0];
+      var dataRows=rows.slice(1);
+      loadedFiles.push({name:file.name,hdrs:hdrs,rows:dataRows});
+      updateFileTag(file.name,'ok','✓ '+file.name+' ('+dataRows.length+' rows, '+hdrs.length+' cols)');
+      setStatus('');
+      updateMergeSummary();
+    });
+  });
+}
+
 document.getElementById('csv-file').addEventListener('change',function(e){
-  var file=e.target.files[0];if(!file)return;
-  setStatus('Reading '+file.name+'…');
+  var files=Array.prototype.slice.call(e.target.files);
+  if(files.length) processFiles(files);
+  e.target.value='';
+});
+
+function readFile(file,cb){
   var isExcel=/\.(xlsx|xls)$/i.test(file.name);
   var reader=new FileReader();
-
   if(isExcel){
     reader.onload=function(ev){
       try{
         var wb=XLSX.read(ev.target.result,{type:'array'});
         var ws=wb.Sheets[wb.SheetNames[0]];
         var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
-        // Remove completely empty rows
         rows=rows.filter(function(r){return r.some(function(c){return String(c).trim()!=='';});});
-        // Normalise all cells to strings
         rows=rows.map(function(r){return r.map(function(c){return String(c==null?'':c).trim();});});
-        if(rows.length<2){setStatus('Spreadsheet appears empty or invalid.',true);return;}
-        HDRS=rows[0];RAW=rows.slice(1);
-        M=autoMap(HDRS);
-        if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
-        analyse();
-      }catch(err){setStatus('Error reading Excel file: '+err.message,true);}
+        cb(rows,null);
+      }catch(err){cb(null,err.message);}
     };
-    reader.onerror=function(){setStatus('Error reading file.',true);};
+    reader.onerror=function(){cb(null,'Read error');};
     reader.readAsArrayBuffer(file);
   } else {
     reader.onload=function(ev){
-      var rows=parseCSV(ev.target.result);
-      if(rows.length<2){setStatus('File appears empty or invalid.',true);return;}
-      HDRS=rows[0];RAW=rows.slice(1);
-      M=autoMap(HDRS);
-      if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
-      analyse();
+      try{
+        var rows=parseCSV(ev.target.result);
+        cb(rows,null);
+      }catch(err){cb(null,err.message);}
     };
-    reader.onerror=function(){setStatus('Error reading file.',true);};
+    reader.onerror=function(){cb(null,'Read error');};
     reader.readAsText(file,'utf-8');
   }
-});
+}
+
+function addFileTag(name,cls,label){
+  var fl=document.getElementById('file-list');
+  var tag=document.createElement('div');
+  tag.className='file-tag '+cls;
+  tag.id='ftag-'+btoa(name).replace(/[^a-z0-9]/gi,'');
+  tag.innerHTML=label+'<span class="ft-remove" onclick="removeFile(\''+esc(name)+'\')" title="Remove">✕</span>';
+  fl.appendChild(tag);
+}
+
+function updateFileTag(name,cls,label){
+  var id='ftag-'+btoa(name).replace(/[^a-z0-9]/gi,'');
+  var tag=document.getElementById(id);
+  if(!tag)return;
+  tag.className='file-tag '+cls;
+  tag.innerHTML=label+'<span class="ft-remove" onclick="removeFile(\''+esc(name)+'\')" title="Remove">✕</span>';
+}
+
+function removeFile(name){
+  loadedFiles=loadedFiles.filter(function(f){return f.name!==name;});
+  var id='ftag-'+btoa(name).replace(/[^a-z0-9]/gi,'');
+  var tag=document.getElementById(id);
+  if(tag)tag.remove();
+  updateMergeSummary();
+}
+
+function updateMergeSummary(){
+  var row=document.getElementById('analyse-row');
+  var summary=document.getElementById('merge-summary');
+  if(!loadedFiles.length){row.style.display='none';return;}
+  row.style.display='flex';
+  // Quick preview of merged row count
+  var merged=mergeFiles(loadedFiles);
+  summary.textContent=loadedFiles.length+' file'+(loadedFiles.length>1?'s':'')+' loaded — '+merged.rows.length+' unique devices, '+merged.hdrs.length+' columns total';
+}
+
+// ── MERGE LOGIC ──────────────────────────────────────────────────────────────
+// Merges multiple {hdrs, rows} sets by PC Name (case-insensitive)
+// Later files fill in blank cells in earlier files — existing values are kept
+function mergeFiles(files){
+  if(!files.length)return{hdrs:[],rows:[]};
+  if(files.length===1)return{hdrs:files[0].hdrs,rows:files[0].rows};
+
+  // Build a unified header list across all files
+  var allHdrs=[];
+  var hdrIdx={}; // header lowercase → index in unified array
+  files.forEach(function(f){
+    f.hdrs.forEach(function(h){
+      var hl=h.toLowerCase().trim();
+      if(hdrIdx[hl]===undefined){hdrIdx[hl]=allHdrs.length;allHdrs.push(h);}
+    });
+  });
+
+  // Find pcName column index in each file
+  function findPcCol(hdrs){
+    var pcTerms=COMMON.pcName;
+    for(var i=0;i<hdrs.length;i++){
+      var hl=hdrs[i].toLowerCase().trim();
+      if(pcTerms.some(function(t){return hl===t;}))return i;
+    }
+    // Fallback — partial match
+    for(var i=0;i<hdrs.length;i++){
+      var hl=hdrs[i].toLowerCase().trim();
+      if(pcTerms.some(function(t){return t.length>4&&hl.includes(t);}))return i;
+    }
+    return 0; // default to first column
+  }
+
+  // Build unified row map keyed by PC Name (lowercase)
+  var rowMap={}; // pcName.lower → unified row array
+
+  files.forEach(function(f){
+    var pcCol=findPcCol(f.hdrs);
+    // Map this file's column indices to unified indices
+    var colMap=f.hdrs.map(function(h){
+      return hdrIdx[h.toLowerCase().trim()];
+    });
+
+    f.rows.forEach(function(r){
+      var pcName=(r[pcCol]||'').trim();
+      if(!pcName)return;
+      var key=pcName.toLowerCase();
+      if(!rowMap[key]){
+        // Initialise empty unified row
+        rowMap[key]=new Array(allHdrs.length).fill('');
+      }
+      // Fill in values — only overwrite if current cell is empty
+      colMap.forEach(function(uIdx,fIdx){
+        if(uIdx===undefined||uIdx===null)return;
+        var val=(r[fIdx]||'').toString().trim();
+        if(val&&!rowMap[key][uIdx]){
+          rowMap[key][uIdx]=val;
+        }
+      });
+    });
+  });
+
+  var mergedRows=Object.keys(rowMap).map(function(k){return rowMap[k];});
+  return{hdrs:allHdrs,rows:mergedRows};
+}
+
+function doAnalyse(){
+  if(!loadedFiles.length){setStatus('No files loaded.',true);return;}
+  var merged=mergeFiles(loadedFiles);
+  if(merged.rows.length<1){setStatus('No data found after merging.',true);return;}
+  HDRS=merged.hdrs;
+  RAW=merged.rows;
+  M=autoMap(HDRS);
+  if(M.pcName<0){setStatus('Could not find a PC Name column. Use ⚙ Columns to map manually.',true);openMapper();return;}
+  setStatus('');
+  analyse();
+}
 
 function setStatus(msg,err){
   var el=document.getElementById('status');
@@ -1387,11 +1591,51 @@ function renderPager(total,cur,totalPages){
 function goPage(n){page=n;renderTable();}
 
 // ── MODAL ───────────────────────────────────────────────────────────────────
+// ── DEVICE OVERRIDES ─────────────────────────────────────────────────────────
+// Stores manual overrides keyed by PC name: {ageY, war, warExpiry}
+var OVERRIDES={};
+
+// ── WARRANTY LOOKUP URLS ──────────────────────────────────────────────────────
+function warrantyUrl(manufacturer,serial){
+  if(!serial||serial==='—')return null;
+  var m=(manufacturer||'').toLowerCase();
+  var s=encodeURIComponent(serial.trim());
+  if(m.includes('dell'))
+    return{label:'Dell Warranty Check',url:'https://www.dell.com/support/home/en-gb/product-support/servicetag/'+s+'/warranty'};
+  if(m.includes('hp')||m.includes('hewlett'))
+    return{label:'HP Warranty Check',url:'https://support.hp.com/gb-en/checkwarranty/product/serial/'+s};
+  if(m.includes('lenovo'))
+    return{label:'Lenovo Warranty Check',url:'https://pcsupport.lenovo.com/gb/en/products/'+s};
+  if(m.includes('microsoft')||m.includes('surface'))
+    return{label:'Microsoft Device Support',url:'https://support.microsoft.com/en-gb/surface'};
+  if(m.includes('toshiba')||m.includes('dynabook'))
+    return{label:'Dynabook Warranty Check',url:'https://emea.dynabook.com/support-warranty-check?sn='+s};
+  if(m.includes('acer'))
+    return{label:'Acer Warranty Check',url:'https://www.acer.com/gb-en/support/product-support/'+s};
+  if(m.includes('asus'))
+    return{label:'ASUS Warranty Check',url:'https://www.asus.com/support/warranty-status-inquiry/?serial='+s};
+  if(m.includes('fujitsu'))
+    return{label:'Fujitsu Warranty Check',url:'https://support.ts.fujitsu.com/warranty?serial='+s};
+  // Unknown manufacturer — offer generic serial search
+  return{label:'Search by Serial',url:'https://www.google.com/search?q='+s+'+warranty+check'};
+}
+
 function openModal(idx){
   var d=DATA[idx];if(!d)return;
+  var pcName=gv(d.r,M.pcName)||'';
+  var serial=gv(d.r,M.serial)||'';
+  var manufacturer=gv(d.r,M.manufacturer)||'';
+  var ov=OVERRIDES[pcName.toLowerCase()]||{};
+
+  // Use override values where present
+  var dispAge=ov.ageY!=null?ov.ageY.toFixed(1)+' yrs (manual override)':
+              d.ageY!=null?d.ageY.toFixed(1)+' yrs ('+d.age+')':'—';
+  var dispWar=ov.war||d.war;
+  var dispWarExpiry=ov.warExpiry||'';
+
   var rows=[
-    ['PC Name',gv(d.r,M.pcName)||'—'],
-    ['Manufacturer',gv(d.r,M.manufacturer)||'—'],
+    ['PC Name',pcName||'—'],
+    ['Manufacturer',manufacturer||'—'],
     ['Model',gv(d.r,M.model)||'—'],
     ['User',gv(d.r,M.user)||'—'],
     ['Site',gv(d.r,M.site)||'—'],
@@ -1402,34 +1646,153 @@ function openModal(idx){
     ['RAM',d.ram?d.ram+'GB':'—'],
     ['Disk Total',d.td?d.td+'GB':'—'],
     ['Disk Free',d.fd!=null?d.fd.toFixed(1)+'GB ('+d.freeP.toFixed(0)+'%)':'—'],
-    ['Age',d.ageY!=null?d.ageY.toFixed(1)+' yrs ('+d.age+')':'—'],
+    ['Age',dispAge],
     ['Win11',W11_LABELS[d.w11.st]||d.w11.st],
     ['BitLocker',{on:'🔒 Encrypted',off:'🔓 Not Encrypted',partial:'⏳ In Progress','unknown-data':'Unknown',unknown:'No data'}[d.blStatus]||'—'],
     ['Antivirus',d.avStatus==='unknown'?'No data':d.avStatus==='none'?'None detected':(d.avRaw||d.avStatus)],
-    ['Warranty',d.war],
-    ['Serial',gv(d.r,M.serial)||'—'],
+    ['Warranty',dispWar+(dispWarExpiry?' — expires '+dispWarExpiry:'')],
+    ['Serial',serial||'—'],
     ['Last Logon',gv(d.r,M.lastLogon)||'—'],
     ['Stale',d.stale?'Yes (90+ days)':'No'],
     ['Action',{fix:'Fix Today','fix-today':'Fix Today',procure:'Procure',schedule:'Schedule',ok:'No Action'}[d.action]||d.action],
   ];
-  if(d.iss.length){
-    rows.push(['Issues',d.iss.map(function(i){return i.m;}).join(', ')]);
+  if(d.iss.length)rows.push(['Issues',d.iss.map(function(i){return i.m;}).join(', ')]);
+  if(d.w11.iss&&d.w11.iss.length)rows.push(['Win11 Blockers',d.w11.iss.join(', ')]);
+
+  // Warranty link
+  var wUrl=warrantyUrl(manufacturer,serial);
+  var warLinkHtml='';
+  if(wUrl){
+    warLinkHtml='<div style="margin:10px 0 4px">'+
+      '<a class="war-link" href="'+wUrl.url+'" target="_blank" rel="noopener">🔍 '+esc(wUrl.label)+' ↗</a>'+
+      '<div class="override-note">Opens vendor site with serial pre-filled — then update below with confirmed details</div>'+
+    '</div>';
   }
-  if(d.w11.iss&&d.w11.iss.length){
-    rows.push(['Win11 Blockers',d.w11.iss.join(', ')]);
-  }
+
+  // Override form
+  var overrideHtml='<div class="mbox-section">✏ Override Details</div>'+
+    '<div class="override-note" style="margin-bottom:8px">After checking the vendor warranty page, enter the confirmed values here — they will update the device record and recalculate issues.</div>'+
+    warLinkHtml+
+    '<div class="override-grid">'+
+      '<div class="override-field">'+
+        '<label>Device Age (years)</label>'+
+        '<input type="number" id="ov-age" min="0" max="30" step="0.5" placeholder="e.g. 3.5" value="'+(ov.ageY!=null?ov.ageY:'')+'" />'+
+      '</div>'+
+      '<div class="override-field">'+
+        '<label>Warranty Status</label>'+
+        '<select id="ov-war">'+
+          '<option value="">— no change —</option>'+
+          '<option value="Active"'+(dispWar==='Active'?' selected':'')+'>Active</option>'+
+          '<option value="Expired"'+(dispWar==='Expired'?' selected':'')+'>Expired</option>'+
+          '<option value="Unknown"'+(dispWar==='Unknown'?' selected':'')+'>Unknown</option>'+
+        '</select>'+
+      '</div>'+
+      '<div class="override-field" style="grid-column:1/-1">'+
+        '<label>Warranty Expiry Date</label>'+
+        '<input type="date" id="ov-warexpiry" value="'+(dispWarExpiry||'')+'" />'+
+      '</div>'+
+    '</div>'+
+    '<div style="margin-top:10px;display:flex;gap:8px">'+
+      '<button class="btn btn-go" onclick="saveOverride('+idx+')">✓ Save Override</button>'+
+      (ov.ageY!=null||ov.war?'<button class="btn-sm danger" onclick="clearOverride('+idx+')">✕ Clear Override</button>':'')+
+    '</div>';
 
   var box=document.getElementById('mbox');
   box.innerHTML='<button class="mbox-close" onclick="closeMover()">✕</button>'+
-    '<h3>'+esc(gv(d.r,M.pcName)||'Device')+' — Details</h3>'+
+    '<h3>'+esc(pcName||'Device')+' — Details</h3>'+
     rows.map(function(r){
       return '<div class="mbox-row"><div class="mk">'+r[0]+'</div><div class="mv">'+esc(r[1])+'</div></div>';
-    }).join('');
+    }).join('')+
+    overrideHtml;
   document.getElementById('mover').classList.add('open');
 }
 function closeMover(e){
   if(!e||e.target===document.getElementById('mover'))
     document.getElementById('mover').classList.remove('open');
+}
+
+function saveOverride(idx){
+  var d=DATA[idx];if(!d)return;
+  var pcKey=(gv(d.r,M.pcName)||'').toLowerCase();
+  var ageVal=parseFloat(document.getElementById('ov-age').value);
+  var warVal=document.getElementById('ov-war').value;
+  var warExpiry=document.getElementById('ov-warexpiry').value;
+
+  var ov={};
+  if(!isNaN(ageVal)&&ageVal>=0) ov.ageY=ageVal;
+  if(warVal) ov.war=warVal;
+  if(warExpiry) ov.warExpiry=warExpiry;
+  OVERRIDES[pcKey]=ov;
+
+  // Re-run analyse to pick up the overrides then re-open modal
+  applyOverridesToData();
+  renderHealth();renderStats();renderCharts();renderChips();renderOsVersions();renderTable();
+  openModal(idx);
+}
+
+function clearOverride(idx){
+  var d=DATA[idx];if(!d)return;
+  var pcKey=(gv(d.r,M.pcName)||'').toLowerCase();
+  delete OVERRIDES[pcKey];
+  applyOverridesToData();
+  renderHealth();renderStats();renderCharts();renderChips();renderOsVersions();renderTable();
+  openModal(idx);
+}
+
+// Re-applies overrides to already-analysed DATA without full re-parse
+function applyOverridesToData(){
+  var now=new Date();
+  DATA.forEach(function(d){
+    var pcKey=(gv(d.r,M.pcName)||'').toLowerCase();
+    var ov=OVERRIDES[pcKey];
+    if(!ov)return;
+
+    // Override age
+    if(ov.ageY!=null){
+      d.ageY=ov.ageY;
+      d.age=ov.ageY<3?'new':ov.ageY<5?'aging':ov.ageY<8?'old':'legacy';
+    }
+
+    // Override warranty
+    if(ov.war) d.war=ov.war;
+    if(ov.warExpiry){
+      var expDate=new Date(ov.warExpiry);
+      if(!isNaN(expDate)) d.war=expDate<now?'Expired':'Active';
+    }
+
+    // Rebuild issues with updated values
+    var iss=[];
+    var isServer=d.isServer;
+    if(!isServer){
+      if(d.age==='legacy'){
+        if(d.eolCol==='red') iss.push({m:'Legacy device — OS already EOL',sev:'red',cat:'age'});
+        else if(d.eolCol==='amber') iss.push({m:'Legacy device — OS EOL within 12 months',sev:'amber',cat:'age'});
+        else iss.push({m:'Legacy device (8+ yrs) — plan replacement',sev:'amber',cat:'age'});
+      } else if(d.age==='old'){
+        if(d.eolCol==='amber') iss.push({m:'Aging device — OS EOL within 12 months',sev:'amber',cat:'age'});
+        else if(d.eolCol!=='red') iss.push({m:'Aging device (5–8 yrs) — monitor for refresh',sev:'amber',cat:'age'});
+      }
+    }
+    if(d.eolCol==='red') iss.push({m:'OS End of Life',sev:'red',cat:'eol'});
+    else if(d.eolCol==='amber') iss.push({m:'OS EOL within 12 months',sev:'amber',cat:'eol'});
+    if(d.ram&&d.ram<4) iss.push({m:'RAM < 4GB',sev:'red',cat:'ram'});
+    else if(d.ram&&d.ram<8) iss.push({m:'RAM < 8GB',sev:'amber',cat:'ram'});
+    if(d.freeP!=null&&d.freeP<10) iss.push({m:'Disk < 10% free',sev:'red',cat:'disk'});
+    else if(d.freeP!=null&&d.freeP<20) iss.push({m:'Disk < 20% free',sev:'amber',cat:'disk'});
+    if(!isServer&&d.w11.st==='not-ready') iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
+    if(d.war==='Expired') iss.push({m:'Warranty Expired',sev:'amber',cat:'war'});
+    if(d.stale) iss.push({m:'Stale (90+ days)',sev:'amber',cat:'stale'});
+    if(d.blStatus==='off') iss.push({m:'BitLocker Not Enabled',sev:'red',cat:'bitlocker'});
+    else if(d.blStatus==='partial') iss.push({m:'BitLocker Encryption In Progress',sev:'amber',cat:'bitlocker'});
+    if(d.avStatus==='none') iss.push({m:'No Antivirus Detected',sev:'red',cat:'av'});
+    else if(d.avStatus==='inactive') iss.push({m:'Antivirus Inactive/Expired',sev:'red',cat:'av'});
+    var osRaw=gv(d.r,M.os)||'';
+    if(/\bhome\b/i.test(osRaw)) iss.push({m:'Home Edition — cannot Entra join or apply Group Policy',sev:'red',cat:'home'});
+    d.iss=iss;
+    d.action='ok';
+    if(iss.some(function(i){return i.sev==='red';})) d.action=d.age==='legacy'?'procure':'fix-today';
+    else if(iss.length>0) d.action='schedule';
+  });
 }
 
 // ── EXPORT ───────────────────────────────────────────────────────────────────
@@ -1779,6 +2142,10 @@ function doPdf(issuesOnly){
 // ── RESET ────────────────────────────────────────────────────────────────────
 function doReset(){
   RAW=[];HDRS=[];M={};DATA=[];FILT=[];filterFn=null;sortCol=null;page=1;
+  loadedFiles=[];OVERRIDES={};
+  document.getElementById('file-list').innerHTML='';
+  document.getElementById('analyse-row').style.display='none';
+  document.getElementById('merge-summary').textContent='';
   document.getElementById('charts-card').classList.add('hidden');
   document.getElementById('osver-card').classList.add('hidden');
   document.getElementById('col-picker').style.display='none';
