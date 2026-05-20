@@ -325,7 +325,7 @@ td.pc-name{font-weight:700;color:var(--text);font-family:var(--mono);font-size:.
       <b>Tip:</b> Load a hardware export + a software export + a network export — they'll be joined on PC Name automatically.<br>
       PDQ Inventory → right-click report → Export &nbsp;|&nbsp; Lansweeper → Reports → Export to CSV or Excel<br>
       <b>Supported columns:</b>
-      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type · Manufacturer · BitLocker Status · Antivirus
+      PC Name · Username · OS · OS Version · CPU · RAM (GB) · Disk Total/Free (GB) · Serial · Install Date · Device Age · Site · Last Logon · Device Type · Manufacturer · Model · BitLocker · Antivirus · TPM · Secure Boot · Last Update · Domain · IP Address · Pending Reboot · Patch Status
     </div>
   </div>
 
@@ -475,12 +475,19 @@ var COL_DEFS=[
   {id:'w11',      label:'Win11',        on:true},
   {id:'warranty', label:'Warranty',     on:true},
   {id:'stale',    label:'Stale',        on:false},
-  {id:'issues',   label:'Issues',       on:true},
-  {id:'action',   label:'Action',       on:true},
-  {id:'serial',   label:'Serial',       on:false},
-  {id:'manufacturer', label:'Manufacturer', on:false},
-  {id:'bitlocker',    label:'BitLocker',    on:true},
-  {id:'antivirus',    label:'Antivirus',    on:true},
+  {id:'issues',       label:'Issues',         on:true},
+  {id:'action',       label:'Action',         on:true},
+  {id:'serial',       label:'Serial',         on:false},
+  {id:'manufacturer', label:'Manufacturer',   on:false},
+  {id:'bitlocker',    label:'BitLocker',       on:true},
+  {id:'antivirus',    label:'Antivirus',       on:true},
+  {id:'tpm',          label:'TPM',             on:false},
+  {id:'secureBoot',   label:'Secure Boot',     on:false},
+  {id:'lastUpdate',   label:'Last Update',     on:false},
+  {id:'domain',       label:'Domain',          on:false},
+  {id:'pendingReboot',label:'Pending Reboot',  on:false},
+  {id:'ipAddress',    label:'IP Address',      on:false},
+  {id:'patchStatus',  label:'Patch Status',    on:false},
 ];
 var colState={};
 COL_DEFS.forEach(function(c){colState[c.id]=c.always||c.on||false;});
@@ -509,29 +516,126 @@ function parseCSV(text){
 function gv(row,idx){return idx!=null&&idx>=0&&idx<row.length?row[idx]:'';}
 
 // ── COLUMN MAPPING ─────────────────────────────────────────────────────────
-var MAP_KEYS=['pcName','user','os','osVer','cpu','ramGb','diskTotal','diskFree','serial','installDate','deviceAge','site','lastLogon','deviceType','model','manufacturer','bitlocker','antivirus'];
-var MAP_LABELS={'pcName':'PC Name','user':'Username','os':'OS','osVer':'OS Version','cpu':'CPU',
+var MAP_KEYS=['pcName','user','os','osVer','cpu','ramGb','diskTotal','diskFree','serial',
+  'installDate','deviceAge','site','lastLogon','deviceType','model','manufacturer',
+  'bitlocker','antivirus','tpm','secureBoot','lastUpdate','ipAddress','domain',
+  'pendingReboot','gpu','monitor','chassis','patchStatus','domainRole'];
+var MAP_LABELS={
+  'pcName':'PC Name','user':'Username','os':'OS','osVer':'OS Version','cpu':'CPU',
   'ramGb':'RAM (GB)','diskTotal':'Disk Total (GB)','diskFree':'Disk Free (GB)','serial':'Serial',
   'installDate':'Install Date','deviceAge':'Device Age','site':'Site','lastLogon':'Last Logon',
-  'deviceType':'Device Type','model':'Model','manufacturer':'Manufacturer','bitlocker':'BitLocker Status','antivirus':'Antivirus'};
-var COMMON={'pcName':['pc name','computer name','hostname','device name','name'],
-  'user':['user','username','logged in user','last user','owner'],
-  'os':['os','operating system','windows'],
-  'osVer':['os version','build','windows version','version'],
-  'cpu':['cpu','processor','processor name'],
-  'ramGb':['ram','memory','ram (gb)','memory (gb)'],
-  'diskTotal':['disk total','total disk','hdd total','disk size','disk total (gb)'],
-  'diskFree':['disk free','free disk','hdd free','free space','disk free (gb)','free (gb)'],
-  'serial':['serial','serial number','serial#'],
-  'installDate':['install date','installed','os install date','install'],
-  'deviceAge':['device age','age','age (years)','age (yr)'],
-  'site':['site','location','branch','office'],
-  'lastLogon':['last logon','last login','last seen','last contact'],
-  'deviceType':['device type','type','form factor'],
-  'model':['model','device model','pc model'],
-  'manufacturer':['manufacturer','make','vendor','oem','mfr','brand'],
-  'bitlocker':['bitlocker','bit locker','encryption','bitlocker status','drive encryption','encrypted'],
-  'antivirus':['antivirus','anti-virus','av product','av status','security product','endpoint protection','endpoint security','antivirus product','antivirus name','virus protection','malware protection']};
+  'deviceType':'Device Type','model':'Model','manufacturer':'Manufacturer',
+  'bitlocker':'BitLocker Status','antivirus':'Antivirus',
+  'tpm':'TPM Version','secureBoot':'Secure Boot','lastUpdate':'Last Windows Update',
+  'ipAddress':'IP Address','domain':'Domain / Entra','pendingReboot':'Pending Reboot',
+  'gpu':'GPU','monitor':'Monitor','chassis':'Chassis Type','patchStatus':'Patch Status',
+  'domainRole':'Domain Role'};
+
+var COMMON={
+  'pcName':[
+    'pc name','computer name','hostname','device name','name','machine name',
+    'computer','workstation','asset name','node name','system name'],
+  'user':[
+    'user','username','logged in user','last user','owner','current user',
+    'last logged on user','primary user','assigned user','logged on user'],
+  'os':[
+    'os','operating system','os name','platform','windows edition'],
+  'osVer':[
+    'os version','build','windows version','version','build number',
+    'os build','current build','release id','windows build'],
+  'cpu':[
+    'cpu','processor','processor name','cpu name','cpu model',
+    'processor model','cpu type','chip'],
+  'ramGb':[
+    'ram','memory','ram (gb)','memory (gb)','total ram','total memory',
+    'physical memory','installed ram','installed memory','memory size',
+    'ram size','total physical memory','memory total'],
+  'diskTotal':[
+    'disk total','total disk','hdd total','disk size','disk total (gb)',
+    'total space','total space (gb)','total space gb','drive size',
+    'disk capacity','storage total','c: total','c drive total',
+    'total disk space','hdd size','ssd size','storage size',
+    'disk size (gb)','capacity (gb)','total capacity'],
+  'diskFree':[
+    'disk free','free disk','hdd free','free space','disk free (gb)',
+    'free (gb)','free space (gb)','available space','available disk',
+    'c: free','c drive free','remaining space','free disk space',
+    'disk available','storage free','hdd free space'],
+  'serial':[
+    'serial','serial number','serial#','service tag','asset tag',
+    'asset number','bios serial','hardware serial'],
+  'installDate':[
+    'install date','installed','os install date','install','installation date',
+    'os installed','windows install date','provisioned','deployed'],
+  'deviceAge':[
+    'device age','age','age (years)','age (yr)','years old','device age (years)'],
+  'site':[
+    'site','location','branch','office','building','campus',
+    'region','area','department','cost centre','cost center'],
+  'lastLogon':[
+    'last logon','last login','last seen','last contact','last active',
+    'last check-in','last checkin','last online','last connected',
+    'last activity','last communication'],
+  'deviceType':[
+    'device type','type','form factor','category','hardware type',
+    'computer type','system type','chassis type'],
+  'model':[
+    'model','device model','pc model','system model','product name',
+    'model number','hardware model','product model','machine model'],
+  'manufacturer':[
+    'manufacturer','make','vendor','oem','mfr','brand',
+    'system manufacturer','hardware manufacturer','computer manufacturer'],
+  'bitlocker':[
+    'bitlocker','bit locker','bitlocker status','drive encryption',
+    'encryption status','disk encryption','volume encryption',
+    'protection status','bitlocker protection','c: protection'],
+  'antivirus':[
+    'antivirus','anti-virus','av product','av status','security product',
+    'endpoint protection','endpoint security','antivirus product',
+    'antivirus name','virus protection','malware protection',
+    'security software','defender status','edr','edr product'],
+  'tpm':[
+    'tpm','tpm version','trusted platform module','tpm chip',
+    'tpm status','tpm spec version','security chip'],
+  'secureBoot':[
+    'secure boot','secureboot','secure boot status','uefi secure boot',
+    'secure boot enabled'],
+  'lastUpdate':[
+    'last update','last windows update','last patch','last patched',
+    'last updated','windows update','patch date','last scan',
+    'last hotfix','update date','last installed update'],
+  'ipAddress':[
+    'ip address','ip','ipv4','ip4 address','network address',
+    'primary ip','last ip','ip addr'],
+  'domain':[
+    'domain','joined domain','ad domain','entra','azure ad',
+    'domain name','workgroup','entra id','aad joined','domain joined'],
+  'pendingReboot':[
+    'pending reboot','reboot pending','restart pending','reboot required',
+    'needs reboot','pending restart'],
+  'gpu':[
+    'gpu','graphics','graphics card','video card','display adapter',
+    'gpu name','graphics adapter','video adapter'],
+  'monitor':[
+    'monitor','display','screen','monitor name','connected displays'],
+  'chassis':[
+    'chassis','chassis type','form factor','enclosure type'],
+  'patchStatus':[
+    'patch status','update status','compliance status','patch compliance',
+    'windows update status','patching status','update compliance'],
+  'domainRole':[
+    'system domain role','domain role','pc role','computer role',
+    'machine role','system role']};
+
+
+// Columns that should never map to a given key even if they contain the term
+var MAP_BLOCKLIST={
+  'domain':['system domain role','domain role','domain controller','domain user',
+            'domain admin','primary domain','domain controller name'],
+  'os':['bios','uefi','firmware'],
+  'user':['computer','domain user','local user accounts'],
+  'site':['website','web site','bios site'],
+};
 
 function autoMap(headers){
   var m={};
@@ -540,13 +644,17 @@ function autoMap(headers){
     var hl=h.toLowerCase().trim();
     MAP_KEYS.forEach(function(k){
       if(m[k]>=0)return;
+      // Check blocklist first — skip if this header is explicitly blocked for this key
+      var blocked=(MAP_BLOCKLIST[k]||[]).some(function(b){return hl===b||hl.includes(b);});
+      if(blocked)return;
       if((COMMON[k]||[]).some(function(s){
-        // Exact match always works
         if(hl===s)return true;
-        // For short terms (<=4 chars) only allow exact match to avoid substring false positives
         if(s.length<=4)return false;
-        // For longer terms, allow contains
-        return hl.includes(s);
+        try{
+          var re=new RegExp('(^|[\\s\\-_/,()])'+s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'([\\s\\-_/,()]|$)','i');
+          if(re.test(hl))return true;
+        }catch(e){}
+        return hl===s||hl.startsWith(s+' ')||hl.endsWith(' '+s)||hl.includes(' '+s+' ');
       })) m[k]=i;
     });
   });
@@ -1006,17 +1114,106 @@ function analyse(){
       else avStatus='active'; // has a named product and not flagged as bad
     }
 
+    // ── TPM ────────────────────────────────────────────────────────────────
+    var tpmRaw=(gv(r,M.tpm)||'').toLowerCase().trim();
+    var tpmStatus='unknown';
+    if(tpmRaw){
+      if(/2\.0|tpm\s*2/i.test(tpmRaw)) tpmStatus='2.0';
+      else if(/1\.2|tpm\s*1/i.test(tpmRaw)) tpmStatus='1.2';
+      else if(/none|not present|no tpm|disabled|not found|absent/i.test(tpmRaw)) tpmStatus='none';
+      else tpmStatus='unknown-data';
+    }
+
+    // ── Secure Boot ────────────────────────────────────────────────────────
+    var sbRaw=(gv(r,M.secureBoot)||'').toLowerCase().trim();
+    var sbStatus='unknown';
+    if(sbRaw){
+      if(/enabled|on|yes|true|1/i.test(sbRaw)) sbStatus='enabled';
+      else if(/disabled|off|no|false|0/i.test(sbRaw)) sbStatus='disabled';
+      else sbStatus='unknown-data';
+    }
+
+    // ── Last Windows Update ────────────────────────────────────────────────
+    var lastUpdateRaw=gv(r,M.lastUpdate)||'';
+    var lastUpdateDate=null;
+    var daysSinceUpdate=null;
+    if(lastUpdateRaw){
+      var ud=new Date(lastUpdateRaw);
+      if(!isNaN(ud)){
+        lastUpdateDate=ud;
+        daysSinceUpdate=Math.floor((now-ud)/(24*3600*1000));
+      }
+    }
+
+    // ── Domain / Standalone detection ─────────────────────────────────────
+    var domainRaw=(gv(r,M.domain)||'').trim();
+    var domainRoleRaw=(gv(r,M.domainRole)||'').trim();
+
+    // Try to infer domain from username if not already present
+    // Handles DOMAIN\username and username@domain.com formats
+    if(!domainRaw){
+      var userStr=gv(r,M.user)||'';
+      var lastLogonStr=gv(r,M.lastLogon)||'';
+      // Check both user and last logon fields
+      var userFields=[userStr,lastLogonStr];
+      for(var ui=0;ui<userFields.length;ui++){
+        var uv=userFields[ui].trim();
+        // DOMAIN\username format
+        var backslashMatch=uv.match(/^([^\\]+)\\.+/);
+        if(backslashMatch&&backslashMatch[1].toLowerCase()!=='nt authority'){
+          domainRaw=backslashMatch[1];
+          break;
+        }
+        // username@domain.com format — extract domain part
+        var atMatch=uv.match(/^[^@]+@(.+)$/);
+        if(atMatch){
+          domainRaw=atMatch[1];
+          break;
+        }
+      }
+    }
+
+    var isStandalone=false;
+    // Check domain role first — most reliable indicator
+    if(domainRoleRaw){
+      if(/standalone/i.test(domainRoleRaw)) isStandalone=true;
+      else if(/workgroup/i.test(domainRoleRaw)) isStandalone=true;
+    } else if(M.domain>=0&&domainRaw){
+      var looksLikeDomain=/\.|\\|\.local|\.com|\.net|\.org|\.int/i.test(domainRaw);
+      var looksLikeJoined=/joined|yes|true|azure|entra|aad/i.test(domainRaw);
+      var looksLikeWorkgroup=/^workgroup$|^none$|^no$|^false$|^0$|not joined|standalone|not domain/i.test(domainRaw);
+      if(looksLikeWorkgroup&&!looksLikeDomain&&!looksLikeJoined) isStandalone=true;
+    }
+
+    // ── Pending Reboot ────────────────────────────────────────────────────
+    var rebootRaw=(gv(r,M.pendingReboot)||'').toLowerCase().trim();
+    var pendingReboot=false;
+    if(rebootRaw){
+      if(/yes|true|1|pending|required/i.test(rebootRaw)) pendingReboot=true;
+    }
+
+    // ── Patch Status ──────────────────────────────────────────────────────
+    var patchRaw=(gv(r,M.patchStatus)||'').trim();
+
     if(!isServer&&w11.st==='not-ready')iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
+    // TPM flags — only relevant for Win10 devices considering Win11 upgrade
+    if(tpmStatus==='none') iss.push({m:'No TPM detected',sev:'red',cat:'tpm'});
+    else if(tpmStatus==='1.2') iss.push({m:'TPM 1.2 — Win11 requires TPM 2.0',sev:'amber',cat:'tpm'});
+    // Secure Boot
+    if(sbStatus==='disabled') iss.push({m:'Secure Boot disabled',sev:'amber',cat:'secureboot'});
+    // Last update
+    if(daysSinceUpdate!=null&&daysSinceUpdate>90) iss.push({m:'Not updated in '+daysSinceUpdate+' days',sev:daysSinceUpdate>180?'red':'amber',cat:'patch'});
+    // Pending reboot
+    if(pendingReboot) iss.push({m:'Pending reboot',sev:'amber',cat:'reboot'});
     if(war==='Expired')iss.push({m:'Warranty Expired',sev:'amber',cat:'war'});
     if(stale)iss.push({m:'Stale (90+ days)',sev:'amber',cat:'stale'});
-    // Only flag BitLocker/AV if we actually have data — never flag 'unknown'
     if(blStatus==='off')iss.push({m:'BitLocker Not Enabled',sev:'red',cat:'bitlocker'});
     else if(blStatus==='partial')iss.push({m:'BitLocker Encryption In Progress',sev:'amber',cat:'bitlocker'});
     if(avStatus==='none')iss.push({m:'No Antivirus Detected',sev:'red',cat:'av'});
     else if(avStatus==='inactive')iss.push({m:'Antivirus Inactive/Expired',sev:'red',cat:'av'});
-    // Home edition on corporate fleet
     var osRaw=gv(r,M.os)||'';
     if(/\bhome\b/i.test(osRaw))iss.push({m:'Home Edition — cannot Entra join or apply Group Policy',sev:'red',cat:'home'});
+    if(isStandalone&&!isServer)iss.push({m:'Standalone/Workgroup — not domain or Entra joined',sev:'amber',cat:'standalone'});
 
     // Action
     var action='ok';
@@ -1025,7 +1222,10 @@ function analyse(){
 
     return{r:r,ageY:ageY,age:age,ram:ram,td:td,fd:fd,freeP:freeP,war:war,
       cpu:cpuInfo,w11:w11,stale:stale,iss:iss,action:action,eol:eol,eolCol:eolCol,
-      isServer:isServer,blStatus:blStatus,avStatus:avStatus,avRaw:avRaw};
+      isServer:isServer,isStandalone:isStandalone,blStatus:blStatus,avStatus:avStatus,avRaw:avRaw,
+      tpmStatus:tpmStatus,tpmRaw:tpmRaw,sbStatus:sbStatus,
+      lastUpdateDate:lastUpdateDate,daysSinceUpdate:daysSinceUpdate,
+      domainRaw:domainRaw,domainRoleRaw:domainRoleRaw,pendingReboot:pendingReboot,patchRaw:patchRaw};
   });
 
   filterFn=null;page=1;
@@ -1045,6 +1245,14 @@ function analyse(){
   renderChips();
   renderOsVersions();
   populateFilters();
+  // Auto-show/hide columns based on whether data exists
+  COL_DEFS.forEach(function(c){
+    if(c.always)return;
+    var hasData=columnHasData(c.id);
+    // Turn on if data exists AND column is marked on:true
+    // Turn off if no data regardless of default
+    colState[c.id]=hasData&&(c.on||false);
+  });
   buildColPicker();
   renderTable();
 }
@@ -1090,7 +1298,7 @@ function renderStats(){
   var topOs=Object.keys(osMap).sort(function(a,b){return osMap[b]-osMap[a];})[0]||'—';
 
   var avgAge=null;
-  var withAge=DATA.filter(function(d){return d.ageY!=null;});
+  var withAge=DATA.filter(function(d){return d.ageY!=null&&!isNaN(d.ageY);});
   if(withAge.length)avgAge=(withAge.reduce(function(s,d){return s+d.ageY;},0)/withAge.length).toFixed(1);
 
   var legCount=DATA.filter(function(d){return d.age==='legacy';}).length;
@@ -1211,16 +1419,21 @@ function renderCharts(){
 
 // ── CHIPS ───────────────────────────────────────────────────────────────────
 var ISS_CATS=[
-  {cat:'age',       label:'Age Issues',        sev:'amber'},
-  {cat:'eol',       label:'OS End of Life',    sev:'red'},
-  {cat:'ram',       label:'RAM Issues',        sev:'amber'},
-  {cat:'disk',      label:'Disk Issues',       sev:'red'},
-  {cat:'w11',       label:'Win11 Issues',      sev:'red'},
-  {cat:'war',       label:'Warranty',          sev:'amber'},
-  {cat:'stale',     label:'Stale Devices',     sev:'amber'},
-  {cat:'bitlocker', label:'BitLocker Issues',  sev:'red'},
-  {cat:'av',        label:'Antivirus Issues',  sev:'red'},
-  {cat:'home',      label:'Home Editions',     sev:'red'},
+  {cat:'age',        label:'Age Issues',         sev:'amber'},
+  {cat:'eol',        label:'OS End of Life',      sev:'red'},
+  {cat:'ram',        label:'RAM Issues',          sev:'amber'},
+  {cat:'disk',       label:'Disk Issues',         sev:'red'},
+  {cat:'w11',        label:'Win11 Issues',        sev:'red'},
+  {cat:'tpm',        label:'TPM Issues',          sev:'amber'},
+  {cat:'secureboot', label:'Secure Boot',         sev:'amber'},
+  {cat:'patch',      label:'Patch Issues',        sev:'amber'},
+  {cat:'reboot',     label:'Pending Reboot',      sev:'amber'},
+  {cat:'war',        label:'Warranty',            sev:'amber'},
+  {cat:'stale',      label:'Stale Devices',       sev:'amber'},
+  {cat:'bitlocker',  label:'BitLocker Issues',    sev:'red'},
+  {cat:'av',         label:'Antivirus Issues',    sev:'red'},
+  {cat:'home',       label:'Home Editions',       sev:'red'},
+  {cat:'standalone', label:'Standalone Devices',  sev:'amber'},
 ];
 
 function renderChips(){
@@ -1436,15 +1649,35 @@ function buildColPicker(){
   inner.innerHTML='';
   COL_DEFS.forEach(function(c){
     if(c.always)return;
+    var hasData=columnHasData(c.id);
     var btn=document.createElement('button');
     btn.className='col-toggle'+(colState[c.id]?' on':'');
-    btn.textContent=c.label;
+    btn.title=hasData?'':'No data found for this column';
+    btn.innerHTML=c.label+(hasData?'':'<span style="opacity:.45;font-size:.65rem;margin-left:4px">empty</span>');
     btn.onclick=function(){
       colState[c.id]=!colState[c.id];
       btn.className='col-toggle'+(colState[c.id]?' on':'');
       renderTable();
     };
     inner.appendChild(btn);
+  });
+}
+
+// Returns true if any device has a non-empty meaningful value for this column
+function columnHasData(colId){
+  // Check mapping first for columns that rely on a mapped source
+  var mappedCols={
+    'bitlocker':'bitlocker','antivirus':'antivirus','tpm':'tpm',
+    'secureBoot':'secureBoot','lastUpdate':'lastUpdate','domain':'domain',
+    'pendingReboot':'pendingReboot','ipAddress':'ipAddress','patchStatus':'patchStatus',
+    'serial':'serial','manufacturer':'manufacturer','cpu':'cpu','stale':'lastLogon',
+    'diskFree':'diskFree','site':'site'
+  };
+  if(mappedCols[colId]!==undefined&&M[mappedCols[colId]]<0) return false;
+  var EMPTY_VALS=['','—','unknown','unknown-data',null,undefined,0,9999,false];
+  return DATA.some(function(d){
+    var v=getCellVal(d,colId);
+    return EMPTY_VALS.indexOf(v)===-1&&v!==false;
   });
 }
 
@@ -1510,8 +1743,15 @@ function getCellVal(d,colId){
     case 'action':return d.action||'';
     case 'serial':return gv(d.r,M.serial)||'';
     case 'manufacturer':return gv(d.r,M.manufacturer)||'';
-    case 'bitlocker':return d.blStatus||'';
-    case 'antivirus':return d.avRaw||d.avStatus||'';
+    case 'bitlocker':return M.bitlocker>=0?d.blStatus&&d.blStatus!=='unknown'?d.blStatus:'':'';
+    case 'antivirus':return M.antivirus>=0?d.avRaw||d.avStatus&&d.avStatus!=='unknown'?d.avRaw||d.avStatus:'':'';
+    case 'tpm':return M.tpm>=0?d.tpmStatus&&d.tpmStatus!=='unknown'?d.tpmStatus:'':'';
+    case 'secureBoot':return M.secureBoot>=0?d.sbStatus&&d.sbStatus!=='unknown'?d.sbStatus:'':'';
+    case 'lastUpdate':return M.lastUpdate>=0&&d.daysSinceUpdate!=null?d.daysSinceUpdate:9999;
+    case 'domain':return M.domain>=0?d.domainRaw||'':'';
+    case 'pendingReboot':return M.pendingReboot>=0?d.pendingReboot?1:0:'';
+    case 'ipAddress':return M.ipAddress>=0?gv(d.r,M.ipAddress)||'':'';
+    case 'patchStatus':return M.patchStatus>=0?d.patchRaw||'':'';
     default:return '';
   }
 }
@@ -1530,11 +1770,11 @@ function renderCell(d,colId){
     case 'cpuGen':return '<span class="pill pill-grey">'+esc(d.cpu.gen)+'</span>';
     case 'ram':return d.ram?(d.ram+'GB'):'—';
     case 'diskFree':
-      if(d.fd==null)return '—';
+      if(d.fd==null||d.freeP==null)return '—';
       var cls=d.freeP<10?'pill-red':d.freeP<20?'pill-amber':'pill-green';
       return '<span class="pill '+cls+'">'+d.fd.toFixed(0)+'GB</span>';
     case 'age':
-      if(d.ageY==null)return '—';
+      if(d.ageY==null||isNaN(d.ageY))return '—';
       var acls={'new':'pill-green','aging':'pill-acc','old':'pill-amber','legacy':'pill-red'}[d.age]||'pill-grey';
       return '<span class="pill '+acls+'">'+d.ageY.toFixed(1)+'yr</span>';
     case 'w11':
@@ -1568,6 +1808,32 @@ function renderCell(d,colId){
       if(d.avStatus==='none')return '<span class="pill pill-red">❌ None</span>';
       if(d.avStatus==='inactive')return '<span class="pill pill-red">⚠ '+esc(d.avRaw||'Inactive')+'</span>';
       return '<span class="pill pill-green">✓ '+esc(d.avRaw||'Active')+'</span>';
+    case 'tpm':
+      if(d.tpmStatus==='unknown')return '<span class="pill pill-grey">—</span>';
+      if(d.tpmStatus==='2.0')return '<span class="pill pill-green">✓ TPM 2.0</span>';
+      if(d.tpmStatus==='1.2')return '<span class="pill pill-amber">⚠ TPM 1.2</span>';
+      if(d.tpmStatus==='none')return '<span class="pill pill-red">❌ No TPM</span>';
+      return '<span class="pill pill-grey">'+esc(d.tpmRaw||'Unknown')+'</span>';
+    case 'secureBoot':
+      if(d.sbStatus==='unknown')return '<span class="pill pill-grey">—</span>';
+      if(d.sbStatus==='enabled')return '<span class="pill pill-green">✓ Enabled</span>';
+      if(d.sbStatus==='disabled')return '<span class="pill pill-amber">⚠ Disabled</span>';
+      return '<span class="pill pill-grey">Unknown</span>';
+    case 'lastUpdate':
+      if(d.daysSinceUpdate==null)return '<span class="pill pill-grey">—</span>';
+      var uCls=d.daysSinceUpdate>180?'pill-red':d.daysSinceUpdate>90?'pill-amber':'pill-green';
+      return '<span class="pill '+uCls+'">'+d.daysSinceUpdate+'d ago</span>';
+    case 'domain':
+      if(d.isStandalone) return '<span class="pill pill-amber">⚠ Standalone</span>';
+      return d.domainRaw?'<span class="pill pill-acc">'+esc(d.domainRaw)+'</span>':'<span class="pill pill-grey">—</span>';
+    case 'pendingReboot':
+      return d.pendingReboot?'<span class="pill pill-amber">⚠ Pending</span>':'<span class="pill pill-grey">—</span>';
+    case 'ipAddress':return esc(gv(d.r,M.ipAddress)||'—');
+    case 'patchStatus':
+      if(!d.patchRaw)return '<span class="pill pill-grey">—</span>';
+      var pCls=/compliant|up.?to.?date|current|ok/i.test(d.patchRaw)?'pill-green':
+               /non.?compliant|out.?of.?date|missing|behind/i.test(d.patchRaw)?'pill-red':'pill-amber';
+      return '<span class="pill '+pCls+'">'+esc(d.patchRaw)+'</span>';
     default:return '—';
   }
 }
@@ -1599,9 +1865,10 @@ function goPage(n){page=n;renderTable();}
 var OVERRIDES={};
 
 // ── WARRANTY LOOKUP URLS ──────────────────────────────────────────────────────
-function warrantyUrl(manufacturer,serial){
+function warrantyUrl(manufacturer,serial,model){
   if(!serial||serial==='—')return null;
-  var m=(manufacturer||'').toLowerCase();
+  // Try manufacturer first, fall back to model string for detection
+  var m=((manufacturer||'')+(model||'')).toLowerCase();
   var s=encodeURIComponent(serial.trim());
   if(m.includes('dell'))
     return{label:'Dell Warranty Check',url:'https://www.dell.com/support/home/en-gb/product-support/servicetag/'+s+'/warranty'};
@@ -1619,8 +1886,8 @@ function warrantyUrl(manufacturer,serial){
     return{label:'ASUS Warranty Check',url:'https://www.asus.com/support/warranty-status-inquiry/?serial='+s};
   if(m.includes('fujitsu'))
     return{label:'Fujitsu Warranty Check',url:'https://support.ts.fujitsu.com/warranty?serial='+s};
-  // No recognised manufacturer but serial present — show nothing rather than a Google search
-  return null;
+  // Serial present but manufacturer unknown — Google search is actually useful here
+  return{label:'Search Serial: '+serial.trim(),url:'https://www.google.com/search?q='+s+'+warranty+check'};
 }
 
 function openModal(idx){
@@ -1631,8 +1898,8 @@ function openModal(idx){
   var ov=OVERRIDES[pcName.toLowerCase()]||{};
 
   // Use override values where present
-  var dispAge=ov.ageY!=null?ov.ageY.toFixed(1)+' yrs (manual override)':
-              d.ageY!=null?d.ageY.toFixed(1)+' yrs ('+d.age+')':'—';
+  var dispAge=ov.ageY!=null&&!isNaN(ov.ageY)?ov.ageY.toFixed(1)+' yrs (manual override)':
+              d.ageY!=null&&!isNaN(d.ageY)?d.ageY.toFixed(1)+' yrs ('+d.age+')':'—';
   var dispWar=ov.war||d.war;
   var dispWarExpiry=ov.warExpiry||'';
 
@@ -1648,11 +1915,19 @@ function openModal(idx){
     ['CPU Gen',d.cpu.gen],
     ['RAM',d.ram?d.ram+'GB':'—'],
     ['Disk Total',d.td?d.td+'GB':'—'],
-    ['Disk Free',d.fd!=null?d.fd.toFixed(1)+'GB ('+d.freeP.toFixed(0)+'%)':'—'],
+    ['Disk Free',d.fd!=null&&d.freeP!=null?d.fd.toFixed(1)+'GB ('+d.freeP.toFixed(0)+'%)':'—'],
     ['Age',dispAge],
     ['Win11',W11_LABELS[d.w11.st]||d.w11.st],
     ['BitLocker',{on:'🔒 Encrypted',off:'🔓 Not Encrypted',partial:'⏳ In Progress','unknown-data':'Unknown',unknown:'No data'}[d.blStatus]||'—'],
     ['Antivirus',d.avStatus==='unknown'?'No data':d.avStatus==='none'?'None detected':(d.avRaw||d.avStatus)],
+    ['TPM',{unknown:'No data','unknown-data':'Unknown','2.0':'TPM 2.0 ✓','1.2':'TPM 1.2 (upgrade needed)','none':'Not detected'}[d.tpmStatus]||d.tpmStatus],
+    ['Secure Boot',{unknown:'No data','unknown-data':'Unknown',enabled:'Enabled ✓',disabled:'Disabled ⚠'}[d.sbStatus]||d.sbStatus],
+    ['Last Update',d.daysSinceUpdate!=null?(d.daysSinceUpdate+' days ago'):'No data'],
+    ['Domain / Entra',d.isStandalone?'⚠ Standalone/Workgroup':(d.domainRaw||'—')],
+    ['Domain Role',d.domainRoleRaw||'—'],
+    ['IP Address',gv(d.r,M.ipAddress)||'—'],
+    ['Pending Reboot',d.pendingReboot?'Yes':'No'],
+    ['Patch Status',d.patchRaw||'—'],
     ['Warranty',dispWar+(dispWarExpiry?' — expires '+dispWarExpiry:'')],
     ['Serial',serial||'—'],
     ['Last Logon',gv(d.r,M.lastLogon)||'—'],
@@ -1662,22 +1937,47 @@ function openModal(idx){
   if(d.iss.length)rows.push(['Issues',d.iss.map(function(i){return i.m;}).join(', ')]);
   if(d.w11.iss&&d.w11.iss.length)rows.push(['Win11 Blockers',d.w11.iss.join(', ')]);
 
-  // Warranty link
-  var wUrl=warrantyUrl(manufacturer,serial);
-  var warLinkHtml='';
-  if(wUrl){
-    warLinkHtml='<div style="margin:10px 0 4px">'+
-      '<a class="war-link" href="'+wUrl.url+'" target="_blank" rel="noopener">🔍 '+esc(wUrl.label)+' ↗</a>'+
-      '<div class="override-note">Opens vendor page with serial pre-filled — confirm details then update below</div>'+
-    '</div>';
-  } else if(serial&&serial!=='—'){
-    warLinkHtml='<div class="override-note" style="margin:8px 0">No direct warranty lookup available for this manufacturer — check vendor website manually then update below.</div>';
-  }
+  // Detect best-guess manufacturer for pre-selecting dropdown
+  var mfr=manufacturer||gv(d.r,M.model)||'';
+  var mfrLower=mfr.toLowerCase();
+  var detectedMfr='';
+  if(mfrLower.includes('dell')) detectedMfr='dell';
+  else if(mfrLower.includes('hp')||mfrLower.includes('hewlett')) detectedMfr='hp';
+  else if(mfrLower.includes('lenovo')) detectedMfr='lenovo';
+  else if(mfrLower.includes('microsoft')||mfrLower.includes('surface')) detectedMfr='microsoft';
+  else if(mfrLower.includes('toshiba')||mfrLower.includes('dynabook')) detectedMfr='dynabook';
+  else if(mfrLower.includes('acer')) detectedMfr='acer';
+  else if(mfrLower.includes('asus')) detectedMfr='asus';
+  else if(mfrLower.includes('fujitsu')) detectedMfr='fujitsu';
+
+  var mfrOptions=[
+    ['','— Select manufacturer —'],
+    ['dell','Dell'],
+    ['hp','HP'],
+    ['lenovo','Lenovo'],
+    ['microsoft','Microsoft / Surface'],
+    ['dynabook','Toshiba / Dynabook'],
+    ['acer','Acer'],
+    ['asus','ASUS'],
+    ['fujitsu','Fujitsu'],
+  ].map(function(o){
+    return '<option value="'+o[0]+'"'+(detectedMfr===o[0]?' selected':'')+'>'+o[1]+'</option>';
+  }).join('');
 
   // Override form
-  var overrideHtml='<div class="mbox-section">✏ Override Details</div>'+
-    '<div class="override-note" style="margin-bottom:8px">After checking the vendor warranty page, enter the confirmed values here — they will update the device record and recalculate issues.</div>'+
-    warLinkHtml+
+  var overrideHtml='<div class="mbox-section">🔍 Warranty Lookup &amp; Override</div>'+
+    '<div class="override-note" style="margin-bottom:10px">Select manufacturer and confirm serial, then click the lookup link. Update the fields below with confirmed details.</div>'+
+    '<div class="override-grid" style="margin-bottom:8px">'+
+      '<div class="override-field">'+
+        '<label>Manufacturer</label>'+
+        '<select id="ov-mfr" onchange="updateWarLink()">'+mfrOptions+'</select>'+
+      '</div>'+
+      '<div class="override-field">'+
+        '<label>Serial Number</label>'+
+        '<input type="text" id="ov-serial" placeholder="Enter serial…" value="'+(serial&&serial!=='—'?esc(serial):'')+'" oninput="updateWarLink()" />'+
+      '</div>'+
+    '</div>'+
+    '<div id="war-link-wrap" style="margin-bottom:12px"></div>'+
     '<div class="override-grid">'+
       '<div class="override-field">'+
         '<label>Device Age (years)</label>'+
@@ -1710,7 +2010,45 @@ function openModal(idx){
     }).join('')+
     overrideHtml;
   document.getElementById('mover').classList.add('open');
+  // Render the link immediately based on pre-detected values
+  updateWarLink();
 }
+function updateWarLink(){
+  var mfrEl=document.getElementById('ov-mfr');
+  var serialEl=document.getElementById('ov-serial');
+  var wrap=document.getElementById('war-link-wrap');
+  if(!mfrEl||!serialEl||!wrap)return; // modal not open yet
+
+  var mfr=mfrEl.value;
+  var serial=(serialEl.value||'').trim();
+
+  if(!mfr){
+    wrap.innerHTML='<div class="override-note">Select a manufacturer to generate the warranty lookup link.</div>';
+    return;
+  }
+  if(!serial){
+    wrap.innerHTML='<div class="override-note">Enter a serial number to generate the lookup link.</div>';
+    return;
+  }
+
+  var s=encodeURIComponent(serial);
+  var urls={
+    'dell':  {label:'Dell Warranty Check',     url:'https://www.dell.com/support/home/en-gb/product-support/servicetag/'+s+'/warranty'},
+    'hp':    {label:'HP Warranty Check',        url:'https://support.hp.com/gb-en/warrantyresult?serialNo='+s},
+    'lenovo':{label:'Lenovo Warranty Check',    url:'https://pcsupport.lenovo.com/gb/en/products/'+s},
+    'microsoft':{label:'Microsoft Device Support',url:'https://support.microsoft.com/en-gb/surface'},
+    'dynabook':{label:'Dynabook Warranty Check',url:'https://emea.dynabook.com/support-warranty-check?sn='+s},
+    'acer':  {label:'Acer Warranty Check',      url:'https://www.acer.com/gb-en/support/product-support/'+s},
+    'asus':  {label:'ASUS Warranty Check',      url:'https://www.asus.com/support/warranty-status-inquiry/?serial='+s},
+    'fujitsu':{label:'Fujitsu Warranty Check',  url:'https://support.ts.fujitsu.com/warranty?serial='+s},
+  };
+  var w=urls[mfr];
+  if(!w)return;
+  wrap.innerHTML=
+    '<a class="war-link" href="'+w.url+'" target="_blank" rel="noopener">🔍 '+w.label+' ↗</a>'+
+    '<div class="override-note" style="margin-top:4px">Opens vendor page — confirm details then save below</div>';
+}
+
 function closeMover(e){
   if(!e||e.target===document.getElementById('mover'))
     document.getElementById('mover').classList.remove('open');
@@ -1785,6 +2123,11 @@ function applyOverridesToData(){
     if(d.freeP!=null&&d.freeP<10) iss.push({m:'Disk < 10% free',sev:'red',cat:'disk'});
     else if(d.freeP!=null&&d.freeP<20) iss.push({m:'Disk < 20% free',sev:'amber',cat:'disk'});
     if(!isServer&&d.w11.st==='not-ready') iss.push({m:'Win11 Incompatible',sev:'red',cat:'w11'});
+    if(d.tpmStatus==='none') iss.push({m:'No TPM detected',sev:'red',cat:'tpm'});
+    else if(d.tpmStatus==='1.2') iss.push({m:'TPM 1.2 — Win11 requires TPM 2.0',sev:'amber',cat:'tpm'});
+    if(d.sbStatus==='disabled') iss.push({m:'Secure Boot disabled',sev:'amber',cat:'secureboot'});
+    if(d.daysSinceUpdate!=null&&d.daysSinceUpdate>90) iss.push({m:'Not updated in '+d.daysSinceUpdate+' days',sev:d.daysSinceUpdate>180?'red':'amber',cat:'patch'});
+    if(d.pendingReboot) iss.push({m:'Pending reboot',sev:'amber',cat:'reboot'});
     if(d.war==='Expired') iss.push({m:'Warranty Expired',sev:'amber',cat:'war'});
     if(d.stale) iss.push({m:'Stale (90+ days)',sev:'amber',cat:'stale'});
     if(d.blStatus==='off') iss.push({m:'BitLocker Not Enabled',sev:'red',cat:'bitlocker'});
@@ -1793,6 +2136,7 @@ function applyOverridesToData(){
     else if(d.avStatus==='inactive') iss.push({m:'Antivirus Inactive/Expired',sev:'red',cat:'av'});
     var osRaw=gv(d.r,M.os)||'';
     if(/\bhome\b/i.test(osRaw)) iss.push({m:'Home Edition — cannot Entra join or apply Group Policy',sev:'red',cat:'home'});
+    if(d.isStandalone&&!isServer) iss.push({m:'Standalone/Workgroup — not domain or Entra joined',sev:'amber',cat:'standalone'});
     d.iss=iss;
     d.action='ok';
     if(iss.some(function(i){return i.sev==='red';})) d.action=d.age==='legacy'?'procure':'fix-today';
@@ -1821,6 +2165,13 @@ function doExport(){
     ['Stale',function(d){return d.stale?'Yes':'No';}],
     ['BitLocker',function(d){return d.blStatus==='unknown'?'':d.blStatus;}],
     ['Antivirus',function(d){return d.avStatus==='unknown'?'':d.avRaw||d.avStatus;}],
+    ['TPM',function(d){return d.tpmStatus==='unknown'?'':d.tpmStatus;}],
+    ['Secure Boot',function(d){return d.sbStatus==='unknown'?'':d.sbStatus;}],
+    ['Last Update (days ago)',function(d){return d.daysSinceUpdate!=null?d.daysSinceUpdate:'';}],
+    ['Domain',function(d){return d.domainRaw||'';}],
+    ['Pending Reboot',function(d){return d.pendingReboot?'Yes':'';}],
+    ['Patch Status',function(d){return d.patchRaw||'';}],
+    ['IP Address',function(d){return gv(d.r,M.ipAddress)||'';}],
     ['Manufacturer',function(d){return gv(d.r,M.manufacturer);}],
     ['Issue Count',function(d){return d.iss.length;}],
     ['Issues',function(d){return d.iss.map(function(i){return i.m;}).join(' | ');}],
@@ -1971,7 +2322,7 @@ function buildStatBoxes(){
   var osMap={};
   DATA.forEach(function(d){var o=gv(d.r,M.os)||'Unknown';var k=o.split(' ').slice(0,2).join(' ');osMap[k]=(osMap[k]||0)+1;});
   var topOs=Object.keys(osMap).sort(function(a,b){return osMap[b]-osMap[a];})[0]||'—';
-  var withAge=DATA.filter(function(d){return d.ageY!=null;});
+  var withAge=DATA.filter(function(d){return d.ageY!=null&&!isNaN(d.ageY);});
   var avgAge=withAge.length?(withAge.reduce(function(s,d){return s+d.ageY;},0)/withAge.length).toFixed(1):'—';
   var legCount=DATA.filter(function(d){return d.age==='legacy';}).length;
   var critCount=DATA.filter(function(d){return d.iss.some(function(i){return i.sev==='red';});}).length;
