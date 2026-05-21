@@ -8,7 +8,7 @@
   (function(){
     try{
       var t=localStorage.getItem('sw-theme');
-      if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches))
+      if(t==='dark')
         document.documentElement.setAttribute('data-theme','dark');
     }catch(e){}
   })();
@@ -37,6 +37,8 @@
   --blue-lt: #eef3fd;
   --red:     #be1c1c;
   --red-lt:  #fff1f1;
+  --purple:  #7c3aed;
+  --purple-lt:#f5f3ff;
   --radius:  12px;
   --shadow:  0 1px 4px rgba(0,0,0,.06),0 4px 16px rgba(0,0,0,.06);
   --font:    'DM Sans', sans-serif;
@@ -62,6 +64,8 @@
   --blue-lt: #1d3a5f;
   --red:     #f87171;
   --red-lt:  #450a0a;
+  --purple:  #a78bfa;
+  --purple-lt:#2e1065;
   --shadow:  0 1px 4px rgba(0,0,0,.2),0 4px 16px rgba(0,0,0,.3);
 }
 *{box-sizing:border-box;margin:0;padding:0}
@@ -82,15 +86,17 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 
 /* ── MAIN ── */
 main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
-.hero{margin-bottom:36px}
+.hero{margin-bottom:44px}
 .hero h1{font-size:1.6rem;font-weight:700;margin-bottom:6px}
 .hero p{font-size:.92rem;color:var(--muted);max-width:540px;line-height:1.6}
 
 /* ── SECTIONS ── */
-.section{margin-bottom:36px}
+.section{margin-bottom:44px}
+.section-header{margin-bottom:16px}
 .section-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
-  color:var(--faint);font-family:var(--mono);margin-bottom:12px;padding-bottom:8px;
-  border-bottom:1px solid var(--border)}
+  color:var(--faint);font-family:var(--mono);padding-bottom:4px}
+.section-who{font-size:.82rem;color:var(--muted);margin-top:5px;line-height:1.5}
+.section-divider{height:1px;background:var(--border);margin-top:10px;margin-bottom:16px}
 
 /* ── CARD GRID ── */
 .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
@@ -111,6 +117,7 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
 .tag-acc{background:var(--acc-lt);color:var(--acc)}
 .tag-red{background:var(--red-lt);color:var(--red)}
 .tag-grey{background:var(--bg);color:var(--muted);border:1px solid var(--border)}
+.tag-purple{background:var(--purple-lt);color:var(--purple)}
 </style>
 </head>
 <body>
@@ -129,30 +136,25 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
 <main>
   <div class="hero">
     <h1>Tools &amp; Resources</h1>
-    <p>A collection of standalone IT tools for licensing, security, compliance, and study. All run in the browser — no installs, no accounts.</p>
+    <p>A collection of standalone IT tools grouped by who they're built for. Everything runs in the browser — no installs, no accounts.</p>
   </div>
 
-  <!-- ── LICENSING & MANAGEMENT ── -->
+  <!-- ── IT ENGINEERS & TECHNICIANS ── -->
   <div class="section">
-    <div class="section-label">Licensing &amp; Management</div>
+    <div class="section-header">
+      <div class="section-label">🔧 IT Engineers &amp; Technicians</div>
+      <div class="section-who">Hands-on diagnostic and operational tools for engineers managing devices, security and infrastructure day-to-day.</div>
+    </div>
+    <div class="section-divider"></div>
     <div class="card-grid">
 
-      <a href="m365-navigator.html" class="card">
+      <a href="intune-compliance.html" class="card">
         <div class="card-top">
-          <div class="card-icon" style="background:#eef3fd">📋</div>
-          <div class="card-title">Seb's Microsoft 365 Navigator</div>
+          <div class="card-icon" style="background:#f0faf4">🛡️</div>
+          <div class="card-title">Seb's Intune Compliance Report</div>
         </div>
-        <p class="card-desc">Instantly look up which Microsoft 365 licence includes a specific feature or app. Filter by plan, compare tiers, and understand what's in each SKU.</p>
-        <span class="card-tag tag-acc">Licensing</span>
-      </a>
-
-      <a href="sebs-permission-calculator.html" class="card">
-        <div class="card-top">
-          <div class="card-icon" style="background:#f0faf4">🔐</div>
-          <div class="card-title">Seb's Permission Calculator</div>
-        </div>
-        <p class="card-desc">A least-privilege reference for SharePoint, OneDrive, Teams and Entra ID. Look up built-in roles, understand permissions, and design access policies following zero-trust principles.</p>
-        <span class="card-tag tag-green">Permissions</span>
+        <p class="card-desc">Import your Intune compliance CSV to analyse device status across your fleet. Issue icons at a glance, heatmap of top failures, per-device remediation guidance, and PDF reports with multiple layout options.</p>
+        <span class="card-tag tag-green">Intune</span>
       </a>
 
       <a href="system-scout.html" class="card">
@@ -164,23 +166,75 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
         <span class="card-tag tag-acc">Fleet Audit</span>
       </a>
 
-      <a href="ws-license-calc.html" class="card">
+      <a href="email-security-check.html" class="card">
         <div class="card-top">
-          <div class="card-icon" style="background:#fff8ee">🪟</div>
-          <div class="card-title">Seb's Windows Server &amp; SQL Calculator</div>
+          <div class="card-icon" style="background:#eef3fd">📧</div>
+          <div class="card-title">Seb's Email Security Check</div>
         </div>
-        <p class="card-desc">Estimate licensing costs for Windows Server and SQL Server deployments. Input hardware spec, core counts and edition requirements for a cost breakdown.<br><br>
-        <span style="font-size:11.5px;color:var(--amber);font-weight:500">⚗ Beta — not fully tested. Verify all figures against official Microsoft pricing before use.</span></p>
-        <span class="card-tag tag-amber">Beta</span>
+        <p class="card-desc">Live SPF, DKIM and DMARC lookup for any domain via DNS-over-HTTPS. Plain-English breakdown of each record, spoofability risk and a step-by-step fix guide.</p>
+        <span class="card-tag tag-blue">DNS / Email</span>
+      </a>
+
+      <a href="port-scanner.html" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="background:#fff1f1">🔍</div>
+          <div class="card-title">Seb's Port Scanner</div>
+        </div>
+        <p class="card-desc">Run a port scan against any IP or hostname and get a plain-English risk analysis per port, CE concern flags and service version detection.<br><br>
+        <span style="font-size:11.5px;color:var(--blue);font-weight:500">⚠ Requires the local Python backend to be running — see the tool for setup instructions.</span></p>
+        <span class="card-tag tag-grey">Requires Backend</span>
       </a>
 
     </div>
   </div>
 
-  <!-- ── AI & COPILOT ── -->
+  <!-- ── COMPLIANCE & GOVERNANCE ── -->
   <div class="section">
-    <div class="section-label">AI &amp; Copilot</div>
+    <div class="section-header">
+      <div class="section-label">📋 Compliance &amp; Governance</div>
+      <div class="section-who">Structured assessment and access control tools for engineers and consultants working towards a compliance standard or governance framework.</div>
+    </div>
+    <div class="section-divider"></div>
     <div class="card-grid">
+
+      <a href="ce-readiness.html" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="background:#f0faf4">🛡</div>
+          <div class="card-title">Seb's CE Readiness Check</div>
+        </div>
+        <p class="card-desc">Gap analysis against Cyber Essentials Danzell v3.3 (April 2026). Covers all 5 controls with scope helper, evidence checklists, CE+ view and remediation tracker.</p>
+        <span class="card-tag tag-green">CE Compliance</span>
+      </a>
+
+      <a href="sebs-permission-calculator.html" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="background:#f0faf4">🔐</div>
+          <div class="card-title">Seb's Permission Calculator</div>
+        </div>
+        <p class="card-desc">A least-privilege reference for SharePoint, OneDrive, Teams and Entra ID. Look up built-in roles, understand permissions, and design access policies following zero-trust principles.</p>
+        <span class="card-tag tag-green">Permissions</span>
+      </a>
+
+    </div>
+  </div>
+
+  <!-- ── PRE-SALES & SOLUTIONS ── -->
+  <div class="section">
+    <div class="section-header">
+      <div class="section-label">💼 Pre-Sales &amp; Solutions</div>
+      <div class="section-who">Tools for scoping, quoting and building proposals — useful for account managers, solutions architects and anyone putting together a business case.</div>
+    </div>
+    <div class="section-divider"></div>
+    <div class="card-grid">
+
+      <a href="m365-navigator.html" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="background:#eef3fd">📋</div>
+          <div class="card-title">Seb's Microsoft 365 Navigator</div>
+        </div>
+        <p class="card-desc">Instantly look up which Microsoft 365 licence includes a specific feature or app. Filter by plan, compare tiers, and understand what's in each SKU.</p>
+        <span class="card-tag tag-acc">Licensing</span>
+      </a>
 
       <a href="copilot-readiness.html" class="card">
         <div class="card-top">
@@ -200,22 +254,27 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
         <span class="card-tag tag-blue">Comparison</span>
       </a>
 
+      <a href="ws-license-calc.html" class="card">
+        <div class="card-top">
+          <div class="card-icon" style="background:#fff8ee">🪟</div>
+          <div class="card-title">Seb's Windows Server &amp; SQL Calculator</div>
+        </div>
+        <p class="card-desc">Estimate licensing costs for Windows Server and SQL Server deployments. Input hardware spec, core counts and edition requirements for a cost breakdown.<br><br>
+        <span style="font-size:11.5px;color:var(--amber);font-weight:500">⚗ Beta — not fully tested. Verify all figures against official Microsoft pricing before use.</span></p>
+        <span class="card-tag tag-amber">Beta</span>
+      </a>
+
     </div>
   </div>
 
-  <!-- ── SECURITY & COMPLIANCE ── -->
+  <!-- ── CUSTOMER-FACING & AWARENESS ── -->
   <div class="section">
-    <div class="section-label">Security &amp; Compliance</div>
+    <div class="section-header">
+      <div class="section-label">🤝 Customer-Facing &amp; Awareness</div>
+      <div class="section-who">Tools designed to be shared with customers or used in meetings — plain-English explainers and interactive walkthroughs that educate rather than configure.</div>
+    </div>
+    <div class="section-divider"></div>
     <div class="card-grid">
-
-      <a href="ce-readiness.html" class="card">
-        <div class="card-top">
-          <div class="card-icon" style="background:#f0faf4">🛡</div>
-          <div class="card-title">Seb's CE Readiness Check</div>
-        </div>
-        <p class="card-desc">Gap analysis against Cyber Essentials Danzell v3.3 (April 2026). Covers all 5 controls with scope helper, evidence checklists, CE+ view and remediation tracker.</p>
-        <span class="card-tag tag-green">CE Compliance</span>
-      </a>
 
       <a href="ce-explainer.html" class="card">
         <div class="card-top">
@@ -244,31 +303,16 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
         <span class="card-tag tag-green">Customer-facing</span>
       </a>
 
-      <a href="email-security-check.html" class="card">
-        <div class="card-top">
-          <div class="card-icon" style="background:#eef3fd">📧</div>
-          <div class="card-title">Seb's Email Security Check</div>
-        </div>
-        <p class="card-desc">Live SPF, DKIM and DMARC lookup for any domain via DNS-over-HTTPS. Plain-English breakdown of each record, spoofability risk and a step-by-step fix guide.</p>
-        <span class="card-tag tag-blue">DNS / Email</span>
-      </a>
-
-      <a href="port-scanner.html" class="card">
-        <div class="card-top">
-          <div class="card-icon" style="background:#fff1f1">🔍</div>
-          <div class="card-title">Seb's Port Scanner</div>
-        </div>
-        <p class="card-desc">Run a port scan against any IP or hostname and get a plain-English risk analysis per port, CE concern flags and service version detection.<br><br>
-        <span style="font-size:11.5px;color:var(--blue);font-weight:500">⚠ Requires the local Python backend to be running — see the tool for setup instructions.</span></p>
-        <span class="card-tag tag-grey">Requires Backend</span>
-      </a>
-
     </div>
   </div>
 
-  <!-- ── STUDY & REFERENCE ── -->
+  <!-- ── STUDY & CERT PREP ── -->
   <div class="section">
-    <div class="section-label">Study &amp; Reference</div>
+    <div class="section-header">
+      <div class="section-label">🎓 Study &amp; Cert Prep</div>
+      <div class="section-who">For engineers working towards Microsoft certifications — structured study guides and interactive practice tools.</div>
+    </div>
+    <div class="section-divider"></div>
     <div class="card-grid">
 
       <a href="ms-exam-hub.html" class="card">
@@ -286,7 +330,7 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
           <div class="card-title">Seb's PDF Exam Questioner</div>
         </div>
         <p class="card-desc">Upload any multiple-choice exam PDF and practise interactively. Questions presented without answers, instant feedback on selection, with a live score throughout.</p>
-        <span class="card-tag tag-blue">Practice</span>
+        <span class="card-tag tag-purple">Practice</span>
       </a>
 
     </div>
