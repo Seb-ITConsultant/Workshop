@@ -239,17 +239,40 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
 </div>
 <main>
 <div class="portal-guide">
-  <div class="sec-title">&#9432; How to export from Intune &mdash; step by step</div>
+  <div class="sec-title">&#9432; Jump straight to the right report &mdash; click a link, hit Export, then drop the CSV below</div>
   <div class="portal-steps">
-    <div class="ps"><div class="ps-num">Step 1</div><div class="ps-title">Open Intune Admin Centre</div><div class="ps-desc">Go to <code>intune.microsoft.com</code> and sign in. You need at minimum the <strong>Read</strong> role for Device Compliance.</div></div>
-    <div class="ps"><div class="ps-num">Step 2</div><div class="ps-title">Navigate to Compliance Monitor</div><div class="ps-desc">Click <code>Devices</code> in the left nav &rarr; <code>Monitor</code> &rarr; <code>Device compliance</code>. For more detail also open <code>Noncompliant devices</code>.</div></div>
-    <div class="ps"><div class="ps-num">Step 3</div><div class="ps-title">Export the CSV</div><div class="ps-desc">Click the <code>Export</code> button at the top of the report. Save the <code>.csv</code> file then drop it into the import panel below.</div></div>
+    <div class="ps">
+      <div class="ps-num">Step 1 &mdash; Open the report</div>
+      <div class="ps-title">Click a direct link below</div>
+      <div class="ps-desc">Each link takes you straight to the relevant report inside Intune. You need to already be signed into your tenant &mdash; no extra navigation needed.</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">Step 2 &mdash; Export</div>
+      <div class="ps-title">Click Export in Intune</div>
+      <div class="ps-desc">Once the report loads, click the <code>Export</code> button at the top right. Intune will prepare and download a <code>.csv</code> file to your machine.</div>
+    </div>
+    <div class="ps">
+      <div class="ps-num">Step 3 &mdash; Import</div>
+      <div class="ps-title">Drop the CSV below</div>
+      <div class="ps-desc">Drag the downloaded file into the import panel below or click to browse. Columns are auto-detected from the standard Intune export format.</div>
+    </div>
   </div>
   <div class="portal-links">
-    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/overview" target="_blank" rel="noopener">&#128279; Compliance Overview <span class="pl-badge">PORTAL</span></a>
-    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/monitor" target="_blank" rel="noopener">&#128279; Compliance Monitor</a>
-    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/devicesByCompliance" target="_blank" rel="noopener">&#128279; Devices by Compliance</a>
-    <a class="pl" href="https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" target="_blank" rel="noopener">&#128196; MS Docs: Compliance Policies</a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/monitor" target="_blank" rel="noopener">
+      &#128279; Device Compliance Report <span class="pl-badge">START HERE</span>
+    </a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/noncompliantDevices" target="_blank" rel="noopener">
+      &#128279; Non-Compliant Devices
+    </a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/deviceCompliancePolicySettingsSummary" target="_blank" rel="noopener">
+      &#128279; Policy Setting Summary
+    </a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/devicesByCompliance" target="_blank" rel="noopener">
+      &#128279; Devices by Compliance State
+    </a>
+    <a class="pl" href="https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" target="_blank" rel="noopener">
+      &#128196; MS Docs
+    </a>
   </div>
 </div>
 <div class="import-panel">
