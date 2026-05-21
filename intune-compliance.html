@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Intune Compliance Report | IT Engineer Tools</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root[data-theme="dark"]{--bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;--border:#30363d;--accent:#58a6ff;--accent2:#3fb950;--danger:#f85149;--warn:#d29922;--info:#a5d6ff;--text:#e6edf3;--text2:#8b949e;--text3:#6e7681;--comp-bg:#1a3a24;--comp-br:#2ea043;--nc-bg:#3a1a1a;--nc-br:#f85149;--unk-bg:#2a2a1a;--unk-br:#d29922;--shadow:0 4px 24px rgba(0,0,0,.45)}
+:root[data-theme="light"]{--bg:#f0f2f5;--bg2:#fff;--bg3:#e8eaed;--bg4:#dde1e7;--border:#d0d7de;--accent:#0969da;--accent2:#1a7f37;--danger:#cf222e;--warn:#9a6700;--info:#0550ae;--text:#1f2328;--text2:#57606a;--text3:#8c959f;--comp-bg:#dafbe1;--comp-br:#2da44e;--nc-bg:#ffebe9;--nc-br:#cf222e;--unk-bg:#fff8c5;--unk-br:#9a6700;--shadow:0 2px 12px rgba(0,0,0,.1)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
+nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
+.nav-left{display:flex;align-items:center;gap:10px}
+.nav-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;transition:.2s}
+.nav-logo:hover{border-color:var(--accent);background:var(--bg3)}
+.nav-crumb{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.nav-crumb span{color:var(--text2)}
+.theme-btn{background:var(--bg3);border:1px solid var(--border);border-radius:5px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:.2s}
+.theme-btn:hover{border-color:var(--accent);color:var(--accent)}
+.pg-head{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg2)}
+.pg-head h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.pg-head p{font-size:12.5px;color:var(--text2);max-width:680px;line-height:1.6}
+main{padding:20px;max-width:1500px;margin:0 auto}
+.sec-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.portal-guide{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.portal-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media(max-width:700px){.portal-steps{grid-template-columns:1fr}}
+.ps{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.ps-num{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ps-title{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.ps-desc{font-size:11.5px;color:var(--text2);line-height:1.6}
+.ps-desc code{font-family:'IBM Plex Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
+.portal-links{display:flex;flex-wrap:wrap;gap:8px}
+.pl{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent);text-decoration:none;transition:.2s}
+.pl:hover{border-color:var(--accent);background:var(--bg4)}
+.pl-badge{font-size:9px;background:var(--nc-bg);color:var(--danger);border:1px solid var(--nc-br);border-radius:3px;padding:1px 4px;font-weight:600}
+.import-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
+.import-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:640px){.import-grid{grid-template-columns:1fr}}
+.drop-zone{border:2px dashed var(--border);border-radius:7px;padding:22px 16px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--bg3)}
+.drop-zone.loaded{border-color:var(--comp-br)}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{font-size:24px;margin-bottom:6px}
+.dz-label{font-size:12.5px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.dz-sub{font-size:11px;color:var(--text3);margin-top:3px}
+.sample-btn{margin-top:12px;background:none;border:1px solid var(--border);border-radius:5px;padding:7px 14px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;width:100%;transition:.2s}
+.sample-btn:hover{border-color:var(--accent);color:var(--accent)}
+.import-note{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.7}
+.import-note b{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:10.5px;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.import-note ol{padding-left:14px}
+.import-note li{margin-bottom:3px}
+.import-note code{font-family:'IBM Plex Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
+.btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
+.btn{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.2s;white-space:nowrap}
+.btn:hover{border-color:var(--accent);color:var(--accent)}
+.btn.dx:hover{border-color:var(--danger);color:var(--danger)}
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:800px){.stats-row{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.stats-row{grid-template-columns:repeat(2,1fr)}}
+.sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:.2s}
+.sc:hover{border-color:var(--accent)}
+.sc .lbl{font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sc .val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600}
+.sc .sub{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.tot .val{color:var(--accent)}.ok .val{color:var(--accent2)}.fail .val{color:var(--danger)}.unk .val{color:var(--warn)}.iss .val{color:var(--info)}
+.bar-wrap{margin-bottom:16px}
+.bar-lbl{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:5px}
+.bar-track{height:7px;border-radius:4px;background:var(--bg3);display:flex;overflow:hidden}
+.bseg{height:100%;transition:width .5s ease}
+.bok{background:var(--accent2)}.bfail{background:var(--danger)}.bunk{background:var(--warn)}
+.heatmap-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px 20px;margin-bottom:16px}
+.heatmap-grid{display:flex;flex-wrap:wrap;gap:8px}
+.hchip{display:flex;align-items:center;gap:8px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:8px 12px;cursor:pointer;transition:.2s;user-select:none;position:relative;overflow:hidden}
+.hchip:hover{border-color:var(--accent);background:var(--bg4)}
+.hchip.active{border-color:var(--danger);background:var(--nc-bg)}
+.hchip-icon{font-size:18px;line-height:1}
+.hchip-name{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--text)}
+.hchip-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3)}
+.hchip-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--danger);transition:width .4s ease}
+.vtog{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+.vtbtn{background:none;border:none;border-right:1px solid var(--border);padding:7px 14px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;transition:.15s}
+.vtbtn:last-child{border-right:none}
+.vtbtn.on{background:var(--accent);color:#fff}
+.vtbtn:not(.on):hover{background:var(--bg3);color:var(--text)}
+.ctrls{display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.sbox{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 11px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
+.sbox:focus{border-color:var(--accent)}
+.sbox::placeholder{color:var(--text3)}
+select.fsel{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11.5px;outline:none;cursor:pointer;transition:.2s}
+select.fsel:focus{border-color:var(--accent)}
+.twrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+thead{background:var(--bg3);border-bottom:1px solid var(--border)}
+th{padding:10px 14px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+th:hover{color:var(--accent)}
+th .si{margin-left:3px;opacity:.35;font-size:9px}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:var(--bg3)}
+td{padding:10px 14px;vertical-align:middle}
+td.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text2)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;white-space:nowrap}
+.badge::before{content:"\2022";font-size:8px}
+.bc{background:var(--comp-bg);color:var(--accent2);border:1px solid var(--comp-br)}
+.bn{background:var(--nc-bg);color:var(--danger);border:1px solid var(--nc-br)}
+.bu{background:var(--unk-bg);color:var(--warn);border:1px solid var(--unk-br)}
+.bi{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.irow{display:flex;flex-wrap:wrap;gap:3px}
+.iico{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:5px;font-size:14px;transition:.15s;border:1px solid transparent}
+.iico:hover{transform:scale(1.15)}
+.sc-crit{background:rgba(248,81,73,.2);border-color:rgba(248,81,73,.4)}
+.sc-high{background:rgba(210,153,34,.18);border-color:rgba(210,153,34,.4)}
+.sc-med{background:rgba(88,166,255,.15);border-color:rgba(88,166,255,.3)}
+.tipw{position:relative;display:inline-flex}
+.tipw .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;font-family:'IBM Plex Mono',monospace}
+.tipw:hover .tip{opacity:1}
+.spill{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+.sp-c{background:rgba(248,81,73,.18);color:var(--danger);border-color:var(--nc-br)}
+.sp-h{background:rgba(210,153,34,.18);color:var(--warn);border-color:var(--unk-br)}
+.sp-m{background:rgba(88,166,255,.12);color:var(--accent);border-color:rgba(88,166,255,.3)}
+.sp-0{background:var(--bg3);color:var(--text3);border-color:var(--border)}
+.gsec{background:var(--bg2);border:1px solid var(--border);border-radius:10px;margin-bottom:12px;overflow:hidden}
+.ghdr{padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer}
+.ghdr:hover{background:var(--bg4)}
+.ghico{font-size:22px}
+.ghtitle{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
+.ghmeta{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.ghcount{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--danger);font-weight:600}
+.ghtog{font-size:10px;color:var(--text3);margin-left:8px}
+.qfix{background:var(--bg3);border-left:3px solid var(--danger);padding:8px 12px;margin:12px 18px 4px;border-radius:0 5px 5px 0;font-size:12px;color:var(--text2);line-height:1.5}
+.gdrow{display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;flex-wrap:wrap}
+.gdrow:last-child{border-bottom:none}
+.gdrow:hover{background:var(--bg3)}
+.gdn{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--text);min-width:150px}
+.gdu{font-size:12px;color:var(--text2);flex:1;min-width:100px}
+.gdo{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
+.overlay.open{opacity:1;pointer-events:all}
+.drawer{position:fixed;top:0;right:0;width:500px;max-width:96vw;height:100vh;background:var(--bg2);border-left:1px solid var(--border);z-index:301;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.dhead{padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg3);position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;justify-content:space-between}
+.dtitle{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;margin-bottom:3px}
+.dsub{font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.dclose{background:none;border:1px solid var(--border);border-radius:5px;width:28px;height:28px;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
+.dclose:hover{border-color:var(--danger);color:var(--danger)}
+.dbody{padding:18px 20px;flex:1}
+.dsec{margin-bottom:22px}
+.dsec-t{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.dik{font-size:10.5px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px}
+.div2{font-size:12.5px;color:var(--text);font-family:'IBM Plex Mono',monospace;word-break:break-all}
+.rcard{border-radius:7px;padding:14px 16px;margin-bottom:10px;border-left:4px solid}
+.rcard.sc-crit{background:rgba(248,81,73,.1);border-left-color:var(--danger)}
+.rcard.sc-high{background:rgba(210,153,34,.1);border-left-color:var(--warn)}
+.rcard.sc-med{background:rgba(88,166,255,.08);border-left-color:var(--accent)}
+.rtop{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.rico{font-size:22px;flex-shrink:0}
+.rtb{flex:1}
+.rtitle{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text)}
+.rraw{font-size:10.5px;color:var(--text2);margin-top:2px}
+.rsev{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;flex-shrink:0;margin-top:2px}
+.rsev.sc-crit{background:rgba(248,81,73,.2);color:var(--danger)}
+.rsev.sc-high{background:rgba(210,153,34,.2);color:var(--warn)}
+.rsev.sc-med{background:rgba(88,166,255,.15);color:var(--accent)}
+.rsect{margin-bottom:10px}
+.rsectl{font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.rsect ul{padding-left:16px}
+.rsect li{font-size:12px;color:var(--text2);margin-bottom:3px;line-height:1.5}
+.rdoc{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11.5px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-decoration:none;padding:4px 9px;border:1px solid rgba(88,166,255,.3);border-radius:4px;transition:.2s}
+.rdoc:hover{border-color:var(--accent);background:rgba(88,166,255,.08)}
+.empty{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-ico{font-size:36px;margin-bottom:10px;opacity:.5}
+.empty-t{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text2);margin-bottom:5px}
+footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);margin-top:36px}
+
+/* PDF MODAL */
+.modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);width:680px;max-width:96vw;max-height:90vh;background:var(--bg2);border:1px solid var(--border);border-radius:12px;z-index:301;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:flex;flex-direction:column;overflow:hidden}
+.modal.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
+.modal-head{padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
+.modal-title{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-bottom:3px}
+.modal-sub{font-size:12px;color:var(--text2)}
+.modal-body{padding:20px;overflow-y:auto;flex:1}
+.opt-section{margin-bottom:22px}
+.opt-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.opt-grid{grid-template-columns:1fr}}
+.opt-card{background:var(--bg3);border:2px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:.15s;display:block}
+.opt-card:hover{border-color:var(--accent)}
+.opt-card input{display:none}
+.opt-card.selected{border-color:var(--accent);background:rgba(88,166,255,.08)}
+.oc-icon{font-size:22px;margin-bottom:8px}
+.oc-title{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.oc-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
+.opt-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:500px){.opt-row{grid-template-columns:1fr}}
+.tog-card{background:var(--bg3);border:2px solid var(--border);border-radius:8px;padding:12px 14px;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:10px}
+.tog-card:hover{border-color:var(--accent)}
+.tog-card input{display:none}
+.tog-card.on{border-color:var(--accent2);background:rgba(63,185,80,.08)}
+.tc-content{flex:1}
+.tc-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.tc-desc{font-size:11px;color:var(--text2);line-height:1.4}
+.tc-check{font-size:14px;color:var(--accent2);opacity:0;transition:.15s;flex-shrink:0}
+.tog-card.on .tc-check{opacity:1}
+.cover-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:500px){.cover-fields{grid-template-columns:1fr}}
+.cf-field{}
+.cf-label{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:5px}
+.cf-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
+.cf-input:focus{border-color:var(--accent)}
+.cf-input::placeholder{color:var(--text3)}
+.modal-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
+.preview-info{font-size:11.5px;color:var(--text2);font-family:'IBM Plex Mono',monospace;flex:1}
+.gen-btn{background:var(--danger);border:none;border-radius:6px;padding:10px 20px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.gen-btn:hover{opacity:.85}
+
+</style>
+</head>
+<body>
+<nav>
+  <div class="nav-left">
+    <a href="index.html" class="nav-logo">
+      <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="1" y="1" width="6" height="6" rx="1"/><rect x="9" y="1" width="6" height="6" rx="1"/><rect x="1" y="9" width="6" height="6" rx="1"/><rect x="9" y="9" width="6" height="6" rx="1"/></svg>
+      IT Tools
+    </a>
+    <span class="nav-crumb">/ <span>Intune Compliance</span></span>
+  </div>
+  <button class="theme-btn" id="themeBtn" onclick="toggleTheme()">&#9728;</button>
+</nav>
+<div class="pg-head">
+  <h1>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.8"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+    Intune Compliance Report
+  </h1>
+  <p>Import your Intune compliance export to analyse device status, view per-device issue icons at a glance, filter by failure type, and get remediation guidance for every policy failure.</p>
+</div>
+<main>
+<div class="portal-guide">
+  <div class="sec-title">&#9432; How to export from Intune &mdash; step by step</div>
+  <div class="portal-steps">
+    <div class="ps"><div class="ps-num">Step 1</div><div class="ps-title">Open Intune Admin Centre</div><div class="ps-desc">Go to <code>intune.microsoft.com</code> and sign in. You need at minimum the <strong>Read</strong> role for Device Compliance.</div></div>
+    <div class="ps"><div class="ps-num">Step 2</div><div class="ps-title">Navigate to Compliance Monitor</div><div class="ps-desc">Click <code>Devices</code> in the left nav &rarr; <code>Monitor</code> &rarr; <code>Device compliance</code>. For more detail also open <code>Noncompliant devices</code>.</div></div>
+    <div class="ps"><div class="ps-num">Step 3</div><div class="ps-title">Export the CSV</div><div class="ps-desc">Click the <code>Export</code> button at the top of the report. Save the <code>.csv</code> file then drop it into the import panel below.</div></div>
+  </div>
+  <div class="portal-links">
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/overview" target="_blank" rel="noopener">&#128279; Compliance Overview <span class="pl-badge">PORTAL</span></a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesComplianceMenu/~/monitor" target="_blank" rel="noopener">&#128279; Compliance Monitor</a>
+    <a class="pl" href="https://intune.microsoft.com/#view/Microsoft_Intune_DeviceSettings/DevicesMenu/~/devicesByCompliance" target="_blank" rel="noopener">&#128279; Devices by Compliance</a>
+    <a class="pl" href="https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" target="_blank" rel="noopener">&#128196; MS Docs: Compliance Policies</a>
+  </div>
+</div>
+<div class="import-panel">
+  <div class="sec-title">&#8679; Import exported CSV or JSON</div>
+  <div class="import-grid">
+    <div>
+      <div class="drop-zone" id="dropZone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+        <input type="file" id="fileInput" accept=".csv,.json" onchange="handleFile(event)">
+        <div class="dz-icon" id="dzIcon">&#128194;</div>
+        <div class="dz-label" id="dzLabel">Drop CSV / JSON here, or click to browse</div>
+        <div class="dz-sub">Intune compliance export (.csv or .json)</div>
+      </div>
+      <button class="sample-btn" id="sampleBtn">&#9889; Load sample data (16 devices)</button>
+      <div class="btn-row">
+        <button class="btn" onclick="exportCSV()">&#11015; CSV</button>
+        <button class="btn" onclick="exportJSON()">&#11015; JSON</button>
+        <button class="btn" onclick="openPdfModal()" style="border-color:var(--danger);color:var(--danger)">&#128196; PDF Report</button>
+        <button class="btn dx" onclick="clearData()">&#10005; Clear</button>
+      </div>
+    </div>
+    <div class="import-note">
+      <b>Auto-detected column names from Intune export</b>
+      <ol>
+        <li><code>Device Name</code> / <code>deviceName</code></li>
+        <li><code>UserPrincipalName</code> / <code>User Email</code></li>
+        <li><code>OS</code> / <code>Platform</code> / <code>OperatingSystem</code></li>
+        <li><code>OS Version</code> / <code>osVersion</code></li>
+        <li><code>Compliance State</code> / <code>Status</code></li>
+        <li><code>Last Check-In</code> / <code>Last Contact</code> / <code>Last Sync</code></li>
+        <li><code>Non-Compliance Reasons</code> / <code>Failed Policies</code> / <code>Issues</code></li>
+      </ol>
+    </div>
+  </div>
+</div>
+<div id="statsWrap" style="display:none">
+  <div class="stats-row">
+    <div class="sc tot"><div class="lbl">Total Devices</div><div class="val" id="sTot">0</div><div class="sub" id="sTotSub">enrolled</div></div>
+    <div class="sc ok"> <div class="lbl">Compliant</div>   <div class="val" id="sOk">0</div> <div class="sub" id="sOkSub">-</div></div>
+    <div class="sc fail"><div class="lbl">Non-Compliant</div><div class="val" id="sFail">0</div><div class="sub" id="sFailSub">-</div></div>
+    <div class="sc unk"> <div class="lbl">Unknown/Grace</div><div class="val" id="sUnk">0</div> <div class="sub" id="sUnkSub">-</div></div>
+    <div class="sc iss"> <div class="lbl">Unique Issues</div><div class="val" id="sIss">0</div> <div class="sub">across fleet</div></div>
+  </div>
+  <div class="bar-wrap">
+    <div class="bar-lbl"><span>Fleet Compliance Rate</span><span id="barPct">-</span></div>
+    <div class="bar-track">
+      <div class="bseg bok"  id="barOk"   style="width:0%"></div>
+      <div class="bseg bfail" id="barFail" style="width:0%"></div>
+      <div class="bseg bunk"  id="barUnk"  style="width:0%"></div>
+    </div>
+  </div>
+  <div class="heatmap-panel">
+    <div class="sec-title" style="margin-bottom:12px">&#128293; Issue Heatmap &mdash; click any chip to filter<span style="margin-left:auto;font-size:10.5px;color:var(--text3);text-transform:none;letter-spacing:0;font-weight:400">Bar = proportion of fleet affected</span></div>
+    <div class="heatmap-grid" id="heatmapGrid"></div>
+  </div>
+  <div class="ctrls">
+    <input type="search" class="sbox" placeholder="Search device, user, OS..." id="searchBox" oninput="renderView()">
+    <select class="fsel" id="filterStatus" onchange="renderView()">
+      <option value="">All Statuses</option><option value="noncompliant">Non-Compliant</option>
+      <option value="compliant">Compliant</option><option value="unknown">Unknown</option><option value="inprogress">In Progress</option>
+    </select>
+    <select class="fsel" id="filterOS" onchange="renderView()"><option value="">All OS</option></select>
+    <select class="fsel" id="filterScore" onchange="renderView()">
+      <option value="">All Priorities</option><option value="critical">Critical (8+)</option>
+      <option value="high">High (5-7)</option><option value="medium">Medium (1-4)</option><option value="clean">Clean (0)</option>
+    </select>
+    <div class="vtog">
+      <button class="vtbtn on"  id="vtD" onclick="setView('device')">&#128203; By Device</button>
+      <button class="vtbtn"     id="vtI" onclick="setView('issue')">&#9888; By Issue</button>
+    </div>
+  </div>
+  <div id="deviceView">
+    <div class="twrap">
+      <table>
+        <thead><tr>
+          <th onclick="sortBy('deviceName')">Device <span class="si">&#8645;</span></th>
+          <th onclick="sortBy('user')">User <span class="si">&#8645;</span></th>
+          <th onclick="sortBy('os')">OS</th>
+          <th onclick="sortBy('complianceState')">Status <span class="si">&#8645;</span></th>
+          <th onclick="sortBy('score')">Priority <span class="si">&#8645;</span></th>
+          <th>Issues</th>
+          <th onclick="sortBy('lastCheckin')">Last Check-In <span class="si">&#8645;</span></th>
+        </tr></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+      <div id="emptyState" class="empty" style="display:none"><div class="empty-ico">&#128270;</div><div class="empty-t">No devices match your filters</div></div>
+    </div>
+  </div>
+  <div id="issueView" style="display:none">
+    <div id="issueGroups"></div>
+    <div id="issueEmpty" class="empty" style="display:none"><div class="empty-ico">&#9989;</div><div class="empty-t">No issues found for current filters</div></div>
+  </div>
+</div>
+</main>
+<!-- PDF MODAL -->
+<div class="overlay" id="pdfOverlay" onclick="closePdfModal()"></div>
+<div class="modal" id="pdfModal">
+  <div class="modal-head">
+    <div>
+      <div class="modal-title">&#128196; Export PDF Report</div>
+      <div class="modal-sub">Choose layout and options, then click Generate</div>
+    </div>
+    <button class="dclose" onclick="closePdfModal()">&#10005;</button>
+  </div>
+  <div class="modal-body">
+    <div class="opt-section">
+      <div class="opt-label">Report Layout</div>
+      <div class="opt-grid">
+        <label class="opt-card" id="lo-exec">
+          <input type="radio" name="pdfLayout" value="exec" checked>
+          <div class="oc-icon">&#128200;</div>
+          <div class="oc-title">Executive Summary</div>
+          <div class="oc-desc">One page &mdash; big stats, compliance rate, top issues. No device list. For management.</div>
+        </label>
+        <label class="opt-card" id="lo-full">
+          <input type="radio" name="pdfLayout" value="full">
+          <div class="oc-icon">&#128203;</div>
+          <div class="oc-title">Full Report</div>
+          <div class="oc-desc">Summary up front, complete device table, then per-issue remediation at the back.</div>
+        </label>
+        <label class="opt-card" id="lo-nc">
+          <input type="radio" name="pdfLayout" value="noncompliant">
+          <div class="oc-icon">&#9888;</div>
+          <div class="oc-title">Non-Compliant Only</div>
+          <div class="oc-desc">Only failed devices with their issues and fix steps. IT team work order.</div>
+        </label>
+        <label class="opt-card" id="lo-issue">
+          <input type="radio" name="pdfLayout" value="byissue">
+          <div class="oc-icon">&#128293;</div>
+          <div class="oc-title">Per-Issue Breakdown</div>
+          <div class="oc-desc">Grouped by issue type &mdash; each with affected devices and full remediation guide.</div>
+        </label>
+      </div>
+    </div>
+    <div class="opt-section">
+      <div class="opt-label">Style Options</div>
+      <div class="opt-row">
+        <label class="tog-card" id="tog-cover">
+          <input type="checkbox" id="optCover" checked>
+          <div class="tc-content">
+            <div class="tc-title">&#128196; Cover Page</div>
+            <div class="tc-desc">Adds org name, report date and generated-by</div>
+          </div>
+          <div class="tc-check">&#10003;</div>
+        </label>
+        <label class="tog-card" id="tog-mono">
+          <input type="checkbox" id="optMono">
+          <div class="tc-content">
+            <div class="tc-title">&#9632; Monochrome</div>
+            <div class="tc-desc">Greyscale &mdash; better for black &amp; white printers</div>
+          </div>
+          <div class="tc-check">&#10003;</div>
+        </label>
+        <label class="tog-card" id="tog-compact">
+          <input type="checkbox" id="optCompact">
+          <div class="tc-content">
+            <div class="tc-title">&#9636; Compact Rows</div>
+            <div class="tc-desc">Tighter row spacing &mdash; fits more devices per page</div>
+          </div>
+          <div class="tc-check">&#10003;</div>
+        </label>
+        <label class="tog-card" id="tog-remedy">
+          <input type="checkbox" id="optRemedy" checked>
+          <div class="tc-content">
+            <div class="tc-title">&#128161; Include Remediation</div>
+            <div class="tc-desc">Adds fix steps for each issue type at end of report</div>
+          </div>
+          <div class="tc-check">&#10003;</div>
+        </label>
+      </div>
+    </div>
+    <div class="opt-section" id="coverSection">
+      <div class="opt-label">Cover Page Details</div>
+      <div class="cover-fields">
+        <div class="cf-field">
+          <label class="cf-label">Organisation Name</label>
+          <input class="cf-input" id="orgName" type="text" placeholder="Acme Corporation">
+        </div>
+        <div class="cf-field">
+          <label class="cf-label">Prepared By</label>
+          <input class="cf-input" id="prepBy" type="text" placeholder="IT Security Team">
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <div class="preview-info" id="previewInfo">&#128196; Full Report &mdash; colour, with cover page and remediation</div>
+      <button class="gen-btn" onclick="generatePDF()">&#128196; Generate &amp; Print PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="dhead">
+    <div><div class="dtitle" id="dTitle">Device</div><div class="dsub" id="dSub"></div></div>
+    <button class="dclose" onclick="closeDrawer()">&#10005;</button>
+  </div>
+  <div class="dbody" id="dBody"></div>
+</div>
+<footer>IT Engineer Tools &mdash; Intune Compliance Explorer &middot; All data processed locally in-browser &middot; Nothing leaves your machine</footer>
+<script>
+
+"use strict";
+
+// ── KNOWLEDGE BASE ──────────────────────────────────────────────────────────
+var KB = {
+  bitlocker: {
+    icon: "\uD83D\uDD10", label: "BitLocker", sev: "critical",
+    match: ["bitlocker", "bit locker", "drive encrypt"],
+    causes: ["BitLocker policy not configured in Intune", "TPM chip missing or not initialised", "User declined encryption prompt", "OS drive excluded from policy"],
+    fix: ["Assign BitLocker profile: Endpoint security > Disk encryption", "Ensure TPM 2.0 is enabled in BIOS/UEFI", "Run: manage-bde -status to check drive state", "Set Enforce drive encryption type in policy for silent enablement"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices"
+  },
+  defender: {
+    icon: "\uD83D\uDEE1\uFE0F", label: "Defender / AV", sev: "critical",
+    match: ["defender", "antivirus", "anti-virus", "malware", "real-time", "signatures", "definition"],
+    causes: ["Windows Defender disabled by third-party AV", "Signature database out of date", "Real-time protection turned off", "Tamper protection bypassed"],
+    fix: ["Push Defender Antivirus policy: Endpoint security > Antivirus", "Run: Update-MpSignature to force definition update", "Check Windows Security Centre on device", "Verify no GPO is disabling Defender"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-antivirus-policy"
+  },
+  firewall: {
+    icon: "\uD83D\uDD25", label: "Firewall", sev: "high",
+    match: ["firewall", "network protection"],
+    causes: ["Windows Firewall disabled on Domain/Private/Public profile", "Third-party firewall not recognised", "GPO conflict disabling firewall"],
+    fix: ["Enable via Intune: Endpoint Security > Firewall policy", "Check: Get-NetFirewallProfile | Select Name,Enabled", "Remove conflicting legacy GPOs"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-firewall-policy"
+  },
+  secureboot: {
+    icon: "\uD83D\uDD12", label: "Secure Boot", sev: "critical",
+    match: ["secure boot", "secureboot"],
+    causes: ["Secure Boot disabled in BIOS/UEFI", "Legacy BIOS/MBR mode instead of UEFI/GPT", "Custom boot loader blocking Secure Boot"],
+    fix: ["Enable Secure Boot in BIOS/UEFI under Boot or Security tab", "Convert MBR to GPT using MBR2GPT.exe if needed", "Verify with: Confirm-SecureBootUEFI in PowerShell"],
+    docs: "https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot"
+  },
+  tpm: {
+    icon: "\uD83D\uDDA5\uFE0F", label: "TPM", sev: "critical",
+    match: ["tpm", "trusted platform"],
+    causes: ["TPM not present on older hardware", "TPM version below 2.0", "TPM not initialised or was cleared", "Firmware TPM disabled in BIOS"],
+    fix: ["Enable TPM/PTT in BIOS/UEFI under Security settings", "Check status: tpm.msc", "Update system firmware for firmware TPM issues", "Evaluate hardware replacement if TPM 1.2 only"],
+    docs: "https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/tpm-fundamentals"
+  },
+  winupdate: {
+    icon: "\uD83D\uDD04", label: "Windows Update", sev: "high",
+    match: ["windows update", "update pending", "patch", "cumulative update", "feature update"],
+    causes: ["Update Ring policy not assigned or misconfigured", "Device offline during maintenance window", "User deferring beyond grace period", "WUfB policy conflict"],
+    fix: ["Assign Update Ring: Devices > Update rings", "Set max deferral periods in compliance policy", "Force sync: usoclient StartScan (admin PowerShell)", "Check device update history in Windows Update settings"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/windows-update-for-business-configure"
+  },
+  password: {
+    icon: "\uD83D\uDD11", label: "Password Policy", sev: "high",
+    match: ["password", "passcode", "pin complexity", "pin length", "credential"],
+    causes: ["Password complexity requirement not met", "Password too short for policy", "Password not changed within required period", "PIN not set on device"],
+    fix: ["Review password requirements in the Intune compliance policy", "Prompt user to update Windows Hello PIN", "Assign Device Restrictions profile with password requirements", "Check local policy: net accounts"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-windows"
+  },
+  encrypt: {
+    icon: "\uD83D\uDDD9\uFE0F", label: "Encryption", sev: "critical",
+    match: ["encrypt", "encryption", "filevault", "storage encrypt"],
+    causes: ["Device storage not encrypted", "FileVault not enabled on macOS", "BitLocker policy not applied on Windows"],
+    fix: ["Windows: see BitLocker remediation above", "macOS: enable FileVault via Endpoint protection profile", "Check FileVault status: fdesetup status", "Confirm encryption profile is assigned to device group"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices-filevault"
+  },
+  jailbreak: {
+    icon: "\u26D4", label: "Jailbreak / Root", sev: "critical",
+    match: ["jailbreak", "rooted", "jail break"],
+    causes: ["Device has been jailbroken or rooted", "False positive from security software", "Sideloaded apps bypassing OS security"],
+    fix: ["Wipe and re-enrol the device", "Apply Conditional Access to block jailbroken devices", "Investigate via Intune device details for false positives", "Enable Conditional Launch: Block access for jailbroken devices"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-ios"
+  },
+  nopolicy: {
+    icon: "\uD83D\uDCCB", label: "No Policy Assigned", sev: "medium",
+    match: ["no compliance policy", "not evaluated", "policy not assigned", "no policy"],
+    causes: ["Device enrolled but no compliance policy assigned", "User not in target group for the policy", "Assignment filter excluding the device"],
+    fix: ["Assign a compliance policy to the device group", "Verify the user is in the correct Azure AD group", "Check assignment filters on the policy in Intune"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started"
+  },
+  checkin: {
+    icon: "\uD83D\uDCE1", label: "Stale Check-In", sev: "medium",
+    match: ["not checked in", "stale", "inactive", "no contact", "check-in", "checked in"],
+    causes: ["Device offline or powered off for extended period", "Intune Management Extension not running", "MDM channel certificate expired", "Corporate network or VPN required for check-in"],
+    fix: ["Ask user to connect to internet and open Company Portal", "Run: dsregcmd /status to verify MDM enrolment", "Re-enrol device if MDM certificate is expired", "Check Intune Management Extension scheduled task is running"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-sync"
+  }
+};
+
+var SS = { critical: 4, high: 2, medium: 1 };
+
+function mkb(s) {
+  var lo = String(s).toLowerCase(), ks = Object.keys(KB);
+  for (var i = 0; i < ks.length; i++) {
+    var kb = KB[ks[i]];
+    for (var j = 0; j < kb.match.length; j++) {
+      if (lo.indexOf(kb.match[j]) !== -1) return Object.assign({ key: ks[i] }, kb);
+    }
+  }
+  return { key: "other", icon: "\u26A0\uFE0F", label: s, sev: "medium",
+    causes: ["Policy configuration mismatch", "Hardware or software requirement not met"],
+    fix: ["Review policy in Intune: Devices > Compliance policies", "Check device compliance details in Intune Admin Centre"],
+    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" };
+}
+
+function cscore(issues) {
+  var t = 0;
+  for (var i = 0; i < issues.length; i++) { var kb = mkb(issues[i]); t += (SS[kb.sev] || 1); }
+  return t;
+}
+
+// ── STATE ───────────────────────────────────────────────────────────────────
+var AD = [], csk = "score", csd = -1, aif = null, cv = "device";
+
+// ── THEME ───────────────────────────────────────────────────────────────────
+function toggleTheme() {
+  var r = document.documentElement, n = r.dataset.theme === "dark" ? "light" : "dark";
+  r.dataset.theme = n;
+  document.getElementById("themeBtn").innerHTML = n === "dark" ? "&#9728;" : "&#127769;";
+  localStorage.setItem("itt", n);
+}
+(function () {
+  var t = localStorage.getItem("itt") || "dark";
+  document.documentElement.dataset.theme = t;
+  document.getElementById("themeBtn").innerHTML = t === "dark" ? "&#9728;" : "&#127769;";
+})();
+
+// ── FILE HANDLING ────────────────────────────────────────────────────────────
+function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+function handleDragLeave(e) { e.currentTarget.classList.remove("drag-over"); }
+function handleDrop(e) { e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f = e.dataTransfer.files[0]; if (f) processFile(f); }
+function handleFile(e) { if (e.target.files[0]) processFile(e.target.files[0]); }
+function processFile(file) {
+  var rdr = new FileReader();
+  rdr.onload = function (ev) {
+    var txt = ev.target.result, ext = file.name.split(".").pop().toLowerCase(), data;
+    if (ext === "json") { try { data = JSON.parse(txt); } catch (e) { alert("Invalid JSON"); return; } }
+    else data = parseCSV(txt);
+    if (!data || !data.length) { alert("No rows found - check the file format"); return; }
+    finishLoad(data, file.name);
+  };
+  rdr.readAsText(file);
+}
+
+var ALS = {
+  "devicename": "deviceName", "device name": "deviceName", "device": "deviceName",
+  "userprincipalname": "user", "userupn": "user", "email": "user", "user": "user", "user email": "user", "primary user upn": "user",
+  "os": "os", "operatingsystem": "os", "operating system": "os", "platform": "os",
+  "osversion": "osVersion", "os version": "osVersion", "version": "osVersion",
+  "compliancestate": "complianceState", "compliance state": "complianceState", "compliance": "complianceState", "status": "complianceState",
+  "lastcheckin": "lastCheckin", "last check-in": "lastCheckin", "last contact": "lastCheckin", "lastsynced": "lastCheckin", "last sync": "lastCheckin",
+  "issues": "issues", "non-compliance reasons": "issues", "policyfailures": "issues", "policy failures": "issues", "reasons": "issues", "noncompliance": "issues", "failed policies": "issues"
+};
+
+function parseCSV(text) {
+  var lines = text.trim().split("\n");
+  if (lines.length < 2) return [];
+  var hdrs = lines[0].split(",").map(function (h) { return h.trim().replace(/^"|"$/g, "").toLowerCase(); });
+  var rows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var vals = splitRow(lines[i]), row = {};
+    for (var j = 0; j < hdrs.length; j++) { var k = ALS[hdrs[j]] || hdrs[j]; row[k] = (vals[j] || "").replace(/^"|"$/g, "").trim(); }
+    var d = norm(row, i - 1);
+    if (d.deviceName) rows.push(d);
+  }
+  return rows;
+}
+
+function splitRow(row) {
+  var res = [], cur = "", inQ = false;
+  for (var i = 0; i < row.length; i++) {
+    if (row[i] === String.fromCharCode(34)) inQ = !inQ;
+    else if (row[i] === "," && !inQ) { res.push(cur); cur = ""; }
+    else cur += row[i];
+  }
+  res.push(cur);
+  return res;
+}
+
+function norm(row, idx) {
+  var st = (row.complianceState || "").toLowerCase(), cs = "unknown";
+  if (st.indexOf("compliant") !== -1 && st.indexOf("non") === -1 && st.indexOf("not") === -1) cs = "compliant";
+  else if (st.indexOf("noncompliant") !== -1 || st.indexOf("non-compliant") !== -1 || st.indexOf("not compliant") !== -1) cs = "noncompliant";
+  else if (st.indexOf("inprogress") !== -1 || st.indexOf("in progress") !== -1 || st.indexOf("grace") !== -1) cs = "inprogress";
+  var issues = (row.issues || "").split(/[;|]/).map(function (s) { return s.trim(); }).filter(function (s) { return s.length > 0; });
+  return { id: idx, deviceName: row.deviceName || ("Device-" + (idx + 1)), user: row.user || "\u2014", os: row.os || "\u2014", osVersion: row.osVersion || "\u2014", complianceState: cs, rawState: row.complianceState || cs, lastCheckin: row.lastCheckin || "\u2014", issues: issues, score: cscore(issues), raw: row };
+}
+
+// ── LOAD ─────────────────────────────────────────────────────────────────────
+function finishLoad(data, fname) {
+  if (data.length && data[0].complianceState && Array.isArray(data[0].issues))
+    AD = data.map(function (d, i) { d.id = i; if (!d.score) d.score = cscore(d.issues || []); return d; });
+  else AD = data.map(function (r, i) { return norm(r, i); });
+  document.getElementById("statsWrap").style.display = "";
+  updStats(); buildHeatmap(); popOS(); renderView();
+  if (fname) {
+    document.getElementById("dzIcon").innerHTML = "&#9989;";
+    document.getElementById("dzLabel").textContent = fname + " (" + AD.length + " devices)";
+    document.getElementById("dropZone").classList.add("loaded");
+  }
+}
+
+function updStats() {
+  var tot = AD.length, ok = 0, fail = 0;
+  AD.forEach(function (d) { if (d.complianceState === "compliant") ok++; else if (d.complianceState === "noncompliant") fail++; });
+  var unk = tot - ok - fail, pct = tot ? Math.round(ok / tot * 100) : 0, iss = {};
+  AD.forEach(function (d) { d.issues.forEach(function (x) { iss[mkb(x).key] = 1; }); });
+  document.getElementById("sTot").textContent = tot;
+  document.getElementById("sOk").textContent = ok;
+  document.getElementById("sFail").textContent = fail;
+  document.getElementById("sUnk").textContent = unk;
+  document.getElementById("sIss").textContent = Object.keys(iss).length;
+  document.getElementById("sTotSub").textContent = "enrolled";
+  document.getElementById("sOkSub").textContent = pct + "% of fleet";
+  document.getElementById("sFailSub").textContent = tot ? Math.round(fail / tot * 100) + "% of fleet" : "\u2014";
+  document.getElementById("sUnkSub").textContent = tot ? Math.round(unk / tot * 100) + "% of fleet" : "\u2014";
+  document.getElementById("barPct").textContent = pct + "% compliant";
+  setTimeout(function () {
+    document.getElementById("barOk").style.width = (tot ? ok / tot * 100 : 0) + "%";
+    document.getElementById("barFail").style.width = (tot ? fail / tot * 100 : 0) + "%";
+    document.getElementById("barUnk").style.width = (tot ? unk / tot * 100 : 0) + "%";
+  }, 60);
+}
+
+// ── HEATMAP ──────────────────────────────────────────────────────────────────
+function buildHeatmap() {
+  var counts = {};
+  AD.forEach(function (d) {
+    d.issues.forEach(function (iss) {
+      var kb = mkb(iss);
+      if (!counts[kb.key]) counts[kb.key] = { kb: kb, n: 0 };
+      counts[kb.key].n++;
+    });
+  });
+  var sorted = Object.values(counts).sort(function (a, b) { return b.n - a.n; }), max = sorted.length ? sorted[0].n : 1;
+  var g = document.getElementById("heatmapGrid");
+  g.innerHTML = "";
+  if (!sorted.length) { g.innerHTML = "<span style=\"font-size:12px;color:var(--text3)\">No issues detected \u2705</span>"; return; }
+  sorted.forEach(function (item) {
+    var kb = item.kb, n = item.n, chip = document.createElement("div");
+    chip.className = "hchip" + (aif === kb.key ? " active" : "");
+    var plural = n !== 1 ? " devices" : " device";
+    chip.innerHTML = "<div class=\"hchip-icon\">" + kb.icon + "</div><div><div class=\"hchip-name\">" + esc(kb.label) + "</div><div class=\"hchip-count\">" + n + plural + "</div></div><div class=\"hchip-bar\" style=\"width:" + Math.round(n / max * 100) + "%\"></div>";
+    chip.onclick = (function (key) { return function () { aif = aif === key ? null : key; buildHeatmap(); renderView(); }; })(kb.key);
+    g.appendChild(chip);
+  });
+}
+
+function popOS() {
+  var sel = document.getElementById("filterOS"), seen = {}, os = [];
+  AD.forEach(function (d) { if (d.os && d.os !== "\u2014" && !seen[d.os]) { seen[d.os] = 1; os.push(d.os); } });
+  os.sort();
+  sel.innerHTML = "<option value=\"\">All OS</option>" + os.map(function (o) { return "<option>" + esc(o) + "</option>"; }).join("");
+}
+
+function getF() {
+  var q = document.getElementById("searchBox").value.toLowerCase(),
+    st = document.getElementById("filterStatus").value,
+    os = document.getElementById("filterOS").value,
+    sc = document.getElementById("filterScore").value;
+  return AD.filter(function (d) {
+    if (q && (d.deviceName + " " + d.user + " " + d.os + " " + d.osVersion).toLowerCase().indexOf(q) === -1) return false;
+    if (st && d.complianceState !== st) return false;
+    if (os && d.os !== os) return false;
+    if (sc === "critical" && d.score < 8) return false;
+    if (sc === "high" && (d.score < 5 || d.score >= 8)) return false;
+    if (sc === "medium" && (d.score < 1 || d.score >= 5)) return false;
+    if (sc === "clean" && d.score !== 0) return false;
+    if (aif) {
+      var f = false;
+      for (var i = 0; i < d.issues.length; i++) { if (mkb(d.issues[i]).key === aif) { f = true; break; } }
+      if (!f) return false;
+    }
+    return true;
+  });
+}
+
+// ── VIEW SWITCH ───────────────────────────────────────────────────────────────
+function setView(v) {
+  cv = v;
+  document.getElementById("vtD").className = "vtbtn" + (v === "device" ? " on" : "");
+  document.getElementById("vtI").className = "vtbtn" + (v === "issue" ? " on" : "");
+  document.getElementById("deviceView").style.display = v === "device" ? "" : "none";
+  document.getElementById("issueView").style.display = v === "issue" ? "" : "none";
+  renderView();
+}
+
+function renderView() { if (cv === "device") renderTable(); else renderIssue(); }
+
+// ── TABLE ─────────────────────────────────────────────────────────────────────
+function sortBy(k) { if (csk === k) csd *= -1; else { csk = k; csd = -1; } renderTable(); }
+
+function renderTable() {
+  var data = getF();
+  data.sort(function (a, b) {
+    var av = a[csk] == null ? "" : a[csk], bv = b[csk] == null ? "" : b[csk];
+    if (typeof av === "number") return (av - bv) * csd * -1;
+    return av < bv ? -csd : av > bv ? csd : 0;
+  });
+  var tb = document.getElementById("tableBody");
+  tb.innerHTML = "";
+  document.getElementById("emptyState").style.display = data.length ? "none" : "";
+  data.forEach(function (d) {
+    var tr = document.createElement("tr");
+    tr.innerHTML = "<td><strong style=\"font-family:monospace;font-size:12px\">" + esc(d.deviceName) + "</strong></td>" +
+      "<td class=\"mono\">" + esc(d.user) + "</td>" +
+      "<td style=\"font-size:12px\">" + esc(d.os) + " <span style=\"font-size:10.5px;color:var(--text3)\">" + esc(d.osVersion) + "</span></td>" +
+      "<td>" + bh(d.complianceState) + "</td><td>" + sh(d.score) + "</td><td>" + ih(d.issues) + "</td>" +
+      "<td class=\"mono\" style=\"font-size:11px\">" + esc(d.lastCheckin) + "</td>";
+    tr.onclick = (function (dev) { return function () { openD(dev); }; })(d);
+    tb.appendChild(tr);
+  });
+}
+
+function bh(s) {
+  var m = { compliant: ["bc", "Compliant"], noncompliant: ["bn", "Non-Compliant"], unknown: ["bu", "Unknown"], inprogress: ["bi", "In Progress"] };
+  var p = m[s] || ["bu", "Unknown"];
+  return "<span class=\"badge " + p[0] + "\">" + p[1] + "</span>";
+}
+
+function sh(s) {
+  if (s === 0) return "<span class=\"spill sp-0\">Clean</span>";
+  if (s >= 8) return "<span class=\"spill sp-c\">Crit " + s + "</span>";
+  if (s >= 5) return "<span class=\"spill sp-h\">High " + s + "</span>";
+  return "<span class=\"spill sp-m\">Med " + s + "</span>";
+}
+
+function ih(issues) {
+  if (!issues.length) return "<span style=\"color:var(--accent2);font-size:12px\">&#10003;</span>";
+  return "<div class=\"irow\">" + issues.map(function (iss) {
+    var kb = mkb(iss);
+    return "<div class=\"tipw\"><div class=\"iico sc-" + kb.sev + "\" title=\"" + esc(iss) + "\">" + kb.icon + "</div><div class=\"tip\">" + esc(kb.label) + "</div></div>";
+  }).join("") + "</div>";
+}
+
+// ── ISSUE GROUP VIEW ──────────────────────────────────────────────────────────
+function renderIssue() {
+  var data = getF(), groups = {};
+  data.forEach(function (d) {
+    d.issues.forEach(function (iss) {
+      var kb = mkb(iss);
+      if (!groups[kb.key]) groups[kb.key] = { kb: kb, devs: [] };
+      var ex = false;
+      for (var i = 0; i < groups[kb.key].devs.length; i++) { if (groups[kb.key].devs[i].id === d.id) { ex = true; break; } }
+      if (!ex) groups[kb.key].devs.push(d);
+    });
+  });
+  var so = { critical: 3, high: 2, medium: 1 };
+  var sorted = Object.values(groups).sort(function (a, b) { var df = (so[b.kb.sev] || 0) - (so[a.kb.sev] || 0); return df !== 0 ? df : b.devs.length - a.devs.length; });
+  var con = document.getElementById("issueGroups");
+  con.innerHTML = "";
+  document.getElementById("issueEmpty").style.display = sorted.length ? "none" : "";
+  sorted.forEach(function (item) {
+    var kb = item.kb, devs = item.devs, f0 = kb.fix ? kb.fix[0] : "Review in Intune Admin Centre";
+    var plural = devs.length !== 1 ? " devices affected" : " device affected";
+    var sec = document.createElement("div");
+    sec.className = "gsec";
+    var drows = devs.map(function (d) {
+      return "<div class=\"gdrow\" onclick=\"openById(" + d.id + ")\"><div class=\"gdn\">" + esc(d.deviceName) + "</div><div class=\"gdu\">" + esc(d.user) + "</div><div class=\"gdo\">" + esc(d.os) + "</div>" + bh(d.complianceState) + " " + sh(d.score) + "</div>";
+    }).join("");
+    sec.innerHTML = "<div class=\"ghdr\" onclick=\"togG(this)\"><div class=\"ghico\">" + kb.icon + "</div><div><div class=\"ghtitle\">" + esc(kb.label) + "</div><div class=\"ghmeta\">" + kb.sev.toUpperCase() + " severity &middot; " + devs.length + plural + "</div></div><div class=\"ghcount\">" + devs.length + "</div><div class=\"ghtog\">&#9660;</div></div><div class=\"gbody\"><div class=\"qfix\">&#128161; <strong>Quick fix:</strong> " + esc(f0) + "</div>" + drows + "</div>";
+    con.appendChild(sec);
+  });
+}
+
+function togG(hdr) { var b = hdr.nextElementSibling; b.style.display = b.style.display === "none" ? "" : "none"; hdr.querySelector(".ghtog").innerHTML = b.style.display === "none" ? "&#9654;" : "&#9660;"; }
+function openById(id) { for (var i = 0; i < AD.length; i++) { if (AD[i].id === id) { openD(AD[i]); return; } } }
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+function openD(d) {
+  document.getElementById("dTitle").textContent = d.deviceName;
+  document.getElementById("dSub").textContent = d.user + " \u00b7 " + d.os + " " + d.osVersion;
+  document.getElementById("dBody").innerHTML = drawHTML(d);
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+}
+function closeDrawer() { document.getElementById("overlay").classList.remove("open"); document.getElementById("drawer").classList.remove("open"); }
+
+function drawHTML(d) {
+  var info = "<div class=\"dsec\"><div class=\"dsec-t\">Device Information</div><div style=\"margin-bottom:12px\">" + bh(d.complianceState) + " " + sh(d.score) + "</div><div class=\"dgrid\">" + di("Device Name", d.deviceName) + di("User / UPN", d.user) + di("OS", d.os) + di("OS Version", d.osVersion) + di("Raw Status", d.rawState) + di("Last Check-In", d.lastCheckin) + di("Priority Score", d.score === 0 ? "Clean" : d.score + " pts") + di("Issue Count", d.issues.length) + "</div></div>";
+  var isec = "";
+  if (!d.issues.length && d.complianceState === "compliant") isec = "<div class=\"dsec\"><div class=\"dsec-t\">Compliance Issues</div><div style=\"color:var(--accent2);font-family:monospace;font-size:12.5px\">&#10003; Fully compliant \u2014 no policy failures detected</div></div>";
+  else if (d.issues.length) isec = "<div class=\"dsec\"><div class=\"dsec-t\">Issues &amp; Remediation (" + d.issues.length + ")</div>" + d.issues.map(rcHTML).join("") + "</div>";
+  return info + isec;
+}
+
+function di(k, v) { return "<div><div class=\"dik\">" + esc(k) + "</div><div class=\"div2\">" + esc(v) + "</div></div>"; }
+
+function rcHTML(iss) {
+  var kb = mkb(iss);
+  var cl = kb.sev === "critical" ? "sc-crit" : kb.sev === "high" ? "sc-high" : "sc-med";
+  var ca = kb.causes.map(function (c) { return "<li>" + esc(c) + "</li>"; }).join("");
+  var fx = kb.fix.map(function (f) { return "<li>" + esc(f) + "</li>"; }).join("");
+  return "<div class=\"rcard " + cl + "\"><div class=\"rtop\"><div class=\"rico\">" + kb.icon + "</div><div class=\"rtb\"><div class=\"rtitle\">" + esc(kb.label) + "</div><div class=\"rraw\">" + esc(iss) + "</div></div><div class=\"rsev " + cl + "\">" + kb.sev.toUpperCase() + "</div></div><div class=\"rsect\"><div class=\"rsectl\">Common Causes</div><ul>" + ca + "</ul></div><div class=\"rsect\"><div class=\"rsectl\">Recommended Fix</div><ul>" + fx + "</ul></div><a class=\"rdoc\" href=\"" + kb.docs + "\" target=\"_blank\" rel=\"noopener\">&#128196; Microsoft Docs &#8599;</a></div>";
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if (!AD.length) return;
+  var h = ["Device Name", "User", "OS", "OS Version", "Compliance State", "Priority Score", "Last Check-In", "Issues"];
+  var rows = AD.map(function (d) {
+    return [d.deviceName, d.user, d.os, d.osVersion, d.complianceState, d.score, d.lastCheckin, d.issues.join("; ")].map(function (v) { return "\"" + String(v).replace(/"/g, "\"\"") + "\""; }).join(",");
+  });
+  dlf("intune-compliance.csv", [h.join(",")].concat(rows).join("\n"), "text/csv");
+}
+function exportJSON() { if (!AD.length) return; dlf("intune-compliance.json", JSON.stringify(AD, null, 2), "application/json"); }
+function dlf(name, content, mime) { var a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([content], { type: mime })); a.download = name; a.click(); }
+
+function clearData() {
+  AD = []; aif = null;
+  document.getElementById("statsWrap").style.display = "none";
+  document.getElementById("dzIcon").innerHTML = "&#128194;";
+  document.getElementById("dzLabel").textContent = "Drop CSV / JSON here, or click to browse";
+  document.getElementById("dropZone").classList.remove("loaded");
+  document.getElementById("fileInput").value = "";
+}
+
+function esc(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+
+// ── PDF MODAL ─────────────────────────────────────────────────────────────────
+function openPdfModal() {
+  if (!AD.length) { alert("Load some device data first"); return; }
+  document.getElementById("pdfOverlay").classList.add("open");
+  document.getElementById("pdfModal").classList.add("open");
+  syncPdfUI();
+}
+function closePdfModal() {
+  document.getElementById("pdfOverlay").classList.remove("open");
+  document.getElementById("pdfModal").classList.remove("open");
+}
+function getLayout() {
+  var radios = document.querySelectorAll("input[name=pdfLayout]");
+  for (var i = 0; i < radios.length; i++) { if (radios[i].checked) return radios[i].value; }
+  return "exec";
+}
+function syncPdfUI() {
+  var layout = getLayout();
+  document.querySelectorAll(".opt-card").forEach(function (c) { c.classList.remove("selected"); });
+  var map = { exec: "lo-exec", full: "lo-full", noncompliant: "lo-nc", byissue: "lo-issue" };
+  var el = document.getElementById(map[layout]);
+  if (el) el.classList.add("selected");
+  ["optCover", "optMono", "optCompact", "optRemedy"].forEach(function (id) {
+    var cb = document.getElementById(id), card = cb.closest(".tog-card");
+    if (cb.checked) card.classList.add("on"); else card.classList.remove("on");
+  });
+  document.getElementById("coverSection").style.display = document.getElementById("optCover").checked ? "" : "none";
+  updatePreview();
+}
+function updatePreview() {
+  var layout = getLayout();
+  var names = { exec: "Executive Summary", full: "Full Report", noncompliant: "Non-Compliant Only", byissue: "Per-Issue Breakdown" };
+  var parts = [names[layout] || layout];
+  if (document.getElementById("optMono").checked) parts.push("monochrome"); else parts.push("colour");
+  if (document.getElementById("optCover").checked) parts.push("with cover page");
+  if (document.getElementById("optRemedy").checked && layout !== "exec") parts.push("with remediation");
+  if (document.getElementById("optCompact").checked) parts.push("compact rows");
+  document.getElementById("previewInfo").textContent = "\uD83D\uDCC4 " + parts.join(" \u00b7 ");
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+  document.querySelectorAll("input[name=\"pdfLayout\"]").forEach(function (r) { r.onchange = syncPdfUI; });
+  document.querySelectorAll(".opt-card").forEach(function (c) {
+    c.onclick = function () { var r = c.querySelector("input[type=radio]"); if (r) { r.checked = true; syncPdfUI(); } };
+  });
+  document.querySelectorAll(".tog-card").forEach(function (c) {
+    c.onclick = function (e) {
+      if (e.target.tagName === "INPUT") return;
+      var cb = c.querySelector("input[type=checkbox]"); cb.checked = !cb.checked; syncPdfUI();
+    };
+  });
+  document.querySelectorAll(".tog-card input[type=checkbox]").forEach(function (cb) { cb.onchange = syncPdfUI; });
+  document.getElementById("sampleBtn").onclick = loadSampleData;
+});
+
+// ── PDF GENERATE ──────────────────────────────────────────────────────────────
+function generatePDF() {
+  var layout = getLayout();
+  var mono = document.getElementById("optMono").checked;
+  var compact = document.getElementById("optCompact").checked;
+  var cover = document.getElementById("optCover").checked;
+  var remedy = document.getElementById("optRemedy").checked;
+  var org = document.getElementById("orgName").value || "Organisation";
+  var prep = document.getElementById("prepBy").value || "IT Team";
+  var now = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
+
+  var devices = layout === "noncompliant" ? AD.filter(function (d) { return d.complianceState === "noncompliant"; }) : AD;
+  var tot = AD.length;
+  var ok = AD.filter(function (d) { return d.complianceState === "compliant"; }).length;
+  var fail = AD.filter(function (d) { return d.complianceState === "noncompliant"; }).length;
+  var unk = tot - ok - fail, pct = tot ? Math.round(ok / tot * 100) : 0;
+
+  var issueCounts = {};
+  AD.forEach(function (d) { d.issues.forEach(function (iss) { var kb = mkb(iss); if (!issueCounts[kb.key]) issueCounts[kb.key] = { kb: kb, n: 0 }; issueCounts[kb.key].n++; }); });
+  var issueList = Object.values(issueCounts).sort(function (a, b) { return b.n - a.n; });
+
+  var cc = mono ? "#555" : "#0969da";
+  var danger = mono ? "#333" : "#cf222e";
+  var warn = mono ? "#666" : "#9a6700";
+  var green = mono ? "#444" : "#1a7f37";
+  var rowPad = compact ? "5px 8px" : "9px 10px";
+  var rowFs = compact ? "10.5px" : "11.5px";
+  var plural = function(n, word) { return n + " " + word + (n !== 1 ? "s" : ""); };
+
+  var H = [];
+  H.push("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><style>");
+  H.push("*{box-sizing:border-box;margin:0;padding:0}");
+  H.push("body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1f2328;background:#fff;line-height:1.4}");
+  H.push("@page{margin:18mm 16mm;size:A4}");
+  H.push("@media print{.pb{page-break-before:always}}");
+  H.push(".cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 50px;border-left:6px solid " + cc + "}");
+  H.push(".cover-tag{font-size:10pt;color:" + cc + ";font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:32px}");
+  H.push(".cover-title{font-size:32pt;font-weight:900;color:#1f2328;margin-bottom:12px;line-height:1.1}");
+  H.push(".cover-sub{font-size:14pt;color:#57606a;margin-bottom:48px}");
+  H.push(".cover-meta{font-size:10pt;color:#57606a;border-top:1px solid #d0d7de;padding-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}");
+  H.push(".cover-meta span{display:block;font-size:8pt;color:#8c959f;margin-bottom:2px}");
+  H.push(".stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}");
+  H.push(".sg{padding:16px;border:1px solid #d0d7de;border-radius:6px;text-align:center}");
+  H.push(".sg-val{font-size:28pt;font-weight:900;margin-bottom:4px}");
+  H.push(".sg-lbl{font-size:8pt;color:#57606a;text-transform:uppercase;letter-spacing:1px}");
+  H.push(".section{margin-bottom:28px}");
+  H.push(".sh{font-size:12pt;font-weight:700;color:" + cc + ";border-bottom:2px solid " + cc + ";padding-bottom:5px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}");
+  H.push(".bar-o{background:#f0f2f5;border-radius:4px;height:10px;overflow:hidden;margin-bottom:6px}");
+  H.push(".bar-i{height:10px;background:" + cc + ";border-radius:4px}");
+  H.push(".bar-lbl{display:flex;justify-content:space-between;font-size:9pt;color:#57606a;margin-bottom:16px}");
+  H.push("table{width:100%;border-collapse:collapse;font-size:" + rowFs + "}");
+  H.push("th{background:" + (mono ? "#e8eaed" : "#f0f6ff") + ";color:" + (mono ? "#333" : cc) + ";padding:" + rowPad + ";text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid " + (mono ? "#ccc" : cc) + "}");
+  H.push("td{padding:" + rowPad + ";border-bottom:1px solid #e0e0e0;vertical-align:top}");
+  H.push("tr:nth-child(even) td{background:" + (mono ? "#f9f9f9" : "#fafbff") + "}");
+  H.push(".badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}");
+  H.push(".bc{background:" + (mono ? "#e0e0e0" : "#dafbe1") + ";color:" + (mono ? "#333" : green) + "}");
+  H.push(".bn{background:" + (mono ? "#e0e0e0" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + "}");
+  H.push(".bu{background:" + (mono ? "#e0e0e0" : "#fff8c5") + ";color:" + (mono ? "#333" : warn) + "}");
+  H.push(".bi{background:#e0e0e0;color:#555}");
+  H.push(".sc{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}");
+  H.push(".sp-c{background:" + (mono ? "#e0e0e0" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + "}");
+  H.push(".sp-h{background:" + (mono ? "#e0e0e0" : "#fff8c5") + ";color:" + (mono ? "#333" : warn) + "}");
+  H.push(".sp-m{background:" + (mono ? "#e0e0e0" : "#dbeafe") + ";color:" + (mono ? "#333" : cc) + "}");
+  H.push(".sp-0{background:#f0f0f0;color:#999}");
+  H.push(".itag{display:inline-block;background:" + (mono ? "#eee" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + ";border-radius:3px;padding:1px 5px;font-size:9pt;margin:1px 2px 1px 0}");
+  H.push(".rcard{border-left:3px solid " + (mono ? "#aaa" : danger) + ";padding:10px 14px;margin-bottom:12px;background:" + (mono ? "#f9f9f9" : "#fff8f8") + ";border-radius:0 5px 5px 0}");
+  H.push(".rcard h4{font-size:10pt;font-weight:700;color:" + (mono ? "#333" : danger) + ";margin-bottom:6px}");
+  H.push(".rcard ul{padding-left:16px;font-size:9.5pt;color:#57606a}");
+  H.push(".rcard li{margin-bottom:2px}");
+  H.push(".rcard .docs{font-size:8.5pt;color:" + cc + ";margin-top:6px}");
+  H.push(".hrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0}");
+  H.push(".hname{font-weight:600;font-size:10pt;min-width:160px}");
+  H.push(".hbar-o{flex:1;background:#f0f2f5;border-radius:3px;height:8px}");
+  H.push(".hbar-i{height:8px;background:" + danger + ";border-radius:3px}");
+  H.push(".hn{font-size:9pt;color:#57606a;min-width:60px;text-align:right}");
+  H.push("</style></head><body>");
+
+  function pesc(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+  function pbh(s) { var m = { compliant: "bc Compliant", noncompliant: "bn Non-Compliant", unknown: "bu Unknown", inprogress: "bi In Progress" }, p = (m[s] || "bu Unknown").split(" "); return "<span class=\"badge " + p[0] + "\">" + p.slice(1).join(" ") + "</span>"; }
+  function psh(s) { if (s === 0) return "<span class=\"sc sp-0\">Clean</span>"; if (s >= 8) return "<span class=\"sc sp-c\">Crit " + s + "</span>"; if (s >= 5) return "<span class=\"sc sp-h\">High " + s + "</span>"; return "<span class=\"sc sp-m\">Med " + s + "</span>"; }
+
+  if (cover) {
+    H.push("<div class=\"cover pb\">");
+    H.push("<div class=\"cover-tag\">IT Security Report</div>");
+    H.push("<div class=\"cover-title\">Intune Compliance<br>Report</div>");
+    H.push("<div class=\"cover-sub\">Device compliance status and remediation guidance</div>");
+    H.push("<div class=\"stats-grid\">");
+    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + cc + "\">" + tot + "</div><div class=\"sg-lbl\">Total Devices</div></div>");
+    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + green + "\">" + ok + "</div><div class=\"sg-lbl\">Compliant</div></div>");
+    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + danger + "\">" + fail + "</div><div class=\"sg-lbl\">Non-Compliant</div></div>");
+    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + (pct >= 80 ? green : pct >= 60 ? warn : danger) + "\">" + pct + "%</div><div class=\"sg-lbl\">Compliance Rate</div></div>");
+    H.push("</div>");
+    H.push("<div class=\"cover-meta\">");
+    H.push("<div><span>Organisation</span>" + pesc(org) + "</div>");
+    H.push("<div><span>Prepared By</span>" + pesc(prep) + "</div>");
+    H.push("<div><span>Report Date</span>" + now + "</div>");
+    H.push("<div><span>Devices Analysed</span>" + plural(tot, "enrolled device") + "</div>");
+    H.push("</div></div>");
+  }
+
+  H.push("<div class=\"" + (cover ? "pb" : "") + "\">");
+  H.push("<div class=\"section\"><div class=\"sh\">Compliance Summary</div>");
+  H.push("<div class=\"stats-grid\">");
+  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + cc + "\">" + tot + "</div><div class=\"sg-lbl\">Total</div></div>");
+  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + green + "\">" + ok + "</div><div class=\"sg-lbl\">Compliant</div></div>");
+  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + danger + "\">" + fail + "</div><div class=\"sg-lbl\">Non-Compliant</div></div>");
+  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + (pct >= 80 ? green : pct >= 60 ? warn : danger) + "\">" + pct + "%</div><div class=\"sg-lbl\">Rate</div></div>");
+  H.push("</div>");
+  H.push("<div class=\"bar-o\"><div class=\"bar-i\" style=\"width:" + pct + "%\"></div></div>");
+  H.push("<div class=\"bar-lbl\"><span style=\"color:" + green + "\">Compliant " + ok + "</span><span style=\"color:" + danger + "\">Non-Compliant " + fail + "</span><span style=\"color:" + warn + "\">Unknown " + unk + "</span></div>");
+  H.push("</div>");
+
+  if (issueList.length) {
+    H.push("<div class=\"section\"><div class=\"sh\">Top Issues Across Fleet</div>");
+    var maxN = issueList[0].n;
+    issueList.forEach(function (item) {
+      var devPlural = item.n !== 1 ? " devices" : " device";
+      H.push("<div class=\"hrow\"><div class=\"hname\">" + item.kb.icon + " " + pesc(item.kb.label) + "</div><div class=\"hbar-o\"><div class=\"hbar-i\" style=\"width:" + Math.round(item.n / maxN * 100) + "%\"></div></div><div class=\"hn\">" + item.n + devPlural + "</div></div>");
+    });
+    H.push("</div>");
+  }
+  H.push("</div>");
+
+  if (layout === "full" || layout === "noncompliant") {
+    var tableTitle = layout === "noncompliant" ? "Non-Compliant Devices (" + devices.length + ")" : "All Devices (" + devices.length + ")";
+    H.push("<div class=\"section pb\"><div class=\"sh\">" + tableTitle + "</div>");
+    H.push("<table><thead><tr><th>Device</th><th>User</th><th>OS</th><th>Status</th><th>Priority</th><th>Issues</th><th>Last Check-In</th></tr></thead><tbody>");
+    devices.forEach(function (d) {
+      var isshtml = d.issues.length ? d.issues.map(function (ii) { return "<span class=\"itag\">" + pesc(ii) + "</span>"; }).join("") : "<span style=\"color:" + green + "\">OK</span>";
+      H.push("<tr><td><strong>" + pesc(d.deviceName) + "</strong></td><td style=\"font-size:9.5pt;color:#57606a\">" + pesc(d.user) + "</td><td>" + pesc(d.os) + " " + pesc(d.osVersion) + "</td><td>" + pbh(d.complianceState) + "</td><td>" + psh(d.score) + "</td><td>" + isshtml + "</td><td style=\"font-size:9pt;color:#57606a\">" + pesc(d.lastCheckin) + "</td></tr>");
+    });
+    H.push("</tbody></table></div>");
+  }
+
+  if (layout === "byissue") {
+    var groups = {};
+    AD.forEach(function (d) { d.issues.forEach(function (iss) { var kb = mkb(iss); if (!groups[kb.key]) groups[kb.key] = { kb: kb, devs: [] }; var ex = false; for (var i = 0; i < groups[kb.key].devs.length; i++) { if (groups[kb.key].devs[i].id === d.id) { ex = true; break; } } if (!ex) groups[kb.key].devs.push(d); }); });
+    var so = { critical: 3, high: 2, medium: 1 };
+    var gsorted = Object.values(groups).sort(function (a, b) { var df = (so[b.kb.sev] || 0) - (so[a.kb.sev] || 0); return df !== 0 ? df : b.devs.length - a.devs.length; });
+    gsorted.forEach(function (item, gi) {
+      var kb = item.kb, devs = item.devs;
+      var devPlural = devs.length !== 1 ? " devices" : " device";
+      H.push("<div class=\"section " + (gi > 0 ? "pb" : (cover ? "pb" : "")) + "\"><div class=\"sh\">" + kb.icon + " " + pesc(kb.label) + " - " + devs.length + devPlural + "</div>");
+      H.push("<table><thead><tr><th>Device</th><th>User</th><th>OS</th><th>Priority</th><th>Last Check-In</th></tr></thead><tbody>");
+      devs.forEach(function (d) { H.push("<tr><td><strong>" + pesc(d.deviceName) + "</strong></td><td style=\"font-size:9.5pt;color:#57606a\">" + pesc(d.user) + "</td><td>" + pesc(d.os) + "</td><td>" + psh(d.score) + "</td><td style=\"font-size:9pt;color:#57606a\">" + pesc(d.lastCheckin) + "</td></tr>"); });
+      H.push("</tbody></table>");
+      if (remedy) {
+        H.push("<div class=\"rcard\" style=\"margin-top:12px\"><h4>Remediation: " + pesc(kb.label) + "</h4>");
+        H.push("<div style=\"margin-bottom:6px;font-size:9.5pt;color:#57606a\"><strong>Common Causes:</strong></div><ul>");
+        kb.causes.forEach(function (c) { H.push("<li>" + pesc(c) + "</li>"); });
+        H.push("</ul><div style=\"margin-top:8px;font-size:9.5pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");
+        kb.fix.forEach(function (f) { H.push("<li>" + pesc(f) + "</li>"); });
+        H.push("</ul><div class=\"docs\">" + kb.docs + "</div></div>");
+      }
+      H.push("</div>");
+    });
+  }
+
+  if (remedy && (layout === "full" || layout === "noncompliant") && issueList.length) {
+    H.push("<div class=\"section pb\"><div class=\"sh\">Remediation Guide</div>");
+    issueList.forEach(function (item) {
+      var kb = item.kb;
+      H.push("<div class=\"rcard\"><h4>" + kb.icon + " " + pesc(kb.label) + "</h4>");
+      H.push("<div style=\"font-size:9pt;color:#57606a;margin-bottom:6px\"><strong>Common Causes:</strong></div><ul>");
+      kb.causes.forEach(function (c) { H.push("<li>" + pesc(c) + "</li>"); });
+      H.push("</ul><div style=\"margin-top:8px;font-size:9pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");
+      kb.fix.forEach(function (f) { H.push("<li>" + pesc(f) + "</li>"); });
+      H.push("</ul><div class=\"docs\">" + kb.docs + "</div></div>");
+    });
+    H.push("</div>");
+  }
+
+  H.push("</body></html>");
+
+  var win = window.open("", "_blank");
+  win.document.write(H.join(""));
+  win.document.close();
+  win.onload = function () { win.focus(); win.print(); };
+  closePdfModal();
+}
+
+// ── SAMPLE DATA ───────────────────────────────────────────────────────────────
+function loadSampleData() {
+  var raw = [
+    { deviceName: "DESKTOP-SALES01", user: "alice.johnson@corp.com", os: "Windows", osVersion: "11 22H2", complianceState: "compliant", lastCheckin: "2025-05-19 09:14", issues: [] },
+    { deviceName: "LAPTOP-MKT-07", user: "bob.smith@corp.com", os: "Windows", osVersion: "10 21H2", complianceState: "noncompliant", lastCheckin: "2025-05-18 14:32", issues: ["BitLocker not enabled", "Windows Update pending 3 critical patches"] },
+    { deviceName: "MacBook-Pro-HR", user: "carol.white@corp.com", os: "macOS", osVersion: "14.4.1", complianceState: "compliant", lastCheckin: "2025-05-19 08:55", issues: [] },
+    { deviceName: "DESKTOP-DEV-15", user: "dan.lee@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-17 16:01", issues: ["Secure Boot disabled", "Firewall policy not met", "Defender signatures outdated"] },
+    { deviceName: "iPhone-14-Eve", user: "eve.martin@corp.com", os: "iOS", osVersion: "17.4", complianceState: "compliant", lastCheckin: "2025-05-19 11:22", issues: [] },
+    { deviceName: "LAPTOP-FIN-03", user: "frank.oz@corp.com", os: "Windows", osVersion: "10 22H2", complianceState: "unknown", lastCheckin: "2025-05-10 07:44", issues: ["Device not checked in for 10 days"] },
+    { deviceName: "DESKTOP-OPS-22", user: "grace.hall@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-19 10:01", issues: ["Password policy not met", "PIN complexity insufficient"] },
+    { deviceName: "MacBook-Air-Eng", user: "henry.ford@corp.com", os: "macOS", osVersion: "13.6.5", complianceState: "noncompliant", lastCheckin: "2025-05-15 13:19", issues: ["Encryption not enabled"] },
+    { deviceName: "Android-Pixel8", user: "iris.chan@corp.com", os: "Android", osVersion: "14", complianceState: "compliant", lastCheckin: "2025-05-18 19:33", issues: [] },
+    { deviceName: "LAPTOP-EXEC-01", user: "james.ceo@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "inprogress", lastCheckin: "2025-05-19 12:00", issues: [] },
+    { deviceName: "DESKTOP-IT-08", user: "karen.it@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "compliant", lastCheckin: "2025-05-19 08:30", issues: [] },
+    { deviceName: "LAPTOP-SALES-11", user: "liam.jones@corp.com", os: "Windows", osVersion: "10 21H2", complianceState: "noncompliant", lastCheckin: "2025-05-14 09:55", issues: ["TPM not ready", "Windows Update pending 7 critical patches", "BitLocker not enabled"] },
+    { deviceName: "DESKTOP-QA-04", user: "maya.patel@corp.com", os: "Windows", osVersion: "11 22H2", complianceState: "noncompliant", lastCheckin: "2025-05-16 11:12", issues: ["Secure Boot disabled", "No compliance policy assigned"] },
+    { deviceName: "iPhone-12-Ops", user: "noah.brown@corp.com", os: "iOS", osVersion: "16.7", complianceState: "noncompliant", lastCheckin: "2025-05-18 08:01", issues: ["Passcode not compliant"] },
+    { deviceName: "LAPTOP-DEV-22", user: "olivia.green@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-13 14:44", issues: ["Jailbreak detected", "Defender real-time protection off"] },
+    { deviceName: "MacBook-Pro-Fin", user: "peter.kim@corp.com", os: "macOS", osVersion: "14.3", complianceState: "compliant", lastCheckin: "2025-05-19 07:58", issues: [] }
+  ];
+  finishLoad(raw, null);
+  document.getElementById("dzIcon").innerHTML = "&#9889;";
+  document.getElementById("dzLabel").textContent = "Sample data loaded (16 devices)";
+  document.getElementById("dropZone").classList.add("loaded");
+}
+
+</script>
+
+</body>
+</html>
