@@ -13,27 +13,27 @@
 body{font-family:'IBM Plex Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;transition:background .2s,color .2s}
 nav{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 20px;height:50px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200}
 .nav-left{display:flex;align-items:center;gap:10px}
-.nav-logo{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;transition:.2s}
+.nav-logo{font-family:monospace;font-size:12px;font-weight:600;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:7px;padding:5px 9px;border:1px solid var(--border);border-radius:5px;transition:.2s}
 .nav-logo:hover{border-color:var(--accent);background:var(--bg3)}
-.nav-crumb{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.nav-crumb{font-size:11px;color:var(--text3);font-family:monospace}
 .nav-crumb span{color:var(--text2)}
 .theme-btn{background:var(--bg3);border:1px solid var(--border);border-radius:5px;width:34px;height:34px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:15px;transition:.2s}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent)}
 .pg-head{padding:24px 20px 20px;border-bottom:1px solid var(--border);background:var(--bg2)}
-.pg-head h1{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;display:flex;align-items:center;gap:9px;margin-bottom:5px}
+.pg-head h1{font-family:monospace;font-size:20px;font-weight:600;display:flex;align-items:center;gap:9px;margin-bottom:5px}
 .pg-head p{font-size:12.5px;color:var(--text2);max-width:680px;line-height:1.6}
 main{padding:20px;max-width:1500px;margin:0 auto}
-.sec-title{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:7px}
+.sec-title{font-family:monospace;font-size:11px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:14px;display:flex;align-items:center;gap:7px}
 .portal-guide{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
 .portal-steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
 @media(max-width:700px){.portal-steps{grid-template-columns:1fr}}
 .ps{background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
-.ps-num{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
-.ps-title{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px}
+.ps-num{font-family:monospace;font-size:10px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.ps-title{font-family:monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:5px}
 .ps-desc{font-size:11.5px;color:var(--text2);line-height:1.6}
-.ps-desc code{font-family:'IBM Plex Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
+.ps-desc code{font-family:monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
 .portal-links{display:flex;flex-wrap:wrap;gap:8px}
-.pl{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent);text-decoration:none;transition:.2s}
+.pl{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;font-family:monospace;font-size:11.5px;color:var(--accent);text-decoration:none;transition:.2s}
 .pl:hover{border-color:var(--accent);background:var(--bg4)}
 .pl-badge{font-size:9px;background:var(--nc-bg);color:var(--danger);border:1px solid var(--nc-br);border-radius:3px;padding:1px 4px;font-weight:600}
 .import-panel{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:20px}
@@ -41,20 +41,19 @@ main{padding:20px;max-width:1500px;margin:0 auto}
 @media(max-width:640px){.import-grid{grid-template-columns:1fr}}
 .drop-zone{border:2px dashed var(--border);border-radius:7px;padding:22px 16px;text-align:center;cursor:pointer;transition:.2s;position:relative}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--bg3)}
-.drop-zone.loaded{border-color:var(--comp-br)}
 .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
 .dz-icon{font-size:24px;margin-bottom:6px}
-.dz-label{font-size:12.5px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.dz-label{font-size:12.5px;color:var(--text2);font-family:monospace}
 .dz-sub{font-size:11px;color:var(--text3);margin-top:3px}
-.sample-btn{margin-top:12px;background:none;border:1px solid var(--border);border-radius:5px;padding:7px 14px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;width:100%;transition:.2s}
+.sample-btn{margin-top:12px;background:none;border:1px solid var(--border);border-radius:5px;padding:7px 14px;color:var(--text2);font-family:monospace;font-size:11.5px;cursor:pointer;width:100%;transition:.2s}
 .sample-btn:hover{border-color:var(--accent);color:var(--accent)}
 .import-note{background:var(--bg3);border:1px solid var(--border);border-radius:7px;padding:14px 16px;font-size:12px;color:var(--text2);line-height:1.7}
-.import-note b{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:10.5px;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
+.import-note b{font-family:monospace;color:var(--accent);font-size:10.5px;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
 .import-note ol{padding-left:14px}
 .import-note li{margin-bottom:3px}
-.import-note code{font-family:'IBM Plex Mono',monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
+.import-note code{font-family:monospace;background:var(--bg2);border:1px solid var(--border);border-radius:3px;padding:1px 4px;font-size:10.5px;color:var(--accent)}
 .btn-row{display:flex;gap:7px;margin-top:12px;flex-wrap:wrap}
-.btn{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 12px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.2s;white-space:nowrap}
+.btn{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 12px;color:var(--text2);font-family:monospace;font-size:11.5px;cursor:pointer;display:flex;align-items:center;gap:5px;transition:.2s;white-space:nowrap}
 .btn:hover{border-color:var(--accent);color:var(--accent)}
 .btn.dx:hover{border-color:var(--danger);color:var(--danger)}
 .stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:16px}
@@ -62,12 +61,12 @@ main{padding:20px;max-width:1500px;margin:0 auto}
 @media(max-width:480px){.stats-row{grid-template-columns:repeat(2,1fr)}}
 .sc{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;transition:.2s}
 .sc:hover{border-color:var(--accent)}
-.sc .lbl{font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
-.sc .val{font-family:'IBM Plex Mono',monospace;font-size:26px;font-weight:600}
-.sc .sub{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.sc .lbl{font-size:10.5px;font-family:monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px}
+.sc .val{font-family:monospace;font-size:26px;font-weight:600}
+.sc .sub{font-size:10.5px;color:var(--text3);margin-top:3px;font-family:monospace}
 .tot .val{color:var(--accent)}.ok .val{color:var(--accent2)}.fail .val{color:var(--danger)}.unk .val{color:var(--warn)}.iss .val{color:var(--info)}
 .bar-wrap{margin-bottom:16px}
-.bar-lbl{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--text2);margin-bottom:5px}
+.bar-lbl{display:flex;justify-content:space-between;font-family:monospace;font-size:11px;color:var(--text2);margin-bottom:5px}
 .bar-track{height:7px;border-radius:4px;background:var(--bg3);display:flex;overflow:hidden}
 .bseg{height:100%;transition:width .5s ease}
 .bok{background:var(--accent2)}.bfail{background:var(--danger)}.bunk{background:var(--warn)}
@@ -77,11 +76,11 @@ main{padding:20px;max-width:1500px;margin:0 auto}
 .hchip:hover{border-color:var(--accent);background:var(--bg4)}
 .hchip.active{border-color:var(--danger);background:var(--nc-bg)}
 .hchip-icon{font-size:18px;line-height:1}
-.hchip-name{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;color:var(--text)}
-.hchip-count{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--text3)}
+.hchip-name{font-family:monospace;font-size:11.5px;font-weight:600;color:var(--text)}
+.hchip-count{font-family:monospace;font-size:10px;color:var(--text3)}
 .hchip-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--danger);transition:width .4s ease}
 .vtog{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden}
-.vtbtn{background:none;border:none;border-right:1px solid var(--border);padding:7px 14px;color:var(--text2);font-family:'IBM Plex Mono',monospace;font-size:11.5px;cursor:pointer;transition:.15s}
+.vtbtn{background:none;border:none;border-right:1px solid var(--border);padding:7px 14px;color:var(--text2);font-family:monospace;font-size:11.5px;cursor:pointer;transition:.15s}
 .vtbtn:last-child{border-right:none}
 .vtbtn.on{background:var(--accent);color:#fff}
 .vtbtn:not(.on):hover{background:var(--bg3);color:var(--text)}
@@ -89,20 +88,20 @@ main{padding:20px;max-width:1500px;margin:0 auto}
 .sbox{flex:1;min-width:180px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 11px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
 .sbox:focus{border-color:var(--accent)}
 .sbox::placeholder{color:var(--text3)}
-select.fsel{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:11.5px;outline:none;cursor:pointer;transition:.2s}
+select.fsel{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:7px 10px;color:var(--text);font-family:monospace;font-size:11.5px;outline:none;cursor:pointer;transition:.2s}
 select.fsel:focus{border-color:var(--accent)}
 .twrap{background:var(--bg2);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow)}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
 thead{background:var(--bg3);border-bottom:1px solid var(--border)}
-th{padding:10px 14px;text-align:left;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
+th{padding:10px 14px;text-align:left;font-family:monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;cursor:pointer;user-select:none;transition:color .15s}
 th:hover{color:var(--accent)}
 th .si{margin-left:3px;opacity:.35;font-size:9px}
 tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
 tbody tr:last-child{border-bottom:none}
 tbody tr:hover{background:var(--bg3)}
 td{padding:10px 14px;vertical-align:middle}
-td.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text2)}
-.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;white-space:nowrap}
+td.mono{font-family:monospace;font-size:11.5px;color:var(--text2)}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-family:monospace;font-size:10.5px;font-weight:600;white-space:nowrap}
 .badge::before{content:"\2022";font-size:8px}
 .bc{background:var(--comp-bg);color:var(--accent2);border:1px solid var(--comp-br)}
 .bn{background:var(--nc-bg);color:var(--danger);border:1px solid var(--nc-br)}
@@ -115,9 +114,9 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text2
 .sc-high{background:rgba(210,153,34,.18);border-color:rgba(210,153,34,.4)}
 .sc-med{background:rgba(88,166,255,.15);border-color:rgba(88,166,255,.3)}
 .tipw{position:relative;display:inline-flex}
-.tipw .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;font-family:'IBM Plex Mono',monospace}
+.tipw .tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg4);border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-size:10.5px;color:var(--text);white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .15s;z-index:100;font-family:monospace}
 .tipw:hover .tip{opacity:1}
-.spill{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
+.spill{font-family:monospace;font-size:11px;font-weight:600;padding:2px 7px;border-radius:4px;border:1px solid;white-space:nowrap}
 .sp-c{background:rgba(248,81,73,.18);color:var(--danger);border-color:var(--nc-br)}
 .sp-h{background:rgba(210,153,34,.18);color:var(--warn);border-color:var(--unk-br)}
 .sp-m{background:rgba(88,166,255,.12);color:var(--accent);border-color:rgba(88,166,255,.3)}
@@ -126,32 +125,32 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text2
 .ghdr{padding:14px 18px;background:var(--bg3);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;cursor:pointer}
 .ghdr:hover{background:var(--bg4)}
 .ghico{font-size:22px}
-.ghtitle{font-family:'IBM Plex Mono',monospace;font-size:13px;font-weight:600;color:var(--text)}
-.ghmeta{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
-.ghcount{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--danger);font-weight:600}
+.ghtitle{font-family:monospace;font-size:13px;font-weight:600;color:var(--text)}
+.ghmeta{font-size:11px;color:var(--text3);font-family:monospace}
+.ghcount{margin-left:auto;font-family:monospace;font-size:12px;color:var(--danger);font-weight:600}
 .ghtog{font-size:10px;color:var(--text3);margin-left:8px}
 .qfix{background:var(--bg3);border-left:3px solid var(--danger);padding:8px 12px;margin:12px 18px 4px;border-radius:0 5px 5px 0;font-size:12px;color:var(--text2);line-height:1.5}
 .gdrow{display:flex;align-items:center;gap:12px;padding:9px 18px;border-bottom:1px solid var(--border);cursor:pointer;transition:background .1s;flex-wrap:wrap}
 .gdrow:last-child{border-bottom:none}
 .gdrow:hover{background:var(--bg3)}
-.gdn{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--text);min-width:150px}
+.gdn{font-family:monospace;font-size:12px;font-weight:600;color:var(--text);min-width:150px}
 .gdu{font-size:12px;color:var(--text2);flex:1;min-width:100px}
-.gdo{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace}
+.gdo{font-size:11px;color:var(--text3);font-family:monospace}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s}
 .overlay.open{opacity:1;pointer-events:all}
 .drawer{position:fixed;top:0;right:0;width:500px;max-width:96vw;height:100vh;background:var(--bg2);border-left:1px solid var(--border);z-index:301;transform:translateX(100%);transition:transform .25s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column}
 .drawer.open{transform:translateX(0)}
 .dhead{padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg3);position:sticky;top:0;z-index:1;display:flex;align-items:flex-start;justify-content:space-between}
-.dtitle{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;margin-bottom:3px}
-.dsub{font-size:12px;color:var(--text2);font-family:'IBM Plex Mono',monospace}
+.dtitle{font-family:monospace;font-size:14px;font-weight:600;margin-bottom:3px}
+.dsub{font-size:12px;color:var(--text2);font-family:monospace}
 .dclose{background:none;border:1px solid var(--border);border-radius:5px;width:28px;height:28px;cursor:pointer;color:var(--text2);font-size:14px;display:flex;align-items:center;justify-content:center;transition:.2s;flex-shrink:0}
 .dclose:hover{border-color:var(--danger);color:var(--danger)}
 .dbody{padding:18px 20px;flex:1}
 .dsec{margin-bottom:22px}
-.dsec-t{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
+.dsec-t{font-family:monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid var(--border)}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
-.dik{font-size:10.5px;color:var(--text3);font-family:'IBM Plex Mono',monospace;margin-bottom:2px}
-.div2{font-size:12.5px;color:var(--text);font-family:'IBM Plex Mono',monospace;word-break:break-all}
+.dik{font-size:10.5px;color:var(--text3);font-family:monospace;margin-bottom:2px}
+.div2{font-size:12.5px;color:var(--text);font-family:monospace;word-break:break-all}
 .rcard{border-radius:7px;padding:14px 16px;margin-bottom:10px;border-left:4px solid}
 .rcard.sc-crit{background:rgba(248,81,73,.1);border-left-color:var(--danger)}
 .rcard.sc-high{background:rgba(210,153,34,.1);border-left-color:var(--warn)}
@@ -159,32 +158,32 @@ td.mono{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--text2
 .rtop{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
 .rico{font-size:22px;flex-shrink:0}
 .rtb{flex:1}
-.rtitle{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text)}
+.rtitle{font-family:monospace;font-size:12.5px;font-weight:600;color:var(--text)}
 .rraw{font-size:10.5px;color:var(--text2);margin-top:2px}
-.rsev{font-family:'IBM Plex Mono',monospace;font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;flex-shrink:0;margin-top:2px}
+.rsev{font-family:monospace;font-size:10px;padding:2px 6px;border-radius:3px;font-weight:600;flex-shrink:0;margin-top:2px}
 .rsev.sc-crit{background:rgba(248,81,73,.2);color:var(--danger)}
 .rsev.sc-high{background:rgba(210,153,34,.2);color:var(--warn)}
 .rsev.sc-med{background:rgba(88,166,255,.15);color:var(--accent)}
 .rsect{margin-bottom:10px}
-.rsectl{font-size:10.5px;font-family:'IBM Plex Mono',monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.rsectl{font-size:10.5px;font-family:monospace;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
 .rsect ul{padding-left:16px}
 .rsect li{font-size:12px;color:var(--text2);margin-bottom:3px;line-height:1.5}
-.rdoc{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11.5px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-decoration:none;padding:4px 9px;border:1px solid rgba(88,166,255,.3);border-radius:4px;transition:.2s}
+.rdoc{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:11.5px;color:var(--accent);font-family:monospace;text-decoration:none;padding:4px 9px;border:1px solid rgba(88,166,255,.3);border-radius:4px;transition:.2s}
 .rdoc:hover{border-color:var(--accent);background:rgba(88,166,255,.08)}
 .empty{text-align:center;padding:50px 20px;color:var(--text3)}
 .empty-ico{font-size:36px;margin-bottom:10px;opacity:.5}
-.empty-t{font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--text2);margin-bottom:5px}
-footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);margin-top:36px}
+.empty-t{font-family:monospace;font-size:13px;color:var(--text2);margin-bottom:5px}
+footer{text-align:center;padding:24px;font-family:monospace;font-size:10.5px;color:var(--text3);border-top:1px solid var(--border);margin-top:36px}
 
 /* PDF MODAL */
 .modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%) scale(.95);width:680px;max-width:96vw;max-height:90vh;background:var(--bg2);border:1px solid var(--border);border-radius:12px;z-index:301;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;display:flex;flex-direction:column;overflow:hidden}
 .modal.open{opacity:1;pointer-events:all;transform:translate(-50%,-50%) scale(1)}
 .modal-head{padding:18px 20px;border-bottom:1px solid var(--border);background:var(--bg3);display:flex;align-items:flex-start;justify-content:space-between;flex-shrink:0}
-.modal-title{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:600;margin-bottom:3px}
+.modal-title{font-family:monospace;font-size:15px;font-weight:600;margin-bottom:3px}
 .modal-sub{font-size:12px;color:var(--text2)}
 .modal-body{padding:20px;overflow-y:auto;flex:1}
 .opt-section{margin-bottom:22px}
-.opt-label{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.opt-label{font-family:monospace;font-size:10.5px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px;padding-bottom:6px;border-bottom:1px solid var(--border)}
 .opt-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:500px){.opt-grid{grid-template-columns:1fr}}
 .opt-card{background:var(--bg3);border:2px solid var(--border);border-radius:8px;padding:14px;cursor:pointer;transition:.15s;display:block}
@@ -192,7 +191,7 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
 .opt-card input{display:none}
 .opt-card.selected{border-color:var(--accent);background:rgba(88,166,255,.08)}
 .oc-icon{font-size:22px;margin-bottom:8px}
-.oc-title{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:4px}
+.oc-title{font-family:monospace;font-size:12.5px;font-weight:600;color:var(--text);margin-bottom:4px}
 .oc-desc{font-size:11.5px;color:var(--text2);line-height:1.5}
 .opt-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:500px){.opt-row{grid-template-columns:1fr}}
@@ -201,20 +200,20 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
 .tog-card input{display:none}
 .tog-card.on{border-color:var(--accent2);background:rgba(63,185,80,.08)}
 .tc-content{flex:1}
-.tc-title{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
+.tc-title{font-family:monospace;font-size:12px;font-weight:600;color:var(--text);margin-bottom:2px}
 .tc-desc{font-size:11px;color:var(--text2);line-height:1.4}
 .tc-check{font-size:14px;color:var(--accent2);opacity:0;transition:.15s;flex-shrink:0}
 .tog-card.on .tc-check{opacity:1}
 .cover-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:500px){.cover-fields{grid-template-columns:1fr}}
 .cf-field{}
-.cf-label{font-size:11px;color:var(--text3);font-family:'IBM Plex Mono',monospace;display:block;margin-bottom:5px}
+.cf-label{font-size:11px;color:var(--text3);font-family:monospace;display:block;margin-bottom:5px}
 .cf-input{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:5px;padding:8px 10px;color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:13px;outline:none;transition:.2s}
 .cf-input:focus{border-color:var(--accent)}
 .cf-input::placeholder{color:var(--text3)}
 .modal-footer{display:flex;align-items:center;justify-content:space-between;padding-top:16px;border-top:1px solid var(--border);gap:12px;flex-wrap:wrap}
-.preview-info{font-size:11.5px;color:var(--text2);font-family:'IBM Plex Mono',monospace;flex:1}
-.gen-btn{background:var(--danger);border:none;border-radius:6px;padding:10px 20px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
+.preview-info{font-size:11.5px;color:var(--text2);font-family:monospace;flex:1}
+.gen-btn{background:var(--danger);border:none;border-radius:6px;padding:10px 20px;color:#fff;font-family:monospace;font-size:12.5px;font-weight:600;cursor:pointer;transition:.2s;white-space:nowrap}
 .gen-btn:hover{opacity:.85}
 
 
@@ -224,13 +223,24 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
 .dz-pair{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 @media(max-width:900px){.dz-pair{grid-template-columns:1fr}}
 .dz-pair-item{display:flex;flex-direction:column;gap:6px}
-.dz-pair-label{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
+.dz-pair-label{font-family:monospace;font-size:11px;font-weight:600;color:var(--text2);display:flex;align-items:center;gap:6px}
 .dz-pair-num{background:var(--accent);color:#fff;border-radius:50%;width:18px;height:18px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
 .dz-required{font-size:9px;background:var(--nc-bg);color:var(--danger);border:1px solid var(--nc-br);border-radius:3px;padding:1px 5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em}
 .dz-optional{font-size:9px;background:var(--bg3);color:var(--text3);border:1px solid var(--border);border-radius:3px;padding:1px 5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.dz-merge-status{background:var(--comp-bg);border:1px solid var(--comp-br);border-radius:6px;padding:8px 12px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--accent2)}
-.import-note b{font-family:'IBM Plex Mono',monospace;color:var(--accent);font-size:10.5px;display:block;margin-top:8px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
+.dz-merge-status{background:var(--comp-bg);border:1px solid var(--comp-br);border-radius:6px;padding:8px 12px;font-family:monospace;font-size:11.5px;color:var(--accent2)}
+.import-note b{font-family:monospace;color:var(--accent);font-size:10.5px;display:block;margin-top:8px;margin-bottom:5px;text-transform:uppercase;letter-spacing:.06em}
 .import-note p{font-size:12px;color:var(--text2);line-height:1.6}
+
+.drop-zone.dz-warn{border-color:var(--warn);background:var(--unk-bg)}
+.drop-zone.dz-warn .dz-label{color:var(--warn)}
+.drop-zone.loaded{border-color:var(--comp-br);background:var(--comp-bg)}
+.drop-zone.loaded .dz-label{color:var(--accent2)}
+
+.results-bar{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:7px;margin-bottom:10px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--text2)}
+.results-bar .results-count-num{color:var(--accent);font-weight:700}
+.results-bar .results-filtered{color:var(--warn);font-weight:600}
+.results-clear{background:none;border:1px solid var(--border);border-radius:4px;padding:3px 10px;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--text2);cursor:pointer;transition:.15s}
+.results-clear:hover{border-color:var(--danger);color:var(--danger)}
 </style>
 </head>
 <body>
@@ -361,7 +371,7 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
     </div>
   </div>
   <div class="heatmap-panel">
-    <div class="sec-title" style="margin-bottom:12px">&#128293; Issue Heatmap &mdash; click any chip to filter<span style="margin-left:auto;font-size:10.5px;color:var(--text3);text-transform:none;letter-spacing:0;font-weight:400">Bar = proportion of fleet affected</span></div>
+    <div class="sec-title" style="margin-bottom:12px">&#128293; Issue Heatmap &mdash; click chips to filter (multi-select)<span style="margin-left:auto;font-size:10.5px;color:var(--text3);text-transform:none;letter-spacing:0;font-weight:400">Bar = proportion of fleet affected</span></div>
     <div class="heatmap-grid" id="heatmapGrid"></div>
   </div>
   <div class="ctrls">
@@ -379,6 +389,10 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
       <button class="vtbtn on"  id="vtD" onclick="setView('device')">&#128203; By Device</button>
       <button class="vtbtn"     id="vtI" onclick="setView('issue')">&#9888; By Issue</button>
     </div>
+  </div>
+  <div class="results-bar" id="resultsBar" style="display:none">
+    <span id="resultsCount"></span>
+    <button class="results-clear" id="resultsClear" onclick="clearFilters()" style="display:none">&#10005; Clear filters</button>
   </div>
   <div id="deviceView">
     <div class="twrap">
@@ -511,524 +525,696 @@ footer{text-align:center;padding:24px;font-family:'IBM Plex Mono',monospace;font
 <footer>IT Engineer Tools &mdash; Intune Compliance Explorer &middot; All data processed locally in-browser &middot; Nothing leaves your machine</footer>
 <script>
 
+
+
+
+
+
+
 "use strict";
 
-// ── KNOWLEDGE BASE ──────────────────────────────────────────────────────────
+// ── KNOWLEDGE BASE ────────────────────────────────────────────────────────────
 var KB = {
-  bitlocker: {
-    icon: "\uD83D\uDD10", label: "BitLocker", sev: "critical",
-    match: ["bitlocker", "bit locker", "drive encrypt"],
-    causes: ["BitLocker policy not configured in Intune", "TPM chip missing or not initialised", "User declined encryption prompt", "OS drive excluded from policy"],
-    fix: ["Assign BitLocker profile: Endpoint security > Disk encryption", "Ensure TPM 2.0 is enabled in BIOS/UEFI", "Run: manage-bde -status to check drive state", "Set Enforce drive encryption type in policy for silent enablement"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices"
-  },
-  defender: {
-    icon: "\uD83D\uDEE1\uFE0F", label: "Defender / AV", sev: "critical",
-    match: ["defender", "antivirus", "anti-virus", "malware", "real-time", "signatures", "definition"],
-    causes: ["Windows Defender disabled by third-party AV", "Signature database out of date", "Real-time protection turned off", "Tamper protection bypassed"],
-    fix: ["Push Defender Antivirus policy: Endpoint security > Antivirus", "Run: Update-MpSignature to force definition update", "Check Windows Security Centre on device", "Verify no GPO is disabling Defender"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-antivirus-policy"
-  },
-  firewall: {
-    icon: "\uD83D\uDD25", label: "Firewall", sev: "high",
-    match: ["firewall", "network protection"],
-    causes: ["Windows Firewall disabled on Domain/Private/Public profile", "Third-party firewall not recognised", "GPO conflict disabling firewall"],
-    fix: ["Enable via Intune: Endpoint Security > Firewall policy", "Check: Get-NetFirewallProfile | Select Name,Enabled", "Remove conflicting legacy GPOs"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-firewall-policy"
-  },
-  secureboot: {
-    icon: "\uD83D\uDD12", label: "Secure Boot", sev: "critical",
-    match: ["secure boot", "secureboot"],
-    causes: ["Secure Boot disabled in BIOS/UEFI", "Legacy BIOS/MBR mode instead of UEFI/GPT", "Custom boot loader blocking Secure Boot"],
-    fix: ["Enable Secure Boot in BIOS/UEFI under Boot or Security tab", "Convert MBR to GPT using MBR2GPT.exe if needed", "Verify with: Confirm-SecureBootUEFI in PowerShell"],
-    docs: "https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot"
-  },
-  tpm: {
-    icon: "\uD83D\uDDA5\uFE0F", label: "TPM", sev: "critical",
-    match: ["tpm", "trusted platform"],
-    causes: ["TPM not present on older hardware", "TPM version below 2.0", "TPM not initialised or was cleared", "Firmware TPM disabled in BIOS"],
-    fix: ["Enable TPM/PTT in BIOS/UEFI under Security settings", "Check status: tpm.msc", "Update system firmware for firmware TPM issues", "Evaluate hardware replacement if TPM 1.2 only"],
-    docs: "https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/tpm-fundamentals"
-  },
-  winupdate: {
-    icon: "\uD83D\uDD04", label: "Windows Update", sev: "high",
-    match: ["windows update", "update pending", "patch", "cumulative update", "feature update"],
-    causes: ["Update Ring policy not assigned or misconfigured", "Device offline during maintenance window", "User deferring beyond grace period", "WUfB policy conflict"],
-    fix: ["Assign Update Ring: Devices > Update rings", "Set max deferral periods in compliance policy", "Force sync: usoclient StartScan (admin PowerShell)", "Check device update history in Windows Update settings"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/windows-update-for-business-configure"
-  },
-  password: {
-    icon: "\uD83D\uDD11", label: "Password Policy", sev: "high",
-    match: ["password", "passcode", "pin complexity", "pin length", "credential"],
-    causes: ["Password complexity requirement not met", "Password too short for policy", "Password not changed within required period", "PIN not set on device"],
-    fix: ["Review password requirements in the Intune compliance policy", "Prompt user to update Windows Hello PIN", "Assign Device Restrictions profile with password requirements", "Check local policy: net accounts"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-windows"
-  },
-  encrypt: {
-    icon: "\uD83D\uDDD9\uFE0F", label: "Encryption", sev: "critical",
-    match: ["encrypt", "encryption", "filevault", "storage encrypt"],
-    causes: ["Device storage not encrypted", "FileVault not enabled on macOS", "BitLocker policy not applied on Windows"],
-    fix: ["Windows: see BitLocker remediation above", "macOS: enable FileVault via Endpoint protection profile", "Check FileVault status: fdesetup status", "Confirm encryption profile is assigned to device group"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices-filevault"
-  },
-  jailbreak: {
-    icon: "\u26D4", label: "Jailbreak / Root", sev: "critical",
-    match: ["jailbreak", "rooted", "jail break"],
-    causes: ["Device has been jailbroken or rooted", "False positive from security software", "Sideloaded apps bypassing OS security"],
-    fix: ["Wipe and re-enrol the device", "Apply Conditional Access to block jailbroken devices", "Investigate via Intune device details for false positives", "Enable Conditional Launch: Block access for jailbroken devices"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-ios"
-  },
-  nopolicy: {
-    icon: "\uD83D\uDCCB", label: "No Policy Assigned", sev: "medium",
-    match: ["no compliance policy", "not evaluated", "policy not assigned", "no policy"],
-    causes: ["Device enrolled but no compliance policy assigned", "User not in target group for the policy", "Assignment filter excluding the device"],
-    fix: ["Assign a compliance policy to the device group", "Verify the user is in the correct Azure AD group", "Check assignment filters on the policy in Intune"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started"
-  },
-  checkin: {
-    icon: "\uD83D\uDCE1", label: "Stale Check-In", sev: "medium",
-    match: ["not checked in", "stale", "inactive", "no contact", "check-in", "checked in"],
-    causes: ["Device offline or powered off for extended period", "Intune Management Extension not running", "MDM channel certificate expired", "Corporate network or VPN required for check-in"],
-    fix: ["Ask user to connect to internet and open Company Portal", "Run: dsregcmd /status to verify MDM enrolment", "Re-enrol device if MDM certificate is expired", "Check Intune Management Extension scheduled task is running"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-sync"
-  }
+  bitlocker:  { icon:"\uD83D\uDD10", label:"BitLocker",       sev:"critical", match:["bitlocker","bit locker","drive encrypt"],           causes:["BitLocker policy not configured in Intune","TPM chip missing or not initialised","User declined encryption prompt","OS drive excluded from policy"],                                                fix:["Assign BitLocker profile: Endpoint security > Disk encryption","Ensure TPM 2.0 is enabled in BIOS/UEFI","Run: manage-bde -status to check drive state","Set Enforce drive encryption type in policy"], docs:"https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices" },
+  defender:   { icon:"\uD83D\uDEE1\uFE0F", label:"Defender / AV",    sev:"critical", match:["defender","antivirus","anti-virus","malware","real-time","signatures","definition"],  causes:["Windows Defender disabled by third-party AV","Signature database out of date","Real-time protection turned off","Tamper protection bypassed"],                                                fix:["Push Defender Antivirus policy: Endpoint security > Antivirus","Run: Update-MpSignature to force update","Check Windows Security Centre on device","Verify no GPO is disabling Defender"],  docs:"https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-antivirus-policy" },
+  firewall:   { icon:"\uD83D\uDD25", label:"Firewall",         sev:"high",     match:["firewall","network protection"],                                                            causes:["Windows Firewall disabled on Domain/Private/Public profile","Third-party firewall not recognised","GPO conflict disabling firewall"],                                                          fix:["Enable via Intune: Endpoint Security > Firewall policy","Check: Get-NetFirewallProfile | Select Name,Enabled","Remove conflicting legacy GPOs"],                                          docs:"https://learn.microsoft.com/en-us/mem/intune/protect/endpoint-security-firewall-policy" },
+  secureboot: { icon:"\uD83D\uDD12", label:"Secure Boot",      sev:"critical", match:["secure boot","secureboot"],                                                                causes:["Secure Boot disabled in BIOS/UEFI","Legacy BIOS/MBR mode instead of UEFI/GPT","Custom boot loader blocking Secure Boot"],                                                               fix:["Enable Secure Boot in BIOS/UEFI under Boot or Security tab","Convert MBR to GPT using MBR2GPT.exe if needed","Verify with: Confirm-SecureBootUEFI in PowerShell"],                      docs:"https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/oem-secure-boot" },
+  tpm:        { icon:"\uD83D\uDDA5\uFE0F", label:"TPM",              sev:"critical", match:["tpm","trusted platform"],                                                                causes:["TPM not present on older hardware","TPM version below 2.0","TPM not initialised or was cleared","Firmware TPM disabled in BIOS"],                                                         fix:["Enable TPM/PTT in BIOS/UEFI under Security settings","Check status: tpm.msc","Update system firmware for firmware TPM issues","Evaluate hardware replacement if TPM 1.2 only"],           docs:"https://learn.microsoft.com/en-us/windows/security/hardware-security/tpm/tpm-fundamentals" },
+  winupdate:  { icon:"\uD83D\uDD04", label:"Windows Update",   sev:"high",     match:["windows update","update pending","patch","cumulative update","feature update"],             causes:["Update Ring policy not assigned or misconfigured","Device offline during maintenance window","User deferring beyond grace period","WUfB policy conflict"],                                  fix:["Assign Update Ring: Devices > Update rings","Set max deferral periods in compliance policy","Force sync: usoclient StartScan (admin PowerShell)","Check device update history"],           docs:"https://learn.microsoft.com/en-us/mem/intune/protect/windows-update-for-business-configure" },
+  password:   { icon:"\uD83D\uDD11", label:"Password Policy",  sev:"high",     match:["password","passcode","pin complexity","pin length","credential"],                           causes:["Password complexity requirement not met","Password too short for policy","Password not changed within required period","PIN not set on device"],                                         fix:["Review password requirements in the Intune compliance policy","Prompt user to update Windows Hello PIN","Assign Device Restrictions profile with password requirements","Check local policy: net accounts"], docs:"https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-windows" },
+  encrypt:    { icon:"\uD83D\uDDD9\uFE0F", label:"Encryption",        sev:"critical", match:["encrypt","encryption","filevault","storage encrypt"],                                      causes:["Device storage not encrypted","FileVault not enabled on macOS","BitLocker policy not applied on Windows"],                                                                               fix:["Windows: see BitLocker remediation above","macOS: enable FileVault via Endpoint protection profile","Check FileVault status: fdesetup status","Confirm encryption profile is assigned"], docs:"https://learn.microsoft.com/en-us/mem/intune/protect/encrypt-devices-filevault" },
+  jailbreak:  { icon:"\u26D4",       label:"Jailbreak / Root",  sev:"critical", match:["jailbreak","rooted","jail break"],                                                         causes:["Device has been jailbroken or rooted","False positive from security software","Sideloaded apps bypassing OS security"],                                                                  fix:["Wipe and re-enrol the device","Apply Conditional Access to block jailbroken devices","Investigate via Intune device details for false positives"],                                        docs:"https://learn.microsoft.com/en-us/mem/intune/protect/compliance-policy-create-ios" },
+  nopolicy:   { icon:"\uD83D\uDCCB", label:"No Policy Assigned",sev:"medium",   match:["no compliance policy","not evaluated","policy not assigned","no policy"],                  causes:["Device enrolled but no compliance policy assigned","User not in target group for the policy","Assignment filter excluding the device"],                                               fix:["Assign a compliance policy to the device group","Verify the user is in the correct Azure AD group","Check assignment filters on the policy in Intune"],                                    docs:"https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" },
+  checkin:    { icon:"\uD83D\uDCE1", label:"Stale Check-In",   sev:"medium",   match:["not checked in","stale","inactive","no contact","check-in","checked in","is active"],                  causes:["Device offline or powered off for extended period","Intune Management Extension not running","MDM channel certificate expired","Corporate network or VPN required for check-in"], fix:["Ask user to connect to internet and open Company Portal","Run: dsregcmd /status to verify MDM enrolment","Check the grace period in the compliance policy: Intune > Devices > Compliance policies","Re-enrol device if MDM certificate is expired"],                               docs:"https://learn.microsoft.com/en-us/mem/intune/remote-actions/device-sync" }
 };
-
-var SS = { critical: 4, high: 2, medium: 1 };
+var SS = { critical:4, high:2, medium:1 };
 
 function mkb(s) {
   var lo = String(s).toLowerCase(), ks = Object.keys(KB);
   for (var i = 0; i < ks.length; i++) {
     var kb = KB[ks[i]];
-    for (var j = 0; j < kb.match.length; j++) {
-      if (lo.indexOf(kb.match[j]) !== -1) return Object.assign({ key: ks[i] }, kb);
-    }
+    for (var j = 0; j < kb.match.length; j++) { if (lo.indexOf(kb.match[j]) !== -1) return Object.assign({ key:ks[i] }, kb); }
   }
-  return { key: "other", icon: "\u26A0\uFE0F", label: s, sev: "medium",
-    causes: ["Policy configuration mismatch", "Hardware or software requirement not met"],
-    fix: ["Review policy in Intune: Devices > Compliance policies", "Check device compliance details in Intune Admin Centre"],
-    docs: "https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" };
+  return { key:"other", icon:"\u26A0\uFE0F", label:s, sev:"medium", causes:["Policy configuration mismatch","Hardware or software requirement not met"], fix:["Review policy in Intune: Devices > Compliance policies","Check device compliance details in Intune Admin Centre"], docs:"https://learn.microsoft.com/en-us/mem/intune/protect/device-compliance-get-started" };
 }
+function cscore(issues) { var t=0; for(var i=0;i<issues.length;i++){var kb=mkb(issues[i]);t+=(SS[kb.sev]||1);} return t; }
 
-function cscore(issues) {
-  var t = 0;
-  for (var i = 0; i < issues.length; i++) { var kb = mkb(issues[i]); t += (SS[kb.sev] || 1); }
-  return t;
-}
+// ── STATE ─────────────────────────────────────────────────────────────────────
+var AD=[], csk="score", csd=-1, aif={}, cv="device";
+var rawFile1=null, rawFile2=null;
 
-// ── STATE ───────────────────────────────────────────────────────────────────
-var AD = [], csk = "score", csd = -1, aif = null, cv = "device";
-
-// ── THEME ───────────────────────────────────────────────────────────────────
+// ── THEME ─────────────────────────────────────────────────────────────────────
 function toggleTheme() {
-  var r = document.documentElement, n = r.dataset.theme === "dark" ? "light" : "dark";
-  r.dataset.theme = n;
-  document.getElementById("themeBtn").innerHTML = n === "dark" ? "&#9728;" : "&#127769;";
-  localStorage.setItem("itt", n);
+  var r=document.documentElement, n=r.dataset.theme==="dark"?"light":"dark";
+  r.dataset.theme=n;
+  document.getElementById("themeBtn").innerHTML=n==="dark"?"&#9728;":"&#127769;";
+  localStorage.setItem("itt",n);
 }
-(function () {
-  var t = localStorage.getItem("itt") || "dark";
-  document.documentElement.dataset.theme = t;
-  document.getElementById("themeBtn").innerHTML = t === "dark" ? "&#9728;" : "&#127769;";
+(function(){
+  var t=localStorage.getItem("itt")||"dark";
+  document.documentElement.dataset.theme=t;
+  document.getElementById("themeBtn").innerHTML=t==="dark"?"&#9728;":"&#127769;";
 })();
 
-// ── FILE HANDLING ────────────────────────────────────────────────────────────
-function handleDragOver(e) { e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
-function handleDragLeave(e) { e.currentTarget.classList.remove("drag-over"); }
+// ── CSV PARSING ───────────────────────────────────────────────────────────────
+var ALS = {
+  "devicename":"deviceName","device name":"deviceName","device":"deviceName",
+  "userprincipalname":"user","userupn":"user","upn":"user","email":"user","user":"user","user email":"user","primary user upn":"user",
+  "os":"os","os_loc":"os","operatingsystem":"os","operating system":"os","platform":"os",
+  "osversion":"osVersion","os version":"osVersion","version":"osVersion",
+  "compliancestate":"complianceState","compliancestate_loc":"complianceState","compliance state":"complianceState","compliancestatus":"complianceState","compliance status":"complianceState","compliance":"complianceState","devicecompliancestatus":"complianceState","status":"complianceState","state":"complianceState",
+  "lastcheckin":"lastCheckin","last check-in":"lastCheckin","last contact":"lastCheckin","lastcontact":"lastCheckin","lastsynced":"lastCheckin","last sync":"lastCheckin","lastseen":"lastCheckin",
+  "issues":"issues","non-compliance reasons":"issues","policyfailures":"issues","policy failures":"issues","reasons":"issues","noncompliance":"issues","failed policies":"issues"
+};
 
-// File 1 - compliance report
-function handleDrop1(e) { e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f = e.dataTransfer.files[0]; if (f) processFile1(f); }
-function handleFile1(e) { if (e.target.files[0]) processFile1(e.target.files[0]); }
-function handleDrop2(e) { e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f = e.dataTransfer.files[0]; if (f) processFile2(f); }
-function handleFile2(e) { if (e.target.files[0]) processFile2(e.target.files[0]); }
+function parseCSV(text) {
+  var lines = text.trim().split("\n");
+  if (lines.length < 2) return [];
+  var hdrs = lines[0].split(",").map(function(h){ return h.trim().replace(/^"|"$/g,"").replace(/^\ufeff/,"").toLowerCase(); });
+  var rows = [];
+  for (var i=1; i<lines.length; i++) {
+    var vals = splitRow(lines[i]), row = {};
+    for (var j=0; j<hdrs.length; j++) { var k=ALS[hdrs[j]]||hdrs[j]; row[k]=(vals[j]||"").replace(/^"|"$/g,"").trim(); }
+    rows.push(row);
+  }
+  return rows.filter(function(r){ return Object.values(r).some(function(v){ return v; }); });
+}
 
-// Legacy single-drop support (keep for JSON drag to zone 1)
-function handleDrop(e) { e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f = e.dataTransfer.files[0]; if (f) processFile1(f); }
+function splitRow(row) {
+  var res=[], cur="", inQ=false;
+  for (var i=0; i<row.length; i++) {
+    if (row[i]===String.fromCharCode(34)) inQ=!inQ;
+    else if (row[i]==="," && !inQ) { res.push(cur); cur=""; }
+    else cur+=row[i];
+  }
+  res.push(cur); return res;
+}
 
-var rawFile1 = null, rawFile2 = null;
+function norm(row, idx) {
+  var st=(row.complianceState||"").toLowerCase().trim(), cs="unknown";
+  // Numeric codes from modern Intune portal export (ComplianceState_loc mapped to complianceState)
+  // 1=Compliant, 2=Not compliant, 0=Not evaluated
+  // Also handle text values from ComplianceState_loc: "Compliant", "Not compliant", "Not evaluated"
+  if      (st==="1"||st==="compliant") cs="compliant";
+  else if (st==="2"||st==="not compliant"||st==="noncompliant"||st==="non-compliant") cs="noncompliant";
+  else if (st==="0"||st==="not evaluated"||st==="unknown") cs="unknown";
+  else if (st.indexOf("inprogress")!==-1||st.indexOf("in progress")!==-1||st.indexOf("grace")!==-1) cs="inprogress";
+  else if (st.indexOf("compliant")!==-1 && st.indexOf("non")===-1 && st.indexOf("not")===-1) cs="compliant";
+  else if (st.indexOf("noncompliant")!==-1||st.indexOf("non-compliant")!==-1||st.indexOf("not compliant")!==-1) cs="noncompliant";
+  var issues=(row.issues||"").split(/[;|]/).map(function(s){return s.trim();}).filter(function(s){return s.length>0;});
+  return { id:idx, deviceName:row.deviceName||("Device-"+(idx+1)), user:row.user||"\u2014", os:row.os||"\u2014", osVersion:row.osVersion||"\u2014", complianceState:cs, rawState:row.complianceState||cs, lastCheckin:row.lastCheckin||"\u2014", issues:issues, score:cscore(issues), raw:row };
+}
+
+// ── FILE HANDLING ─────────────────────────────────────────────────────────────
+function handleDragOver(e){ e.preventDefault(); e.currentTarget.classList.add("drag-over"); }
+function handleDragLeave(e){ e.currentTarget.classList.remove("drag-over"); }
+function handleDrop1(e){ e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f=e.dataTransfer.files[0]; if(f) processFile1(f); }
+function handleFile1(e){ if(e.target.files[0]) processFile1(e.target.files[0]); }
+function handleDrop2(e){ e.preventDefault(); e.currentTarget.classList.remove("drag-over"); var f=e.dataTransfer.files[0]; if(f) processFile2(f); }
+function handleFile2(e){ if(e.target.files[0]) processFile2(e.target.files[0]); }
 
 function processFile1(file) {
-  var rdr = new FileReader();
-  rdr.onload = function(ev) {
-    var txt = ev.target.result, ext = file.name.split(".").pop().toLowerCase(), data;
-    if (ext === "json") { try { data = JSON.parse(txt); } catch(e) { alert("Invalid JSON"); return; } }
-    else data = parseCSV(txt);
-    if (!data || !data.length) { alert("No rows found in file 1 - check the format"); return; }
-    rawFile1 = data;
-    document.getElementById("dzIcon1").innerHTML = "&#9989;";
-    document.getElementById("dzLabel1").textContent = file.name + " (" + data.length + " rows)";
-    document.getElementById("dropZone1").classList.add("loaded");
-    mergeAndLoad();
+  var rdr=new FileReader();
+  rdr.onload=function(ev){
+    var txt=ev.target.result, ext=file.name.split(".").pop().toLowerCase(), data;
+    if(ext==="json"){try{data=JSON.parse(txt);}catch(e){alert("Invalid JSON");return;}}
+    else data=parseCSV(txt);
+    if(!data||!data.length){alert("No rows found in file 1");return;}
+    var hdrs=Object.keys(data[0]).map(function(k){return k.toLowerCase().trim();});
+    var hasCompliance=hdrs.some(function(h){return h==="compliancestate"||h==="compliance state"||h==="compliance"||h==="status";});
+    var hasDevice=hdrs.some(function(h){return h==="devicename"||h==="device name"||h==="device";});
+    var looksLikeF2=hdrs.some(function(h){return h==="settingname"||h==="setting name"||h==="setting";});
+    var dz=document.getElementById("dropZone1"), icon=document.getElementById("dzIcon1"), lbl=document.getElementById("dzLabel1");
+    if(looksLikeF2){
+      dz.className="drop-zone dz-warn"; icon.innerHTML="&#9888;";
+      lbl.textContent="Wrong file? This looks like the Noncompliant Settings report - drop it in zone 2"; return;
+    }
+    if(!hasDevice||!hasCompliance){
+      dz.className="drop-zone dz-warn"; icon.innerHTML="&#9888;";
+      lbl.textContent="Unexpected columns. Expected DeviceName + Compliance State. Got: "+Object.keys(data[0]).slice(0,4).join(", "); return;
+    }
+    dz.className="drop-zone loaded"; icon.innerHTML="&#9989;";
+    // Check if complianceState was actually mapped - warn if not
+    var csFound=data.some(function(r){return r.complianceState&&r.complianceState.trim();});
+    if(!csFound){
+      var rawCols=Object.keys(data[0]).join(", ");
+      lbl.textContent=file.name+" \u2014 "+data.length+" rows (WARNING: compliance state column not detected. Raw columns: "+rawCols+")";
+      dz.className="drop-zone dz-warn"; icon.innerHTML="&#9888;";
+    } else {
+      lbl.textContent=file.name+" \u2014 "+data.length+" devices";
+    }
+    rawFile1=data; mergeAndLoad();
   };
   rdr.readAsText(file);
 }
 
 function processFile2(file) {
-  var rdr = new FileReader();
-  rdr.onload = function(ev) {
-    var txt = ev.target.result;
-    var data = parseCSV(txt);
-    if (!data || !data.length) { alert("No rows found in file 2 - check the format"); return; }
-    rawFile2 = data;
-    document.getElementById("dzIcon2").innerHTML = "&#9989;";
-    document.getElementById("dzLabel2").textContent = file.name + " (" + data.length + " rows)";
-    document.getElementById("dropZone2").classList.add("loaded");
-    mergeAndLoad();
+  var rdr=new FileReader();
+  rdr.onload=function(ev){
+    var txt=ev.target.result;
+    var data=parseCSV(txt);
+    if(!data||!data.length){alert("No rows found in file 2");return;}
+    var hdrs=Object.keys(data[0]).map(function(k){return k.toLowerCase().trim().replace(/^\ufeff/,"");});
+    // Real Intune export uses SettingNm or SettingNm_loc (not SettingName)
+    var hasSetting=hdrs.some(function(h){return h==="settingnm"||h==="settingnm_loc"||h==="settingname"||h==="setting name"||h==="setting"||h==="settingstatus_loc"||h==="settingstatus";});
+    var hasDevice=hdrs.some(function(h){return h==="devicename"||h==="device name"||h==="device";});
+    var looksLikeF1=hdrs.some(function(h){return h==="compliancestate"||h==="compliance state";})&&!hasSetting;
+    var dz=document.getElementById("dropZone2"), icon=document.getElementById("dzIcon2"), lbl=document.getElementById("dzLabel2");
+    if(looksLikeF1){
+      dz.className="drop-zone dz-warn"; icon.innerHTML="&#9888;";
+      lbl.textContent="Wrong file? This looks like the Device Compliance report - drop it in zone 1"; return;
+    }
+    if(!hasDevice||!hasSetting){
+      dz.className="drop-zone dz-warn"; icon.innerHTML="&#9888;";
+      lbl.textContent="Unexpected columns. Got: "+Object.keys(data[0]).slice(0,5).join(", ")+". Expected the Noncompliant devices and settings export."; return;
+    }
+    dz.className="drop-zone loaded"; icon.innerHTML="&#9989;";
+    lbl.textContent=file.name+" \u2014 "+data.length+" setting rows";
+    rawFile2=data; mergeAndLoad();
   };
   rdr.readAsText(file);
 }
 
 function mergeAndLoad() {
-  if (!rawFile1) return; // need at least file 1
-
-  // Normalise file 1 into device records
-  var devices = rawFile1.map(function(r, i) { return norm(r, i); }).filter(function(d) { return d.deviceName; });
-
-  // If file 2 exists, extract per-device issues and merge in
-  if (rawFile2 && rawFile2.length) {
-    // File 2 columns: DeviceName, Setting Name / SettingName, Compliance State / State, Policy Name
-    var issueMap = {};
-    var f2als = {
-      "devicename": "deviceName", "device name": "deviceName",
-      "settingname": "setting", "setting name": "setting", "setting": "setting",
-      "compliancestate": "state", "compliance state": "state", "state": "state", "status": "state",
-      "policyname": "policy", "policy name": "policy", "policy": "policy",
-      "errordescription": "desc", "error description": "desc", "description": "desc"
+  if(!rawFile1) return;
+  aif={};
+  var devices=rawFile1.map(function(r,i){return norm(r,i);}).filter(function(d){return d.deviceName;});
+  // Build set of device names that appear with multiple UPNs in File 1
+  // These cannot be safely matched by name alone - must use combo key
+  var ambigNames={};
+  var f1NameUpn={};
+  devices.forEach(function(d){
+    var dn=d.deviceName.toLowerCase();
+    var upn=(d.user||"").toLowerCase();
+    if(!f1NameUpn[dn]) f1NameUpn[dn]=upn;
+    else if(f1NameUpn[dn]!==upn) ambigNames[dn]=1;
+  });
+  var ms=document.getElementById("mergeStatus");
+  if(rawFile2&&rawFile2.length){
+    var f2als={
+      "devicename":"deviceName","device name":"deviceName",
+      "settingnm_loc":"setting","settingnm":"settingKey","setting name":"setting","settingname":"setting","setting":"setting",
+      "settingstatus_loc":"state","settingstatus":"stateCode","compliance state":"state","state":"state","status":"state",
+      "policyname":"policy","policy name":"policy","policy":"policy",
+      "upn":"upn","userprincipalname":"upn",
+      "errorcodestring":"error","error description":"error"
     };
-    rawFile2.forEach(function(row) {
-      // re-map keys
-      var mapped = {};
-      Object.keys(row).forEach(function(k) {
-        var lo = k.toLowerCase().trim();
-        var mk = f2als[lo] || lo;
-        mapped[mk] = row[k];
+    // Build issue map keyed by "devicename|||upn" for precision, also by devicename alone as fallback
+    var issueMap={};      // key: devicename|||upn
+    var issueMapDn={};    // key: devicename only (fallback for devices with unique names)
+    var dnUpnMap={};      // tracks which devicenames have multiple different UPNs
+    rawFile2.forEach(function(row){
+      var mapped={};
+      Object.keys(row).forEach(function(k){
+        var lo=k.toLowerCase().trim().replace(/^\ufeff/,"").replace(/^"|"$/g,"");
+        mapped[f2als[lo]||lo]=(row[k]||"").replace(/^"|"$/g,"").trim();
       });
-      var dn = (mapped.deviceName || mapped.devicename || mapped["device name"] || "").trim().toLowerCase();
-      if (!dn) return;
-      if (!issueMap[dn]) issueMap[dn] = [];
-      // Build a readable issue string from setting + policy + state
-      var parts = [];
-      if (mapped.setting && mapped.setting.trim()) parts.push(mapped.setting.trim());
-      if (mapped.policy && mapped.policy.trim()) parts.push("(" + mapped.policy.trim() + ")");
-      var issue = parts.join(" ") || "Non-compliant setting";
-      // Only add if it is actually a failure
-      var st = (mapped.state || "").toLowerCase();
-      if (st && (st === "compliant" || st === "not applicable")) return;
-      if (issueMap[dn].indexOf(issue) === -1) issueMap[dn].push(issue);
+      var dn=(mapped.deviceName||"").trim().toLowerCase();
+      var upn=(mapped.upn||"").trim().toLowerCase();
+      if(!dn) return;
+      var comboKey=dn+"|||"+upn;
+      var settingLabel=mapped.setting||mapped.settingKey||"Non-compliant setting";
+      var policy=mapped.policy||"";
+      var parts=[settingLabel];
+      if(policy&&policy!==settingLabel) parts.push("("+policy+")");
+      var issue=parts.join(" ");
+      var st=(mapped.state||"").toLowerCase();
+      if(st==="compliant"||st==="not applicable"||st==="n/a") return;
+      if(mapped.stateCode==="1") return;
+      // Store by combo key
+      if(!issueMap[comboKey]) issueMap[comboKey]=[];
+      if(issueMap[comboKey].indexOf(issue)===-1) issueMap[comboKey].push(issue);
+      // Also track devicename-only (for devices without ambiguous names)
+      if(!dnUpnMap[dn]) dnUpnMap[dn]=upn;
+      else if(dnUpnMap[dn]!==upn) dnUpnMap[dn]="__multiple__"; // flag: multiple users share this name
+      if(!issueMapDn[dn]) issueMapDn[dn]=[];
+      if(issueMapDn[dn].indexOf(issue)===-1) issueMapDn[dn].push(issue);
+    });
+    // Build lastContact lookup from File 2 (File 1 has no LastContact column)
+    var lcMap={};
+    rawFile2.forEach(function(row){
+      var dn="", lc="";
+      Object.keys(row).forEach(function(k){
+        var lo=k.toLowerCase().trim().replace(/^\ufeff/,"");
+        if(lo==="devicename") dn=(row[k]||"").trim().toLowerCase();
+        if(lo==="lastcontact"||lo==="last contact") lc=(row[k]||"").trim();
+      });
+      if(dn&&lc&&!lcMap[dn]) lcMap[dn]=lc;
     });
 
-    // Merge issues into devices
-    devices.forEach(function(d) {
-      var key = d.deviceName.toLowerCase();
-      if (issueMap[key] && issueMap[key].length) {
-        d.issues = issueMap[key];
-        d.score = cscore(d.issues);
+    devices.forEach(function(d){
+      var dn=d.deviceName.toLowerCase();
+      var upn=(d.user||"").toLowerCase();
+      var comboKey=dn+"|||"+upn;
+      // Prefer combo match (device+user) to avoid merging issues onto same-named devices
+      if(issueMap[comboKey]&&issueMap[comboKey].length){
+        d.issues=issueMap[comboKey]; d.score=cscore(d.issues);
+      } else if(issueMapDn[dn]&&issueMapDn[dn].length&&dnUpnMap[dn]!=="__multiple__"&&!ambigNames[dn]){
+        // Only fall back to name-only if the name is unambiguous in BOTH files
+        d.issues=issueMapDn[dn]; d.score=cscore(d.issues);
       }
+      // Fill lastCheckin from File 2 if File 1 did not have it
+      if((d.lastCheckin==="\u2014"||!d.lastCheckin)&&lcMap[dn]) d.lastCheckin=lcMap[dn];
     });
-
-    var mergedCount = Object.keys(issueMap).length;
-    var ms = document.getElementById("mergeStatus");
-    ms.style.display = "";
-    ms.innerHTML = "&#10003; Merged: " + devices.length + " devices from file 1, issue detail from " + mergedCount + " non-compliant devices in file 2";
+    var mc=Object.keys(issueMap).length;
+    ms.style.display=""; ms.style.background=""; ms.style.borderColor=""; ms.style.color="";
+    ms.innerHTML="&#10003; Merged: "+devices.length+" devices from file 1, issue detail for "+mc+" non-compliant device"+(mc!==1?"s":"")+" from file 2";
   } else {
-    var ms = document.getElementById("mergeStatus");
-    ms.style.display = "";
-    ms.innerHTML = "&#128203; File 1 loaded &#8212; drop File 2 to add per-device issue detail";
-    ms.style.background = "var(--unk-bg)";
-    ms.style.borderColor = "var(--unk-br)";
-    ms.style.color = "var(--warn)";
+    ms.style.display=""; ms.style.background="var(--unk-bg)"; ms.style.borderColor="var(--unk-br)"; ms.style.color="var(--warn)";
+    ms.innerHTML="&#128203; File 1 loaded \u2014 drop File 2 to add per-device issue detail";
   }
-
   finishLoad(devices, null);
 }
 
-function clearData() {
-  AD = []; aif = null; rawFile1 = null; rawFile2 = null;
-  document.getElementById("statsWrap").style.display = "none";
-  document.getElementById("dzIcon1").innerHTML = "&#128194;";
-  document.getElementById("dzLabel1").textContent = "Device compliance export";
-  document.getElementById("dropZone1").classList.remove("loaded");
-  document.getElementById("dzIcon2").innerHTML = "&#128194;";
-  document.getElementById("dzLabel2").textContent = "Noncompliant devices &amp; settings export";
-  document.getElementById("dropZone2").classList.remove("loaded");
-  document.getElementById("fileInput1").value = "";
-  document.getElementById("fileInput2").value = "";
-  var ms = document.getElementById("mergeStatus");
-  ms.style.display = "none";
-  ms.style.background = "";
-  ms.style.borderColor = "";
-  ms.style.color = "";
+// ── LOAD & STATS ──────────────────────────────────────────────────────────────
+function finishLoad(data, fname) {
+  if(data.length&&data[0].complianceState&&Array.isArray(data[0].issues))
+    AD=data.map(function(d,i){d.id=i; if(!d.score)d.score=cscore(d.issues||[]); return d;});
+  else AD=data.map(function(r,i){return norm(r,i);});
+  document.getElementById("statsWrap").style.display="";
+  updStats(); buildHeatmap(); popOS(); renderView();
+  if(fname){
+    document.getElementById("dzIcon1").innerHTML="&#9989;";
+    document.getElementById("dzLabel1").textContent=fname+" ("+AD.length+" devices)";
+    document.getElementById("dropZone1").className="drop-zone loaded";
+  }
 }
 
-function esc(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function updStats() {
+  var tot=AD.length, ok=0, fail=0;
+  AD.forEach(function(d){if(d.complianceState==="compliant")ok++;else if(d.complianceState==="noncompliant")fail++;});
+  var unk=tot-ok-fail, pct=tot?Math.round(ok/tot*100):0, iss={};
+  AD.forEach(function(d){d.issues.forEach(function(x){iss[mkb(x).key]=1;});});
+  document.getElementById("sTot").textContent=tot;
+  document.getElementById("sOk").textContent=ok;
+  document.getElementById("sFail").textContent=fail;
+  document.getElementById("sUnk").textContent=unk;
+  document.getElementById("sIss").textContent=Object.keys(iss).length;
+  document.getElementById("sTotSub").textContent="enrolled";
+  document.getElementById("sOkSub").textContent=pct+"% of fleet";
+  document.getElementById("sFailSub").textContent=tot?Math.round(fail/tot*100)+"% of fleet":"\u2014";
+  document.getElementById("sUnkSub").textContent=tot?Math.round(unk/tot*100)+"% of fleet":"\u2014";
+  document.getElementById("barPct").textContent=pct+"% compliant";
+  setTimeout(function(){
+    document.getElementById("barOk").style.width=(tot?ok/tot*100:0)+"%";
+    document.getElementById("barFail").style.width=(tot?fail/tot*100:0)+"%";
+    document.getElementById("barUnk").style.width=(tot?unk/tot*100:0)+"%";
+  },60);
+}
+
+// ── HEATMAP ───────────────────────────────────────────────────────────────────
+function buildHeatmap() {
+  var counts={};
+  AD.forEach(function(d){
+    // Track which kb keys this device contributes to (count device once per issue type)
+    var seenKeys={};
+    d.issues.forEach(function(iss){
+      var kb=mkb(iss);
+      if(!counts[kb.key]) counts[kb.key]={kb:kb,n:0};
+      if(!seenKeys[kb.key]){ counts[kb.key].n++; seenKeys[kb.key]=1; }
+    });
+  });
+  var sorted=Object.values(counts).sort(function(a,b){return b.n-a.n;}), max=sorted.length?sorted[0].n:1;
+  var g=document.getElementById("heatmapGrid"); g.innerHTML="";
+  if(!sorted.length){g.innerHTML="<span style=\"font-size:12px;color:var(--text3)\">No issues detected \u2705</span>";return;}
+  sorted.forEach(function(item){
+    var kb=item.kb, n=item.n, chip=document.createElement("div");
+    chip.className="hchip"+(aif[kb.key]?" active":"");
+    chip.innerHTML="<div class=\"hchip-icon\">"+kb.icon+"</div><div><div class=\"hchip-name\">"+esc(kb.label)+"</div><div class=\"hchip-count\">"+n+(n!==1?" devices":" device")+"</div></div><div class=\"hchip-bar\" style=\"width:"+Math.round(n/max*100)+"%\"></div>";
+    chip.onclick=(function(key){return function(){if(aif[key])delete aif[key];else aif[key]=1;buildHeatmap();renderView();};})(kb.key);
+    g.appendChild(chip);
+  });
+}
+
+function popOS() {
+  var sel=document.getElementById("filterOS"), seen={}, os=[];
+  AD.forEach(function(d){if(d.os&&d.os!=="\u2014"&&!seen[d.os]){seen[d.os]=1;os.push(d.os);}});
+  os.sort();
+  sel.innerHTML="<option value=\"\">All OS</option>"+os.map(function(o){return"<option>"+esc(o)+"</option>";}).join("");
+}
+
+function getF() {
+  var q=document.getElementById("searchBox").value.toLowerCase(),
+      st=document.getElementById("filterStatus").value,
+      os=document.getElementById("filterOS").value,
+      sc=document.getElementById("filterScore").value;
+  return AD.filter(function(d){
+    if(q&&(d.deviceName+" "+d.user+" "+d.os+" "+d.osVersion).toLowerCase().indexOf(q)===-1) return false;
+    if(st&&d.complianceState!==st) return false;
+    if(os&&d.os!==os) return false;
+    if(sc==="critical"&&d.score<8) return false;
+    if(sc==="high"&&(d.score<5||d.score>=8)) return false;
+    if(sc==="medium"&&(d.score<1||d.score>=5)) return false;
+    if(sc==="clean"&&d.score!==0) return false;
+    if(Object.keys(aif).length){var f=false;for(var i=0;i<d.issues.length;i++){if(aif[mkb(d.issues[i]).key]){f=true;break;}}if(!f)return false;}
+    return true;
+  });
+}
+
+// ── VIEWS ─────────────────────────────────────────────────────────────────────
+function setView(v) {
+  cv=v;
+  document.getElementById("vtD").className="vtbtn"+(v==="device"?" on":"");
+  document.getElementById("vtI").className="vtbtn"+(v==="issue"?" on":"");
+  document.getElementById("deviceView").style.display=v==="device"?"":"none";
+  document.getElementById("issueView").style.display=v==="issue"?"":"none";
+  renderView();
+}
+function renderView(){ if(cv==="device") renderTable(); else renderIssue(); }
+
+function sortBy(k){ if(csk===k) csd*=-1; else{csk=k;csd=-1;} renderTable(); }
+
+function renderTable() {
+  var data=getF();
+  data.sort(function(a,b){var av=a[csk]==null?"":a[csk],bv=b[csk]==null?"":b[csk];if(typeof av==="number")return(av-bv)*csd*-1;return av<bv?-csd:av>bv?csd:0;});
+  var tb=document.getElementById("tableBody"); tb.innerHTML="";
+  document.getElementById("emptyState").style.display=data.length?"none":""; updResultsBar();
+  data.forEach(function(d){
+    var tr=document.createElement("tr");
+    tr.innerHTML="<td><strong style=\"font-family:monospace;font-size:12px\">"+esc(d.deviceName)+"</strong></td>"
+      +"<td class=\"mono\">"+esc(d.user)+"</td>"
+      +"<td style=\"font-size:12px\">"+esc(d.os)+" <span style=\"font-size:10.5px;color:var(--text3)\">"+esc(d.osVersion)+"</span></td>"
+      +"<td>"+bh(d.complianceState)+"</td><td>"+sh(d.score)+"</td><td>"+ih(d.issues)+"</td>"
+      +"<td class=\"mono\" style=\"font-size:11px\">"+esc(d.lastCheckin)+"</td>";
+    tr.onclick=(function(dev){return function(){openD(dev);};})(d);
+    tb.appendChild(tr);
+  });
+}
+
+function bh(s){ var m={compliant:["bc","Compliant"],noncompliant:["bn","Non-Compliant"],unknown:["bu","Unknown"],inprogress:["bi","In Progress"]},p=m[s]||["bu","Unknown"]; return "<span class=\"badge "+p[0]+"\">"+p[1]+"</span>"; }
+function sh(s,state){ if(s===0&&state==="noncompliant")return"<span class=\"spill sp-h\">No detail</span>"; if(s===0)return"<span class=\"spill sp-0\">Clean</span>"; if(s>=8)return"<span class=\"spill sp-c\">Crit "+s+"</span>"; if(s>=5)return"<span class=\"spill sp-h\">High "+s+"</span>"; return"<span class=\"spill sp-m\">Med "+s+"</span>"; }
+function ih(issues, state){
+  if(!issues.length && state==="noncompliant") return"<span style=\"color:var(--warn);font-size:11.5px;font-family:monospace\" title=\"Non-compliant but no policy detail in File 2\">&#9899; No detail</span>";
+  if(!issues.length) return"<span style=\"color:var(--accent2);font-size:12px\">&#10003;</span>";
+  return"<div class=\"irow\">"+issues.map(function(iss){var kb=mkb(iss);return"<div class=\"tipw\"><div class=\"iico sc-"+kb.sev+"\" title=\""+esc(iss)+"\">"+kb.icon+"</div><div class=\"tip\">"+esc(kb.label)+"</div></div>";}).join("")+"</div>";
+}
+
+function renderIssue() {
+  var data=getF(), groups={};
+  data.forEach(function(d){d.issues.forEach(function(iss){var kb=mkb(iss);if(!groups[kb.key])groups[kb.key]={kb:kb,devs:[]};var ex=false;for(var i=0;i<groups[kb.key].devs.length;i++){if(groups[kb.key].devs[i].id===d.id){ex=true;break;}}if(!ex)groups[kb.key].devs.push(d);});});
+  var so={critical:3,high:2,medium:1};
+  var sorted=Object.values(groups).sort(function(a,b){var df=(so[b.kb.sev]||0)-(so[a.kb.sev]||0);return df!==0?df:b.devs.length-a.devs.length;});
+  var con=document.getElementById("issueGroups"); con.innerHTML="";
+  document.getElementById("issueEmpty").style.display=sorted.length?"none":""; updResultsBar();
+  sorted.forEach(function(item){
+    var kb=item.kb, devs=item.devs, f0=kb.fix?kb.fix[0]:"Review in Intune Admin Centre";
+    var plural=devs.length!==1?" devices affected":" device affected";
+    var sec=document.createElement("div"); sec.className="gsec";
+    var drows=devs.map(function(d){return"<div class=\"gdrow\" onclick=\"openById("+d.id+")\"><div class=\"gdn\">"+esc(d.deviceName)+"</div><div class=\"gdu\">"+esc(d.user)+"</div><div class=\"gdo\">"+esc(d.os)+"</div>"+bh(d.complianceState)+" "+sh(d.score,d.complianceState)+"</div>";}).join("");
+    sec.innerHTML="<div class=\"ghdr\" onclick=\"togG(this)\"><div class=\"ghico\">"+kb.icon+"</div><div><div class=\"ghtitle\">"+esc(kb.label)+"</div><div class=\"ghmeta\">"+kb.sev.toUpperCase()+" severity &middot; "+devs.length+plural+"</div></div><div class=\"ghcount\">"+devs.length+"</div><div class=\"ghtog\">&#9660;</div></div><div class=\"gbody\"><div class=\"qfix\">&#128161; <strong>Quick fix:</strong> "+esc(f0)+"</div>"+drows+"</div>";
+    con.appendChild(sec);
+  });
+}
+
+function togG(hdr){ var b=hdr.nextElementSibling; b.style.display=b.style.display==="none"?"":"none"; hdr.querySelector(".ghtog").innerHTML=b.style.display==="none"?"&#9654;":"&#9660;"; }
+function openById(id){ for(var i=0;i<AD.length;i++){if(AD[i].id===id){openD(AD[i]);return;}} }
+
+// ── DRAWER ────────────────────────────────────────────────────────────────────
+function openD(d) {
+  document.getElementById("dTitle").textContent=d.deviceName;
+  document.getElementById("dSub").textContent=d.user+" \u00b7 "+d.os+" "+d.osVersion;
+  document.getElementById("dBody").innerHTML=drawHTML(d);
+  document.getElementById("overlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+}
+function closeDrawer(){ document.getElementById("overlay").classList.remove("open"); document.getElementById("drawer").classList.remove("open"); }
+
+function drawHTML(d) {
+  var info="<div class=\"dsec\"><div class=\"dsec-t\">Device Information</div><div style=\"margin-bottom:12px\">"+bh(d.complianceState)+" "+sh(d.score)+"</div><div class=\"dgrid\">"+di("Device Name",d.deviceName)+di("User / UPN",d.user)+di("OS",d.os)+di("OS Version",d.osVersion)+di("Raw Status",d.rawState)+di("Last Check-In",d.lastCheckin)+di("Priority Score",d.score===0&&d.complianceState==="noncompliant"?"No issue detail in File 2":d.score===0?"Clean":d.score+" pts")+di("Issue Count",d.issues.length)+"</div></div>";
+  var isec="";
+  if(!d.issues.length&&d.complianceState==="compliant") isec="<div class=\"dsec\"><div class=\"dsec-t\">Compliance Issues</div><div style=\"color:var(--accent2);font-family:monospace;font-size:12.5px\">&#10003; Fully compliant \u2014 no policy failures detected</div></div>";
+  else if(d.issues.length) isec="<div class=\"dsec\"><div class=\"dsec-t\">Issues &amp; Remediation ("+d.issues.length+")</div>"+d.issues.map(function(iss){return rcHTML(iss,d);}).join("")+"</div>";
+  return info+isec;
+}
+function di(k,v){ return"<div><div class=\"dik\">"+esc(k)+"</div><div class=\"div2\">"+esc(v)+"</div></div>"; }
+function rcHTML(iss, dev) {
+  var kb=mkb(iss), cl=kb.sev==="critical"?"sc-crit":kb.sev==="high"?"sc-high":"sc-med";
+  var ca=kb.causes.map(function(c){return"<li>"+esc(c)+"</li>";}).join("");
+  var fx=kb.fix.map(function(f){return"<li>"+esc(f)+"</li>";}).join("");
+  var extraNote="";
+  if(kb.key==="checkin" && dev && dev.lastCheckin && dev.lastCheckin!=="\u2014"){
+    var lcRaw=dev.lastCheckin.replace(/\.\d+/,"").replace("T"," ");
+    var then=new Date(dev.lastCheckin), now=new Date();
+    var days=isNaN(then.getTime())?null:Math.floor((now-then)/(86400000));
+    var daysStr=days===null?"unknown":days+" day"+(days!==1?"s":"");
+    extraNote="<div class=\"rsect\" style=\"margin-top:8px\"><div class=\"rsectl\">Last Check-In Detail</div>"
+      +"<div style=\"font-size:12px;color:var(--text2);line-height:1.6\">"
+      +"Last contact: <strong>"+esc(lcRaw)+"</strong> "
+      +"<span style=\"color:var(--danger);font-weight:600\">("+daysStr+" ago)</span><br>"
+      +"<span style=\"color:var(--text3);font-size:11px\">The grace period duration is configured in the compliance policy itself and is not included in the CSV export. "
+      +"Check Intune &gt; Devices &gt; Compliance policies &gt; [policy] &gt; Properties to see the configured period.</span>"
+      +"</div></div>";
+  }
+  return"<div class=\"rcard "+cl+"\"><div class=\"rtop\"><div class=\"rico\">"+kb.icon+"</div><div class=\"rtb\"><div class=\"rtitle\">"+esc(kb.label)+"</div><div class=\"rraw\">"+esc(iss)+"</div></div><div class=\"rsev "+cl+"\">"+kb.sev.toUpperCase()+"</div></div><div class=\"rsect\"><div class=\"rsectl\">Common Causes</div><ul>"+ca+"</ul></div><div class=\"rsect\"><div class=\"rsectl\">Recommended Fix</div><ul>"+fx+"</ul></div><a class=\"rdoc\" href=\""+kb.docs+"\" target=\"_blank\" rel=\"noopener\">&#128196; Microsoft Docs &#8599;</a></div>"+extraNote;
+}
+
+// ── EXPORT ────────────────────────────────────────────────────────────────────
+function exportCSV() {
+  if(!AD.length) return;
+  var h=["Device Name","User","OS","OS Version","Compliance State","Priority Score","Last Check-In","Issues"];
+  var rows=AD.map(function(d){return[d.deviceName,d.user,d.os,d.osVersion,d.complianceState,d.score,d.lastCheckin,d.issues.join("; ")].map(function(v){return"\""+String(v).replace(/"/g,"\"\"")+"\"";}).join(",");});
+  dlf("intune-compliance.csv",[h.join(",")].concat(rows).join("\n"),"text/csv");
+}
+function exportJSON(){ if(!AD.length) return; dlf("intune-compliance.json",JSON.stringify(AD,null,2),"application/json"); }
+function dlf(name,content,mime){ var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([content],{type:mime})); a.download=name; a.click(); }
+
+function updResultsBar() {
+  var filtered = getF();
+  var total = AD.length;
+  var bar = document.getElementById("resultsBar");
+  var cnt = document.getElementById("resultsCount");
+  var clr = document.getElementById("resultsClear");
+  if(!total){ bar.style.display="none"; return; }
+  bar.style.display="";
+  var isFiltered = filtered.length !== total;
+  var activeIssues = Object.keys(aif).length;
+  var q = document.getElementById("searchBox").value;
+  var st = document.getElementById("filterStatus").value;
+  var os = document.getElementById("filterOS").value;
+  var sc = document.getElementById("filterScore").value;
+  var hasFilter = isFiltered || activeIssues || q || st || os || sc;
+  if(isFiltered) {
+    var parts = [];
+    if(activeIssues) parts.push(activeIssues+" issue"+(activeIssues!==1?"s":"")+" selected");
+    if(st) parts.push(st);
+    if(os) parts.push(os);
+    if(sc) parts.push(sc);
+    if(q) parts.push("search: "+q);
+    cnt.innerHTML = "Showing <span class=\"results-count-num\">"+filtered.length+"</span> of <span class=\"results-count-num\">"+total+"</span> devices"+(parts.length?" <span class=\"results-filtered\">("+parts.join(", ")+")</span>":"");
+  } else {
+    cnt.innerHTML = "Showing all <span class=\"results-count-num\">"+total+"</span> devices";
+  }
+  clr.style.display = hasFilter ? "" : "none";
+}
+
+function clearFilters() {
+  aif={};
+  document.getElementById("searchBox").value="";
+  document.getElementById("filterStatus").value="";
+  document.getElementById("filterOS").value="";
+  document.getElementById("filterScore").value="";
+  buildHeatmap();
+  renderView();
+}
+
+function esc(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+
+function clearData() {
+  AD=[]; aif={}; rawFile1=null; rawFile2=null;
+  document.getElementById("statsWrap").style.display="none";
+  document.getElementById("dzIcon1").innerHTML="&#128194;";
+  document.getElementById("dzLabel1").textContent="Device compliance export";
+  document.getElementById("dropZone1").className="drop-zone";
+  document.getElementById("dzIcon2").innerHTML="&#128194;";
+  document.getElementById("dzLabel2").textContent="Noncompliant devices &amp; settings export";
+  document.getElementById("dropZone2").className="drop-zone";
+  document.getElementById("fileInput1").value="";
+  document.getElementById("fileInput2").value="";
+  var ms=document.getElementById("mergeStatus");
+  ms.style.display="none"; ms.style.background=""; ms.style.borderColor=""; ms.style.color="";
+}
 
 // ── PDF MODAL ─────────────────────────────────────────────────────────────────
 function openPdfModal() {
-  if (!AD.length) { alert("Load some device data first"); return; }
+  if(!AD.length){alert("Load some device data first");return;}
   document.getElementById("pdfOverlay").classList.add("open");
   document.getElementById("pdfModal").classList.add("open");
   syncPdfUI();
 }
-function closePdfModal() {
-  document.getElementById("pdfOverlay").classList.remove("open");
-  document.getElementById("pdfModal").classList.remove("open");
-}
-function getLayout() {
-  var radios = document.querySelectorAll("input[name=pdfLayout]");
-  for (var i = 0; i < radios.length; i++) { if (radios[i].checked) return radios[i].value; }
-  return "exec";
-}
+function closePdfModal(){ document.getElementById("pdfOverlay").classList.remove("open"); document.getElementById("pdfModal").classList.remove("open"); }
+function getLayout(){ var radios=document.querySelectorAll("input[name=pdfLayout]"); for(var i=0;i<radios.length;i++){if(radios[i].checked)return radios[i].value;} return"exec"; }
 function syncPdfUI() {
-  var layout = getLayout();
-  document.querySelectorAll(".opt-card").forEach(function (c) { c.classList.remove("selected"); });
-  var map = { exec: "lo-exec", full: "lo-full", noncompliant: "lo-nc", byissue: "lo-issue" };
-  var el = document.getElementById(map[layout]);
-  if (el) el.classList.add("selected");
-  ["optCover", "optMono", "optCompact", "optRemedy"].forEach(function (id) {
-    var cb = document.getElementById(id), card = cb.closest(".tog-card");
-    if (cb.checked) card.classList.add("on"); else card.classList.remove("on");
+  var layout=getLayout();
+  document.querySelectorAll(".opt-card").forEach(function(c){c.classList.remove("selected");});
+  var map={exec:"lo-exec",full:"lo-full",noncompliant:"lo-nc",byissue:"lo-issue"};
+  var el=document.getElementById(map[layout]); if(el) el.classList.add("selected");
+  ["optCover","optMono","optCompact","optRemedy"].forEach(function(id){
+    var cb=document.getElementById(id), card=cb.closest(".tog-card");
+    if(cb.checked) card.classList.add("on"); else card.classList.remove("on");
   });
-  document.getElementById("coverSection").style.display = document.getElementById("optCover").checked ? "" : "none";
+  document.getElementById("coverSection").style.display=document.getElementById("optCover").checked?"":"none";
   updatePreview();
 }
 function updatePreview() {
-  var layout = getLayout();
-  var names = { exec: "Executive Summary", full: "Full Report", noncompliant: "Non-Compliant Only", byissue: "Per-Issue Breakdown" };
-  var parts = [names[layout] || layout];
-  if (document.getElementById("optMono").checked) parts.push("monochrome"); else parts.push("colour");
-  if (document.getElementById("optCover").checked) parts.push("with cover page");
-  if (document.getElementById("optRemedy").checked && layout !== "exec") parts.push("with remediation");
-  if (document.getElementById("optCompact").checked) parts.push("compact rows");
-  document.getElementById("previewInfo").textContent = "\uD83D\uDCC4 " + parts.join(" \u00b7 ");
+  var layout=getLayout();
+  var names={exec:"Executive Summary",full:"Full Report",noncompliant:"Non-Compliant Only",byissue:"Per-Issue Breakdown"};
+  var parts=[names[layout]||layout];
+  if(document.getElementById("optMono").checked) parts.push("monochrome"); else parts.push("colour");
+  if(document.getElementById("optCover").checked) parts.push("with cover page");
+  if(document.getElementById("optRemedy").checked&&layout!=="exec") parts.push("with remediation");
+  if(document.getElementById("optCompact").checked) parts.push("compact rows");
+  document.getElementById("previewInfo").textContent="\uD83D\uDCC4 "+parts.join(" \u00b7 ");
 }
-
-document.addEventListener("DOMContentLoaded", function () {
-  document.querySelectorAll("input[name=\"pdfLayout\"]").forEach(function (r) { r.onchange = syncPdfUI; });
-  document.querySelectorAll(".opt-card").forEach(function (c) {
-    c.onclick = function () { var r = c.querySelector("input[type=radio]"); if (r) { r.checked = true; syncPdfUI(); } };
-  });
-  document.querySelectorAll(".tog-card").forEach(function (c) {
-    c.onclick = function (e) {
-      if (e.target.tagName === "INPUT") return;
-      var cb = c.querySelector("input[type=checkbox]"); cb.checked = !cb.checked; syncPdfUI();
+document.addEventListener("DOMContentLoaded",function(){
+  // Radio layout cards
+  document.querySelectorAll("input[name=pdfLayout]").forEach(function(r){r.onchange=syncPdfUI;});
+  document.querySelectorAll(".opt-card").forEach(function(c){
+    c.onclick=function(e){
+      // Avoid double-fire if the click was directly on the input
+      if(e.target.tagName==="INPUT") return;
+      var r=c.querySelector("input[type=radio]");
+      if(r){r.checked=true;syncPdfUI();}
     };
   });
-  document.querySelectorAll(".tog-card input[type=checkbox]").forEach(function (cb) { cb.onchange = syncPdfUI; });
-  document.getElementById("sampleBtn").onclick = loadSampleData;
+  // Toggle checkboxes - ONLY wire the checkbox change, let browser handle the label->checkbox link natively
+  document.querySelectorAll(".tog-card input[type=checkbox]").forEach(function(cb){
+    cb.onchange=syncPdfUI;
+  });
+  document.getElementById("sampleBtn").onclick=loadSampleData;
 });
 
 // ── PDF GENERATE ──────────────────────────────────────────────────────────────
 function generatePDF() {
-  var layout = getLayout();
-  var mono = document.getElementById("optMono").checked;
-  var compact = document.getElementById("optCompact").checked;
-  var cover = document.getElementById("optCover").checked;
-  var remedy = document.getElementById("optRemedy").checked;
-  var org = document.getElementById("orgName").value || "Organisation";
-  var prep = document.getElementById("prepBy").value || "IT Team";
-  var now = new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "long", year: "numeric" });
-
-  var devices = layout === "noncompliant" ? AD.filter(function (d) { return d.complianceState === "noncompliant"; }) : AD;
-  var tot = AD.length;
-  var ok = AD.filter(function (d) { return d.complianceState === "compliant"; }).length;
-  var fail = AD.filter(function (d) { return d.complianceState === "noncompliant"; }).length;
-  var unk = tot - ok - fail, pct = tot ? Math.round(ok / tot * 100) : 0;
-
-  var issueCounts = {};
-  AD.forEach(function (d) { d.issues.forEach(function (iss) { var kb = mkb(iss); if (!issueCounts[kb.key]) issueCounts[kb.key] = { kb: kb, n: 0 }; issueCounts[kb.key].n++; }); });
-  var issueList = Object.values(issueCounts).sort(function (a, b) { return b.n - a.n; });
-
-  var cc = mono ? "#555" : "#0969da";
-  var danger = mono ? "#333" : "#cf222e";
-  var warn = mono ? "#666" : "#9a6700";
-  var green = mono ? "#444" : "#1a7f37";
-  var rowPad = compact ? "5px 8px" : "9px 10px";
-  var rowFs = compact ? "10.5px" : "11.5px";
-  var plural = function(n, word) { return n + " " + word + (n !== 1 ? "s" : ""); };
-
-  var H = [];
+  var layout=getLayout(), mono=document.getElementById("optMono").checked,
+      compact=document.getElementById("optCompact").checked, cover=document.getElementById("optCover").checked,
+      remedy=document.getElementById("optRemedy").checked,
+      org=document.getElementById("orgName").value||"Organisation",
+      prep=document.getElementById("prepBy").value||"IT Team",
+      now=new Date().toLocaleDateString("en-GB",{day:"2-digit",month:"long",year:"numeric"});
+  var devices=layout==="noncompliant"?AD.filter(function(d){return d.complianceState==="noncompliant";}):AD;
+  var tot=AD.length, ok=AD.filter(function(d){return d.complianceState==="compliant";}).length,
+      fail=AD.filter(function(d){return d.complianceState==="noncompliant";}).length,
+      unk=tot-ok-fail, pct=tot?Math.round(ok/tot*100):0;
+  var issueCounts={};
+  AD.forEach(function(d){d.issues.forEach(function(iss){var kb=mkb(iss);if(!issueCounts[kb.key])issueCounts[kb.key]={kb:kb,n:0};issueCounts[kb.key].n++;});});
+  var issueList=Object.values(issueCounts).sort(function(a,b){return b.n-a.n;});
+  var cc=mono?"#555":"#0969da", danger=mono?"#333":"#cf222e", warn=mono?"#666":"#9a6700", green=mono?"#444":"#1a7f37";
+  var rowPad=compact?"5px 8px":"9px 10px", rowFs=compact?"10.5px":"11.5px";
+  function pesc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+  function pbh(s){var m={compliant:"bc Compliant",noncompliant:"bn Non-Compliant",unknown:"bu Unknown",inprogress:"bi In Progress"},p=(m[s]||"bu Unknown").split(" ");return"<span class=\"badge "+p[0]+"\">"+p.slice(1).join(" ")+"</span>";}
+  function psh(s,state){if(s===0&&state==="noncompliant")return"<span class=\"sc sp-h\">No detail</span>";if(s===0)return"<span class=\"sc sp-0\">Clean</span>";if(s>=8)return"<span class=\"sc sp-c\">Crit "+s+"</span>";if(s>=5)return"<span class=\"sc sp-h\">High "+s+"</span>";return"<span class=\"sc sp-m\">Med "+s+"</span>";}
+  var H=[];
   H.push("<!DOCTYPE html><html><head><meta charset=\"UTF-8\"><style>");
-  H.push("*{box-sizing:border-box;margin:0;padding:0}");
-  H.push("body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1f2328;background:#fff;line-height:1.4}");
-  H.push("@page{margin:18mm 16mm;size:A4}");
-  H.push("@media print{.pb{page-break-before:always}}");
-  H.push(".cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 50px;border-left:6px solid " + cc + "}");
-  H.push(".cover-tag{font-size:10pt;color:" + cc + ";font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:32px}");
-  H.push(".cover-title{font-size:32pt;font-weight:900;color:#1f2328;margin-bottom:12px;line-height:1.1}");
-  H.push(".cover-sub{font-size:14pt;color:#57606a;margin-bottom:48px}");
-  H.push(".cover-meta{font-size:10pt;color:#57606a;border-top:1px solid #d0d7de;padding-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}");
-  H.push(".cover-meta span{display:block;font-size:8pt;color:#8c959f;margin-bottom:2px}");
-  H.push(".stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}");
-  H.push(".sg{padding:16px;border:1px solid #d0d7de;border-radius:6px;text-align:center}");
-  H.push(".sg-val{font-size:28pt;font-weight:900;margin-bottom:4px}");
-  H.push(".sg-lbl{font-size:8pt;color:#57606a;text-transform:uppercase;letter-spacing:1px}");
-  H.push(".section{margin-bottom:28px}");
-  H.push(".sh{font-size:12pt;font-weight:700;color:" + cc + ";border-bottom:2px solid " + cc + ";padding-bottom:5px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}");
-  H.push(".bar-o{background:#f0f2f5;border-radius:4px;height:10px;overflow:hidden;margin-bottom:6px}");
-  H.push(".bar-i{height:10px;background:" + cc + ";border-radius:4px}");
-  H.push(".bar-lbl{display:flex;justify-content:space-between;font-size:9pt;color:#57606a;margin-bottom:16px}");
-  H.push("table{width:100%;border-collapse:collapse;font-size:" + rowFs + "}");
-  H.push("th{background:" + (mono ? "#e8eaed" : "#f0f6ff") + ";color:" + (mono ? "#333" : cc) + ";padding:" + rowPad + ";text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid " + (mono ? "#ccc" : cc) + "}");
-  H.push("td{padding:" + rowPad + ";border-bottom:1px solid #e0e0e0;vertical-align:top}");
-  H.push("tr:nth-child(even) td{background:" + (mono ? "#f9f9f9" : "#fafbff") + "}");
-  H.push(".badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}");
-  H.push(".bc{background:" + (mono ? "#e0e0e0" : "#dafbe1") + ";color:" + (mono ? "#333" : green) + "}");
-  H.push(".bn{background:" + (mono ? "#e0e0e0" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + "}");
-  H.push(".bu{background:" + (mono ? "#e0e0e0" : "#fff8c5") + ";color:" + (mono ? "#333" : warn) + "}");
-  H.push(".bi{background:#e0e0e0;color:#555}");
-  H.push(".sc{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}");
-  H.push(".sp-c{background:" + (mono ? "#e0e0e0" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + "}");
-  H.push(".sp-h{background:" + (mono ? "#e0e0e0" : "#fff8c5") + ";color:" + (mono ? "#333" : warn) + "}");
-  H.push(".sp-m{background:" + (mono ? "#e0e0e0" : "#dbeafe") + ";color:" + (mono ? "#333" : cc) + "}");
-  H.push(".sp-0{background:#f0f0f0;color:#999}");
-  H.push(".itag{display:inline-block;background:" + (mono ? "#eee" : "#ffebe9") + ";color:" + (mono ? "#333" : danger) + ";border-radius:3px;padding:1px 5px;font-size:9pt;margin:1px 2px 1px 0}");
-  H.push(".rcard{border-left:3px solid " + (mono ? "#aaa" : danger) + ";padding:10px 14px;margin-bottom:12px;background:" + (mono ? "#f9f9f9" : "#fff8f8") + ";border-radius:0 5px 5px 0}");
-  H.push(".rcard h4{font-size:10pt;font-weight:700;color:" + (mono ? "#333" : danger) + ";margin-bottom:6px}");
-  H.push(".rcard ul{padding-left:16px;font-size:9.5pt;color:#57606a}");
-  H.push(".rcard li{margin-bottom:2px}");
-  H.push(".rcard .docs{font-size:8.5pt;color:" + cc + ";margin-top:6px}");
-  H.push(".hrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0}");
-  H.push(".hname{font-weight:600;font-size:10pt;min-width:160px}");
-  H.push(".hbar-o{flex:1;background:#f0f2f5;border-radius:3px;height:8px}");
-  H.push(".hbar-i{height:8px;background:" + danger + ";border-radius:3px}");
-  H.push(".hn{font-size:9pt;color:#57606a;min-width:60px;text-align:right}");
+  H.push("*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,Helvetica,sans-serif;font-size:11pt;color:#1f2328;background:#fff;line-height:1.4}");
+  H.push("@page{margin:18mm 16mm;size:A4}@media print{.pb{page-break-before:always}}");
+  H.push(".cover{min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:60px 50px;border-left:6px solid "+cc+"}");
+  H.push(".cover-tag{font-size:10pt;color:"+cc+";font-weight:700;text-transform:uppercase;letter-spacing:2px;margin-bottom:32px}");
+  H.push(".cover-title{font-size:32pt;font-weight:900;color:#1f2328;margin-bottom:12px;line-height:1.1}.cover-sub{font-size:14pt;color:#57606a;margin-bottom:48px}");
+  H.push(".cover-meta{font-size:10pt;color:#57606a;border-top:1px solid #d0d7de;padding-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}.cover-meta span{display:block;font-size:8pt;color:#8c959f;margin-bottom:2px}");
+  H.push(".sg-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}.sg{padding:16px;border:1px solid #d0d7de;border-radius:6px;text-align:center}.sg-val{font-size:28pt;font-weight:900;margin-bottom:4px}.sg-lbl{font-size:8pt;color:#57606a;text-transform:uppercase;letter-spacing:1px}");
+  H.push(".section{margin-bottom:28px}.sh{font-size:12pt;font-weight:700;color:"+cc+";border-bottom:2px solid "+cc+";padding-bottom:5px;margin-bottom:14px;text-transform:uppercase;letter-spacing:1px}");
+  H.push(".bar-o{background:#f0f2f5;border-radius:4px;height:10px;overflow:hidden;margin-bottom:6px}.bar-i{height:10px;background:"+cc+";border-radius:4px}.bar-lbl{display:flex;justify-content:space-between;font-size:9pt;color:#57606a;margin-bottom:16px}");
+  H.push("table{width:100%;border-collapse:collapse;font-size:"+rowFs+"}th{background:"+(mono?"#e8eaed":"#f0f6ff")+";color:"+(mono?"#333":cc)+";padding:"+rowPad+";text-align:left;font-size:9pt;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid "+(mono?"#ccc":cc)+"}");
+  H.push("td{padding:"+rowPad+";border-bottom:1px solid #e0e0e0;vertical-align:top}tr:nth-child(even) td{background:"+(mono?"#f9f9f9":"#fafbff")+"}");
+  H.push(".badge{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}.bc{background:"+(mono?"#e0e0e0":"#dafbe1")+";color:"+(mono?"#333":green)+"}.bn{background:"+(mono?"#e0e0e0":"#ffebe9")+";color:"+(mono?"#333":danger)+"}.bu{background:"+(mono?"#e0e0e0":"#fff8c5")+";color:"+(mono?"#333":warn)+"}.bi{background:#e0e0e0;color:#555}");
+  H.push(".sc{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9pt;font-weight:700}.sp-c{background:"+(mono?"#e0e0e0":"#ffebe9")+";color:"+(mono?"#333":danger)+"}.sp-h{background:"+(mono?"#e0e0e0":"#fff8c5")+";color:"+(mono?"#333":warn)+"}.sp-m{background:"+(mono?"#e0e0e0":"#dbeafe")+";color:"+(mono?"#333":cc)+"}.sp-0{background:#f0f0f0;color:#999}");
+  H.push(".itag{display:inline-block;background:"+(mono?"#eee":"#ffebe9")+";color:"+(mono?"#333":danger)+";border-radius:3px;padding:1px 5px;font-size:9pt;margin:1px 2px 1px 0}");
+  H.push(".rcard{border-left:3px solid "+(mono?"#aaa":danger)+";padding:10px 14px;margin-bottom:12px;background:"+(mono?"#f9f9f9":"#fff8f8")+";border-radius:0 5px 5px 0}.rcard h4{font-size:10pt;font-weight:700;color:"+(mono?"#333":danger)+";margin-bottom:6px}.rcard ul{padding-left:16px;font-size:9.5pt;color:#57606a}.rcard li{margin-bottom:2px}.rcard .docs{font-size:8.5pt;color:"+cc+";margin-top:6px}");
+  H.push(".hrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid #f0f0f0}.hname{font-weight:600;font-size:10pt;min-width:160px}.hbar-o{flex:1;background:#f0f2f5;border-radius:3px;height:8px}.hbar-i{height:8px;background:"+danger+";border-radius:3px}.hn{font-size:9pt;color:#57606a;min-width:60px;text-align:right}");
   H.push("</style></head><body>");
-
-  function pesc(s) { return String(s || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
-  function pbh(s) { var m = { compliant: "bc Compliant", noncompliant: "bn Non-Compliant", unknown: "bu Unknown", inprogress: "bi In Progress" }, p = (m[s] || "bu Unknown").split(" "); return "<span class=\"badge " + p[0] + "\">" + p.slice(1).join(" ") + "</span>"; }
-  function psh(s) { if (s === 0) return "<span class=\"sc sp-0\">Clean</span>"; if (s >= 8) return "<span class=\"sc sp-c\">Crit " + s + "</span>"; if (s >= 5) return "<span class=\"sc sp-h\">High " + s + "</span>"; return "<span class=\"sc sp-m\">Med " + s + "</span>"; }
-
-  if (cover) {
-    H.push("<div class=\"cover pb\">");
-    H.push("<div class=\"cover-tag\">IT Security Report</div>");
-    H.push("<div class=\"cover-title\">Intune Compliance<br>Report</div>");
-    H.push("<div class=\"cover-sub\">Device compliance status and remediation guidance</div>");
-    H.push("<div class=\"stats-grid\">");
-    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + cc + "\">" + tot + "</div><div class=\"sg-lbl\">Total Devices</div></div>");
-    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + green + "\">" + ok + "</div><div class=\"sg-lbl\">Compliant</div></div>");
-    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + danger + "\">" + fail + "</div><div class=\"sg-lbl\">Non-Compliant</div></div>");
-    H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + (pct >= 80 ? green : pct >= 60 ? warn : danger) + "\">" + pct + "%</div><div class=\"sg-lbl\">Compliance Rate</div></div>");
-    H.push("</div>");
-    H.push("<div class=\"cover-meta\">");
-    H.push("<div><span>Organisation</span>" + pesc(org) + "</div>");
-    H.push("<div><span>Prepared By</span>" + pesc(prep) + "</div>");
-    H.push("<div><span>Report Date</span>" + now + "</div>");
-    H.push("<div><span>Devices Analysed</span>" + plural(tot, "enrolled device") + "</div>");
-    H.push("</div></div>");
+  if(cover){
+    H.push("<div class=\"cover pb\"><div class=\"cover-tag\">IT Security Report</div><div class=\"cover-title\">Intune Compliance<br>Report</div><div class=\"cover-sub\">Device compliance status and remediation guidance</div>");
+    H.push("<div class=\"sg-grid\"><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+cc+"\">"+tot+"</div><div class=\"sg-lbl\">Total</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+green+"\">"+ok+"</div><div class=\"sg-lbl\">Compliant</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+danger+"\">"+fail+"</div><div class=\"sg-lbl\">Non-Compliant</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+(pct>=80?green:pct>=60?warn:danger)+"\">"+pct+"%</div><div class=\"sg-lbl\">Rate</div></div></div>");
+    H.push("<div class=\"cover-meta\"><div><span>Organisation</span>"+pesc(org)+"</div><div><span>Prepared By</span>"+pesc(prep)+"</div><div><span>Report Date</span>"+now+"</div><div><span>Devices</span>"+tot+" enrolled</div></div></div>");
   }
-
-  H.push("<div class=\"" + (cover ? "pb" : "") + "\">");
-  H.push("<div class=\"section\"><div class=\"sh\">Compliance Summary</div>");
-  H.push("<div class=\"stats-grid\">");
-  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + cc + "\">" + tot + "</div><div class=\"sg-lbl\">Total</div></div>");
-  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + green + "\">" + ok + "</div><div class=\"sg-lbl\">Compliant</div></div>");
-  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + danger + "\">" + fail + "</div><div class=\"sg-lbl\">Non-Compliant</div></div>");
-  H.push("<div class=\"sg\"><div class=\"sg-val\" style=\"color:" + (pct >= 80 ? green : pct >= 60 ? warn : danger) + "\">" + pct + "%</div><div class=\"sg-lbl\">Rate</div></div>");
-  H.push("</div>");
-  H.push("<div class=\"bar-o\"><div class=\"bar-i\" style=\"width:" + pct + "%\"></div></div>");
-  H.push("<div class=\"bar-lbl\"><span style=\"color:" + green + "\">Compliant " + ok + "</span><span style=\"color:" + danger + "\">Non-Compliant " + fail + "</span><span style=\"color:" + warn + "\">Unknown " + unk + "</span></div>");
-  H.push("</div>");
-
-  if (issueList.length) {
+  H.push("<div class=\""+(cover?"pb":"")+"\"><div class=\"section\"><div class=\"sh\">Compliance Summary</div>");
+  H.push("<div class=\"sg-grid\"><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+cc+"\">"+tot+"</div><div class=\"sg-lbl\">Total</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+green+"\">"+ok+"</div><div class=\"sg-lbl\">Compliant</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+danger+"\">"+fail+"</div><div class=\"sg-lbl\">Non-Compliant</div></div><div class=\"sg\"><div class=\"sg-val\" style=\"color:"+(pct>=80?green:pct>=60?warn:danger)+"\">"+pct+"%</div><div class=\"sg-lbl\">Rate</div></div></div>");
+  H.push("<div class=\"bar-o\"><div class=\"bar-i\" style=\"width:"+pct+"%\"></div></div><div class=\"bar-lbl\"><span style=\"color:"+green+"\">Compliant "+ok+"</span><span style=\"color:"+danger+"\">Non-Compliant "+fail+"</span><span style=\"color:"+warn+"\">Unknown "+unk+"</span></div></div>");
+  if(issueList.length){
     H.push("<div class=\"section\"><div class=\"sh\">Top Issues Across Fleet</div>");
-    var maxN = issueList[0].n;
-    issueList.forEach(function (item) {
-      var devPlural = item.n !== 1 ? " devices" : " device";
-      H.push("<div class=\"hrow\"><div class=\"hname\">" + item.kb.icon + " " + pesc(item.kb.label) + "</div><div class=\"hbar-o\"><div class=\"hbar-i\" style=\"width:" + Math.round(item.n / maxN * 100) + "%\"></div></div><div class=\"hn\">" + item.n + devPlural + "</div></div>");
-    });
+    var maxN=issueList[0].n;
+    issueList.forEach(function(item){ var dp=item.n!==1?" devices":" device"; H.push("<div class=\"hrow\"><div class=\"hname\">"+item.kb.icon+" "+pesc(item.kb.label)+"</div><div class=\"hbar-o\"><div class=\"hbar-i\" style=\"width:"+Math.round(item.n/maxN*100)+"%\"></div></div><div class=\"hn\">"+item.n+dp+"</div></div>"); });
     H.push("</div>");
   }
   H.push("</div>");
-
-  if (layout === "full" || layout === "noncompliant") {
-    var tableTitle = layout === "noncompliant" ? "Non-Compliant Devices (" + devices.length + ")" : "All Devices (" + devices.length + ")";
-    H.push("<div class=\"section pb\"><div class=\"sh\">" + tableTitle + "</div>");
+  if(layout==="full"||layout==="noncompliant"){
+    H.push("<div class=\"section pb\"><div class=\"sh\">"+(layout==="noncompliant"?"Non-Compliant Devices ("+devices.length+")":"All Devices ("+devices.length+")")+"</div>");
     H.push("<table><thead><tr><th>Device</th><th>User</th><th>OS</th><th>Status</th><th>Priority</th><th>Issues</th><th>Last Check-In</th></tr></thead><tbody>");
-    devices.forEach(function (d) {
-      var isshtml = d.issues.length ? d.issues.map(function (ii) { return "<span class=\"itag\">" + pesc(ii) + "</span>"; }).join("") : "<span style=\"color:" + green + "\">OK</span>";
-      H.push("<tr><td><strong>" + pesc(d.deviceName) + "</strong></td><td style=\"font-size:9.5pt;color:#57606a\">" + pesc(d.user) + "</td><td>" + pesc(d.os) + " " + pesc(d.osVersion) + "</td><td>" + pbh(d.complianceState) + "</td><td>" + psh(d.score) + "</td><td>" + isshtml + "</td><td style=\"font-size:9pt;color:#57606a\">" + pesc(d.lastCheckin) + "</td></tr>");
-    });
+    devices.forEach(function(d){ var ish=d.issues.length?d.issues.map(function(ii){return"<span class=\"itag\">"+pesc(ii)+"</span>";}).join(""):"<span style=\"color:"+green+"\">OK</span>"; H.push("<tr><td><strong>"+pesc(d.deviceName)+"</strong></td><td style=\"font-size:9.5pt;color:#57606a\">"+pesc(d.user)+"</td><td>"+pesc(d.os)+" "+pesc(d.osVersion)+"</td><td>"+pbh(d.complianceState)+"</td><td>"+psh(d.score,d.complianceState)+"</td><td>"+ish+"</td><td style=\"font-size:9pt;color:#57606a\">"+pesc(d.lastCheckin)+"</td></tr>"); });
     H.push("</tbody></table></div>");
   }
-
-  if (layout === "byissue") {
-    var groups = {};
-    AD.forEach(function (d) { d.issues.forEach(function (iss) { var kb = mkb(iss); if (!groups[kb.key]) groups[kb.key] = { kb: kb, devs: [] }; var ex = false; for (var i = 0; i < groups[kb.key].devs.length; i++) { if (groups[kb.key].devs[i].id === d.id) { ex = true; break; } } if (!ex) groups[kb.key].devs.push(d); }); });
-    var so = { critical: 3, high: 2, medium: 1 };
-    var gsorted = Object.values(groups).sort(function (a, b) { var df = (so[b.kb.sev] || 0) - (so[a.kb.sev] || 0); return df !== 0 ? df : b.devs.length - a.devs.length; });
-    gsorted.forEach(function (item, gi) {
-      var kb = item.kb, devs = item.devs;
-      var devPlural = devs.length !== 1 ? " devices" : " device";
-      H.push("<div class=\"section " + (gi > 0 ? "pb" : (cover ? "pb" : "")) + "\"><div class=\"sh\">" + kb.icon + " " + pesc(kb.label) + " - " + devs.length + devPlural + "</div>");
+  if(layout==="byissue"){
+    var groups={};
+    AD.forEach(function(d){d.issues.forEach(function(iss){var kb=mkb(iss);if(!groups[kb.key])groups[kb.key]={kb:kb,devs:[]};var ex=false;for(var i=0;i<groups[kb.key].devs.length;i++){if(groups[kb.key].devs[i].id===d.id){ex=true;break;}}if(!ex)groups[kb.key].devs.push(d);});});
+    var so={critical:3,high:2,medium:1};
+    var gsorted=Object.values(groups).sort(function(a,b){var df=(so[b.kb.sev]||0)-(so[a.kb.sev]||0);return df!==0?df:b.devs.length-a.devs.length;});
+    gsorted.forEach(function(item,gi){
+      var kb=item.kb, devs=item.devs, dp=devs.length!==1?" devices":" device";
+      H.push("<div class=\"section "+(gi>0?"pb":cover?"pb":"")+"\">");
+      H.push("<div class=\"sh\">"+kb.icon+" "+pesc(kb.label)+" - "+devs.length+dp+"</div>");
       H.push("<table><thead><tr><th>Device</th><th>User</th><th>OS</th><th>Priority</th><th>Last Check-In</th></tr></thead><tbody>");
-      devs.forEach(function (d) { H.push("<tr><td><strong>" + pesc(d.deviceName) + "</strong></td><td style=\"font-size:9.5pt;color:#57606a\">" + pesc(d.user) + "</td><td>" + pesc(d.os) + "</td><td>" + psh(d.score) + "</td><td style=\"font-size:9pt;color:#57606a\">" + pesc(d.lastCheckin) + "</td></tr>"); });
+      devs.forEach(function(d){H.push("<tr><td><strong>"+pesc(d.deviceName)+"</strong></td><td style=\"font-size:9.5pt;color:#57606a\">"+pesc(d.user)+"</td><td>"+pesc(d.os)+"</td><td>"+psh(d.score,d.complianceState)+"</td><td style=\"font-size:9pt;color:#57606a\">"+pesc(d.lastCheckin)+"</td></tr>");});
       H.push("</tbody></table>");
-      if (remedy) {
-        H.push("<div class=\"rcard\" style=\"margin-top:12px\"><h4>Remediation: " + pesc(kb.label) + "</h4>");
-        H.push("<div style=\"margin-bottom:6px;font-size:9.5pt;color:#57606a\"><strong>Common Causes:</strong></div><ul>");
-        kb.causes.forEach(function (c) { H.push("<li>" + pesc(c) + "</li>"); });
-        H.push("</ul><div style=\"margin-top:8px;font-size:9.5pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");
-        kb.fix.forEach(function (f) { H.push("<li>" + pesc(f) + "</li>"); });
-        H.push("</ul><div class=\"docs\">" + kb.docs + "</div></div>");
-      }
+      if(remedy){H.push("<div class=\"rcard\" style=\"margin-top:12px\"><h4>Remediation: "+pesc(kb.label)+"</h4><div style=\"margin-bottom:6px;font-size:9.5pt;color:#57606a\"><strong>Common Causes:</strong></div><ul>");kb.causes.forEach(function(c){H.push("<li>"+pesc(c)+"</li>");});H.push("</ul><div style=\"margin-top:8px;font-size:9.5pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");kb.fix.forEach(function(f){H.push("<li>"+pesc(f)+"</li>");});H.push("</ul><div class=\"docs\">"+kb.docs+"</div></div>");}
       H.push("</div>");
     });
   }
-
-  if (remedy && (layout === "full" || layout === "noncompliant") && issueList.length) {
+  if(remedy&&(layout==="full"||layout==="noncompliant")&&issueList.length){
     H.push("<div class=\"section pb\"><div class=\"sh\">Remediation Guide</div>");
-    issueList.forEach(function (item) {
-      var kb = item.kb;
-      H.push("<div class=\"rcard\"><h4>" + kb.icon + " " + pesc(kb.label) + "</h4>");
-      H.push("<div style=\"font-size:9pt;color:#57606a;margin-bottom:6px\"><strong>Common Causes:</strong></div><ul>");
-      kb.causes.forEach(function (c) { H.push("<li>" + pesc(c) + "</li>"); });
-      H.push("</ul><div style=\"margin-top:8px;font-size:9pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");
-      kb.fix.forEach(function (f) { H.push("<li>" + pesc(f) + "</li>"); });
-      H.push("</ul><div class=\"docs\">" + kb.docs + "</div></div>");
-    });
+    issueList.forEach(function(item){var kb=item.kb;H.push("<div class=\"rcard\"><h4>"+kb.icon+" "+pesc(kb.label)+"</h4><div style=\"font-size:9pt;color:#57606a;margin-bottom:6px\"><strong>Common Causes:</strong></div><ul>");kb.causes.forEach(function(c){H.push("<li>"+pesc(c)+"</li>");});H.push("</ul><div style=\"margin-top:8px;font-size:9pt;color:#57606a\"><strong>Recommended Fix:</strong></div><ul>");kb.fix.forEach(function(f){H.push("<li>"+pesc(f)+"</li>");});H.push("</ul><div class=\"docs\">"+kb.docs+"</div></div>");});
     H.push("</div>");
   }
-
   H.push("</body></html>");
-
-  var win = window.open("", "_blank");
-  win.document.write(H.join(""));
-  win.document.close();
-  win.onload = function () { win.focus(); win.print(); };
+  // Build as blob URL to avoid popup blocker blocking window.open
+  var blob=new Blob([H.join("")],{type:"text/html"});
+  var url=URL.createObjectURL(blob);
+  var win=window.open(url,"_blank");
+  if(win){
+    win.onload=function(){win.focus();win.print();URL.revokeObjectURL(url);};
+  } else {
+    // Fallback: download as HTML file if popup blocked
+    var a=document.createElement("a");
+    a.href=url; a.download="intune-compliance-report.html"; a.click();
+    URL.revokeObjectURL(url);
+  }
   closePdfModal();
 }
 
 // ── SAMPLE DATA ───────────────────────────────────────────────────────────────
 function loadSampleData() {
-  var raw = [
-    { deviceName: "DESKTOP-SALES01", user: "alice.johnson@corp.com", os: "Windows", osVersion: "11 22H2", complianceState: "compliant", lastCheckin: "2025-05-19 09:14", issues: [] },
-    { deviceName: "LAPTOP-MKT-07", user: "bob.smith@corp.com", os: "Windows", osVersion: "10 21H2", complianceState: "noncompliant", lastCheckin: "2025-05-18 14:32", issues: ["BitLocker not enabled", "Windows Update pending 3 critical patches"] },
-    { deviceName: "MacBook-Pro-HR", user: "carol.white@corp.com", os: "macOS", osVersion: "14.4.1", complianceState: "compliant", lastCheckin: "2025-05-19 08:55", issues: [] },
-    { deviceName: "DESKTOP-DEV-15", user: "dan.lee@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-17 16:01", issues: ["Secure Boot disabled", "Firewall policy not met", "Defender signatures outdated"] },
-    { deviceName: "iPhone-14-Eve", user: "eve.martin@corp.com", os: "iOS", osVersion: "17.4", complianceState: "compliant", lastCheckin: "2025-05-19 11:22", issues: [] },
-    { deviceName: "LAPTOP-FIN-03", user: "frank.oz@corp.com", os: "Windows", osVersion: "10 22H2", complianceState: "unknown", lastCheckin: "2025-05-10 07:44", issues: ["Device not checked in for 10 days"] },
-    { deviceName: "DESKTOP-OPS-22", user: "grace.hall@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-19 10:01", issues: ["Password policy not met", "PIN complexity insufficient"] },
-    { deviceName: "MacBook-Air-Eng", user: "henry.ford@corp.com", os: "macOS", osVersion: "13.6.5", complianceState: "noncompliant", lastCheckin: "2025-05-15 13:19", issues: ["Encryption not enabled"] },
-    { deviceName: "Android-Pixel8", user: "iris.chan@corp.com", os: "Android", osVersion: "14", complianceState: "compliant", lastCheckin: "2025-05-18 19:33", issues: [] },
-    { deviceName: "LAPTOP-EXEC-01", user: "james.ceo@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "inprogress", lastCheckin: "2025-05-19 12:00", issues: [] },
-    { deviceName: "DESKTOP-IT-08", user: "karen.it@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "compliant", lastCheckin: "2025-05-19 08:30", issues: [] },
-    { deviceName: "LAPTOP-SALES-11", user: "liam.jones@corp.com", os: "Windows", osVersion: "10 21H2", complianceState: "noncompliant", lastCheckin: "2025-05-14 09:55", issues: ["TPM not ready", "Windows Update pending 7 critical patches", "BitLocker not enabled"] },
-    { deviceName: "DESKTOP-QA-04", user: "maya.patel@corp.com", os: "Windows", osVersion: "11 22H2", complianceState: "noncompliant", lastCheckin: "2025-05-16 11:12", issues: ["Secure Boot disabled", "No compliance policy assigned"] },
-    { deviceName: "iPhone-12-Ops", user: "noah.brown@corp.com", os: "iOS", osVersion: "16.7", complianceState: "noncompliant", lastCheckin: "2025-05-18 08:01", issues: ["Passcode not compliant"] },
-    { deviceName: "LAPTOP-DEV-22", user: "olivia.green@corp.com", os: "Windows", osVersion: "11 23H2", complianceState: "noncompliant", lastCheckin: "2025-05-13 14:44", issues: ["Jailbreak detected", "Defender real-time protection off"] },
-    { deviceName: "MacBook-Pro-Fin", user: "peter.kim@corp.com", os: "macOS", osVersion: "14.3", complianceState: "compliant", lastCheckin: "2025-05-19 07:58", issues: [] }
+  var raw=[
+    {deviceName:"DESKTOP-SALES01",user:"alice.johnson@corp.com",os:"Windows",osVersion:"11 22H2",complianceState:"compliant",lastCheckin:"2025-05-19 09:14",issues:[]},
+    {deviceName:"LAPTOP-MKT-07",user:"bob.smith@corp.com",os:"Windows",osVersion:"10 21H2",complianceState:"noncompliant",lastCheckin:"2025-05-18 14:32",issues:["BitLocker not enabled","Windows Update pending 3 critical patches"]},
+    {deviceName:"MacBook-Pro-HR",user:"carol.white@corp.com",os:"macOS",osVersion:"14.4.1",complianceState:"compliant",lastCheckin:"2025-05-19 08:55",issues:[]},
+    {deviceName:"DESKTOP-DEV-15",user:"dan.lee@corp.com",os:"Windows",osVersion:"11 23H2",complianceState:"noncompliant",lastCheckin:"2025-05-17 16:01",issues:["Secure Boot disabled","Firewall policy not met","Defender signatures outdated"]},
+    {deviceName:"iPhone-14-Eve",user:"eve.martin@corp.com",os:"iOS",osVersion:"17.4",complianceState:"compliant",lastCheckin:"2025-05-19 11:22",issues:[]},
+    {deviceName:"LAPTOP-FIN-03",user:"frank.oz@corp.com",os:"Windows",osVersion:"10 22H2",complianceState:"unknown",lastCheckin:"2025-05-10 07:44",issues:["Device not checked in for 10 days"]},
+    {deviceName:"DESKTOP-OPS-22",user:"grace.hall@corp.com",os:"Windows",osVersion:"11 23H2",complianceState:"noncompliant",lastCheckin:"2025-05-19 10:01",issues:["Password policy not met","PIN complexity insufficient"]},
+    {deviceName:"MacBook-Air-Eng",user:"henry.ford@corp.com",os:"macOS",osVersion:"13.6.5",complianceState:"noncompliant",lastCheckin:"2025-05-15 13:19",issues:["Encryption not enabled"]},
+    {deviceName:"Android-Pixel8",user:"iris.chan@corp.com",os:"Android",osVersion:"14",complianceState:"compliant",lastCheckin:"2025-05-18 19:33",issues:[]},
+    {deviceName:"LAPTOP-EXEC-01",user:"james.ceo@corp.com",os:"Windows",osVersion:"11 23H2",complianceState:"inprogress",lastCheckin:"2025-05-19 12:00",issues:[]},
+    {deviceName:"DESKTOP-IT-08",user:"karen.it@corp.com",os:"Windows",osVersion:"11 23H2",complianceState:"compliant",lastCheckin:"2025-05-19 08:30",issues:[]},
+    {deviceName:"LAPTOP-SALES-11",user:"liam.jones@corp.com",os:"Windows",osVersion:"10 21H2",complianceState:"noncompliant",lastCheckin:"2025-05-14 09:55",issues:["TPM not ready","Windows Update pending 7 critical patches","BitLocker not enabled"]},
+    {deviceName:"DESKTOP-QA-04",user:"maya.patel@corp.com",os:"Windows",osVersion:"11 22H2",complianceState:"noncompliant",lastCheckin:"2025-05-16 11:12",issues:["Secure Boot disabled","No compliance policy assigned"]},
+    {deviceName:"iPhone-12-Ops",user:"noah.brown@corp.com",os:"iOS",osVersion:"16.7",complianceState:"noncompliant",lastCheckin:"2025-05-18 08:01",issues:["Passcode not compliant"]},
+    {deviceName:"LAPTOP-DEV-22",user:"olivia.green@corp.com",os:"Windows",osVersion:"11 23H2",complianceState:"noncompliant",lastCheckin:"2025-05-13 14:44",issues:["Jailbreak detected","Defender real-time protection off"]},
+    {deviceName:"MacBook-Pro-Fin",user:"peter.kim@corp.com",os:"macOS",osVersion:"14.3",complianceState:"compliant",lastCheckin:"2025-05-19 07:58",issues:[]}
   ];
-  finishLoad(raw, null);
-  document.getElementById("dzIcon1").innerHTML = "&#9889;";
-  document.getElementById("dzLabel1").textContent = "Sample data loaded (16 devices)";
-  document.getElementById("dropZone1").classList.add("loaded");
-  var ms = document.getElementById("mergeStatus");
-  ms.style.display = "";
-  ms.style.background = "";
-  ms.style.borderColor = "";
-  ms.style.color = "";
-  ms.innerHTML = "&#10003; Sample data loaded &#8212; includes simulated issue detail";
+  rawFile1=raw; rawFile2=null;
+  finishLoad(raw.map(function(d,i){return Object.assign({},d,{id:i,score:cscore(d.issues),rawState:d.complianceState,raw:d});}),null);
+  document.getElementById("dzIcon1").innerHTML="&#9889;";
+  document.getElementById("dzLabel1").textContent="Sample data loaded (16 devices)";
+  document.getElementById("dropZone1").className="drop-zone loaded";
+  var ms=document.getElementById("mergeStatus");
+  ms.style.display=""; ms.style.background=""; ms.style.borderColor=""; ms.style.color="";
+  ms.innerHTML="&#10003; Sample data loaded \u2014 includes simulated issue detail";
 }
+
+
+
+
+
+
 
 </script>
 
