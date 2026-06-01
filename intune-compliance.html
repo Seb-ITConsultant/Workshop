@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -522,8 +522,9 @@ footer{text-align:center;padding:24px;font-family:monospace;font-size:10.5px;col
   </div>
   <div class="dbody" id="dBody"></div>
 </div>
-<footer>IT Engineer Tools &mdash; Intune Compliance Explorer &middot; All data processed locally in-browser &middot; Nothing leaves your machine</footer>
+<footer>IT Engineer Tools &mdash; Intune Compliance Explorer &middot; v1.0 &middot; All data processed locally in-browser &middot; Nothing leaves your machine</footer>
 <script>
+
 
 
 
@@ -571,7 +572,7 @@ function toggleTheme() {
   localStorage.setItem("itt",n);
 }
 (function(){
-  var t=localStorage.getItem("itt")||"dark";
+  var t=localStorage.getItem("itt")||"light";
   document.documentElement.dataset.theme=t;
   document.getElementById("themeBtn").innerHTML=t==="dark"?"&#9728;":"&#127769;";
 })();
@@ -1205,10 +1206,14 @@ function loadSampleData() {
   document.getElementById("dzIcon1").innerHTML="&#9889;";
   document.getElementById("dzLabel1").textContent="Sample data loaded (16 devices)";
   document.getElementById("dropZone1").className="drop-zone loaded";
+  document.getElementById("dzIcon2").innerHTML="&#9989;";
+  document.getElementById("dzLabel2").textContent="Sample settings loaded (issue detail included)";
+  document.getElementById("dropZone2").className="drop-zone loaded";
   var ms=document.getElementById("mergeStatus");
   ms.style.display=""; ms.style.background=""; ms.style.borderColor=""; ms.style.color="";
-  ms.innerHTML="&#10003; Sample data loaded \u2014 includes simulated issue detail";
+  ms.innerHTML="&#10003; Sample data loaded \u2014 16 devices with simulated issue detail";
 }
+
 
 
 
