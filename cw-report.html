@@ -513,23 +513,76 @@ dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('dr
 dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('dragover'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
 document.getElementById('fileInput').addEventListener('change', function(e){ if(e.target.files[0]) processFile(e.target.files[0]); });
 
+function showError(msg) {
+  var dz = document.getElementById('dropZone');
+  dz.style.display = 'block';
+  dz.innerHTML =
+    '<div class="drop-icon">⚠️</div>' +
+    '<div class="drop-title" style="color:var(--danger)">Could not load file</div>' +
+    '<div class="drop-sub" style="margin-bottom:12px">' + msg + '</div>' +
+    '<button class="drop-btn" onclick="resetDropZone()">Try another file</button>';
+}
+
+function resetDropZone() {
+  document.getElementById('dropZone').innerHTML =
+    '<div class="drop-icon">📋</div>' +
+    '<div class="drop-title">Drop your ConnectWise export here</div>' +
+    '<div class="drop-sub">Tab-separated or CSV export from CW Manage</div>' +
+    '<button class="drop-btn" onclick="document.getElementById(\'fileInput\').click()">' +
+    '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"/></svg>' +
+    'Choose File</button>' +
+    '<input type="file" id="fileInput" accept=".csv,.tsv,.txt">';
+  // Re-attach listener since we replaced the DOM
+  document.getElementById('fileInput').addEventListener('change', function(e){ if(e.target.files[0]) processFile(e.target.files[0]); });
+}
+
 function processFile(file) {
+  // Reject binary formats immediately by checking extension and size sanity
+  var name = (file.name || '').toLowerCase();
+  var binaryExts = ['.xlsx','.xls','.xlsm','.docx','.doc','.pdf','.zip','.png','.jpg','.jpeg','.gif'];
+  for (var i = 0; i < binaryExts.length; i++) {
+    if (name.endsWith(binaryExts[i])) {
+      showError('This looks like a <strong>' + binaryExts[i] + '</strong> file. Please export as CSV or TSV from ConnectWise Manage and try again.');
+      return;
+    }
+  }
+
   var reader = new FileReader();
+  reader.onerror = function() {
+    showError('The file could not be read. Make sure it is a plain text CSV or TSV file.');
+  };
   reader.onload = function(e) {
-    var text = e.target.result;
-    if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-    parseData(text);
+    try {
+      var text = e.target.result;
+      // Quick binary sniff — real text files won't have null bytes
+      if (text.indexOf('\0') !== -1) {
+        showError('This appears to be a binary file, not a text CSV or TSV. Please export from ConnectWise Manage as a plain CSV.');
+        return;
+      }
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      parseData(text);
+    } catch(err) {
+      showError('An unexpected error occurred while parsing the file: <strong>' + (err.message || err) + '</strong>');
+    }
   };
   reader.readAsText(file);
 }
 
 function splitLine(line, d) {
-  var res=[], cur='', inQ=false;
-  for (var i=0;i<line.length;i++) {
-    var c=line[i];
-    if (c==='"') { inQ=!inQ; }
-    else if (c===d && !inQ) { res.push(cur); cur=''; }
-    else { cur+=c; }
+  // Handles: simple fields, quoted fields, doubled quotes ("") and backslash-escaped quotes (\")
+  var res = [], cur = '', inQ = false;
+  for (var i = 0; i < line.length; i++) {
+    var c = line[i];
+    if (inQ) {
+      if (c === '\\' && line[i+1] === '"') { cur += '"'; i++; }       // backslash escape
+      else if (c === '"' && line[i+1] === '"') { cur += '"'; i++; }   // doubled quote
+      else if (c === '"') { inQ = false; }                             // closing quote
+      else { cur += c; }
+    } else {
+      if (c === '"') { inQ = true; }
+      else if (c === d) { res.push(cur); cur = ''; }
+      else { cur += c; }
+    }
   }
   res.push(cur);
   return res;
@@ -558,7 +611,7 @@ function parseCWPriority(raw) {
   return raw;
 }
 
-function parseCWSLA(raw) {
+function parseCWSLA(raw, enteredDate) {
   if (!raw) return { type:'none', label:'—', overdue:false, soonHours:null, deadline:null };
   var l = raw.toLowerCase().trim();
   if (l==='waiting')  return { type:'waiting',  label:'Waiting',  overdue:false, soonHours:null, deadline:null };
@@ -566,11 +619,20 @@ function parseCWSLA(raw) {
   var m = raw.match(/^(Resolve|Plan|Respond)\s+by\s+\w+\s+(\d{1,2})\/(\d{2})\s+(\d{1,2}):(\d{2})/i);
   if (m) {
     var now = new Date();
-    var year = now.getFullYear();
-    var mon = parseInt(m[3])-1;
-    var dl = new Date(year, mon, parseInt(m[2]), parseInt(m[4]), parseInt(m[5]));
-    // If the deadline month is in the past for this year, it was likely last year (edge case for year wrap)
-    if (dl < now && mon > now.getMonth()) dl.setFullYear(year-1);
+    var day = parseInt(m[2]), mon = parseInt(m[3])-1;
+    var hour = parseInt(m[4]), min = parseInt(m[5]);
+
+    // Anchor year: prefer the ticket's entered year if available, fall back to current year.
+    // This avoids forcing historic exports into the current year.
+    var anchorYear = now.getFullYear();
+    if (enteredDate && !isNaN(enteredDate.getTime())) {
+      anchorYear = enteredDate.getFullYear();
+      // If the SLA month/day is after the entered date, it may span into the next year
+      var candidateInEnteredYear = new Date(anchorYear, mon, day, hour, min);
+      if (candidateInEnteredYear < enteredDate) anchorYear++;
+    }
+
+    var dl = new Date(anchorYear, mon, day, hour, min);
     var diffH = (dl - now) / 3600000;
     var overdue = dl < now;
     var soonHours = (!overdue && diffH <= 24) ? diffH : null;
@@ -583,95 +645,129 @@ function normaliseStatus(s) {
   return (s||'').replace(/^\*/,'').trim();
 }
 
+// Statuses that mean a ticket needs no engineer action.
+// Deliberately excludes 'waiting', 'waiting client response', 'pending client'
+// so that custUpdated=true still fires the Customer Responded flag on those tickets.
+var NON_ACTIONABLE_STATUSES = [
+  'resolved','closed','completed','cancelled','canceled',
+  'on hold','pending vendor','pending 3rd party','no action required'
+];
+
+function getCol(cols, idx, key) {
+  return (idx[key] !== undefined && cols[idx[key]] !== undefined) ? cols[idx[key]] : '';
+}
+
 function parseData(text) {
-  var lines = text.split('\n').filter(function(l){ return l.trim(); });
-  if (lines.length < 2) return;
-  var delim = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
-  var headers = splitLine(lines[0], delim).map(function(h){ return h.trim().replace(/^"|"$/g,''); });
-
-  var idx = {};
-  var fieldMap = {
-    ticketNum:   ['Ticket #','Ticket#','TicketNo','Ticket No'],
-    priority:    ['Priority'],
-    age:         ['Age'],
-    status:      ['Status'],
-    company:     ['Company'],
-    summary:     ['Summary Description','Summary'],
-    resources:   ['Resources'],
-    totalHours:  ['Total Hours','TotalHours'],
-    contact:     ['Contact'],
-    lastUpdate:  ['Last Update','LastUpdate','Last Updated'],
-    dueDate:     ['Due Date','DueDate'],
-    owner:       ['Ticket Owner','Owner'],
-    slaStatus:   ['SLA Status','SLA'],
-    level:       ['Level'],
-    custUpdated: ['Customer Updated'],
-    type:        ['Type'],
-    subtype:     ['Subtype'],
-    entered:     ['Entered'],
-    nextDate:    ['Next Date']
-  };
-  Object.keys(fieldMap).forEach(function(key) {
-    fieldMap[key].forEach(function(name) {
-      if (idx[key]===undefined) {
-        var f = headers.findIndex(function(h){ return h.toLowerCase()===name.toLowerCase(); });
-        if (f!==-1) idx[key]=f;
-      }
-    });
-  });
-
-  var now = new Date();
-  allTickets = [];
-  for (var i=1; i<lines.length; i++) {
-    var cols = splitLine(lines[i], delim).map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
-    if (cols.length < 3) continue;
-    function col(k){ return idx[k]!==undefined ? (cols[idx[k]]||'') : ''; }
-
-    var lastUpdateStr = col('lastUpdate');
-    var daysSince = null;
-    if (lastUpdateStr) {
-      var d = parseDDMMYYYY(lastUpdateStr) || new Date(lastUpdateStr);
-      if (d && !isNaN(d.getTime())) daysSince = Math.floor((now-d)/86400000);
+  try {
+    var lines = text.split('\n').filter(function(l){ return l.trim(); });
+    if (lines.length < 2) {
+      showError('The file appears to be empty or only contains a header row. Is this the right export?');
+      return;
     }
-    var slaRaw = col('slaStatus');
-    var sla = parseCWSLA(slaRaw);
-    var custUpdated = col('custUpdated').toLowerCase() === 'true';
-    var statusNorm = normaliseStatus(col('status'));
-    var actionStatuses = ['New','Triaged','Assigned','In Progress','Re-Opened','Escalation Level 1'];
-    var isActionable = actionStatuses.indexOf(statusNorm) !== -1;
 
-    allTickets.push({
-      ticketNum:       col('ticketNum'),
-      priority:        parseCWPriority(col('priority')),
-      age:             parseFloat(col('age'))||0,
-      status:          col('status'),
-      statusNorm:      statusNorm,
-      company:         col('company'),
-      summary:         col('summary'),
-      resources:       col('resources'),
-      totalHours:      parseFloat(col('totalHours'))||0,
-      contact:         col('contact'),
-      lastUpdate:      lastUpdateStr,
-      daysSinceUpdate: daysSince,
-      dueDate:         col('dueDate'),
-      owner:           col('owner'),
-      slaStatus:       slaRaw,
-      sla:             sla,
-      level:           col('level'),
-      custUpdated:     custUpdated,
-      isActionable:    isActionable,
-      type:            col('type'),
-      subtype:         col('subtype'),
-      entered:         col('entered'),
-      nextDate:        col('nextDate')
+    var delim = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
+    var headers = splitLine(lines[0], delim).map(function(h){ return h.trim().replace(/^"|"$/g,''); });
+
+    // Map logical field names to column indices
+    var idx = {};
+    var fieldMap = {
+      ticketNum:   ['Ticket #','Ticket#','TicketNo','Ticket No'],
+      priority:    ['Priority'],
+      age:         ['Age'],
+      status:      ['Status'],
+      company:     ['Company'],
+      summary:     ['Summary Description','Summary'],
+      resources:   ['Resources'],
+      totalHours:  ['Total Hours','TotalHours'],
+      contact:     ['Contact'],
+      lastUpdate:  ['Last Update','LastUpdate','Last Updated'],
+      dueDate:     ['Due Date','DueDate'],
+      owner:       ['Ticket Owner','Owner'],
+      slaStatus:   ['SLA Status','SLA'],
+      level:       ['Level'],
+      custUpdated: ['Customer Updated'],
+      type:        ['Type'],
+      subtype:     ['Subtype'],
+      entered:     ['Entered'],
+      nextDate:    ['Next Date']
+    };
+    Object.keys(fieldMap).forEach(function(key) {
+      fieldMap[key].forEach(function(name) {
+        if (idx[key] === undefined) {
+          var f = headers.findIndex(function(h){ return h.toLowerCase() === name.toLowerCase(); });
+          if (f !== -1) idx[key] = f;
+        }
+      });
     });
+
+    var now = new Date();
+    allTickets = [];
+
+    for (var i = 1; i < lines.length; i++) {
+      var cols = splitLine(lines[i], delim).map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
+      if (cols.length < 3) continue;
+
+      // col() is a closure over cols+idx for this row — defined as a named
+      // inner function referencing the outer vars, avoiding redeclaration per iteration
+      var lastUpdateStr = getCol(cols, idx, 'lastUpdate');
+      var daysSince = null;
+      if (lastUpdateStr) {
+        var d = parseDDMMYYYY(lastUpdateStr) || new Date(lastUpdateStr);
+        if (d && !isNaN(d.getTime())) daysSince = Math.floor((now - d) / 86400000);
+      }
+
+      var enteredStr = getCol(cols, idx, 'entered');
+      var enteredDate = enteredStr ? (parseDDMMYYYY(enteredStr) || new Date(enteredStr)) : null;
+      if (enteredDate && isNaN(enteredDate.getTime())) enteredDate = null;
+
+      var slaRaw     = getCol(cols, idx, 'slaStatus');
+      var statusRaw  = getCol(cols, idx, 'status');
+      var statusNorm = normaliseStatus(statusRaw);
+      var sla        = parseCWSLA(slaRaw, enteredDate);
+      var custUpdated = getCol(cols, idx, 'custUpdated').toLowerCase() === 'true';
+      var isActionable = NON_ACTIONABLE_STATUSES.indexOf(statusNorm.toLowerCase()) === -1;
+
+      allTickets.push({
+        ticketNum:       getCol(cols, idx, 'ticketNum'),
+        priority:        parseCWPriority(getCol(cols, idx, 'priority')),
+        age:             parseFloat(getCol(cols, idx, 'age')) || 0,
+        status:          statusRaw,
+        statusNorm:      statusNorm,
+        company:         getCol(cols, idx, 'company'),
+        summary:         getCol(cols, idx, 'summary'),
+        resources:       getCol(cols, idx, 'resources'),
+        totalHours:      parseFloat(getCol(cols, idx, 'totalHours')) || 0,
+        contact:         getCol(cols, idx, 'contact'),
+        lastUpdate:      lastUpdateStr,
+        daysSinceUpdate: daysSince,
+        dueDate:         getCol(cols, idx, 'dueDate'),
+        owner:           getCol(cols, idx, 'owner'),
+        slaStatus:       slaRaw,
+        sla:             sla,
+        level:           getCol(cols, idx, 'level'),
+        custUpdated:     custUpdated,
+        isActionable:    isActionable,
+        type:            getCol(cols, idx, 'type'),
+        subtype:         getCol(cols, idx, 'subtype'),
+        entered:         enteredStr,
+        nextDate:        getCol(cols, idx, 'nextDate')
+      });
+    }
+
+    if (!allTickets.length) {
+      showError('No ticket rows could be parsed. Check that the file is a ConnectWise Manage export with the expected columns.');
+      return;
+    }
+
+    populateFilters();
+    filteredTickets = allTickets.slice();
+    sortTickets();
+    renderAll();
+    showUI(idx);
+
+  } catch(err) {
+    showError('Failed to parse the file: <strong>' + (err.message || err) + '</strong>. Make sure this is a plain text CSV or TSV export from ConnectWise Manage.');
   }
-  if (!allTickets.length) return;
-  populateFilters();
-  filteredTickets = allTickets.slice();
-  sortTickets();
-  renderAll();
-  showUI(idx);
 }
 
 function showUI(idx) {
@@ -729,12 +825,12 @@ function applyFilters() {
   var own = document.getElementById('filterOwner').value.toLowerCase();
   var srch = document.getElementById('filterSearch').value.toLowerCase();
   filteredTickets = allTickets.filter(function(t) {
-    if (co  && t.company.toLowerCase()!==co) return false;
-    if (pr  && t.priority.toLowerCase()!==pr) return false;
-    if (st  && t.statusNorm.toLowerCase()!==st) return false;
+    if (co    && (t.company||'').toLowerCase()!==co) return false;
+    if (pr    && (t.priority||'').toLowerCase()!==pr) return false;
+    if (st    && (t.statusNorm||'').toLowerCase()!==st) return false;
     if (stale && (t.daysSinceUpdate===null||t.daysSinceUpdate<stale)) return false;
-    if (own && t.owner.toLowerCase()!==own) return false;
-    if (srch) { var h=(t.ticketNum+' '+t.company+' '+t.summary+' '+t.owner).toLowerCase(); if(h.indexOf(srch)===-1) return false; }
+    if (own   && (t.owner||'').toLowerCase()!==own) return false;
+    if (srch) { var h=((t.ticketNum||'')+' '+(t.company||'')+' '+(t.summary||'')+' '+(t.owner||'')).toLowerCase(); if(h.indexOf(srch)===-1) return false; }
     return true;
   });
   currentPage=1; sortTickets(); renderAll();
@@ -885,9 +981,8 @@ function renderAttention() {
       '<td class="wrap"><span class="summary-text">'+esc(t.summary)+'</span></td>' +
       '<td><span class="sla-badge '+cls+'">'+esc(label)+'</span></td>' +
       '<td>'+esc(t.owner)+'</td><td>'+priorityBadge(t.priority)+'</td></tr>';
-  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px">No SLA issues</td></tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px;font-size:13px">No SLA issues found</td></tr>';
 
-  // Customer responded, still actionable
   var custTickets = allTickets.filter(function(t){ return t.custUpdated&&t.isActionable; })
     .sort(function(a,b){ return (b.daysSinceUpdate||0)-(a.daysSinceUpdate||0); });
   document.getElementById('attnCustBody').innerHTML = custTickets.length ? custTickets.map(function(t){
@@ -895,9 +990,8 @@ function renderAttention() {
       '<td class="wrap"><span class="summary-text">'+esc(t.summary)+'</span></td>' +
       '<td>'+esc(t.statusNorm)+'</td><td>'+staleBadge(t.daysSinceUpdate,t.lastUpdate)+'</td>' +
       '<td>'+esc(t.owner)+'</td></tr>';
-  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px">None</td></tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px;font-size:13px">No tickets awaiting action after customer response</td></tr>';
 
-  // Zero hours, open >7 days
   var zeroTickets = allTickets.filter(function(t){ return t.totalHours===0&&t.age>7; })
     .sort(function(a,b){ return b.age-a.age; });
   document.getElementById('attnZeroBody').innerHTML = zeroTickets.length ? zeroTickets.map(function(t){
@@ -905,7 +999,7 @@ function renderAttention() {
       '<td class="wrap"><span class="summary-text">'+esc(t.summary)+'</span></td>' +
       '<td><span class="mono">'+t.age.toFixed(1)+'d</span></td>' +
       '<td>'+esc(t.statusNorm)+'</td><td>'+esc(t.owner)+'</td></tr>';
-  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px">None</td></tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px;font-size:13px">No unworked open tickets found</td></tr>';
 }
 
 // ── ENGINEERS ────────────────────────────────────────────────────────────
@@ -1057,7 +1151,7 @@ function renderTable() {
       '<td>'+esc(t.statusNorm)+'</td>' +
       '<td>'+staleBadge(t.daysSinceUpdate,t.lastUpdate)+'</td>' +
       '<td><span class="mono">'+(t.age?t.age.toFixed(1)+'d':'—')+'</span></td>' +
-      '<td>'+slaBadge(t.slaStatus)+'</td>' +
+      '<td>'+slaBadge(t.slaStatus, t.sla)+'</td>' +
       '<td><span class="mono">'+(t.totalHours?t.totalHours.toFixed(1):'—')+'</span></td>' +
       '<td>'+esc(t.owner)+'</td>' +
       '<td>'+flags+'</td>' +
@@ -1111,15 +1205,15 @@ function staleBadge(days, lastUpdate) {
   return '<span class="stale-badge '+cls+'"'+tip+'>'+label+'</span>';
 }
 
-function slaBadge(raw) {
-  var sla = parseCWSLA(raw);
-  if (sla.type==='none')     return '<span class="sla-badge sla-na">—</span>';
-  if (sla.type==='resolved') return '<span class="sla-badge sla-ok">Resolved</span>';
-  if (sla.type==='waiting')  return '<span class="sla-badge sla-warn">Waiting</span>';
-  var cls = sla.overdue ? 'sla-breach' : (sla.soonHours!==null ? 'sla-soon' : 'sla-ok');
-  var suffix = sla.overdue ? ' !' : (sla.soonHours!==null ? ' ('+Math.round(sla.soonHours)+'h)' : '');
+function slaBadge(raw, sla) {
+  var s = sla || { type:'none', label:'—', overdue:false, soonHours:null };
+  if (s.type==='none')     return '<span class="sla-badge sla-na">—</span>';
+  if (s.type==='resolved') return '<span class="sla-badge sla-ok">Resolved</span>';
+  if (s.type==='waiting')  return '<span class="sla-badge sla-warn">Waiting</span>';
+  var cls = s.overdue ? 'sla-breach' : (s.soonHours!==null ? 'sla-soon' : 'sla-ok');
+  var suffix = s.overdue ? ' !' : (s.soonHours!==null ? ' ('+Math.round(s.soonHours)+'h)' : '');
   var tip = raw ? ' data-tip="'+esc(raw)+'"' : '';
-  return '<span class="sla-badge '+cls+'"'+tip+'>'+esc(sla.label)+suffix+'</span>';
+  return '<span class="sla-badge '+cls+'"'+tip+'>'+esc(s.label)+suffix+'</span>';
 }
 
 function esc(s) {
