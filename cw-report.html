@@ -52,6 +52,8 @@ a{color:var(--accent);text-decoration:none;}
 .drop-sub{color:var(--text-muted);font-size:13px;}
 .drop-btn{margin-top:16px;display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;border:none;border-radius:8px;padding:9px 20px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;}
 .drop-btn:hover{opacity:.88;}
+.drop-btn-secondary{background:transparent;border:1px solid var(--border);color:var(--text-muted);}
+.drop-btn-secondary:hover{opacity:1;border-color:var(--accent);color:var(--accent);background:transparent;}
 #fileInput{display:none;}
 
 /* TABS */
@@ -155,6 +157,18 @@ tbody td.wrap{white-space:normal;max-width:240px;}
 [data-theme="dark"] .stale-mid{background:#2d2008;color:#fbbf24;}
 [data-theme="dark"] .stale-high{background:#2d1a0a;color:#fb923c;}
 
+.stale-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);}
+.stale-legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);font-weight:500;}
+.stale-legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;display:inline-block;}
+.stale-legend-dot.stale-ok{background:var(--ok);}
+.stale-legend-dot.stale-low{background:#166534;}
+.stale-legend-dot.stale-mid{background:#b45309;}
+.stale-legend-dot.stale-high{background:#c2410c;}
+.stale-legend-dot.stale-crit{background:var(--danger);}
+[data-theme="dark"] .stale-legend-dot.stale-low{background:#34d399;}
+[data-theme="dark"] .stale-legend-dot.stale-mid{background:#fbbf24;}
+[data-theme="dark"] .stale-legend-dot.stale-high{background:#fb923c;}
+
 .sla-badge{border-radius:5px;padding:2px 8px;font-size:11px;font-weight:600;display:inline-block;}
 .sla-ok{background:var(--ok-bg);color:var(--ok);}
 .sla-breach{background:var(--danger-bg);color:var(--danger);}
@@ -244,6 +258,66 @@ tbody td.wrap{white-space:normal;max-width:240px;}
 .col-warning strong{font-weight:700;}
 .col-warning ul{margin:6px 0 0 18px;display:flex;flex-wrap:wrap;gap:4px 20px;}
 .col-warning li{list-style:disc;}
+
+/* REPORT DATE BAR */
+.report-date-bar{
+  display:none;
+  align-items:center;
+  gap:10px;
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:var(--radius);
+  padding:10px 16px;
+  margin-bottom:18px;
+  font-size:13px;
+  color:var(--text-muted);
+}
+.report-date-edit-btn{
+  background:transparent;
+  border:1px solid var(--border);
+  color:var(--text-muted);
+  border-radius:7px;
+  padding:4px 12px;
+  font-size:12px;
+  font-weight:500;
+  cursor:pointer;
+  font-family:inherit;
+  transition:all .15s;
+}
+.report-date-edit-btn:hover{border-color:var(--accent);color:var(--accent);}
+.report-date-input{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:7px;
+  color:var(--text);
+  font-family:inherit;
+  font-size:13px;
+  padding:5px 10px;
+}
+
+/* COMPARE DELTA CARDS */
+.compare-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.compare-stat-card.danger{border-left:3px solid var(--danger);}
+.compare-stat-card.warn{border-left:3px solid var(--warn);}
+.compare-stat-card.ok{border-left:3px solid var(--ok);}
+.compare-stat-card.accent{border-left:3px solid var(--accent);}
+.compare-stat-card.purple{border-left:3px solid #8b5cf6;}
+.compare-values{display:flex;align-items:baseline;gap:8px;}
+.compare-val-old{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;color:var(--text-faint);}
+.compare-arrow{font-size:14px;color:var(--text-faint);}
+.compare-val-new{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--text);}
+.compare-stat-card.danger .compare-val-new{color:var(--danger);}
+.compare-stat-card.warn .compare-val-new{color:var(--warn);}
+.compare-stat-card.ok .compare-val-new{color:var(--ok);}
+.compare-stat-card.accent .compare-val-new{color:var(--accent);}
+.compare-stat-card.purple .compare-val-new{color:#8b5cf6;}
+.compare-delta{font-size:12px;font-weight:700;font-family:'JetBrains Mono',monospace;margin-top:4px;display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:5px;}
+.compare-delta.up-bad{background:var(--danger-bg);color:var(--danger);}
+.compare-delta.up-good{background:var(--ok-bg);color:var(--ok);}
+.compare-delta.down-bad{background:var(--danger-bg);color:var(--danger);}
+.compare-delta.down-good{background:var(--ok-bg);color:var(--ok);}
+.compare-delta.flat{background:var(--surface2);color:var(--text-faint);}
+.compare-stat-label{font-size:12px;font-weight:500;color:var(--text-muted);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
 </style>
 </head>
 <body>
@@ -271,10 +345,16 @@ tbody td.wrap{white-space:normal;max-width:240px;}
     <div class="drop-icon">📋</div>
     <div class="drop-title">Drop your ConnectWise export here</div>
     <div class="drop-sub">Tab-separated or CSV export from CW Manage</div>
-    <button class="drop-btn" onclick="document.getElementById('fileInput').click()">
-      <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"/></svg>
-      Choose File
-    </button>
+    <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+      <button class="drop-btn" onclick="document.getElementById('fileInput').click()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"/></svg>
+        Choose File
+      </button>
+      <button class="drop-btn drop-btn-secondary" onclick="loadSampleData()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+        Try Sample Data
+      </button>
+    </div>
     <input type="file" id="fileInput" accept=".csv,.tsv,.txt">
   </div>
 
@@ -283,6 +363,13 @@ tbody td.wrap{white-space:normal;max-width:240px;}
     <ul id="colWarningList"></ul>
   </div>
 
+  <div class="report-date-bar" id="reportDateBar">
+    <span id="reportDateLabel">Stats as of today</span>
+    <button class="report-date-edit-btn" onclick="toggleDateEditor()" title="Change the date stats are calculated from">Change date</button>
+    <input type="date" id="reportDateInput" class="report-date-input hidden" onchange="onManualDateChange(this.value)">
+  </div>
+
+
   <div class="view-tabs" id="viewTabs">
     <button class="tab-btn active" data-view="overview"   onclick="switchView('overview')">Overview</button>
     <button class="tab-btn"        data-view="attention"  onclick="switchView('attention')">Attention</button>
@@ -290,6 +377,7 @@ tbody td.wrap{white-space:normal;max-width:240px;}
     <button class="tab-btn"        data-view="companies"  onclick="switchView('companies')">Companies</button>
     <button class="tab-btn"        data-view="types"      onclick="switchView('types')">Types</button>
     <button class="tab-btn"        data-view="tickets"    onclick="switchView('tickets')">All Tickets</button>
+    <button class="tab-btn"        data-view="compare"    onclick="switchView('compare')">Compare</button>
   </div>
 
   <!-- OVERVIEW -->
@@ -319,6 +407,13 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       <div class="panel">
         <div class="panel-title"><span class="accent-dot"></span>Time Since Last Update</div>
         <div id="staleBars"></div>
+        <div class="stale-legend">
+          <span class="stale-legend-item"><span class="stale-legend-dot stale-ok"></span>0-3d</span>
+          <span class="stale-legend-item"><span class="stale-legend-dot stale-low"></span>3-7d</span>
+          <span class="stale-legend-item"><span class="stale-legend-dot stale-mid"></span>7-14d</span>
+          <span class="stale-legend-item"><span class="stale-legend-dot stale-high"></span>14-30d</span>
+          <span class="stale-legend-item"><span class="stale-legend-dot stale-crit"></span>30d+</span>
+        </div>
       </div>
       <div class="panel">
         <div class="panel-title"><span class="accent-dot"></span>Ticket Status</div>
@@ -351,6 +446,11 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       <div class="panel-title"><span class="accent-dot"></span>No Hours Logged — Open &gt;7 Days</div>
       <div class="table-wrap"><table class="attn-table" id="attnZeroTable"><thead><tr><th>Ticket</th><th>Company</th><th>Summary</th><th>Age</th><th>Status</th><th>Owner</th></tr></thead><tbody id="attnZeroBody"></tbody></table></div>
     </div>
+    <div class="panel">
+      <div class="panel-title"><span class="accent-dot"></span>Possible Duplicate Tickets</div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:12px;">Same company, summaries sharing most of the same key words. Worth checking these aren't the same issue logged twice.</p>
+      <div class="table-wrap"><table class="attn-table" id="attnDupTable"><thead><tr><th>Ticket A</th><th>Summary A</th><th>Ticket B</th><th>Summary B</th><th>Company</th><th>Match</th></tr></thead><tbody id="attnDupBody"></tbody></table></div>
+    </div>
   </div>
 
   <!-- ENGINEERS -->
@@ -376,7 +476,7 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       <div class="panel-title"><span class="accent-dot"></span>Company Heat</div>
       <div class="table-wrap">
         <table class="attn-table" id="coTable">
-          <thead><tr><th>Company</th><th>Tickets</th><th>Total Hours</th><th>Avg Age (d)</th><th>Stale &gt;7d</th><th>SLA Overdue</th><th>P1/P2</th><th>0hr Open</th></tr></thead>
+          <thead><tr><th>Company</th><th>Tickets</th><th>Total Hours</th><th>Avg Age (d)</th><th>Stale &gt;7d</th><th>SLA Overdue</th><th title="% of SLA-tracked tickets that are overdue">SLA Breach %</th><th>P1/P2</th><th>0hr Open</th></tr></thead>
           <tbody id="coBody"></tbody>
         </table>
       </div>
@@ -478,6 +578,44 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       <div class="pagination" id="pagination"></div>
     </div>
   </div>
+
+  <!-- COMPARE -->
+  <div id="viewCompare" class="hidden">
+    <div class="panel" id="compareIntro">
+      <div class="panel-title"><span class="accent-dot"></span>Compare Against Another Export</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-bottom:16px;">
+        Load a second ConnectWise export to compare against the data currently loaded
+        (<strong id="compareCurrentLabel">—</strong>). Useful for week-over-week or month-over-month tracking.
+      </p>
+      <div class="drop-zone" id="compareDropZone" style="margin-bottom:0;">
+        <div class="drop-icon">📊</div>
+        <div class="drop-title">Drop the comparison export here</div>
+        <div class="drop-sub">This will be compared against your currently loaded data</div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;">
+          <button class="drop-btn" onclick="document.getElementById('compareFileInput').click()">
+            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12V4M8 8l4-4 4 4"/></svg>
+            Choose File
+          </button>
+        <button class="drop-btn drop-btn-secondary" onclick="loadSampleCompareData()">Try Sample Comparison</button>
+        </div>
+        <input type="file" id="compareFileInput" accept=".csv,.tsv,.txt">
+      </div>
+    </div>
+
+    <div id="compareResults" class="hidden">
+      <div class="panel">
+        <div class="panel-title"><span class="accent-dot"></span>Comparison Summary</div>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--text-muted);margin-bottom:18px;">
+          <span><strong id="compareLabelA">—</strong> (baseline)</span>
+          <span>vs</span>
+          <span><strong id="compareLabelB">—</strong> (comparison)</span>
+        </div>
+        <button class="clear-btn" onclick="resetCompare()">Load a different comparison file</button>
+      </div>
+      <div class="stats-grid" id="compareStatsGrid" style="display:grid;"></div>
+    </div>
+  </div>
+
   <!-- PRINT AREA (hidden until PDF export) -->
   <div id="printArea"></div>
 
@@ -490,6 +628,70 @@ var pageSize = 50;
 var sortField = 'daysSinceUpdate';
 var sortDir = -1;
 var currentView = 'overview';
+var reportDate = new Date();      // "as of" date all staleness/SLA calcs are anchored to
+var reportDateSource = 'today';   // 'filename' | 'data' | 'manual' | 'today'
+
+function detectDateFromFilename(filename) {
+  if (!filename) return null;
+  var name = filename.replace(/\.[^.]+$/, ''); // strip extension
+
+  // DD-MM-YYYY or DD_MM_YYYY or DD.MM.YYYY
+  var m = name.match(/(\d{1,2})[-_.](\d{1,2})[-_.](\d{4})/);
+  if (m) {
+    var d = new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+    if (!isNaN(d.getTime())) return d;
+  }
+  // YYYY-MM-DD or YYYY_MM_DD
+  m = name.match(/(\d{4})[-_.](\d{1,2})[-_.](\d{1,2})/);
+  if (m) {
+    var d2 = new Date(parseInt(m[1]), parseInt(m[2])-1, parseInt(m[3]));
+    if (!isNaN(d2.getTime())) return d2;
+  }
+  // "22nd March 2026", "22 March 2026", "March 22 2026", "March 22, 2026"
+  var months = 'jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec';
+  var re1 = new RegExp('(\\d{1,2})(?:st|nd|rd|th)?[ _-]+(' + months + ')[a-z]*[ _-]+(\\d{4})', 'i');
+  m = name.match(re1);
+  if (m) {
+    var d3 = new Date(m[1] + ' ' + m[2] + ' ' + m[3]);
+    if (!isNaN(d3.getTime())) return d3;
+  }
+  var re2 = new RegExp('(' + months + ')[a-z]*[ _-]+(\\d{1,2})(?:st|nd|rd|th)?,?[ _-]+(\\d{4})', 'i');
+  m = name.match(re2);
+  if (m) {
+    var d4 = new Date(m[1] + ' ' + m[2] + ' ' + m[3]);
+    if (!isNaN(d4.getTime())) return d4;
+  }
+  return null;
+}
+
+function detectDateFromData(tickets) {
+  // Use the most recent Entered or Last Update timestamp across all rows as a proxy
+  // for "when was this export taken"
+  var latest = null;
+  tickets.forEach(function(t) {
+    [t.lastUpdate, t.entered].forEach(function(str) {
+      if (!str) return;
+      var d = parseDDMMYYYY(str) || new Date(str);
+      if (d && !isNaN(d.getTime())) {
+        if (!latest || d > latest) latest = d;
+      }
+    });
+  });
+  return latest;
+}
+
+function setReportDate(date, source) {
+  reportDate = date;
+  reportDateSource = source;
+  var el = document.getElementById('reportDateLabel');
+  if (el) {
+    var dateStr = reportDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+    var sourceLabel = {filename:'from filename', data:'from latest ticket', manual:'manually set', today:'today'}[source] || '';
+    el.textContent = 'Stats as of ' + dateStr + ' (' + sourceLabel + ')';
+  }
+  var input = document.getElementById('reportDateInput');
+  if (input) input.value = reportDate.toISOString().slice(0,10);
+}
 
 // THEME
 var themeToggle = document.getElementById('themeToggle');
@@ -513,9 +715,22 @@ dropZone.addEventListener('dragleave', function(){ dropZone.classList.remove('dr
 dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.classList.remove('dragover'); if(e.dataTransfer.files[0]) processFile(e.dataTransfer.files[0]); });
 document.getElementById('fileInput').addEventListener('change', function(e){ if(e.target.files[0]) processFile(e.target.files[0]); });
 
+// Compare tab drop zone
+var compareDropZone = document.getElementById('compareDropZone');
+if (compareDropZone) {
+  compareDropZone.addEventListener('dragover', function(e){ e.preventDefault(); compareDropZone.classList.add('dragover'); });
+  compareDropZone.addEventListener('dragleave', function(){ compareDropZone.classList.remove('dragover'); });
+  compareDropZone.addEventListener('drop', function(e){ e.preventDefault(); compareDropZone.classList.remove('dragover'); if(e.dataTransfer.files[0]) processCompareFile(e.dataTransfer.files[0]); });
+}
+var compareFileInput = document.getElementById('compareFileInput');
+if (compareFileInput) compareFileInput.addEventListener('change', function(e){ if(e.target.files[0]) processCompareFile(e.target.files[0]); });
+
 function showError(msg) {
   var dz = document.getElementById('dropZone');
   dz.style.display = 'block';
+  document.getElementById('reportDateBar').style.display = 'none';
+  document.getElementById('statsGrid').style.display = 'none';
+  document.getElementById('viewTabs').style.display = 'none';
   dz.innerHTML =
     '<div class="drop-icon">⚠️</div>' +
     '<div class="drop-title" style="color:var(--danger)">Could not load file</div>' +
@@ -534,6 +749,112 @@ function resetDropZone() {
     '<input type="file" id="fileInput" accept=".csv,.tsv,.txt">';
   // Re-attach listener since we replaced the DOM
   document.getElementById('fileInput').addEventListener('change', function(e){ if(e.target.files[0]) processFile(e.target.files[0]); });
+}
+
+function generateSampleTSV(variant) {
+  // Builds a small synthetic CW-style export covering the main scenarios:
+  // overdue SLA, SLA due soon, stale tickets, zero-hours tickets, customer-responded,
+  // mixed priorities/types/statuses across a handful of companies and engineers.
+  //
+  // variant 'current' (default): today's snapshot, used for the main drop zone and as the comparison baseline
+  // variant 'previous': a slightly worse snapshot from ~2 weeks earlier, so loading it into Compare
+  //                      shows a believable "things have gotten worse" delta against 'current'
+  variant = variant || 'current';
+  var today = new Date();
+  function fmt(d) {
+    var dd = String(d.getDate()).padStart(2,'0');
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    var yyyy = d.getFullYear();
+    var hh = String(d.getHours()).padStart(2,'0');
+    var mi = String(d.getMinutes()).padStart(2,'0');
+    return dd+'/'+mm+'/'+yyyy+' '+hh+':'+mi;
+  }
+  function daysAgo(n, h, m) {
+    var d = new Date(today);
+    d.setDate(d.getDate()-n);
+    if (h!==undefined) d.setHours(h, m||0);
+    return d;
+  }
+  function slaDeadline(hoursOffset, label) {
+    var d = new Date(today.getTime() + hoursOffset * 3600000);
+    var dd = String(d.getDate()).padStart(2,'0');
+    var mm = String(d.getMonth()+1).padStart(2,'0');
+    var hh = String(d.getHours()).padStart(2,'0');
+    var mi = String(d.getMinutes()).padStart(2,'0');
+    var dow = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getDay()];
+    return label+' by '+dow+' '+dd+'/'+mm+' '+hh+':'+mi+' UTC+01 '+dow+' '+dd+'/'+mm+' '+hh+':'+mi+' BST';
+  }
+  var companies = ['Acme Logistics Ltd','Brightfield Accountants','Cedar Grove School','Delta Manufacturing','Evergreen Dental Practice'];
+  var owners = ['Jamie Holloway','Priya Nair','Tom Whitfield','Lauren Marsh','Dev Okonkwo'];
+  var prio = {p1:'common/images/../../common/images/infoIcons/urgencyColors/Red.gif',
+              p2:'common/images/../../common/images/infoIcons/urgencyColors/orange.gif',
+              p3:'common/images/../../common/images/infoIcons/urgencyColors/Yellow.gif',
+              p4:'common/images/../../common/images/infoIcons/urgencyColors/Blue.gif'};
+
+  var headers = ['Selected_Sr_Service_Recid','Ticket #','Priority','Age','Status','Company','Summary Description','Resources','Total Hours','Contact','Last Update','Due Date','Ticket Owner','SLA Status','Level','Customer Updated','Type','Subtype','Entered','Next Date'];
+  var rows = [headers];
+  var id = variant === 'previous' ? 238000 : 240000;
+
+  // Base scenario set used for the 'current' (worse) snapshot — this is today's pain points
+  var sample = [
+    // [priority, age, status, company, summary, owner, hours, lastUpdateDaysAgo, sla, custUpdated, type, subtype, enteredDaysAgo]
+    ['p1', 1.4, 'Escalation Level 1', companies[0], 'Server down - cannot access shared drives', owners[0], 1.5, 0, slaDeadline(-24,'Resolve'), 'TRUE', 'Incident', 'Network', 1.4],
+    ['p1', 2.1, '*New', companies[3], 'Production line PC blue screening repeatedly', owners[2], 0, 2, slaDeadline(-26,'Respond'), 'FALSE', 'Incident', 'Hardware', 2.1],
+    ['p2', 8.3, '*Re-Opened', companies[1], 'VPN dropping for remote staff', owners[3], 2.25, 0, 'Resolved', 'TRUE', 'Incident', 'Network', 8.3],
+    ['p2', 0.5, '*Triaged', companies[4], 'Email migration query for new starter', owners[1], 0, 0.2, slaDeadline(7,'Plan'), 'FALSE', 'Request', 'M365', 0.5],
+    ['p3', 22.2, '*Triaged', companies[0], 'Backup configuration job failing nightly', owners[0], 0, 18, slaDeadline(-288,'Plan'), 'FALSE', 'Request', '', 22.2],
+    ['p3', 15.4, 'Waiting Client Response', companies[2], 'SSL renewal for school portal', owners[4], 0.75, 16, 'Waiting', 'FALSE', 'Request', '', 15.4],
+    ['p3', 9.2, '*Assigned', companies[1], 'New starter laptop build', owners[2], 0, 9, slaDeadline(-72,'Plan'), 'TRUE', 'Request', 'Hardware', 9.2],
+    ['p3', 28.4, '*Triaged', companies[3], 'Licence allocation review', owners[3], 0, 25, slaDeadline(-480,'Plan'), 'FALSE', 'MUST CHANGE', '', 28.4],
+    ['p4', 33.5, '*Triaged', companies[4], 'Printer not logging into scan-to-email', owners[4], 0, 30, slaDeadline(-600,'Plan'), 'FALSE', 'Incident', 'Hardware', 33.5],
+    ['p4', 60.2, 'Waiting Client Response', companies[0], 'Unable to connect to VPN intermittently', owners[0], 8, 1, 'Waiting', 'FALSE', 'Incident', 'Network', 60.2],
+    ['p3', 5.2, '*In Progress', companies[2], 'Revit plugin install for design team', owners[1], 1.25, 1, slaDeadline(19,'Resolve'), 'FALSE', 'Request', 'Software', 5.2],
+    ['p2', 1.3, '*Assigned', companies[1], 'Phishing email reported by finance team', owners[2], 0.5, 0.1, slaDeadline(5,'Plan'), 'TRUE', 'Incident', 'Security', 1.3],
+    ['p3', 105.2, 'Waiting Client Response', companies[3], 'Remote machine dropping network connection', owners[3], 5.25, 5, 'Waiting', 'FALSE', 'Request', 'Hardware', 105.2],
+    ['p4', 7.5, '*New', companies[4], 'New guest WiFi access request', owners[4], 0, 7, slaDeadline(-48,'Respond'), 'FALSE', 'MUST CHANGE', '', 7.5],
+    ['p3', 1.2, '*Triaged', companies[0], 'SharePoint access query', owners[0], 0, 0.5, slaDeadline(12,'Plan'), 'TRUE', 'Request', 'M365', 1.2]
+  ];
+
+  if (variant === 'previous') {
+    // Lighter snapshot from ~2 weeks earlier: fewer tickets, fewer overdue SLAs, fewer
+    // stale tickets, and the items that were already bad have lower ages (since this
+    // is "2 weeks ago" — the same backlog hadn't built up yet). Two of the rows from
+    // the current set are dropped entirely to also show Total Tickets decreasing.
+    sample = [
+      ['p1', 0.5, '*New', companies[3], 'Production line PC blue screening repeatedly', owners[2], 0, 0.5, slaDeadline(48,'Respond'), 'FALSE', 'Incident', 'Hardware', 0.5],
+      ['p2', 1.2, '*Triaged', companies[1], 'VPN dropping for remote staff', owners[3], 0.5, 0.5, slaDeadline(72,'Plan'), 'FALSE', 'Incident', 'Network', 1.2],
+      ['p2', 0.3, '*Triaged', companies[4], 'Email migration query for new starter', owners[1], 0, 0.1, slaDeadline(24,'Plan'), 'FALSE', 'Request', 'M365', 0.3],
+      ['p3', 8.2, '*Triaged', companies[0], 'Backup configuration job failing nightly', owners[0], 0, 6, slaDeadline(-24,'Plan'), 'FALSE', 'Request', '', 8.2],
+      ['p3', 1.4, 'Waiting Client Response', companies[2], 'SSL renewal for school portal', owners[4], 0.5, 1, 'Waiting', 'FALSE', 'Request', '', 1.4],
+      ['p3', 2.2, '*Assigned', companies[1], 'New starter laptop build', owners[2], 0.5, 1, slaDeadline(48,'Plan'), 'TRUE', 'Request', 'Hardware', 2.2],
+      ['p3', 14.4, '*Triaged', companies[3], 'Licence allocation review', owners[3], 0, 12, slaDeadline(-96,'Plan'), 'FALSE', 'MUST CHANGE', '', 14.4],
+      ['p4', 19.5, '*Triaged', companies[4], 'Printer not logging into scan-to-email', owners[4], 0, 16, slaDeadline(-200,'Plan'), 'FALSE', 'Incident', 'Hardware', 19.5],
+      ['p3', 1.2, '*In Progress', companies[2], 'Revit plugin install for design team', owners[1], 0.75, 0.5, slaDeadline(36,'Resolve'), 'FALSE', 'Request', 'Software', 1.2],
+      ['p2', 0.4, '*New', companies[1], 'Phishing email reported by finance team', owners[2], 0.25, 0.1, slaDeadline(18,'Plan'), 'TRUE', 'Incident', 'Security', 0.4],
+      ['p4', 5.5, '*New', companies[4], 'New guest WiFi access request', owners[4], 0, 4, slaDeadline(36,'Respond'), 'FALSE', 'MUST CHANGE', '', 5.5],
+      ['p3', 0.6, '*Triaged', companies[0], 'SharePoint access query', owners[0], 0, 0.3, slaDeadline(60,'Plan'), 'TRUE', 'Request', 'M365', 0.6],
+      ['p4', 46.2, 'Waiting Client Response', companies[0], 'Unable to connect to VPN intermittently', owners[0], 4, 1, 'Waiting', 'FALSE', 'Incident', 'Network', 46.2]
+      // Note: 2 fewer rows than 'current' (the Re-Opened ticket and the long-running
+      // "Remote machine dropping network connection" ticket hadn't been logged yet)
+    ];
+  }
+
+  sample.forEach(function(s) {
+    id++;
+    rows.push([
+      id, id, prio[s[0]], s[1], s[2], s[3], s[4], '', s[6],
+      owners[Math.floor(Math.random()*owners.length)],
+      fmt(daysAgo(s[7])), '', s[5], s[8], s[8]==='Resolved'||s[8]==='Waiting'?'0':'1', s[9],
+      s[10], s[11], fmt(daysAgo(s[12])), ''
+    ]);
+  });
+
+  return rows.map(function(r){ return r.join('\t'); }).join('\n');
+}
+
+function loadSampleData() {
+  var tsv = generateSampleTSV();
+  parseData(tsv, null);
 }
 
 function processFile(file) {
@@ -560,12 +881,173 @@ function processFile(file) {
         return;
       }
       if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
-      parseData(text);
+      var filenameDate = detectDateFromFilename(file.name);
+      parseData(text, filenameDate);
     } catch(err) {
       showError('An unexpected error occurred while parsing the file: <strong>' + (err.message || err) + '</strong>');
     }
   };
   reader.readAsText(file);
+}
+
+function processCompareFile(file) {
+  var name = (file.name || '').toLowerCase();
+  var binaryExts = ['.xlsx','.xls','.xlsm','.docx','.doc','.pdf','.zip','.png','.jpg','.jpeg','.gif'];
+  for (var i = 0; i < binaryExts.length; i++) {
+    if (name.endsWith(binaryExts[i])) {
+      showCompareError('This looks like a <strong>' + binaryExts[i] + '</strong> file. Please export as CSV or TSV from ConnectWise Manage.');
+      return;
+    }
+  }
+  var reader = new FileReader();
+  reader.onerror = function() {
+    showCompareError('The file could not be read. Make sure it is a plain text CSV or TSV file.');
+  };
+  reader.onload = function(e) {
+    try {
+      var text = e.target.result;
+      if (text.indexOf('\0') !== -1) {
+        showCompareError('This appears to be a binary file, not a text CSV or TSV.');
+        return;
+      }
+      if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
+      var filenameDate = detectDateFromFilename(file.name);
+      var result = parseRowsCore(text, filenameDate);
+      if (!result.tickets.length) {
+        showCompareError('No ticket rows could be parsed from this file.');
+        return;
+      }
+      renderComparison(result);
+    } catch(err) {
+      if (err.message === 'EMPTY_FILE') {
+        showCompareError('The file appears to be empty or only contains a header row.');
+      } else {
+        showCompareError('Failed to parse the file: <strong>' + (err.message || err) + '</strong>');
+      }
+    }
+  };
+  reader.readAsText(file);
+}
+
+function showCompareError(msg) {
+  var dz = document.getElementById('compareDropZone');
+  dz.innerHTML =
+    '<div class="drop-icon">⚠️</div>' +
+    '<div class="drop-title" style="color:var(--danger)">Could not load file</div>' +
+    '<div class="drop-sub" style="margin-bottom:12px">' + msg + '</div>' +
+    '<button class="drop-btn" onclick="resetCompareDropZone()">Try another file</button>';
+}
+
+function resetCompareDropZone() {
+  document.getElementById('compareDropZone').innerHTML =
+    '<div class="drop-icon">📊</div>' +
+    '<div class="drop-title">Drop the comparison export here</div>' +
+    '<div class="drop-sub">This will be compared against your currently loaded data</div>' +
+    '<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin-top:16px;">' +
+    '<button class="drop-btn" onclick="document.getElementById(\'compareFileInput\').click()">Choose File</button>' +
+    '<button class="drop-btn drop-btn-secondary" onclick="loadSampleCompareData()">Try Sample Comparison</button>' +
+    '</div>' +
+    '<input type="file" id="compareFileInput" accept=".csv,.tsv,.txt">';
+  document.getElementById('compareFileInput').addEventListener('change', function(e){ if(e.target.files[0]) processCompareFile(e.target.files[0]); });
+}
+
+function loadSampleCompareData() {
+  // Uses the 'previous' variant so comparing against the main sample data
+  // (which defaults to 'current') shows believable deltas rather than all zeros
+  var tsv = generateSampleTSV('previous');
+  try {
+    var result = parseRowsCore(tsv, null);
+    renderComparison(result);
+  } catch(err) {
+    showCompareError('Could not generate sample comparison data.');
+  }
+}
+
+function computeSummaryStats(tickets) {
+  var total = tickets.length;
+  var action = tickets.filter(function(x){ return x.isActionable; }).length;
+  var stale14 = tickets.filter(function(x){ return x.daysSinceUpdate!==null&&x.daysSinceUpdate>=14; }).length;
+  var stale7  = tickets.filter(function(x){ return x.daysSinceUpdate!==null&&x.daysSinceUpdate>=7&&x.daysSinceUpdate<14; }).length;
+  var p1 = tickets.filter(function(x){ return x.priority.indexOf('P1')!==-1||x.priority.toLowerCase().indexOf('critical')!==-1; }).length;
+  var slaOD = tickets.filter(function(x){ return x.sla.overdue; }).length;
+  var slaSoon = tickets.filter(function(x){ return x.sla.soonHours!==null; }).length;
+  var zeroHrs = tickets.filter(function(x){ return x.totalHours===0&&x.age>7; }).length;
+  var custWait = tickets.filter(function(x){ return x.custUpdated&&x.isActionable; }).length;
+  var hrs = tickets.reduce(function(s,x){ return s+x.totalHours; },0);
+  var avgAge = total ? (tickets.reduce(function(s,x){ return s+x.age; },0)/total) : 0;
+  var companies = Object.keys(countBy(tickets,'company')).length;
+  return {
+    total:total, action:action, stale14:stale14, stale7:stale7, p1:p1,
+    slaOD:slaOD, slaSoon:slaSoon, zeroHrs:zeroHrs, custWait:custWait,
+    hours:hrs, avgAge:avgAge, companies:companies
+  };
+}
+
+function renderComparison(compareResult) {
+  document.getElementById('compareIntro').classList.add('hidden');
+  document.getElementById('compareResults').classList.remove('hidden');
+
+  var baseline = computeSummaryStats(allTickets);
+  var comparison = computeSummaryStats(compareResult.tickets);
+
+  var baseDateStr = reportDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+  var compDateStr = compareResult.resolvedDate.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+  document.getElementById('compareLabelA').textContent = baseDateStr;
+  document.getElementById('compareLabelB').textContent = compDateStr;
+  document.getElementById('compareCurrentLabel').textContent = baseDateStr;
+
+  var metrics = [
+    {key:'total',    label:'Total Tickets',    cls:'accent', dir:'neutral'},
+    {key:'action',   label:'Action Needed',    cls:'ok',     dir:'up-bad'},
+    {key:'stale14',  label:'No Update >14d',   cls:'danger', dir:'up-bad'},
+    {key:'stale7',   label:'No Update 7-14d',  cls:'warn',   dir:'up-bad'},
+    {key:'p1',       label:'Priority 1',       cls:'danger', dir:'up-bad'},
+    {key:'slaOD',    label:'SLA Overdue',      cls:'danger', dir:'up-bad'},
+    {key:'slaSoon',  label:'SLA Due <24h',     cls:'warn',   dir:'up-bad'},
+    {key:'zeroHrs',  label:'0hrs >7 Days',     cls:'warn',   dir:'up-bad'},
+    {key:'custWait', label:'Cust. Responded',  cls:'purple', dir:'up-bad'},
+    {key:'hours',    label:'Total Hours',      cls:'accent', dir:'neutral', decimals:1},
+    {key:'avgAge',   label:'Avg Age (days)',   cls:'accent', dir:'up-bad',  decimals:1},
+    {key:'companies',label:'Companies',        cls:'accent', dir:'neutral'}
+  ];
+
+  var html = metrics.map(function(m) {
+    var oldVal = baseline[m.key];
+    var newVal = comparison[m.key];
+    var oldDisp = m.decimals ? oldVal.toFixed(m.decimals) : oldVal;
+    var newDisp = m.decimals ? newVal.toFixed(m.decimals) : newVal;
+    var diff = newVal - oldVal;
+    var diffDisp = m.decimals ? Math.abs(diff).toFixed(m.decimals) : Math.abs(diff);
+
+    var deltaCls = 'flat';
+    var arrow = '→';
+    var sign = '';
+    if (diff > 0.001) {
+      arrow = '↑'; sign = '+';
+      deltaCls = m.dir === 'up-bad' ? 'up-bad' : (m.dir === 'neutral' ? 'flat' : 'up-good');
+    } else if (diff < -0.001) {
+      arrow = '↓'; sign = '-';
+      deltaCls = m.dir === 'up-bad' ? 'down-good' : (m.dir === 'neutral' ? 'flat' : 'down-bad');
+    }
+
+    return '<div class="compare-stat-card ' + m.cls + '">' +
+      '<div class="compare-values">' +
+        '<span class="compare-val-old">' + oldDisp + '</span>' +
+        '<span class="compare-arrow">→</span>' +
+        '<span class="compare-val-new">' + newDisp + '</span>' +
+      '</div>' +
+      '<div class="compare-stat-label">' + m.label + '</div>' +
+      '<div class="compare-delta ' + deltaCls + '">' + arrow + ' ' + sign + diffDisp + '</div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('compareStatsGrid').innerHTML = html;
+}
+
+function resetCompare() {
+  document.getElementById('compareIntro').classList.remove('hidden');
+  document.getElementById('compareResults').classList.add('hidden');
+  resetCompareDropZone();
 }
 
 function splitLine(line, d) {
@@ -611,14 +1093,14 @@ function parseCWPriority(raw) {
   return raw;
 }
 
-function parseCWSLA(raw, enteredDate) {
+function parseCWSLA(raw, enteredDate, nowOverride) {
   if (!raw) return { type:'none', label:'—', overdue:false, soonHours:null, deadline:null };
   var l = raw.toLowerCase().trim();
   if (l==='waiting')  return { type:'waiting',  label:'Waiting',  overdue:false, soonHours:null, deadline:null };
   if (l==='resolved') return { type:'resolved', label:'Resolved', overdue:false, soonHours:null, deadline:null };
   var m = raw.match(/^(Resolve|Plan|Respond)\s+by\s+\w+\s+(\d{1,2})\/(\d{2})\s+(\d{1,2}):(\d{2})/i);
   if (m) {
-    var now = new Date();
+    var now = nowOverride || new Date();
     var day = parseInt(m[2]), mon = parseInt(m[3])-1;
     var hour = parseInt(m[4]), min = parseInt(m[5]);
 
@@ -657,123 +1139,179 @@ function getCol(cols, idx, key) {
   return (idx[key] !== undefined && cols[idx[key]] !== undefined) ? cols[idx[key]] : '';
 }
 
-function parseData(text) {
-  try {
-    var lines = text.split('\n').filter(function(l){ return l.trim(); });
-    if (lines.length < 2) {
-      showError('The file appears to be empty or only contains a header row. Is this the right export?');
-      return;
-    }
+// Core CSV/TSV → ticket-row parser. Pure function — does not touch any globals.
+// Returns {tickets, idx, resolvedDate, resolvedSource} or throws on hard failure.
+function parseRowsCore(text, filenameDate) {
+  var lines = text.split('\n').filter(function(l){ return l.trim(); });
+  if (lines.length < 2) {
+    throw new Error('EMPTY_FILE');
+  }
 
-    var delim = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
-    var headers = splitLine(lines[0], delim).map(function(h){ return h.trim().replace(/^"|"$/g,''); });
+  var delim = lines[0].indexOf('\t') !== -1 ? '\t' : ',';
+  var headers = splitLine(lines[0], delim).map(function(h){ return h.trim().replace(/^"|"$/g,''); });
 
-    // Map logical field names to column indices
-    var idx = {};
-    var fieldMap = {
-      ticketNum:   ['Ticket #','Ticket#','TicketNo','Ticket No'],
-      priority:    ['Priority'],
-      age:         ['Age'],
-      status:      ['Status'],
-      company:     ['Company'],
-      summary:     ['Summary Description','Summary'],
-      resources:   ['Resources'],
-      totalHours:  ['Total Hours','TotalHours'],
-      contact:     ['Contact'],
-      lastUpdate:  ['Last Update','LastUpdate','Last Updated'],
-      dueDate:     ['Due Date','DueDate'],
-      owner:       ['Ticket Owner','Owner'],
-      slaStatus:   ['SLA Status','SLA'],
-      level:       ['Level'],
-      custUpdated: ['Customer Updated'],
-      type:        ['Type'],
-      subtype:     ['Subtype'],
-      entered:     ['Entered'],
-      nextDate:    ['Next Date']
-    };
-    Object.keys(fieldMap).forEach(function(key) {
-      fieldMap[key].forEach(function(name) {
-        if (idx[key] === undefined) {
-          var f = headers.findIndex(function(h){ return h.toLowerCase() === name.toLowerCase(); });
-          if (f !== -1) idx[key] = f;
-        }
-      });
-    });
-
-    var now = new Date();
-    allTickets = [];
-
-    for (var i = 1; i < lines.length; i++) {
-      var cols = splitLine(lines[i], delim).map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
-      if (cols.length < 3) continue;
-
-      // col() is a closure over cols+idx for this row — defined as a named
-      // inner function referencing the outer vars, avoiding redeclaration per iteration
-      var lastUpdateStr = getCol(cols, idx, 'lastUpdate');
-      var daysSince = null;
-      if (lastUpdateStr) {
-        var d = parseDDMMYYYY(lastUpdateStr) || new Date(lastUpdateStr);
-        if (d && !isNaN(d.getTime())) daysSince = Math.floor((now - d) / 86400000);
+  var idx = {};
+  var fieldMap = {
+    ticketNum:   ['Ticket #','Ticket#','TicketNo','Ticket No'],
+    priority:    ['Priority'],
+    age:         ['Age'],
+    status:      ['Status'],
+    company:     ['Company'],
+    summary:     ['Summary Description','Summary'],
+    resources:   ['Resources'],
+    totalHours:  ['Total Hours','TotalHours'],
+    contact:     ['Contact'],
+    lastUpdate:  ['Last Update','LastUpdate','Last Updated'],
+    dueDate:     ['Due Date','DueDate'],
+    owner:       ['Ticket Owner','Owner'],
+    slaStatus:   ['SLA Status','SLA'],
+    level:       ['Level'],
+    custUpdated: ['Customer Updated'],
+    type:        ['Type'],
+    subtype:     ['Subtype'],
+    entered:     ['Entered'],
+    nextDate:    ['Next Date']
+  };
+  Object.keys(fieldMap).forEach(function(key) {
+    fieldMap[key].forEach(function(name) {
+      if (idx[key] === undefined) {
+        var f = headers.findIndex(function(h){ return h.toLowerCase() === name.toLowerCase(); });
+        if (f !== -1) idx[key] = f;
       }
+    });
+  });
 
-      var enteredStr = getCol(cols, idx, 'entered');
-      var enteredDate = enteredStr ? (parseDDMMYYYY(enteredStr) || new Date(enteredStr)) : null;
-      if (enteredDate && isNaN(enteredDate.getTime())) enteredDate = null;
+  // PASS 1: parse raw fields
+  var rawRows = [];
+  for (var i = 1; i < lines.length; i++) {
+    var cols = splitLine(lines[i], delim).map(function(c){ return c.replace(/^"|"$/g,'').trim(); });
+    if (cols.length < 3) continue;
 
-      var slaRaw     = getCol(cols, idx, 'slaStatus');
-      var statusRaw  = getCol(cols, idx, 'status');
-      var statusNorm = normaliseStatus(statusRaw);
-      var sla        = parseCWSLA(slaRaw, enteredDate);
-      var custUpdated = getCol(cols, idx, 'custUpdated').toLowerCase() === 'true';
-      var isActionable = NON_ACTIONABLE_STATUSES.indexOf(statusNorm.toLowerCase()) === -1;
+    var lastUpdateStr = getCol(cols, idx, 'lastUpdate');
+    var enteredStr    = getCol(cols, idx, 'entered');
+    var slaRaw        = getCol(cols, idx, 'slaStatus');
+    var statusRaw     = getCol(cols, idx, 'status');
+    var statusNorm    = normaliseStatus(statusRaw);
+    var custUpdated   = getCol(cols, idx, 'custUpdated').toLowerCase() === 'true';
+    var isActionable  = NON_ACTIONABLE_STATUSES.indexOf(statusNorm.toLowerCase()) === -1;
 
-      allTickets.push({
-        ticketNum:       getCol(cols, idx, 'ticketNum'),
-        priority:        parseCWPriority(getCol(cols, idx, 'priority')),
-        age:             parseFloat(getCol(cols, idx, 'age')) || 0,
-        status:          statusRaw,
-        statusNorm:      statusNorm,
-        company:         getCol(cols, idx, 'company'),
-        summary:         getCol(cols, idx, 'summary'),
-        resources:       getCol(cols, idx, 'resources'),
-        totalHours:      parseFloat(getCol(cols, idx, 'totalHours')) || 0,
-        contact:         getCol(cols, idx, 'contact'),
-        lastUpdate:      lastUpdateStr,
-        daysSinceUpdate: daysSince,
-        dueDate:         getCol(cols, idx, 'dueDate'),
-        owner:           getCol(cols, idx, 'owner'),
-        slaStatus:       slaRaw,
-        sla:             sla,
-        level:           getCol(cols, idx, 'level'),
-        custUpdated:     custUpdated,
-        isActionable:    isActionable,
-        type:            getCol(cols, idx, 'type'),
-        subtype:         getCol(cols, idx, 'subtype'),
-        entered:         enteredStr,
-        nextDate:        getCol(cols, idx, 'nextDate')
-      });
+    rawRows.push({
+      ticketNum:    getCol(cols, idx, 'ticketNum'),
+      priority:     parseCWPriority(getCol(cols, idx, 'priority')),
+      age:          parseFloat(getCol(cols, idx, 'age')) || 0,
+      status:       statusRaw,
+      statusNorm:   statusNorm,
+      company:      getCol(cols, idx, 'company'),
+      summary:      getCol(cols, idx, 'summary'),
+      resources:    getCol(cols, idx, 'resources'),
+      totalHours:   parseFloat(getCol(cols, idx, 'totalHours')) || 0,
+      contact:      getCol(cols, idx, 'contact'),
+      lastUpdate:   lastUpdateStr,
+      dueDate:      getCol(cols, idx, 'dueDate'),
+      owner:        getCol(cols, idx, 'owner'),
+      slaStatus:    slaRaw,
+      level:        getCol(cols, idx, 'level'),
+      custUpdated:  custUpdated,
+      isActionable: isActionable,
+      type:         getCol(cols, idx, 'type'),
+      subtype:      getCol(cols, idx, 'subtype'),
+      entered:      enteredStr,
+      nextDate:     getCol(cols, idx, 'nextDate')
+    });
+  }
+
+  // Resolve "as of" date: filename > latest date in data > today
+  var resolvedDate = filenameDate;
+  var resolvedSource = filenameDate ? 'filename' : null;
+  if (!resolvedDate) {
+    resolvedDate = detectDateFromData(rawRows);
+    if (resolvedDate) resolvedSource = 'data';
+  }
+  if (!resolvedDate) {
+    resolvedDate = new Date();
+    resolvedSource = 'today';
+  }
+  var now = resolvedDate;
+
+  // PASS 2: date-dependent fields
+  rawRows.forEach(function(row) {
+    var daysSince = null;
+    if (row.lastUpdate) {
+      var d = parseDDMMYYYY(row.lastUpdate) || new Date(row.lastUpdate);
+      if (d && !isNaN(d.getTime())) daysSince = Math.floor((now - d) / 86400000);
     }
+    var enteredDate = row.entered ? (parseDDMMYYYY(row.entered) || new Date(row.entered)) : null;
+    if (enteredDate && isNaN(enteredDate.getTime())) enteredDate = null;
 
-    if (!allTickets.length) {
+    row.daysSinceUpdate = daysSince;
+    row.sla = parseCWSLA(row.slaStatus, enteredDate, now);
+  });
+
+  return { tickets: rawRows, idx: idx, resolvedDate: resolvedDate, resolvedSource: resolvedSource };
+}
+
+function parseData(text, filenameDate) {
+  try {
+    var result = parseRowsCore(text, filenameDate);
+
+    if (!result.tickets.length) {
       showError('No ticket rows could be parsed. Check that the file is a ConnectWise Manage export with the expected columns.');
       return;
     }
 
+    allTickets = result.tickets;
+    setReportDate(result.resolvedDate, result.resolvedSource);
     populateFilters();
     filteredTickets = allTickets.slice();
     sortTickets();
     renderAll();
-    showUI(idx);
+    showUI(result.idx);
 
   } catch(err) {
-    showError('Failed to parse the file: <strong>' + (err.message || err) + '</strong>. Make sure this is a plain text CSV or TSV export from ConnectWise Manage.');
+    if (err.message === 'EMPTY_FILE') {
+      showError('The file appears to be empty or only contains a header row. Is this the right export?');
+    } else {
+      showError('Failed to parse the file: <strong>' + (err.message || err) + '</strong>. Make sure this is a plain text CSV or TSV export from ConnectWise Manage.');
+    }
   }
+}
+
+function toggleDateEditor() {
+  document.getElementById('reportDateInput').classList.toggle('hidden');
+}
+
+function onManualDateChange(value) {
+  if (!value) return;
+  var parts = value.split('-');
+  var d = new Date(parseInt(parts[0]), parseInt(parts[1])-1, parseInt(parts[2]));
+  if (isNaN(d.getTime())) return;
+  recalculateForDate(d, 'manual');
+}
+
+function recalculateForDate(newDate, source) {
+  setReportDate(newDate, source);
+  var now = reportDate;
+  allTickets.forEach(function(row) {
+    var daysSince = null;
+    if (row.lastUpdate) {
+      var d = parseDDMMYYYY(row.lastUpdate) || new Date(row.lastUpdate);
+      if (d && !isNaN(d.getTime())) daysSince = Math.floor((now - d) / 86400000);
+    }
+    var enteredDate = row.entered ? (parseDDMMYYYY(row.entered) || new Date(row.entered)) : null;
+    if (enteredDate && isNaN(enteredDate.getTime())) enteredDate = null;
+    row.daysSinceUpdate = daysSince;
+    row.sla = parseCWSLA(row.slaStatus, enteredDate, now);
+  });
+  filteredTickets = allTickets.slice();
+  applyFilters();
+  renderAll();
 }
 
 function showUI(idx) {
   document.getElementById('dropZone').style.display = 'none';
   document.getElementById('statsGrid').style.display = 'grid';
   document.getElementById('viewTabs').style.display = 'flex';
+  document.getElementById('reportDateBar').style.display = 'flex';
 
   // Column warning checks — field key : human label : what breaks
   var checks = [
@@ -1000,6 +1538,86 @@ function renderAttention() {
       '<td><span class="mono">'+t.age.toFixed(1)+'d</span></td>' +
       '<td>'+esc(t.statusNorm)+'</td><td>'+esc(t.owner)+'</td></tr>';
   }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px;font-size:13px">No unworked open tickets found</td></tr>';
+
+  renderPossibleDuplicates();
+}
+
+// Tokenise a summary into lowercase words, stripping common noise words and punctuation
+// so similarity comparison focuses on the meaningful content words.
+var DUPLICATE_STOPWORDS = {
+  'the':1,'a':1,'an':1,'is':1,'are':1,'was':1,'were':1,'to':1,'for':1,'of':1,'on':1,
+  'in':1,'and':1,'or':1,'re':1,'fw':1,'fwd':1,'with':1,'has':1,'have':1,'this':1,
+  'that':1,'it':1,'be':1,'not':1,'please':1,'issue':1,'ticket':1,'help':1
+};
+function tokeniseSummary(s) {
+  if (!s) return [];
+  return s.toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(function(w){ return w.length > 2 && !DUPLICATE_STOPWORDS[w]; });
+}
+
+// Jaccard-style overlap: shared words / words in the smaller set.
+// Using the smaller set as denominator means a short summary fully contained
+// within a longer one still scores as a strong match.
+function summarySimilarity(wordsA, wordsB) {
+  if (!wordsA.length || !wordsB.length) return 0;
+  var setA = {}; wordsA.forEach(function(w){ setA[w]=1; });
+  var setB = {}; wordsB.forEach(function(w){ setB[w]=1; });
+  var shared = 0;
+  Object.keys(setA).forEach(function(w){ if (setB[w]) shared++; });
+  var smaller = Math.min(Object.keys(setA).length, Object.keys(setB).length);
+  return shared / smaller;
+}
+
+function renderPossibleDuplicates() {
+  var el = document.getElementById('attnDupBody');
+  if (!el) return; // panel not present (older cached HTML) — skip gracefully
+
+  // Group by company first since duplicates are only meaningful within the same customer
+  var byCompany = {};
+  allTickets.forEach(function(t) {
+    var co = t.company || '—';
+    if (!byCompany[co]) byCompany[co] = [];
+    byCompany[co].push(t);
+  });
+
+  var SIMILARITY_THRESHOLD = 0.6; // 60%+ shared meaningful words = likely duplicate
+  var pairs = [];
+  var seen = {}; // avoid showing the same ticket twice if it matches multiple others
+
+  Object.keys(byCompany).forEach(function(co) {
+    var tickets = byCompany[co];
+    if (tickets.length < 2) return;
+    var tokenised = tickets.map(function(t){ return { ticket:t, words: tokeniseSummary(t.summary) }; })
+                            .filter(function(x){ return x.words.length >= 2; }); // need enough content to compare meaningfully
+
+    for (var i = 0; i < tokenised.length; i++) {
+      for (var j = i+1; j < tokenised.length; j++) {
+        var score = summarySimilarity(tokenised[i].words, tokenised[j].words);
+        if (score >= SIMILARITY_THRESHOLD) {
+          var key = tokenised[i].ticket.ticketNum + '|' + tokenised[j].ticket.ticketNum;
+          if (seen[key]) continue;
+          seen[key] = true;
+          pairs.push({ a: tokenised[i].ticket, b: tokenised[j].ticket, score: score });
+        }
+      }
+    }
+  });
+
+  pairs.sort(function(x,y){ return y.score - x.score; });
+
+  el.innerHTML = pairs.length ? pairs.map(function(p) {
+    var pct = Math.round(p.score * 100);
+    return '<tr>' +
+      '<td><span class="ticket-num">'+esc(p.a.ticketNum)+'</span></td>' +
+      '<td class="wrap"><span class="summary-text">'+esc(p.a.summary)+'</span></td>' +
+      '<td><span class="ticket-num">'+esc(p.b.ticketNum)+'</span></td>' +
+      '<td class="wrap"><span class="summary-text">'+esc(p.b.summary)+'</span></td>' +
+      '<td>'+esc(p.a.company)+'</td>' +
+      '<td><span class="flag-badge">'+pct+'% match</span></td>' +
+      '</tr>';
+  }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-faint);padding:24px;font-size:13px">No likely duplicates found</td></tr>';
 }
 
 // ── ENGINEERS ────────────────────────────────────────────────────────────
@@ -1047,13 +1665,18 @@ function renderCompanies() {
   var coMap = {};
   allTickets.forEach(function(t) {
     var co = t.company || '—';
-    if (!coMap[co]) coMap[co] = {tickets:0,hours:0,totalAge:0,stale7:0,slaOD:0,p12:0,zeroHrs:0};
+    if (!coMap[co]) coMap[co] = {tickets:0,hours:0,totalAge:0,stale7:0,slaOD:0,slaEligible:0,p12:0,zeroHrs:0};
     var c = coMap[co];
     c.tickets++;
     c.hours += t.totalHours;
     c.totalAge += t.age;
     if (t.daysSinceUpdate!==null&&t.daysSinceUpdate>=7) c.stale7++;
-    if (t.sla.overdue) c.slaOD++;
+    // SLA breach % is measured against tickets that actually have a live SLA deadline
+    // (excludes 'none', 'waiting', 'resolved' which have no deadline to breach)
+    if (t.sla.type==='resolve'||t.sla.type==='plan'||t.sla.type==='respond') {
+      c.slaEligible++;
+      if (t.sla.overdue) c.slaOD++;
+    }
     if (t.priority.indexOf('P1')!==-1||t.priority.indexOf('P2')!==-1) c.p12++;
     if (t.totalHours===0&&t.age>7) c.zeroHrs++;
   });
@@ -1063,6 +1686,10 @@ function renderCompanies() {
   document.getElementById('coBody').innerHTML = cos.map(function(name) {
     var c = coMap[name];
     var avgAge = (c.totalAge/c.tickets).toFixed(1);
+    var slaPct = c.slaEligible ? Math.round((c.slaOD/c.slaEligible)*100) : null;
+    var slaPctCls = slaPct===null ? 'sla-na' : (slaPct>=50?'sla-breach':slaPct>=20?'sla-warn':'sla-ok');
+    var slaPctLabel = slaPct===null ? '—' : slaPct+'%';
+    var slaPctTip = c.slaEligible ? (' data-tip="'+c.slaOD+' of '+c.slaEligible+' SLA-tracked tickets"') : '';
     return '<tr>' +
       '<td style="font-weight:500">'+esc(name)+'</td>' +
       '<td><span class="mono">'+c.tickets+'</span></td>' +
@@ -1070,6 +1697,7 @@ function renderCompanies() {
       '<td><span class="mono">'+avgAge+'</span></td>' +
       '<td>'+(c.stale7?'<span class="stale-badge stale-mid">'+c.stale7+'</span>':'<span class="mono" style="color:var(--text-faint)">0</span>')+'</td>' +
       '<td>'+(c.slaOD?'<span class="sla-badge sla-breach">'+c.slaOD+'</span>':'<span class="mono" style="color:var(--text-faint)">0</span>')+'</td>' +
+      '<td><span class="sla-badge '+slaPctCls+'"'+slaPctTip+'>'+slaPctLabel+'</span></td>' +
       '<td>'+(c.p12?'<span class="badge badge-p2">'+c.p12+'</span>':'<span class="mono" style="color:var(--text-faint)">0</span>')+'</td>' +
       '<td>'+(c.zeroHrs?'<span class="mono" style="color:var(--warn)">'+c.zeroHrs+'</span>':'<span class="mono" style="color:var(--text-faint)">0</span>')+'</td>' +
       '</tr>';
@@ -1174,7 +1802,7 @@ function renderPagination() {
 function goPage(p) { currentPage=p; renderTable(); document.getElementById('tableSection').scrollIntoView({behavior:'smooth',block:'start'}); }
 
 // ── VIEW SWITCHING ───────────────────────────────────────────────────────
-var viewIds = ['overview','attention','engineers','companies','types','tickets'];
+var viewIds = ['overview','attention','engineers','companies','types','tickets','compare'];
 function switchView(view) {
   currentView = view;
   document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.dataset.view===view); });
@@ -1317,9 +1945,10 @@ function exportPDF() {
     return {label:k||'Unknown', count:priMap[k], color:priColors[k]||'#94a3b8'};
   });
 
-  var now = new Date();
+  var now = reportDate;
   var dateStr = now.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
   var timeStr = now.toLocaleTimeString('en-GB', {hour:'2-digit',minute:'2-digit'});
+  var sourceLabel = {filename:'date from filename', data:'date from latest ticket', manual:'manually set date', today:'today'}[reportDateSource] || '';
   var filterNote = getFilterSummary();
 
   function statCard(val, label, cls) {
@@ -1329,7 +1958,7 @@ function exportPDF() {
   var html =
     '<div class="print-header">' +
       '<div class="print-title">ConnectWise Ticket Summary</div>' +
-      '<div class="print-meta">Generated ' + dateStr + ' at ' + timeStr + '</div>' +
+      '<div class="print-meta">Stats as of ' + dateStr + ' &middot; PDF generated ' + timeStr + ' (' + sourceLabel + ')</div>' +
       '<div class="print-filter-note">' + esc(filterNote) + '</div>' +
     '</div>' +
 
