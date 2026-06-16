@@ -420,8 +420,8 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       <div class="stat-card purple"><div class="stat-value" id="statCustWaiting">—</div><div class="stat-label">Cust. Responded</div></div>
       <div class="stat-card purple"><div class="stat-value" id="statDuplicates">—</div><div class="stat-label" title="Same company, summaries sharing most of the same key words">Possible Duplicates</div></div>
       <div class="stat-card warn">  <div class="stat-value" id="statUnassigned">—</div><div class="stat-label">Unassigned</div></div>
-      <div class="stat-card accent"><div class="stat-value" id="statHours">—</div><div class="stat-label">Total Hours</div></div>
       <div class="stat-card accent"><div class="stat-value" id="statAvgAge">—</div><div class="stat-label">Avg Age (days)</div></div>
+      <div class="stat-card accent"><div class="stat-value" id="statHours">—</div><div class="stat-label">Total Hours</div></div>
       <div class="stat-card accent"><div class="stat-value" id="statCompanies">—</div><div class="stat-label">Companies</div></div>
     </div>
     <div class="charts-2col">
@@ -1032,12 +1032,15 @@ function computeSummaryStats(tickets) {
   var slaSoon = tickets.filter(function(x){ return x.sla.soonHours!==null; }).length;
   var zeroHrs = tickets.filter(function(x){ return x.totalHours===0&&x.age>7; }).length;
   var custWait = tickets.filter(function(x){ return x.custUpdated&&x.isActionable; }).length;
+  var unassigned = tickets.filter(function(x){ return !x.owner || !x.owner.trim(); }).length;
+  var duplicateCount = findDuplicatePairs(tickets).length;
   var hrs = tickets.reduce(function(s,x){ return s+x.totalHours; },0);
   var avgAge = total ? (tickets.reduce(function(s,x){ return s+x.age; },0)/total) : 0;
   var companies = Object.keys(countBy(tickets,'company')).length;
   return {
     total:total, action:action, stale14:stale14, stale7:stale7, p1:p1,
     slaOD:slaOD, slaSoon:slaSoon, zeroHrs:zeroHrs, custWait:custWait,
+    duplicates:duplicateCount, unassigned:unassigned,
     hours:hrs, avgAge:avgAge, companies:companies
   };
 }
@@ -1065,8 +1068,10 @@ function renderComparison(compareResult) {
     {key:'slaSoon',  label:'SLA Due <24h',     cls:'warn',   dir:'up-bad'},
     {key:'zeroHrs',  label:'0hrs >7 Days',     cls:'warn',   dir:'up-bad'},
     {key:'custWait', label:'Cust. Responded',  cls:'purple', dir:'up-bad'},
-    {key:'hours',    label:'Total Hours',      cls:'accent', dir:'neutral', decimals:1},
+    {key:'duplicates',label:'Possible Duplicates', cls:'purple', dir:'up-bad'},
+    {key:'unassigned',label:'Unassigned',       cls:'warn',   dir:'up-bad'},
     {key:'avgAge',   label:'Avg Age (days)',   cls:'accent', dir:'up-bad',  decimals:1},
+    {key:'hours',    label:'Total Hours',      cls:'accent', dir:'neutral', decimals:1},
     {key:'companies',label:'Companies',        cls:'accent', dir:'neutral'}
   ];
 
@@ -2046,8 +2051,8 @@ function exportPDF() {
       statCard(custWait, 'Cust. Responded',   'teal') +
       statCard(duplicateCount, 'Possible Duplicates', 'teal') +
       statCard(unassigned, 'Unassigned',      'amber') +
-      statCard(hrs.toFixed(1), 'Total Hours', 'teal') +
       statCard(avgAge.toFixed(1), 'Avg Age (d)', 'teal') +
+      statCard(hrs.toFixed(1), 'Total Hours', 'teal') +
       statCard(companies, 'Companies',        'teal') +
     '</div>' +
 
