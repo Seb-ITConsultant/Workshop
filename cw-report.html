@@ -215,6 +215,11 @@ tbody td.wrap{white-space:normal;max-width:240px;}
 [data-tip]::after{content:attr(data-tip);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:11px;white-space:nowrap;border-radius:5px;padding:4px 8px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200;}
 [data-tip]:hover::after{opacity:1;}
 
+[data-tip-wide]{position:relative;cursor:help;}
+[data-tip-wide]::after{content:attr(data-tip-wide);position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--text);color:var(--bg);font-size:11px;font-weight:400;line-height:1.5;white-space:normal;width:200px;text-align:left;border-radius:6px;padding:8px 10px;pointer-events:none;opacity:0;transition:opacity .15s;z-index:200;box-shadow:0 4px 12px rgba(0,0,0,.2);}
+[data-tip-wide]:hover::after{opacity:1;}
+.stat-label[data-tip-wide]{border-bottom:1px dotted var(--text-faint);cursor:help;}
+
 /* SECTION HIDDEN */
 .hidden{display:none!important;}
 
@@ -311,16 +316,16 @@ tbody td.wrap{white-space:normal;max-width:240px;}
 }
 
 /* COMPARE DELTA CARDS */
-.compare-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);}
+.compare-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;box-shadow:var(--shadow);min-width:0;overflow:hidden;}
 .compare-stat-card.danger{border-left:3px solid var(--danger);}
 .compare-stat-card.warn{border-left:3px solid var(--warn);}
 .compare-stat-card.ok{border-left:3px solid var(--ok);}
 .compare-stat-card.accent{border-left:3px solid var(--accent);}
 .compare-stat-card.purple{border-left:3px solid #8b5cf6;}
-.compare-values{display:flex;align-items:baseline;gap:8px;}
-.compare-val-old{font-family:'JetBrains Mono',monospace;font-size:16px;font-weight:500;color:var(--text-faint);}
-.compare-arrow{font-size:14px;color:var(--text-faint);}
-.compare-val-new{font-family:'JetBrains Mono',monospace;font-size:28px;font-weight:600;color:var(--text);}
+.compare-values{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;min-width:0;}
+.compare-val-old{font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:500;color:var(--text-faint);white-space:nowrap;}
+.compare-arrow{font-size:13px;color:var(--text-faint);}
+.compare-val-new{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:600;color:var(--text);white-space:nowrap;overflow-wrap:anywhere;}
 .compare-stat-card.danger .compare-val-new{color:var(--danger);}
 .compare-stat-card.warn .compare-val-new{color:var(--warn);}
 .compare-stat-card.ok .compare-val-new{color:var(--ok);}
@@ -333,6 +338,7 @@ tbody td.wrap{white-space:normal;max-width:240px;}
 .compare-delta.down-good{background:var(--ok-bg);color:var(--ok);}
 .compare-delta.flat{background:var(--surface2);color:var(--text-faint);}
 .compare-stat-label{font-size:12px;font-weight:500;color:var(--text-muted);margin-top:8px;text-transform:uppercase;letter-spacing:.05em;}
+.compare-stat-label[data-tip-wide]{display:inline-block;border-bottom:1px dotted var(--text-faint);cursor:help;}
 </style>
 </head>
 <body>
@@ -409,20 +415,20 @@ tbody td.wrap{white-space:normal;max-width:240px;}
       </button>
     </div>
     <div class="stats-grid" id="statsGrid">
-      <div class="stat-card accent"><div class="stat-value" id="statTotal">—</div><div class="stat-label">Total Tickets</div></div>
-      <div class="stat-card ok">    <div class="stat-value" id="statAction">—</div><div class="stat-label">Action Needed</div></div>
-      <div class="stat-card danger"><div class="stat-value" id="statStale14">—</div><div class="stat-label">No Update &gt;14d</div></div>
-      <div class="stat-card warn">  <div class="stat-value" id="statStale7">—</div><div class="stat-label">No Update 7–14d</div></div>
-      <div class="stat-card danger"><div class="stat-value" id="statP1">—</div><div class="stat-label">Priority 1</div></div>
-      <div class="stat-card danger"><div class="stat-value" id="statSLAOverdue">—</div><div class="stat-label">SLA Overdue</div></div>
-      <div class="stat-card warn">  <div class="stat-value" id="statSLASoon">—</div><div class="stat-label">SLA Due &lt;24h</div></div>
-      <div class="stat-card warn">  <div class="stat-value" id="statZeroHours">—</div><div class="stat-label">0hrs &gt;7 Days</div></div>
-      <div class="stat-card purple"><div class="stat-value" id="statCustWaiting">—</div><div class="stat-label">Cust. Responded</div></div>
-      <div class="stat-card purple"><div class="stat-value" id="statDuplicates">—</div><div class="stat-label" title="Same company, summaries sharing most of the same key words">Possible Duplicates</div></div>
-      <div class="stat-card warn">  <div class="stat-value" id="statUnassigned">—</div><div class="stat-label">Unassigned</div></div>
-      <div class="stat-card accent"><div class="stat-value" id="statAvgAge">—</div><div class="stat-label">Avg Age (days)</div></div>
-      <div class="stat-card accent"><div class="stat-value" id="statHours">—</div><div class="stat-label">Total Hours</div></div>
-      <div class="stat-card accent"><div class="stat-value" id="statCompanies">—</div><div class="stat-label">Companies</div></div>
+      <div class="stat-card accent"><div class="stat-value" id="statTotal">—</div><div class="stat-label" data-tip-wide="All tickets in the current export, after any filters applied on the All Tickets tab.">Total Tickets</div></div>
+      <div class="stat-card ok">    <div class="stat-value" id="statAction">—</div><div class="stat-label" data-tip-wide="Tickets not in a closed or passive status (e.g. excludes Resolved, Closed, On Hold, Pending Vendor). These are the tickets someone still needs to work.">Action Needed</div></div>
+      <div class="stat-card danger"><div class="stat-value" id="statStale14">—</div><div class="stat-label" data-tip-wide="Tickets where the Last Update field is 14 or more days old. Nobody has touched these in two weeks or longer.">No Update &gt;14d</div></div>
+      <div class="stat-card warn">  <div class="stat-value" id="statStale7">—</div><div class="stat-label" data-tip-wide="Tickets last updated between 7 and 14 days ago — heading towards stale if not picked up soon.">No Update 7–14d</div></div>
+      <div class="stat-card warn">  <div class="stat-value" id="statZeroHours">—</div><div class="stat-label" data-tip-wide="Tickets open for more than 7 days with zero hours logged against them. Different from the staleness stats above — a ticket can have recent comments but still no actual work recorded.">Untouched &gt;7d</div></div>
+      <div class="stat-card danger"><div class="stat-value" id="statP1">—</div><div class="stat-label" data-tip-wide="Tickets flagged as Priority 1 / Critical based on the CW urgency colour or text label.">Priority 1</div></div>
+      <div class="stat-card danger"><div class="stat-value" id="statSLAOverdue">—</div><div class="stat-label" data-tip-wide="Tickets whose Respond, Plan, or Resolve SLA deadline has already passed, based on the report's current 'as of' date.">SLA Overdue</div></div>
+      <div class="stat-card warn">  <div class="stat-value" id="statSLASoon">—</div><div class="stat-label" data-tip-wide="Tickets with a live SLA deadline due within the next 24 hours — not yet breached, but close.">SLA Due &lt;24h</div></div>
+      <div class="stat-card purple"><div class="stat-value" id="statCustWaiting">—</div><div class="stat-label" data-tip-wide="The customer has replied (Customer Updated = true) but the ticket is still in an actionable status — these are waiting on an engineer, not the customer.">Cust. Responded</div></div>
+      <div class="stat-card purple"><div class="stat-value" id="statDuplicates">—</div><div class="stat-label" data-tip-wide="Pairs of tickets from the same company whose summaries share most of the same key words — worth checking these aren't the same issue logged twice.">Possible Duplicates</div></div>
+      <div class="stat-card warn">  <div class="stat-value" id="statUnassigned">—</div><div class="stat-label" data-tip-wide="Tickets with no Ticket Owner set — nobody is currently assigned to work on these.">Unassigned</div></div>
+      <div class="stat-card accent"><div class="stat-value" id="statAvgAge">—</div><div class="stat-label" data-tip-wide="Average value of the Age column across all tickets shown — how long tickets have existed since they were entered, not since they were last updated.">Avg Age (days)</div></div>
+      <div class="stat-card accent"><div class="stat-value" id="statHours">—</div><div class="stat-label" data-tip-wide="Sum of the Total Hours column across all tickets shown.">Total Hours</div></div>
+      <div class="stat-card accent"><div class="stat-value" id="statCompanies">—</div><div class="stat-label" data-tip-wide="Number of distinct companies with at least one ticket in the current view.">Companies</div></div>
     </div>
     <div class="charts-2col">
       <div class="panel">
@@ -1059,20 +1065,34 @@ function renderComparison(compareResult) {
   document.getElementById('compareCurrentLabel').textContent = baseDateStr;
 
   var metrics = [
-    {key:'total',    label:'Total Tickets',    cls:'accent', dir:'neutral'},
-    {key:'action',   label:'Action Needed',    cls:'ok',     dir:'up-bad'},
-    {key:'stale14',  label:'No Update >14d',   cls:'danger', dir:'up-bad'},
-    {key:'stale7',   label:'No Update 7-14d',  cls:'warn',   dir:'up-bad'},
-    {key:'p1',       label:'Priority 1',       cls:'danger', dir:'up-bad'},
-    {key:'slaOD',    label:'SLA Overdue',      cls:'danger', dir:'up-bad'},
-    {key:'slaSoon',  label:'SLA Due <24h',     cls:'warn',   dir:'up-bad'},
-    {key:'zeroHrs',  label:'0hrs >7 Days',     cls:'warn',   dir:'up-bad'},
-    {key:'custWait', label:'Cust. Responded',  cls:'purple', dir:'up-bad'},
-    {key:'duplicates',label:'Possible Duplicates', cls:'purple', dir:'up-bad'},
-    {key:'unassigned',label:'Unassigned',       cls:'warn',   dir:'up-bad'},
-    {key:'avgAge',   label:'Avg Age (days)',   cls:'accent', dir:'up-bad',  decimals:1},
-    {key:'hours',    label:'Total Hours',      cls:'accent', dir:'neutral', decimals:1},
-    {key:'companies',label:'Companies',        cls:'accent', dir:'neutral'}
+    {key:'total',    label:'Total Tickets',    cls:'accent', dir:'neutral',
+      tip:'All tickets in the export, after any filters applied on the All Tickets tab.'},
+    {key:'action',   label:'Action Needed',    cls:'ok',     dir:'up-bad',
+      tip:'Tickets not in a closed or passive status (e.g. excludes Resolved, Closed, On Hold, Pending Vendor). These are the tickets someone still needs to work.'},
+    {key:'stale14',  label:'No Update >14d',   cls:'danger', dir:'up-bad',
+      tip:'Tickets where the Last Update field is 14 or more days old. Nobody has touched these in two weeks or longer.'},
+    {key:'stale7',   label:'No Update 7-14d',  cls:'warn',   dir:'up-bad',
+      tip:'Tickets last updated between 7 and 14 days ago — heading towards stale if not picked up soon.'},
+    {key:'zeroHrs',  label:'Untouched >7d',    cls:'warn',   dir:'up-bad',
+      tip:'Tickets open for more than 7 days with zero hours logged against them. Different from the staleness stats above — a ticket can have recent comments but still no actual work recorded.'},
+    {key:'p1',       label:'Priority 1',       cls:'danger', dir:'up-bad',
+      tip:'Tickets flagged as Priority 1 / Critical based on the CW urgency colour or text label.'},
+    {key:'slaOD',    label:'SLA Overdue',      cls:'danger', dir:'up-bad',
+      tip:'Tickets whose Respond, Plan, or Resolve SLA deadline has already passed, based on each report\u2019s own \u2018as of\u2019 date.'},
+    {key:'slaSoon',  label:'SLA Due <24h',     cls:'warn',   dir:'up-bad',
+      tip:'Tickets with a live SLA deadline due within the next 24 hours — not yet breached, but close.'},
+    {key:'custWait', label:'Cust. Responded',  cls:'purple', dir:'up-bad',
+      tip:'The customer has replied (Customer Updated = true) but the ticket is still in an actionable status — these are waiting on an engineer, not the customer.'},
+    {key:'duplicates',label:'Possible Duplicates', cls:'purple', dir:'up-bad',
+      tip:'Pairs of tickets from the same company whose summaries share most of the same key words — worth checking these aren\u2019t the same issue logged twice.'},
+    {key:'unassigned',label:'Unassigned',       cls:'warn',   dir:'up-bad',
+      tip:'Tickets with no Ticket Owner set — nobody is currently assigned to work on these.'},
+    {key:'avgAge',   label:'Avg Age (days)',   cls:'accent', dir:'up-bad',  decimals:1,
+      tip:'Average value of the Age column across all tickets shown — how long tickets have existed since they were entered, not since they were last updated.'},
+    {key:'hours',    label:'Total Hours',      cls:'accent', dir:'neutral', decimals:1,
+      tip:'Sum of the Total Hours column across all tickets shown.'},
+    {key:'companies',label:'Companies',        cls:'accent', dir:'neutral',
+      tip:'Number of distinct companies with at least one ticket in the corresponding dataset.'}
   ];
 
   var html = metrics.map(function(m) {
@@ -1100,7 +1120,7 @@ function renderComparison(compareResult) {
         '<span class="compare-arrow">→</span>' +
         '<span class="compare-val-new">' + newDisp + '</span>' +
       '</div>' +
-      '<div class="compare-stat-label">' + m.label + '</div>' +
+      '<div class="compare-stat-label" data-tip-wide="' + esc(m.tip || '') + '">' + esc(m.label) + '</div>' +
       '<div class="compare-delta ' + deltaCls + '">' + arrow + ' ' + sign + diffDisp + '</div>' +
     '</div>';
   }).join('');
@@ -2044,10 +2064,10 @@ function exportPDF() {
       statCard(action,   'Action Needed',     'green') +
       statCard(stale14,  'No Update >14d',    'red') +
       statCard(stale7,   'No Update 7-14d',   'amber') +
+      statCard(zeroHrs,  'Untouched >7d',     'amber') +
       statCard(p1,       'Priority 1',        'red') +
       statCard(slaOD,    'SLA Overdue',       'red') +
       statCard(slaSoon,  'SLA Due <24h',      'amber') +
-      statCard(zeroHrs,  '0hrs >7 Days',      'amber') +
       statCard(custWait, 'Cust. Responded',   'teal') +
       statCard(duplicateCount, 'Possible Duplicates', 'teal') +
       statCard(unassigned, 'Unassigned',      'amber') +
