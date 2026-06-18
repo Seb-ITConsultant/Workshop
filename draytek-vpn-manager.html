@@ -3086,22 +3086,39 @@ function toggleTheme(){
 /* -----------------------------------------------------------
    FILE INPUT / DRAG-DROP
 ----------------------------------------------------------- */
+/* Converts raw file bytes into a JS string with an exact 1:1 mapping
+   (charCodeAt(i) === the original byte value, for every byte 0-255).
+   This deliberately avoids FileReader.readAsText() entirely, including
+   with an explicit "ISO-8859-1" label - browsers implement the WHATWG
+   Encoding Standard, which treats the "ISO-8859-1" label as an ALIAS for
+   windows-1252, not true single-byte Latin-1. Windows-1252 maps byte 0x80
+   specifically to the Euro sign (U+20AC) rather than leaving it as 0x80,
+   which silently corrupted any password containing that byte even though
+   the code looked correct (confirmed: TextDecoder("iso-8859-1") on byte
+   0x80 produces U+20AC in every tested browser). Reading raw bytes via
+   readAsArrayBuffer and mapping each byte through String.fromCharCode()
+   directly is pure arithmetic with no text-decoding layer involved, so
+   it's the only approach that's actually guaranteed not to remap any
+   byte value. */
+function bytesToRawString(bytes){
+  var out = "";
+  var CHUNK = 8192;
+  for(var i = 0; i < bytes.length; i += CHUNK){
+    out += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(i + CHUNK, bytes.length)));
+  }
+  return out;
+}
+
 document.getElementById("file-input").addEventListener("change", function(e){
   var f = e.target.files && e.target.files[0];
   if(!f) return;
   var reader = new FileReader();
   reader.onload = function(ev){
-    document.getElementById("import-text").value = ev.target.result;
+    var bytes = new Uint8Array(ev.target.result);
+    document.getElementById("import-text").value = bytesToRawString(bytes);
     setImportStatus("Loaded " + f.name + " (" + f.size + " bytes). Click Parse export.", "ok");
   };
-  // Read as ISO-8859-1 (Latin-1), NOT the default UTF-8. The Draytek export
-  // contains raw single-byte obfuscated password characters, some of which
-  // (e.g. byte 0x81) have no valid representation in UTF-8 or even in
-  // Windows-1252 itself. UTF-8 decoding would silently replace such bytes
-  // with U+FFFD, permanently corrupting the password before it's ever
-  // decoded - Latin-1 maps every byte 0-255 to itself with no exceptions,
-  // so the original byte value survives all the way to decodePassword().
-  reader.readAsText(f, "ISO-8859-1");
+  reader.readAsArrayBuffer(f);
 });
 
 var dz = document.getElementById("import-text");
@@ -3114,12 +3131,11 @@ dz.addEventListener("drop", function(e){
   if(!f) return;
   var reader = new FileReader();
   reader.onload = function(ev){
-    dz.value = ev.target.result;
+    var bytes = new Uint8Array(ev.target.result);
+    dz.value = bytesToRawString(bytes);
     setImportStatus("Loaded " + f.name + " (" + f.size + " bytes). Click Parse export.", "ok");
   };
-  // Same reasoning as the file-input handler above: must read as Latin-1,
-  // not the FileReader default of UTF-8, to avoid corrupting password bytes.
-  reader.readAsText(f, "ISO-8859-1");
+  reader.readAsArrayBuffer(f);
 });
 
 function setImportStatus(msg, kind){
@@ -4058,13 +4074,30 @@ function copyExport(){
   }
 }
 
+function buildExportFilename(){
+  var d = new Date();
+  var yyyy = d.getFullYear();
+  var mm = String(d.getMonth() + 1).padStart(2, "0");
+  var dd = String(d.getDate()).padStart(2, "0");
+  return "dialin_" + yyyy + mm + dd + ".bak";
+}
+
 function downloadExport(){
   var text = document.getElementById("export-preview").value;
-  var blob = new Blob([text], { type: "text/plain" });
+  // Build the Blob from raw bytes, not from the JS string directly. A plain
+  // `new Blob([text])` lets the browser choose UTF-8 when converting the
+  // string to bytes, which silently mangles any obfuscated password byte
+  // at 0x80 or above (the same class of corruption fixed earlier for file
+  // uploads) - so this constructs a byte array using each character's
+  // code point directly, mirroring how the file was read in as Latin-1,
+  // to guarantee the exact same bytes go back out.
+  var bytes = new Uint8Array(text.length);
+  for(var i = 0; i < text.length; i++){ bytes[i] = text.charCodeAt(i) & 0xFF; }
+  var blob = new Blob([bytes], { type: "application/octet-stream" });
   var url = URL.createObjectURL(blob);
   var a = document.createElement("a");
   a.href = url;
-  a.download = "draytek-vpn-users-export.txt";
+  a.download = buildExportFilename();
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
