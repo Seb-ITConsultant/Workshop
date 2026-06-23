@@ -1,0 +1,3120 @@
+<!DOCTYPE html>
+<!--
+  ============================================================
+  Seb's Workshop - Wireshark Helper
+  ============================================================
+  Created by: Sebastian Hanney
+  Part of:    Seb's Workshop - Personal IT Engineering Toolkit
+  Purpose:    Client-side PCAP analyser, capture script builder,
+              port mirror setup guide and Wireshark filter reference
+              for MSP engineers and network technicians.
+
+  All processing runs entirely in the browser.
+  No data is uploaded or transmitted externally.
+
+  © Sebastian Hanney. All rights reserved.
+  ============================================================
+-->
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Sebastian Hanney">
+<meta name="description" content="Seb's Wireshark Helper - PCAP analyser, capture script builder and port mirror guide. Created by Sebastian Hanney as part of Seb's Workshop.">
+<meta name="creator" content="Sebastian Hanney">
+<title>Wireshark Helper - Seb's Workshop</title>
+<script>
+(function(){var t=localStorage.getItem('sw-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --accent:#0d9488;--accent-hover:#0f766e;--bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5f9;
+  --border:#e2e8f0;--text:#0f172a;--text-2:#475569;--text-3:#94a3b8;
+  --code-bg:#0f172a;--code-text:#e2e8f0;
+  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07);
+  --radius:8px;--green:#16a34a;--amber:#d97706;--red:#dc2626;--blue:#2563eb;
+}
+[data-theme="dark"]{
+  --accent:#00dba8;--accent-hover:#00c49a;--bg:#0a0f1a;--surface:#111827;--surface2:#1e2535;
+  --border:#1e2d3d;--text:#f1f5f9;--text-2:#94a3b8;--text-3:#475569;
+  --code-bg:#060c16;--code-text:#a5f3eb;
+  --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 6px -1px rgba(0,0,0,.3);
+  --green:#22c55e;--amber:#f59e0b;--red:#f87171;--blue:#60a5fa;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
+.nav-left{display:flex;align-items:center;gap:12px;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-2);text-decoration:none;font-size:13px;font-weight:500;padding:4px 8px;border-radius:6px;transition:background .15s,color .15s;}
+.back-link:hover{background:var(--surface2);color:var(--accent);}
+.back-link svg{width:14px;height:14px;}
+.nav-divider{width:1px;height:20px;background:var(--border);}
+.nav-title{font-weight:600;font-size:15px;}
+.nav-title span{color:var(--accent);}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px;cursor:pointer;color:var(--text-2);display:flex;align-items:center;transition:background .15s,color .15s;}
+.theme-toggle:hover{color:var(--accent);background:var(--border);}
+.theme-toggle svg{width:16px;height:16px;}
+
+/* HERO */
+.hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px 0;}
+.hero-inner{max-width:1160px;margin:0 auto;}
+.hero h1{font-size:22px;font-weight:600;margin-bottom:4px;}
+.hero p{color:var(--text-2);font-size:14px;margin-bottom:20px;}
+.tabs{display:flex;}
+.tab-btn{padding:10px 20px;font-size:13px;font-weight:500;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* MAIN */
+.main{max-width:1160px;margin:0 auto;padding:28px 32px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* BUILDER GRID */
+.builder-grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
+.card+.card{margin-top:16px;}
+.card-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+.card-title svg{width:13px;height:13px;color:var(--accent);}
+
+/* METHOD TILES */
+.method-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
+.method-tile{border:2px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;background:var(--surface2);text-align:left;}
+.method-tile:hover{border-color:var(--accent);}
+.method-tile.selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
+.method-tile .mt-icon{font-size:17px;margin-bottom:3px;}
+.method-tile .mt-name{font-size:12px;font-weight:600;color:var(--text);}
+.method-tile .mt-desc{font-size:11px;color:var(--text-2);margin-top:1px;}
+.beta-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);vertical-align:middle;letter-spacing:.04em;text-transform:uppercase;}
+
+/* FORM */
+.form-group{margin-bottom:13px;}
+.form-label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px;}
+.form-label .req{color:var(--accent);margin-left:2px;}
+.form-input,.form-select{width:100%;padding:7px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s,box-shadow .15s;}
+.form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);}
+.form-select option{background:var(--surface);}
+.form-hint{font-size:11px;color:var(--text-3);margin-top:3px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+/* SECTION DIVIDER */
+.sec-divider{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border);}
+
+/* DESTINATION TOGGLE */
+.dest-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;margin-bottom:13px;}
+.dest-btn{flex:1;padding:6px 10px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;line-height:1.3;text-align:center;}
+.dest-btn.active{background:var(--accent);color:white;}
+
+/* BPF BUILDER */
+.bpf-sections{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.bpf-section{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
+.bpf-section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);cursor:pointer;font-size:12px;font-weight:600;user-select:none;}
+.bpf-section-header:hover{background:var(--border);}
+.bpf-section-header .chevron{transition:transform .2s;font-size:10px;color:var(--text-3);}
+.bpf-section-header.open .chevron{transform:rotate(180deg);}
+.bpf-section-body{padding:10px 12px;display:none;}
+.bpf-section-body.open{display:block;}
+.bpf-chip-group{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
+.bpf-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--text-2);}
+.bpf-chip:hover{border-color:var(--accent);color:var(--accent);}
+.bpf-chip.active{background:var(--accent);border-color:var(--accent);color:white;}
+.bpf-result{background:var(--code-bg);border-radius:6px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--code-text);min-height:32px;margin-top:8px;word-break:break-all;line-height:1.6;}
+.bpf-result .placeholder{color:#475569;font-style:italic;}
+
+/* SHELL TOGGLE */
+.shell-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;}
+.stog-btn{padding:4px 14px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;}
+.stog-btn.active{background:var(--accent);color:white;}
+
+/* OUTPUT */
+.output-sticky{position:sticky;top:68px;}
+.output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.output-label{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;}
+
+.code-block{background:var(--code-bg);border-radius:8px;padding:14px;position:relative;margin-bottom:12px;}
+.code-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--code-text);white-space:pre-wrap;word-break:break-all;line-height:1.75;}
+.copy-btn{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#94a3b8;font-size:11px;font-weight:500;padding:3px 9px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.copy-btn:hover{background:var(--accent);color:white;border-color:var(--accent);}
+.copy-btn svg{width:11px;height:11px;}
+
+.filter-out-block{background:color-mix(in srgb,var(--accent) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));border-radius:8px;padding:12px 14px;position:relative;margin-bottom:12px;}
+.filter-out-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
+.filter-out-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);line-height:1.6;word-break:break-all;}
+
+/* STEPS */
+.steps-wrap{margin-top:14px;}
+.steps-title{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
+.step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
+.step:last-child{border-bottom:none;}
+.step-num{background:var(--accent);color:white;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.step h4{font-size:12px;font-weight:600;margin-bottom:2px;}
+.step p{font-size:12px;color:var(--text-2);}
+.step code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;display:inline-block;margin-top:3px;}
+
+/* EMPTY */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;color:var(--text-3);text-align:center;gap:8px;}
+.empty-state svg{width:32px;height:32px;opacity:.35;}
+.empty-state p{font-size:13px;}
+
+/* ANALYSE */
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);}
+.drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface));}
+.drop-zone svg{width:38px;height:38px;color:var(--text-3);margin-bottom:10px;}
+.drop-zone h3{font-size:15px;font-weight:600;margin-bottom:4px;}
+.drop-zone p{font-size:13px;color:var(--text-2);}
+.drop-zone .ftypes{font-size:11px;color:var(--text-3);margin-top:6px;font-family:'JetBrains Mono',monospace;}
+.analysis-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
+.sum-stat .num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.sum-stat .lbl{font-size:11px;color:var(--text-2);}
+.findings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.finding{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;border-left:3px solid var(--border);}
+.finding.critical{border-left-color:var(--red);}
+.finding.warning{border-left-color:var(--amber);}
+.finding.info{border-left-color:var(--blue);}
+.finding.ok{border-left-color:var(--green);}
+.finding-hdr{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.badge{font-size:10px;font-weight:700;padding:1px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.05em;}
+.finding.critical .badge{background:color-mix(in srgb,var(--red) 15%,transparent);color:var(--red);}
+.finding.warning .badge{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);}
+.finding.info .badge{background:color-mix(in srgb,var(--blue) 15%,transparent);color:var(--blue);}
+.finding.ok .badge{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green);}
+.finding h4{font-size:12px;font-weight:600;}
+.finding p{font-size:12px;color:var(--text-2);margin-top:2px;}
+.finding .fc{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);margin-top:3px;}
+
+/* FILTERS TAB */
+.search-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:18px;}
+.search-bar svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
+.search-bar input{border:none;background:transparent;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);width:100%;}
+.filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
+.filter-cat h3{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
+.filter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
+.filter-row:last-child{border-bottom:none;}
+.filter-desc{font-size:12px;color:var(--text-2);flex:1;min-width:0;}
+.filter-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 7px;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:none;transition:opacity .15s;}
+.filter-code:hover{opacity:.75;}
+
+/* PROGRESS */
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:center;margin-top:16px;}
+.progress-wrap h3{font-size:14px;font-weight:600;margin-bottom:4px;}
+.progress-wrap p{font-size:12px;color:var(--text-2);margin-bottom:14px;}
+.progress-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:8px;}
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .1s linear;width:0%;}
+.progress-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;}
+/* SIZE WARNING */
+.size-warn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:16px;}
+.size-warn h3{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
+.size-warn p{font-size:13px;color:var(--text-2);margin-bottom:12px;line-height:1.6;}
+.size-warn .editcap-block{background:var(--code-bg);border-radius:6px;padding:12px 14px;margin-bottom:12px;position:relative;}
+.size-warn .editcap-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--code-text);white-space:pre-wrap;}
+.size-warn-actions{display:flex;gap:8px;flex-wrap:wrap;}
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-secondary{background:var(--surface2);color:var(--text-2);border:1px solid var(--border);border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-secondary:hover{color:var(--text);border-color:var(--text-2);}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:var(--bg);padding:9px 15px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none;z-index:9999;font-weight:500;}
+.toast.show{opacity:1;transform:translateY(0);}
+
+/* PORT MIRROR STEPS */
+.pm-steps{display:flex;flex-direction:column;gap:0;}
+.pm-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.pm-step:last-child{border-bottom:none;}
+.pm-step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.pm-step-body{flex:1;min-width:0;}
+.pm-step-body strong{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:2px;}
+.pm-step-body span{font-size:12px;color:var(--text-2);line-height:1.55;}
+.pm-step-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;}
+.pm-alt{background:color-mix(in srgb,var(--blue) 8%,var(--surface2));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.6;}
+.pm-alt strong{color:var(--blue);}
+.ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
+.ts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .15s;}
+.ts-card:hover{box-shadow:var(--shadow-md);}
+.ts-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
+.ts-header:hover{background:var(--surface2);}
+.ts-icon{font-size:20px;flex-shrink:0;}
+.ts-title-wrap{flex:1;min-width:0;}
+.ts-title{font-size:14px;font-weight:600;color:var(--text);}
+.ts-subtitle{font-size:12px;color:var(--text-2);margin-top:1px;}
+.ts-chevron{font-size:11px;color:var(--text-3);transition:transform .2s;flex-shrink:0;}
+.ts-card.open .ts-chevron{transform:rotate(180deg);}
+.ts-body{display:none;padding:0 16px 16px;border-top:1px solid var(--border);}
+.ts-card.open .ts-body{display:block;}
+.ts-section-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px;}
+.ts-filter-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.ts-filter-desc{font-size:12px;color:var(--text-2);flex:1;padding-top:3px;}
+.ts-filter-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 8px;border-radius:4px;cursor:pointer;border:none;white-space:nowrap;flex-shrink:0;transition:opacity .15s;}
+.ts-filter-code:hover{opacity:.75;}
+.ts-look-item{font-size:12px;color:var(--text-2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;}
+.ts-look-item:last-child{border-bottom:none;}
+.ts-look-sev{font-size:10px;font-weight:700;padding:1px 6px;border-radius:3px;text-transform:uppercase;flex-shrink:0;margin-top:1px;}
+.ts-look-sev.bad{background:color-mix(in srgb,var(--red) 15%,transparent);color:var(--red);}
+.ts-look-sev.warn{background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);}
+.ts-look-sev.ok{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green);}
+.ts-next{background:color-mix(in srgb,var(--accent) 7%,var(--surface2));border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border));border-radius:6px;padding:10px 12px;font-size:12px;color:var(--text-2);line-height:1.6;}
+.ts-next strong{color:var(--text);}
+.ts-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-3);margin-right:4px;margin-bottom:4px;}
+.ts-example-wrap{background:var(--code-bg);border-radius:6px;padding:12px 14px;margin-bottom:8px;overflow-x:auto;}
+.ts-example-wrap pre{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--code-text);white-space:pre;line-height:1.65;}
+.ts-example-wrap pre .hdr{color:#64748b;}
+.ts-example-wrap pre .bad-line{color:#fca5a5;}
+.ts-example-wrap pre .warn-line{color:#fcd34d;}
+.ts-example-plain{font-size:12px;color:var(--text-2);line-height:1.65;padding:8px 10px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent);}background:color-mix(in srgb,var(--accent) 7%,var(--surface2));border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;}
+.info-box code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:1px 5px;border-radius:3px;}
+/* WARNING BOX */
+.warn-box{background:color-mix(in srgb,var(--amber) 10%,var(--surface2));border:1px solid color-mix(in srgb,var(--amber) 30%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
+.warn-box .warn-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
+.warn-box strong{color:color-mix(in srgb,var(--amber) 80%,var(--text));}
+/* ROTATION TRIGGER TOGGLE */
+.rot-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;margin-bottom:12px;}
+.rot-btn{flex:1;padding:5px 8px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;line-height:1.3;text-align:center;}
+.rot-btn.active{background:var(--accent);color:white;}
+
+@media(max-width:860px){
+  .builder-grid{grid-template-columns:1fr;}
+  .output-sticky{position:static;}
+  .findings-grid{grid-template-columns:1fr;}
+  .main{padding:20px 16px;}
+  .hero{padding:20px 16px 0;}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <a href="index.html" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      Workshop
+    </a>
+    <div class="nav-divider"></div>
+    <span class="nav-title"><span>Wireshark</span> Helper</span>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  </button>
+</nav>
+
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Wireshark Helper</h1>
+    <p>Drop a PCAP to analyse it instantly, look up display filters, or build remote capture scripts - everything runs in your browser.</p>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('analyse',this)">
+        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse PCAP
+      </button>
+      <button class="tab-btn" onclick="switchTab('troubleshoot',this)">
+        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Troubleshoot
+      </button>
+      <button class="tab-btn" onclick="switchTab('filters',this)">
+        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter Reference
+      </button>
+      <button class="tab-btn" onclick="switchTab('builder',this)">
+        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Capture Builder
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+
+<!-- ═══════════════════════════════════════════ BUILDER ═══ -->
+<div id="tab-builder" class="tab-panel">
+<div class="builder-grid">
+
+<!-- LEFT COLUMN -->
+<div>
+
+  <!-- METHOD -->
+  <div class="card">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      Capture Method
+    </div>
+    <div class="method-grid">
+      <div class="method-tile selected" onclick="selectMethod('portmirror',this)">
+        <div class="mt-icon">🔀</div><div class="mt-name">Port Mirror</div><div class="mt-desc">DrayTek, Netgear, HP, UniFi</div>
+      </div>
+      <div class="method-tile" onclick="selectMethod('unifi',this)">
+        <div class="mt-icon">🔷</div><div class="mt-name">UniFi</div><div class="mt-desc">SSH + tcpdump</div>
+      </div>
+      <div class="method-tile" onclick="selectMethod('watchguard',this)">
+        <div class="mt-icon">🛡️</div><div class="mt-name">WatchGuard <span class="beta-badge">Beta</span></div><div class="mt-desc">Fireware SSH tcpdump</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONNECTION -->
+  <div class="card" id="card-connection">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+      Connection
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Host / IP <span class="req">*</span></label>
+        <input type="text" class="form-input" id="f-host" placeholder="192.168.1.1" oninput="generate()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">SSH Port</label>
+        <input type="text" class="form-input" id="f-port" placeholder="22" oninput="generate()">
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Username <span class="req">*</span></label>
+      <input type="text" class="form-input" id="f-user" placeholder="admin" oninput="generate()">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Auth Method</label>
+      <select class="form-select" id="f-auth" onchange="toggleAuthField()">
+        <option value="key">SSH Key (recommended)</option>
+        <option value="pass" selected>Password prompt</option>
+        <option value="sshpass">sshpass (scripted, insecure)</option>
+      </select>
+    </div>
+    <div id="auth-extra" style="display:none;">
+      <div class="form-group">
+        <label class="form-label" id="auth-extra-label">Key path</label>
+        <input type="text" class="form-input" id="f-auth-val" placeholder="~/.ssh/id_rsa" oninput="generate()">
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERFACE -->
+  <div class="card" id="card-interface">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+      Interface
+    </div>
+    <div id="iface-info" class="info-box" style="display:none;"></div>
+    <div class="form-group">
+      <label class="form-label">Network Interface</label>
+      <select class="form-select" id="f-iface-select" onchange="handleIfaceSelect()"></select>
+    </div>
+    <div class="form-group" id="iface-custom-group" style="display:none;">
+      <label class="form-label">Custom Interface Name</label>
+      <input type="text" class="form-input" id="f-iface-custom" placeholder="eth0" oninput="generate()">
+    </div>
+
+    <!-- METHOD-SPECIFIC EXTRAS -->
+    <div id="method-extras"></div>
+  </div>
+
+  <!-- BPF BUILDER -->
+  <div class="card" id="card-bpf">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+      Capture Filter (BPF)
+    </div>
+
+    <div class="bpf-sections">
+      <!-- Protocol -->
+      <div class="bpf-section">
+        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
+          <span>Protocol</span><span class="chevron">&#9660;</span>
+        </div>
+        <div class="bpf-section-body">
+          <div class="bpf-chip-group" id="chips-proto">
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','tcp')">TCP</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','udp')">UDP</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','icmp')">ICMP</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','arp')">ARP</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','dns')">DNS (port 53)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','http')">HTTP (80)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','https')">HTTPS (443)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','dhcp')">DHCP (67/68)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','sip')">SIP (5060)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','ntp')">NTP (123)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','smb')">SMB (445)</button>
+            <button class="bpf-chip" onclick="toggleChip(this,'proto','rdp')">RDP (3389)</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Host -->
+      <div class="bpf-section">
+        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
+          <span>Host / IP</span><span class="chevron">&#9660;</span>
+        </div>
+        <div class="bpf-section-body">
+          <div class="bpf-chip-group">
+            <button class="bpf-chip" onclick="setBpfHostMode('host')">Single host</button>
+            <button class="bpf-chip" onclick="setBpfHostMode('net')">Subnet</button>
+            <button class="bpf-chip" onclick="setBpfHostMode('src')">Source only</button>
+            <button class="bpf-chip" onclick="setBpfHostMode('dst')">Dest only</button>
+            <button class="bpf-chip" onclick="setBpfHostMode('not')">Exclude host</button>
+          </div>
+          <div class="form-group" id="bpf-host-group" style="display:none;">
+            <input type="text" class="form-input" id="bpf-host-val" placeholder="192.168.1.100" oninput="generate()">
+            <div class="form-hint" id="bpf-host-hint"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Port -->
+      <div class="bpf-section">
+        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
+          <span>Port</span><span class="chevron">&#9660;</span>
+        </div>
+        <div class="bpf-section-body">
+          <div class="bpf-chip-group">
+            <button class="bpf-chip" onclick="setBpfPortMode('port')">Single port</button>
+            <button class="bpf-chip" onclick="setBpfPortMode('portrange')">Port range</button>
+            <button class="bpf-chip" onclick="setBpfPortMode('not')">Exclude port</button>
+          </div>
+          <div id="bpf-port-group" style="display:none;">
+            <div class="form-row">
+              <div class="form-group">
+                <input type="text" class="form-input" id="bpf-port-val" placeholder="443" oninput="generate()">
+                <div class="form-hint" id="bpf-port-hint"></div>
+              </div>
+              <div class="form-group" id="bpf-port2-group" style="display:none;">
+                <input type="text" class="form-input" id="bpf-port-val2" placeholder="8443" oninput="generate()">
+                <div class="form-hint">End port</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assembled BPF -->
+    <div class="form-label" style="margin-bottom:5px;">Assembled BPF Filter</div>
+    <div class="bpf-result" id="bpf-assembled"><span class="placeholder">No filter - captures all traffic</span></div>
+    <div style="margin-top:8px;">
+      <label class="form-label">Override / append manually</label>
+      <input type="text" class="form-input" id="bpf-override" placeholder="Leave blank to use assembled filter" oninput="generate()">
+      <div class="form-hint">Overrides the assembled filter if filled in</div>
+    </div>
+  </div>
+
+  <!-- CAPTURE OPTIONS -->
+  <div class="card" id="card-capture">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Capture Options
+    </div>
+
+    <!-- Per-method compatibility warning -->
+    <div id="compat-warn" style="display:none;"></div>
+
+    <div class="form-group">
+      <label class="form-label">Snap Length (bytes)</label>
+      <select class="form-select" id="f-snaplen" onchange="generate()">
+        <option value="0">0 - Full packets (recommended)</option>
+        <option value="65535">65535 - Max safe</option>
+        <option value="1500">1500 - Ethernet MTU headers only</option>
+        <option value="96">96 - Headers only (minimal)</option>
+        <option value="custom">Custom…</option>
+      </select>
+    </div>
+    <div class="form-group" id="snaplen-custom-group" style="display:none;">
+      <input type="text" class="form-input" id="f-snaplen-custom" placeholder="e.g. 9000" oninput="generate()">
+    </div>
+
+    <!-- ROTATING CAPTURE -->
+    <div class="sec-divider">Rotating Capture</div>
+    <div class="rot-toggle">
+      <button class="rot-btn active" id="rot-none" onclick="setRotation('none')">Single file</button>
+      <button class="rot-btn" id="rot-time" onclick="setRotation('time')">By time</button>
+      <button class="rot-btn" id="rot-size" onclick="setRotation('size')">By size</button>
+      <button class="rot-btn" id="rot-both" onclick="setRotation('both')">Time + size</button>
+    </div>
+
+    <div id="rot-fields-none">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Packet count <span style="color:var(--text-3);font-weight:400;">(0=unlimited)</span></label>
+          <input type="text" class="form-input" id="f-count" placeholder="0" oninput="generate()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Duration (secs) <span style="color:var(--text-3);font-weight:400;">(0=unlimited)</span></label>
+          <input type="text" class="form-input" id="f-duration" placeholder="0" oninput="generate()">
+        </div>
+      </div>
+    </div>
+
+    <div id="rot-fields-rotating" style="display:none;">
+      <div id="rot-time-fields">
+        <div class="form-group">
+          <label class="form-label">Rotate every</label>
+          <div class="form-row">
+            <input type="text" class="form-input" id="f-rot-secs" placeholder="600" oninput="generate()">
+            <select class="form-select" id="f-rot-secs-unit" onchange="generate()">
+              <option value="1">seconds</option>
+              <option value="60" selected>minutes</option>
+              <option value="3600">hours</option>
+            </select>
+          </div>
+          <div class="form-hint">e.g. 10 minutes = new file every 600s</div>
+        </div>
+      </div>
+      <div id="rot-size-fields" style="display:none;">
+        <div class="form-group">
+          <label class="form-label">Rotate at file size</label>
+          <div class="form-row">
+            <input type="text" class="form-input" id="f-rot-mb" placeholder="100" oninput="generate()">
+            <select class="form-select" id="f-rot-mb-unit" onchange="generate()">
+              <option value="1">MB</option>
+              <option value="1024">GB</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keep last N files <span style="color:var(--text-3);font-weight:400;">(circular buffer)</span></label>
+        <select class="form-select" id="f-rot-files" onchange="generate()">
+          <option value="5">5 files</option>
+          <option value="10" selected>10 files</option>
+          <option value="20">20 files</option>
+          <option value="48">48 files</option>
+          <option value="96">96 files</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div class="form-group" id="rot-files-custom-group" style="display:none;">
+        <input type="text" class="form-input" id="f-rot-files-custom" placeholder="e.g. 30" oninput="generate()">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Remote base path for files</label>
+        <input type="text" class="form-input" id="f-rot-remote-dir" placeholder="/tmp/cap" oninput="generate()">
+        <div class="form-hint">Files named cap_YYYYMMDD_HHMMSS_N.pcap - must have write access</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Local save directory (for SCP mode)</label>
+        <input type="text" class="form-input" id="f-rot-local-dir" placeholder="C:\Captures\" oninput="generate()">
+        <div class="form-hint">SCP mode only - each rotated file is pulled as it completes</div>
+      </div>
+      <div class="warn-box">
+        <span class="warn-icon">&#9888;&#65039;</span>
+        <span><strong>Rotating + SCP:</strong> each file is pulled after rotation completes. For live monitoring use pipe mode and split with <code>editcap</code> post-capture instead.</span>
+      </div>
+    </div>
+
+    <!-- DESTINATION -->
+    <div class="sec-divider">Capture Destination</div>
+    <div class="dest-toggle">
+      <button class="dest-btn active" id="dest-scp" onclick="setDest('scp')">Remote file + SCP down</button>
+      <button class="dest-btn" id="dest-pipe" onclick="setDest('pipe')">Pipe direct to local file</button>
+    </div>
+    <div id="dest-scp-fields">
+      <div class="form-group">
+        <label class="form-label">Remote temp path</label>
+        <select class="form-select" id="f-remote-path-sel" onchange="handleRemotePathSel()">
+          <option value="/tmp/capture.pcap">/tmp/capture.pcap</option>
+          <option value="/var/tmp/capture.pcap">/var/tmp/capture.pcap</option>
+          <option value="/root/capture.pcap">/root/capture.pcap</option>
+          <option value="custom">Custom…</option>
+        </select>
+      </div>
+      <div class="form-group" id="remote-path-custom-group" style="display:none;">
+        <input type="text" class="form-input" id="f-remote-path-custom" placeholder="/tmp/mycap.pcap" oninput="generate()">
+      </div>
+      <div class="form-group" id="scp-local-single">
+        <label class="form-label">Local save path</label>
+        <input type="text" class="form-input" id="f-local-path" placeholder="C:\Captures\capture.pcap" oninput="generate()">
+      </div>
+    </div>
+    <div id="dest-pipe-fields" style="display:none;">
+      <div class="info-box">Traffic piped over SSH directly into a local file - no temp file on the device. Rotating capture is not available in pipe mode (tcpdump rotation requires writing named files on the remote device).</div>
+      <div class="form-group">
+        <label class="form-label">Local save path</label>
+        <input type="text" class="form-input" id="f-pipe-local-path" placeholder="C:\Captures\live.pcap" oninput="generate()">
+      </div>
+    </div>
+  </div>
+
+  <!-- PORT MIRROR -->
+  <div class="card" id="card-portmirror" style="display:none;">
+    <div class="card-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      Port Mirror Setup
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">DrayTek model</label>
+      <select class="form-select" id="f-pm-model" onchange="pmUpdate()">
+        <optgroup label="DrayTek">
+          <option value="2865">Vigor 2865 / 2866</option>
+          <option value="3910">Vigor 3910</option>
+        </optgroup>
+        <optgroup label="Netgear">
+          <option value="netgear-smart">Netgear Smart Managed (GS3xx / MS series)</option>
+          <option value="netgear-managed">Netgear Fully Managed (M4xxx / M5xxx)</option>
+        </optgroup>
+        <optgroup label="HP / Aruba">
+          <option value="hp-procurve">HP ProCurve / Aruba (2xxx / 3xxx series)</option>
+        </optgroup>
+        <optgroup label="D-Link">
+          <option value="dlink-smart">D-Link Smart Managed (DGS-1210 / DGS-1510)</option>
+        </optgroup>
+        <optgroup label="UniFi">
+          <option value="unifi-sw">UniFi Switch (USW / USW-Pro / USW-Enterprise)</option>
+        </optgroup>
+      </select>
+    </div>
+
+    <!-- STEP-BY-STEP INSTRUCTIONS -->
+    <div class="sec-divider">Web UI Steps</div>
+    <div class="pm-steps" id="pm-steps"></div>
+
+    <!-- CAPTURE SETTINGS -->
+    <div class="sec-divider">Capture Settings</div>
+    <div class="form-group">
+      <label class="form-label">Your PC network interface</label>
+      <select class="form-select" id="pm-iface-sel" onchange="pmToggleCustomIface()">
+        <option value="Ethernet">Ethernet (Windows default)</option>
+        <option value="eth0">eth0 (Linux)</option>
+        <option value="en0">en0 (macOS)</option>
+        <option value="custom">Custom&hellip;</option>
+      </select>
+    </div>
+    <div class="form-group" id="pm-iface-custom-group" style="display:none;">
+      <input type="text" class="form-input" id="pm-iface-custom" placeholder="e.g. Ethernet 2" oninput="pmGenerate()">
+      <div class="form-hint">Run <code>tshark -D</code> or check Wireshark interface list</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Save to folder</label>
+      <input type="text" class="form-input" id="pm-savedir" placeholder="C:\Captures\" oninput="pmGenerate()" value="C:\Captures\">
+    </div>
+    <div class="form-group">
+      <label class="form-label">File prefix</label>
+      <input type="text" class="form-input" id="pm-prefix" placeholder="mirror" oninput="pmGenerate()" value="mirror">
+      <div class="form-hint">Files saved as prefix_001.pcap, prefix_002.pcap&hellip;</div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Rotate every (seconds)</label>
+        <input type="text" class="form-input" id="pm-rot-secs" value="300" oninput="pmGenerate()">
+        <div class="form-hint">300 = 5 min files</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Keep last N files</label>
+        <input type="text" class="form-input" id="pm-rot-files" value="36" oninput="pmGenerate()">
+        <div class="form-hint">36 &times; 5 min = 3 hrs</div>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Capture filter</label>
+      <select class="form-select" id="pm-bpf-preset" onchange="pmBpfPreset()">
+        <option value="">No filter &mdash; capture all traffic (recommended to start)</option>
+        <optgroup label="By host">
+          <option value="host __IP__">Specific IP address (all traffic to/from)</option>
+          <option value="src host __IP__">Traffic FROM a specific IP</option>
+          <option value="dst host __IP__">Traffic TO a specific IP</option>
+          <option value="not host __IP__">Exclude a specific IP</option>
+        </optgroup>
+        <optgroup label="By protocol">
+          <option value="tcp">TCP only</option>
+          <option value="udp">UDP only</option>
+          <option value="icmp">ICMP (ping) only</option>
+          <option value="arp">ARP only</option>
+          <option value="not arp and not stp">Exclude ARP and STP (reduce noise)</option>
+        </optgroup>
+        <optgroup label="By port / service">
+          <option value="port 53">DNS (port 53)</option>
+          <option value="port 80 or port 443">Web traffic (HTTP + HTTPS)</option>
+          <option value="port 443">HTTPS only (port 443)</option>
+          <option value="port 67 or port 68">DHCP (ports 67/68)</option>
+          <option value="port 5060">SIP / VoIP (port 5060)</option>
+          <option value="udp portrange 3478-3481">Microsoft Teams media (UDP 3478-3481)</option>
+          <option value="port 445">SMB / file shares (port 445)</option>
+          <option value="port 3389">RDP (port 3389)</option>
+        </optgroup>
+        <optgroup label="Combinations">
+          <option value="host __IP__ and port 443">Specific IP + HTTPS only</option>
+          <option value="host __IP__ and port 53">Specific IP + DNS only</option>
+          <option value="not broadcast and not multicast">Unicast only (exclude broadcasts)</option>
+          <option value="tcp and host __IP__">TCP traffic to/from a specific IP</option>
+        </optgroup>
+        <option value="custom">Custom&hellip; (enter manually)</option>
+      </select>
+      <div class="form-hint" id="pm-bpf-hint" style="margin-top:4px;"></div>
+    </div>
+
+    <div class="form-group" id="pm-bpf-ip-group" style="display:none;">
+      <label class="form-label" id="pm-bpf-ip-label">IP address</label>
+      <input type="text" class="form-input" id="pm-bpf-ip" placeholder="192.168.1.50" oninput="pmGenerate()">
+    </div>
+
+    <div class="form-group" id="pm-bpf-custom-group" style="display:none;">
+      <label class="form-label">Custom BPF filter</label>
+      <input type="text" class="form-input" id="pm-bpf" placeholder="e.g. host 192.168.1.50 and port 443" oninput="pmGenerate()">
+      <div class="form-hint">Uses Berkeley Packet Filter syntax &mdash; see Filter Reference tab for help</div>
+    </div>
+    <!-- Hidden field used by pmGenerate to read final BPF value -->
+    <input type="hidden" id="pm-bpf-final" value="">
+
+    <div class="form-group">
+      <label class="form-label">Snap length</label>
+      <select class="form-select" id="pm-snaplen" onchange="pmGenerate()">
+        <option value="0">0 - Full packets (recommended)</option>
+        <option value="65535">65535 - Max safe</option>
+        <option value="1500">1500 - Headers only</option>
+      </select>
+    </div>
+
+    <div class="sec-divider">Script format</div>
+    <div class="rot-toggle" style="margin-bottom:6px;">
+      <button class="rot-btn active" id="pm-stog-ps" onclick="pmSetShell('ps')">PowerShell</button>
+      <button class="rot-btn" id="pm-stog-cmd" onclick="pmSetShell('cmd')">CMD</button>
+      <button class="rot-btn" id="pm-stog-bash" onclick="pmSetShell('bash')">Bash / WSL</button>
+      <button class="rot-btn" id="pm-stog-gui" onclick="pmSetShell('gui')">Wireshark GUI</button>
+    </div>
+    <div class="form-hint" id="pm-shell-hint">PowerShell - native on Windows 10/11, open via Win+X or Start menu</div>
+
+  </div>
+
+</div><!-- end left col -->
+
+<!-- RIGHT COLUMN: OUTPUT -->
+<div class="output-sticky">
+  <div class="card">
+    <div class="output-header">
+      <div class="output-label">Generated Script</div>
+      <div class="shell-toggle" id="main-shell-toggle">
+        <button class="stog-btn active" id="stog-ps" onclick="switchShell('ps')">PowerShell</button>
+        <button class="stog-btn" id="stog-bash" onclick="switchShell('bash')">Bash</button>
+      </div>
+    </div>
+
+    <div id="script-output">
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        <p>Enter a host and username<br>to generate your script.</p>
+      </div>
+    </div>
+
+    <div id="filter-output" style="display:none;">
+      <div class="filter-out-block">
+        <div class="filter-out-label">Wireshark Display Filter</div>
+        <pre id="filter-text"></pre>
+        <button class="copy-btn" style="background:rgba(13,148,136,.2);border-color:rgba(13,148,136,.35);color:var(--accent);" onclick="copyText('filter-text')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy
+        </button>
+      </div>
+    </div>
+
+    <div id="steps-output" style="display:none;" class="steps-wrap">
+      <div class="steps-title">Pre-flight Checklist</div>
+      <div id="steps-list"></div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- builder-grid -->
+</div><!-- tab-builder -->
+
+<!-- ═══════════════════════════════════════════ ANALYSE ═══ -->
+<div id="tab-analyse" class="tab-panel active">
+  <div id="drop-wrap">
+    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('pcap-file').click()"
+      ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <h3>Drop a PCAP here</h3>
+      <p>Or click to browse - analysed entirely in your browser, nothing uploaded</p>
+      <div class="ftypes">.pcap &nbsp;·&nbsp; .pcapng &nbsp;·&nbsp; .cap</div>
+      <div style="margin-top:10px;font-size:11px;color:var(--text-3);">Best under 200 MB &nbsp;·&nbsp; Large files will show a split suggestion first</div>
+    </div>
+    <input type="file" id="pcap-file" accept=".pcap,.pcapng,.cap" style="display:none" onchange="handleFileSelect(event)">
+  </div>
+  <div id="size-warn-wrap" style="display:none;"></div>
+  <div id="progress-wrap" style="display:none;"></div>
+  <div id="analysis-out" style="display:none;"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ FILTERS ═══ -->
+<div id="tab-filters" class="tab-panel">
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search filters…" oninput="filterSearch(this.value)">
+  </div>
+  <div class="filter-grid" id="filter-grid"></div>
+</div>
+
+<!-- ═══════════════════════════════════════════ TROUBLESHOOT ═══ -->
+<div id="tab-troubleshoot" class="tab-panel">
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" id="ts-search" placeholder="Describe the problem… e.g. slow, VoIP, DHCP" oninput="tsSearch(this.value)">
+  </div>
+  <div id="ts-grid"></div>
+</div>
+
+</div><!-- main -->
+<div class="toast" id="toast"></div>
+<footer style="text-align:center;padding:20px 24px;font-size:11px;color:var(--text-3);border-top:1px solid var(--border);margin-top:40px;font-family:'DM Sans',sans-serif;">
+  Built by <strong style="color:var(--text-2);">Sebastian Hanney</strong> &mdash; <a href="index.html" style="color:var(--accent);text-decoration:none;">Seb's Workshop</a>
+</footer>
+
+<script>
+// ─── THEME ───────────────────────────────────────────────
+function toggleTheme(){
+  var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('sw-theme',t);
+  updateThemeIcon(t);
+}
+function updateThemeIcon(t){
+  var el=document.getElementById('theme-icon');
+  if(t==='dark'){
+    el.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
+  } else {
+    el.innerHTML='<path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>';
+  }
+}
+updateThemeIcon(document.documentElement.getAttribute('data-theme'));
+
+// ─── TABS ─────────────────────────────────────────────────
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-panel').forEach(function(p){p.classList.remove('active');});
+  document.querySelectorAll('.tab-btn').forEach(function(b){b.classList.remove('active');});
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  if(name==='filters') renderFilters();
+  if(name==='troubleshoot') renderScenarios('');
+}
+
+// ─── STATE ────────────────────────────────────────────────
+var ST={
+  method:'unifi',
+  shell:'ps',
+  dest:'scp',
+  bpfProtos:{},
+  bpfHostMode:null,
+  bpfPortMode:null,
+  rotation:'none'
+};
+
+// Per-method compatibility warnings
+var COMPAT_WARNS={
+  unifi:'',
+  sshdump:'',
+  draytek:'<div class="info-box"><strong>Port mirror approach:</strong> Works on all DrayTek DrayOS models (2865, 2866, 3910 etc.) \u2014 no SSH needed. Select your model above for the right instructions. The Vigor 3910 also has a built-in capture tool. Linux-based models (2960/3900/2962) support SSH tcpdump as an alternative.</div>',
+  watchguard:'<div class="warn-box"><span class="warn-icon">&#9888;&#65039;</span><span><strong>WatchGuard compatibility:</strong> <code>tcpdump</code> availability over SSH varies by appliance and Fireware version. Some models require entering diagnostic mode first. If SSH tcpdump fails, use <strong>Traffic Monitor</strong> in Fireware Web UI or <strong>WatchGuard System Manager &rsaquo; Traffic Monitor</strong> to export a PCAP.</span></div>'
+};
+
+
+// ─── UNIFI DEVICE SUB-TYPES ──────────────────────────────
+var ST_UNIFI_TYPE='ap'; // default
+
+var UNIFI_TYPES={
+  udm:{
+    label:'UDM / UDM-Pro / UDM-SE',
+    defaultUser:'root',
+    ifaces:[
+      {v:'br0',    l:'br0 \u2014 LAN bridge (default)'},
+      {v:'br0.X',  l:'br0.X \u2014 VLAN (replace X with ID)'},
+      {v:'eth8',   l:'eth8 \u2014 WAN1'},
+      {v:'eth9',   l:'eth9 \u2014 WAN2'},
+      {v:'eth0',   l:'eth0 \u2014 LAN port'},
+      {v:'custom', l:'Custom\u2026'}
+    ],
+    defaultIface:'br0',
+    hint:'<strong>br0</strong> captures all LAN traffic. Use <strong>br0.X</strong> for a specific VLAN (e.g. br0.20). WAN ports are eth8/eth9 on most UDM models. Verify with: <code>ip link show</code>',
+    warn:''
+  },
+  usg:{
+    label:'USG / USG-Pro (legacy)',
+    defaultUser:'ubnt',
+    ifaces:[
+      {v:'eth1',   l:'eth1 \u2014 LAN (default)'},
+      {v:'eth0',   l:'eth0 \u2014 WAN'},
+      {v:'eth2',   l:'eth2 \u2014 LAN2 / optional'},
+      {v:'br0',    l:'br0 \u2014 LAN bridge'},
+      {v:'custom', l:'Custom\u2026'}
+    ],
+    defaultIface:'eth1',
+    hint:'USG uses <strong>eth0</strong> WAN and <strong>eth1</strong> LAN by default. USG-Pro adds <strong>eth2</strong> as a second LAN. Verify with: <code>ip link show</code>',
+    warn:''
+  },
+  ap:{
+    label:'UniFi AP (UAP / U6)',
+    defaultUser:'ui',
+    ifaces:[
+      {v:'br0',    l:'br0 \u2014 all traffic bridge (default)'},
+      {v:'br0.X',  l:'br0.X \u2014 specific VLAN (replace X)'},
+      {v:'eth0',   l:'eth0 \u2014 uplink port only'},
+      {v:'ath0',   l:'ath0 \u2014 WiFi radio 0 (broadcast only)'},
+      {v:'ath1',   l:'ath1 \u2014 WiFi radio 1 (broadcast only)'},
+      {v:'custom', l:'Custom\u2026'}
+    ],
+    defaultIface:'br0',
+    hint:'<strong>br0</strong> is the right interface for most AP captures \u2014 it sees all bridged wired+wireless traffic. <strong>ath0/ath1</strong> only capture broadcast/multicast. Use <strong>br0.X</strong> for a specific VLAN. Verify with: <code>ifconfig</code>. <em>Username <strong>ui</strong> applies to firmware ~2024+; use <strong>ubnt</strong> for older devices.</em>',
+    warn:''
+  },
+  usw:{
+    label:'UniFi Switch (USW / USW-Pro)',
+    defaultUser:'ui',
+    ifaces:[
+      {v:'br0',    l:'br0 \u2014 management bridge'},
+      {v:'eth0',   l:'eth0 \u2014 management port'},
+      {v:'custom', l:'Custom\u2026'}
+    ],
+    defaultIface:'br0',
+    hint:'Switch SSH gives a BusyBox shell. <strong>tcpdump captures management/control plane traffic only</strong> \u2014 not end-host switching traffic. Useful for STP, LLDP, DHCP, ARP, RADIUS, and controller comms. <em>Username <strong>ui</strong> applies to firmware ~2024+; use <strong>ubnt</strong> for older devices.</em>',
+    warn:'<div class="warn-box"><span class="warn-icon">\u26a0\ufe0f</span><span><strong>Switch limitation:</strong> tcpdump on UniFi switches only captures <strong>control/management plane traffic</strong> (STP, LLDP, DHCP, ARP broadcasts, RADIUS, controller heartbeats). It will <strong>not</strong> capture traffic passing between switch ports. To capture end-host traffic, enable <strong>Port Mirroring</strong> in UniFi Network \u2192 Devices \u2192 Switch \u2192 Port Manager, then capture on the mirror destination from a connected PC.</span></div>'
+  }
+};
+
+// ─── INTERFACE PRESETS ───────────────────────────────────
+var IFACE_PRESETS={
+  unifi:[], // populated dynamically from UNIFI_TYPES
+  sshdump:[
+    {v:'eth0',l:'eth0 \u2014 primary'},
+    {v:'eth1',l:'eth1 \u2014 secondary'},
+    {v:'any', l:'any \u2014 all interfaces'},
+    {v:'lo',  l:'lo \u2014 loopback'},
+    {v:'custom',l:'Custom\u2026'}
+  ],
+  portmirror:[
+    {v:'eth2.1',l:'eth2.1 \u2014 WAN1'},
+    {v:'eth2.2',l:'eth2.2 \u2014 WAN2'},
+    {v:'eth3',  l:'eth3 \u2014 LAN'},
+    {v:'ppp0',  l:'ppp0 \u2014 PPPoE WAN'},
+    {v:'br0',   l:'br0 \u2014 LAN bridge'},
+    {v:'custom',l:'Custom\u2026'}
+  ],
+  watchguard:[
+    {v:'eth0',l:'eth0 \u2014 External'},
+    {v:'eth1',l:'eth1 \u2014 Trusted'},
+    {v:'eth2',l:'eth2 \u2014 Optional'},
+    {v:'eth3',l:'eth3 \u2014 Optional 2'},
+    {v:'any', l:'any \u2014 all interfaces'},
+    {v:'custom',l:'Custom\u2026'}
+  ]
+};
+
+var IFACE_HINTS={
+  unifi:'', // set dynamically by UniFi device type
+  sshdump:'The interface on the remote host \u2014 verify via <code>ip link show</code>',
+  portmirror:'Check via SSH: <code>ip link show</code> or DrayTek web UI &rsaquo; Interface',
+  watchguard:'Check WatchGuard System Manager &rsaquo; Device &rsaquo; Interfaces'
+};
+
+var METHOD_EXTRAS={
+  unifi:[
+    '<div class="form-group">',
+    '<label class="form-label">UniFi device type</label>',
+    '<select class="form-select" id="f-unifi-type" onchange="setUnifiType(this.value)">',
+    '<option value="udm">UDM / UDM-Pro / UDM-SE</option>',
+    '<option value="usg">USG / USG-Pro (legacy)</option>',
+    '<option value="ap" selected>Access Point (UAP / U6)</option>',
+    '<option value="usw">Switch (USW / USW-Pro)</option>',
+    '</select>',
+    '</div>',
+    '<div class="info-box" id="unifi-type-hint"></div>',
+    '<div id="unifi-type-warn"></div>',
+    '<div class="info-box">\ud83d\udd11 <strong>UniFi SSH password:</strong> UniFi Network &rsaquo; Settings &rsaquo; System &rsaquo; Advanced &rsaquo; <em>Device SSH Authentication</em>. <a href="https://help.ui.com/hc/en-us/articles/204976074" target="_blank" rel="noopener" style="color:var(--accent);">UI SSH guide \u2197</a></div>'
+  ].join(''),
+  sshdump:'<div class="form-group"><label class="form-label">Wireshark sshdump path</label><select class="form-select" id="f-ws-path-sel" onchange="generate()"><option value="default-win">C:\\Program Files\\Wireshark\\sshdump.exe</option><option value="default-linux">/usr/lib/wireshark/extcap/sshdump</option><option value="custom">Custom\u2026</option></select></div>',
+  draytek:[
+    '<div class="form-group">',
+    '<label class="form-label">DrayTek model</label>',
+    '<select class="form-select" id="f-pm-model" onchange="updatePortMirrorModel()">',
+    '<option value="2865">DrayTek Vigor 2865 / 2866</option>',
+    '<option value="3910">DrayTek Vigor 3910</option>',
+    '<option value="dlink-smart">D-Link Smart Managed (DGS-1210 / DGS-1510)</option>',
+    '<option value="netgear-smart">Netgear Smart Managed</option>',
+    '<option value="netgear-managed">Netgear Fully Managed (M4xxx)</option>',
+    '<option value="hp-procurve">HP ProCurve / Aruba</option>',
+    '<option value="unifi-sw">UniFi Switch</option>',
+    '</select>',
+    '</div>',
+    '<div id="portmirror-model-info"></div>'
+  ].join(''),
+  watchguard:[
+    '<div class="form-group"><label class="form-label">Fireware version</label>',
+    '<select class="form-select" id="f-wg-ver" onchange="generate()">',
+    '<option>12.x (current)</option><option>11.x (legacy)</option>',
+    '</select></div>',
+    '<div class="warn-box"><span class="warn-icon">\u26a0\ufe0f</span>',
+    '<span><strong>Recommended method:</strong> Use <strong>WatchGuard System Manager</strong> to stream captures directly to your PC \u2014 bypasses the device memory limit entirely. See the pre-flight steps below for the full WSM walkthrough. SSH tcpdump is the fallback if WSM is unavailable.</span></div>'
+  ].join('')
+};
+
+var METHOD_STEPS={
+  unifi:[
+    {title:'Enable SSH',body:'Settings &rarr; System &rarr; SSH, or UniFi Network &rarr; Site &rarr; Services &rarr; SSH.'},
+    {title:'Test SSH access',body:'Confirm you can log in:',code:function(){return 'ssh -p '+(g('f-port')||'22')+' '+(g('f-user')||'user')+'@'+(g('f-host')||'host');}},
+    {title:'Check interface',body:'List interfaces on the device:',code:function(){return 'ip link show';}},
+    {title:'Run the script',body:'Execute the generated script. PCAP lands at your local path when capture ends.'},
+    {title:'Open in Wireshark',body:'Apply the generated display filter to focus on relevant traffic.'}
+  ],
+  sshdump:[
+    {title:'Install sshdump',body:'Bundled with Wireshark on Windows. On Linux:',code:function(){return 'sudo apt install wireshark-common';}},
+    {title:'Set up SSH key auth',body:'Recommended for scripted captures:',code:function(){return 'ssh-keygen -t ed25519 && ssh-copy-id '+(g('f-user')||'user')+'@'+(g('f-host')||'host');}},
+    {title:'Test tcpdump on remote',body:'Confirm tcpdump is available:',code:function(){return 'ssh -p '+(g('f-port')||'22')+' '+(g('f-user')||'user')+'@'+(g('f-host')||'host')+' "tcpdump --version"';}},
+    {title:'Run or use Wireshark GUI',body:'Execute the script, or in Wireshark: Capture &rarr; Options &rarr; Manage Interfaces &rarr; Remote Interfaces.'},
+    {title:'Apply display filter',body:'Paste the generated Wireshark display filter to isolate traffic of interest.'}
+  ],
+  draytek:[
+    {title:'Choose your mirror port',body:'Pick a spare LAN port on the DrayTek to receive mirrored traffic \u2014 this is where you plug your PC running Wireshark. <strong>Port 4</strong> is a common choice. Note: the mirror port loses normal network access while mirroring is active.'},
+    {title:'Log in to the DrayTek web UI',body:'Open a browser and go to <strong>192.168.1.1</strong> (or your router IP). Log in with admin credentials.'},
+    {title:'Navigate to LAN Port Mirror',body:'Go to <strong>Configuration &rarr; LAN &rarr; LAN Port Mirror</strong>. (On some models: <strong>Advanced &rarr; LAN Port Mirror</strong>.)'},
+    {title:'Enable and configure mirroring',body:'Toggle <strong>Enabled</strong>. Set <strong>Mirror Packets To</strong> to your chosen port (e.g. Port 4). Select the <strong>Mirrored Port</strong> - the port or WAN interface you want to capture. Enable <strong>Fast Path</strong> to capture hardware-accelerated traffic (recommended).'},
+    {title:'Apply and connect your PC',body:'Click <strong>Apply / OK</strong>. Plug your laptop or PC into the mirror port (e.g. Port 4) using an Ethernet cable. Your PC will not have internet access while connected to the mirror port.'},
+    {title:'Start Wireshark',body:'Open Wireshark on your PC. Select the Ethernet interface connected to the mirror port. Use the generated Wireshark command below, or paste the display filter after starting capture.'},
+    {title:'When finished \u2014 disable mirror',body:'Return to <strong>LAN Port Mirror</strong> and toggle <strong>Disabled</strong>, then Apply. <strong>Why:</strong> the mirror port cannot carry normal traffic while active \u2014 any device on it is isolated from the LAN until mirroring is disabled.'},
+    {title:'3910 alternative',body:'The Vigor 3910 has a built-in capture: <strong>Diagnostics &rarr; Port Mirror/Packet Capture</strong>. Select interface, set filters, and download the .pcap directly \u2014 no separate PC needed.'}
+  ],
+  watchguard:[
+    {title:'Open WatchGuard System Manager',body:'Launch <strong>WatchGuard System Manager</strong> on your PC and connect to the Firebox.'},
+    {title:'Open Firebox System Manager',body:'In the toolbar, click the <strong>System Manager icon</strong> (triangle made of 3 red dots connected by green lines). This opens a new window titled <strong>Firebox System Manager</strong>.'},
+    {title:'Navigate to Diagnostic Tasks',body:'In Firebox System Manager go to <strong>Tools &rarr; Diagnostic Tasks&hellip;</strong>'},
+    {title:'Select TCP Dump',body:'From the task drop-down select <strong>TCP Dump</strong> (captures UDP traffic too, despite the name). Set your interface \u2014 <strong>eth1</strong> is the most common LAN port, <strong>eth0</strong> for WAN.'},
+    {title:'Set output file and run',body:'Set <em>Save data to file</em> to a path on your local PC (e.g. <code>C:\\Captures\\capture.pcap</code>), then click <strong>Run Task</strong>. Traffic streams directly to your machine \u2014 no device memory limit.'},
+    {title:'Stop and open in Wireshark',body:'Click <strong>Close</strong> when done. Open the saved .pcap in Wireshark and apply the generated display filter.'},
+    {title:'SSH fallback (if WSM unavailable)',body:'Enable SSH via System &rarr; Administration &rarr; Administration Settings, then use the generated script above.',code:function(){return 'ssh -p '+(g('f-port')||'22')+' '+(g('f-user')||'admin')+'@'+(g('f-host')||'host');}}
+  ]
+};
+
+// ─── PORT MIRROR ─────────────────────────────────────────
+var PORTMIRROR_MODELS={
+  '2865':{
+    label:'DrayTek Vigor 2865 / 2866',
+    vendor:'draytek',
+    nav:'Configuration &rarr; LAN &rarr; LAN Port Mirror',
+    mirrorDest:'Port 4 (LAN4) &mdash; recommended, or any spare LAN port',
+    mirrorSrc:'Select the port or WAN interface you want to capture',
+    fastPath:true,
+    trafficBlocked:false,
+    alt:null
+  },
+  '3910':{
+    label:'DrayTek Vigor 3910',
+    vendor:'draytek',
+    nav:'Configuration &rarr; LAN &rarr; LAN Port Mirror',
+    mirrorDest:'Port 4 (LAN4) &mdash; recommended, or any spare LAN port',
+    mirrorSrc:'Select the port or WAN interface you want to capture',
+    fastPath:true,
+    trafficBlocked:false,
+    alt:'The 3910 also has a built-in capture: <strong>Diagnostics &rarr; Port Mirror/Packet Capture</strong> \u2014 downloads a .pcap directly without a separate PC (200 MB / 60s limit).'
+  },
+  'dlink-smart':{
+    label:'D-Link Smart Managed (DGS-1210 / DGS-1510)',
+    vendor:'dlink',
+    nav:'Configuration &rarr; Port Mirroring',
+    mirrorDest:'Any spare port &mdash; this is where your PC connects',
+    mirrorSrc:'One or more source ports &mdash; select TX, RX, or Both',
+    fastPath:false,
+    trafficBlocked:null, // unknown - varies by model
+    alt:'Some D-Link models also support CLI mirroring: <code>config mirror port 4 add source ports 1 both</code>. Run <code>show mirror</code> to verify.'
+  },
+  'netgear-smart':{
+    label:'Netgear Smart Managed Switch',
+    vendor:'netgear',
+    nav:'System &rarr; Monitoring &rarr; Mirroring',
+    mirrorDest:'Any spare port &mdash; this is where your PC connects',
+    mirrorSrc:'One or more source ports to mirror (cannot be LAG members)',
+    fastPath:false,
+    trafficBlocked:true,
+    alt:null
+  },
+  'netgear-managed':{
+    label:'Netgear Fully Managed (M4xxx / M5xxx)',
+    vendor:'netgear-managed',
+    nav:'Monitoring &rarr; Mirroring &rarr; Port Mirroring',
+    mirrorDest:'Destination port field e.g. 1/0/3',
+    mirrorSrc:'Source port e.g. 1/0/2 &mdash; select Tx and Rx',
+    fastPath:false,
+    trafficBlocked:true,
+    alt:'After configuring, go to <strong>Maintenance &rarr; Save Configuration</strong> to persist the settings across reboots.'
+  },
+  'hp-procurve':{
+    label:'HP ProCurve / Aruba (2xxx / 3xxx)',
+    vendor:'hp',
+    nav:'Configuration &rarr; Monitor Port (web UI)',
+    mirrorDest:'Select the port your PC is connected to as the monitoring port',
+    mirrorSrc:'Select one or more ports as source interfaces',
+    fastPath:false,
+    trafficBlocked:true,
+    alt:'CLI alternative: <code>mirror-port 24</code> then <code>interface 1-3 monitor</code>. After setup remember to <code>write memory</code> to save.'
+  },
+  'unifi-sw':{
+    label:'UniFi Switch (USW / USW-Pro)',
+    vendor:'unifi',
+    nav:'UniFi Network &rarr; Devices &rarr; Switch &rarr; Port Manager',
+    mirrorDest:'The port your PC is plugged into &mdash; configured as the mirror receiver',
+    mirrorSrc:'The port whose traffic you want to capture',
+    fastPath:false,
+    trafficBlocked:true,
+    alt:'Only one mirror source port is supported at a time on most UniFi switches. To capture an uplink, mirror the uplink port.'
+  }
+};
+
+function getPmSteps(m){
+  var vendor=m.vendor||'draytek';
+  if(vendor==='dlink'){
+    return [
+      {title:'Log in to the switch web UI',body:'Browse to the switch IP (default is <strong>10.90.90.90</strong> on most D-Link models, or your assigned IP). Log in - default credentials are <strong>admin / admin</strong>.'},
+      {title:'Navigate to Port Mirroring',body:'Go to <strong>'+m.nav+'</strong> in the left-hand menu.'},
+      {title:'Enable mirroring',body:'Click or toggle <strong>Enabled</strong> to activate port mirroring.'},
+      {title:'Select Target Port',body:'In the <strong>Target Port</strong> dropdown select the port your PC is connected to. This is the port that will receive copies of mirrored traffic.'},
+      {title:'Select Source Ports',body:'In <strong>Source Port Selection</strong> tick the ports you want to capture. Set direction to <strong>Both</strong> (TX and RX) to capture traffic in both directions.'},
+      {title:'Apply',body:'Click <strong>Apply / OK</strong>. Mirroring activates immediately.'},
+      {title:'Connect your PC and run capture',body:'Plug your laptop into the target port. <strong>Note: check if your PC has internet access after plugging in</strong> \u2014 D-Link behaviour varies by model. If no LAN access, use Wi-Fi or a USB adapter. Run the generated command from the right panel.'},
+      {title:'Disable when done',body:'Return to <strong>'+m.nav+'</strong>, toggle <strong>Disabled</strong>, Apply. <strong>Why:</strong> mirroring adds CPU overhead on the switch \u2014 disable it as soon as you have finished capturing.'}
+    ];
+  }
+  if(vendor==='unifi'){
+    return [
+      {title:'Log in to UniFi Network',body:'Open your UniFi Network application and log in.'},
+      {title:'Go to Devices',body:'Click <strong>Devices</strong> in the left menu and select your switch.'},
+      {title:'Open Port Manager',body:'In the right-hand panel click <strong>Port Manager</strong>.'},
+      {title:'Configure the source port',body:'Click the port whose traffic you want to capture. Under <strong>Advanced</strong>, expand <strong>Profile Overrides</strong>. Change the mode from <em>Switching</em> to <strong>Mirroring</strong>. Select the <strong>mirror destination port</strong> (the port your PC is plugged into).'},
+      {title:'Apply',body:'Click <strong>Apply</strong>. UniFi will push the config to the switch \u2014 takes a few seconds.'},
+      {title:'Connect your PC and run tshark',body:'Plug your laptop into the destination port. <strong>Note: no internet or LAN access on this port while mirroring is active</strong> - use Wi-Fi or a USB adapter if needed. Run the generated command from the right panel.'},
+      {title:'Disable when done',body:'Return to Port Manager, click the source port, set mode back to <strong>Switching</strong>, and Apply. <strong>Why:</strong> the mirror destination port only receives mirrored traffic while active \u2014 disabling restores normal switching on both ports.'}
+    ];
+  }
+  if(vendor==='netgear'){
+    return [
+      {title:'Log in to the switch web UI',body:'Browse to the switch IP address and log in with admin credentials.'},
+      {title:'Navigate to Mirroring',body:'Go to <strong>'+m.nav+'</strong>.'},
+      {title:'Set destination port',body:'In the <strong>Destination Port</strong> dropdown select the port your PC is connected to. A single destination port only \u2014 it cannot be a LAG member.'},
+      {title:'Select source ports',body:'In the <strong>Source Port</strong> section tick the checkboxes for the ports you want to mirror. You can select multiple source ports.'},
+      {title:'Enable and apply',body:'Set <strong>Mirroring</strong> to <strong>Enable</strong>, then click <strong>Apply</strong>.'},
+      {title:'Connect your PC and run tshark',body:'Plug your laptop into the destination port. <strong>Note: no internet or LAN access on this port while mirroring is active</strong> - use Wi-Fi or a USB adapter if needed. Run the generated command from the right panel.'},
+      {title:'Disable when done',body:'Return to <strong>'+m.nav+'</strong>, set Mirroring to <strong>Disable</strong>, Apply. <strong>Why:</strong> the destination port only receives mirrored copies while active \u2014 normal switching does not pass through it until mirroring is disabled.'}
+    ];
+  }
+  if(vendor==='netgear-managed'){
+    return [
+      {title:'Log in to the switch web UI',body:'Browse to the switch IP, click <strong>Main UI Login</strong>, and log in.'},
+      {title:'Navigate to Port Mirroring',body:'Go to <strong>'+m.nav+'</strong>.'},
+      {title:'Set destination port',body:'Enter the destination port (e.g. <code>1/0/3</code>) in the <strong>Destination Port</strong> field. Set <strong>Session Mode</strong> to <strong>Enable</strong>.'},
+      {title:'Select source port and direction',body:'Tick the source port checkbox (e.g. <code>1/0/2</code>) and set <strong>Direction</strong> to <strong>Tx and Rx</strong>.'},
+      {title:'Apply and save',body:'Click <strong>Apply</strong>, then go to <strong>Maintenance &rarr; Save Configuration</strong> to persist across reboots.'},
+      {title:'Connect your PC and run tshark',body:'Plug your laptop into the destination port. <strong>Note: no internet or LAN access on this port while mirroring is active</strong> - use Wi-Fi or a USB adapter if needed. Run the generated command from the right panel.'},
+      {title:'Disable when done',body:'Return to Port Mirroring, set Session Mode to <strong>Disable</strong>, Apply, and save. <strong>Why:</strong> the destination port is isolated to mirrored traffic only while active.'}
+    ];
+  }
+  if(vendor==='hp'){
+    return [
+      {title:'Log in to the switch web UI',body:'Browse to the switch IP and log in with manager credentials.'},
+      {title:'Navigate to Monitor Port',body:'Go to <strong>Configuration &rarr; Monitor Port</strong> (some models show this as <strong>Diagnostics &rarr; Mirror Port</strong>).'},
+      {title:'Set the monitoring (destination) port',body:'Select the port your PC is connected to as the <strong>Monitoring Port</strong>. This is the port that will receive the mirrored traffic. Click <strong>Apply</strong>.'},
+      {title:'Select source ports',body:'Select one or more ports to monitor. Click <strong>Apply</strong>. Note: port trunks cannot be used as a monitoring port.'},
+      {title:'Save configuration',body:'Go to <strong>Configuration &rarr; Save Config</strong> (or run <code>write memory</code> via CLI) to persist settings.'},
+      {title:'Connect your PC and run tshark',body:'Plug your laptop into the monitoring port. <strong>Note: HP/Aruba strongly discourages connecting the mirror port to a live network</strong> - your PC will have no normal LAN access. Use Wi-Fi or a USB adapter for internet. Run the generated command from the right panel.'},
+      {title:'Disable when done',body:'Return to Monitor Port, remove the monitoring port assignment, Apply, and save. <strong>Why:</strong> the monitoring port cannot forward normal traffic while assigned \u2014 any connected device is isolated until mirroring is cleared.'}
+    ];
+  }
+  // Default: DrayTek
+  return [
+    {title:'Choose your mirror destination port',body:'Pick a spare LAN port \u2014 <strong>'+m.mirrorDest+'</strong>. <strong>Important:</strong> this port loses normal network access while mirroring is active.'},
+    {title:'Log in to the web UI',body:'Browse to <strong>http://192.168.1.1</strong> (or your router\u2019s LAN IP). Log in with <strong>admin</strong> credentials.'},
+    {title:'Navigate to LAN Port Mirror',body:'Go to <strong>'+m.nav+'</strong>.'},
+    {title:'Enable and configure',body:'Toggle <strong>Enabled</strong>. Set <strong>Mirror Packets To</strong> \u2192 your chosen port. Set <strong>Mirrored Port</strong> \u2192 '+m.mirrorSrc+'.'+(m.fastPath?' Enable <strong>Fast Path</strong> to capture hardware-accelerated traffic (recommended).':'')},
+    {title:'Apply, then connect your PC',body:'Click <strong>Apply / OK</strong>. Plug your laptop into the mirror destination port. ✅ <strong>Your PC retains normal internet and LAN access</strong> - the DrayTek mirror port passes normal traffic as well as mirrored copies.'},
+    {title:'Run the tshark command',body:'Run the command from the panel on the right. Files rotate automatically.'},
+    {title:'Disable mirror when done',body:'Return to <strong>'+m.nav+'</strong>, toggle <strong>Disabled</strong>, Apply. <strong>Why:</strong> DrayTek explicitly state port mirroring affects router performance \u2014 the router must duplicate every packet to the mirror port, adding CPU overhead. Disable as soon as you have finished capturing to restore full performance and return the port to normal LAN use.'}
+  ];
+}
+
+function pmUpdate(){
+  var sel=document.getElementById('f-pm-model');
+  if(!sel) return;
+  var m=PORTMIRROR_MODELS[sel.value]||PORTMIRROR_MODELS['2865'];
+  var steps=getPmSteps(m);
+  var stepsEl=document.getElementById('pm-steps');
+  if(stepsEl){
+    // Traffic behaviour banner - shown prominently before steps
+    var banner='';
+    if(m.trafficBlocked===true){
+      banner='<div class="warn-box" style="margin-bottom:10px;"><span class="warn-icon">\u26a0\ufe0f</span><span>'
+        +'<strong>No internet on capture PC:</strong> The destination (mirror) port on this switch receives mirrored traffic only \u2014 normal traffic cannot pass through it while mirroring is active. '
+        +'Your capture PC will have <strong>no internet or LAN access</strong> while plugged in. '
+        +'Use a USB/Wi-Fi adapter for internet if needed, or a second NIC. Disable mirroring to restore the port.</span></div>';
+    } else if(m.trafficBlocked===false){
+      banner='<div class="info-box" style="margin-bottom:10px;">'
+        +'\u2705 <strong>Normal traffic passes through:</strong> The DrayTek mirror port passes normal LAN traffic as well as mirrored copies \u2014 your capture PC retains internet access while connected.'
+        +'</div>';
+    } else {
+      banner='<div class="info-box" style="margin-bottom:10px;">'
+        +'\u2753 <strong>Internet access: varies by model.</strong> D-Link behaviour on the mirror destination port depends on the specific model and firmware. '
+        +'Some models block normal traffic on the target port while mirroring is active; others allow it. '
+        +'Test connectivity after plugging in \u2014 if your PC has no LAN access, use a Wi-Fi adapter or second NIC for internet.'
+        +'</div>';
+    }
+    var html=banner;
+    steps.forEach(function(s,i){
+      var body=typeof s.body==='function'?s.body(m):s.body;
+      html+='<div class="pm-step"><div class="pm-step-num">'+(i+1)+'</div><div class="pm-step-body"><strong>'+s.title+'</strong><span>'+body+'</span></div></div>';
+    });
+    if(m.alt){
+      html+='<div class="pm-alt"><strong>Also available:</strong> '+m.alt+'</div>';
+    }
+    stepsEl.innerHTML=html;
+  }
+  pmGenerate();
+}
+
+function pmToggleCustomIface(){
+  var v=document.getElementById('pm-iface-sel').value;
+  document.getElementById('pm-iface-custom-group').style.display=v==='custom'?'block':'none';
+  pmGenerate();
+}
+
+function pmGetIface(){
+  var v=document.getElementById('pm-iface-sel')?document.getElementById('pm-iface-sel').value:'Ethernet';
+  if(v==='custom') return (document.getElementById('pm-iface-custom')?document.getElementById('pm-iface-custom').value.trim():'')||'Ethernet';
+  return v;
+}
+function pmG(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+
+var PM_BPF_HINTS={
+  '':'Captures everything on the interface - best starting point when you are not sure what to look for.',
+  'host __IP__':'Captures all traffic sent to or received from that IP. Useful for isolating a specific device.',
+  'src host __IP__':'Only traffic originating from that IP - useful if the device is flooding or misbehaving.',
+  'dst host __IP__':'Only traffic destined for that IP - useful for seeing what a server is receiving.',
+  'not host __IP__':'Excludes that IP - useful for filtering out your own machine or a noisy device.',
+  'tcp':'TCP traffic only - covers web, file transfers, RDP, SSH, SIP over TCP.',
+  'udp':'UDP traffic only - covers DNS, DHCP, VoIP/RTP, Teams media.',
+  'icmp':'Ping and ICMP messages only - useful for connectivity and routing tests.',
+  'arp':'ARP traffic only - useful for diagnosing IP conflicts or loop/storm investigation.',
+  'not arp and not stp':'Removes ARP and STP broadcast noise - makes captures much cleaner on busy networks.',
+  'port 53':'DNS queries and responses - useful for diagnosing name resolution failures.',
+  'port 80 or port 443':'All web traffic - HTTP and HTTPS combined.',
+  'port 443':'Encrypted web traffic only - TLS handshakes visible even if content is not.',
+  'port 67 or port 68':'DHCP traffic - Discover, Offer, Request, ACK. Essential for DHCP troubleshooting.',
+  'port 5060':'SIP signalling for VoIP - call setup, 401 errors, registration failures.',
+  'udp portrange 3478-3481':'Microsoft Teams media ports - use this to check if Teams UDP is reaching the internet.',
+  'port 445':'SMB file share traffic - slow file copies, authentication failures.',
+  'port 3389':'Remote Desktop (RDP) - connection attempts and session traffic.',
+  'host __IP__ and port 443':'All HTTPS traffic to/from a specific device - isolates encrypted web sessions.',
+  'host __IP__ and port 53':'DNS lookups from a specific device - shows exactly what names it is resolving.',
+  'not broadcast and not multicast':'Unicast traffic only - removes broadcast noise for cleaner analysis.',
+  'tcp and host __IP__':'All TCP connections to/from a specific device - broad but focused.',
+  'custom':'Enter your own BPF filter - see the Filter Reference tab for syntax help.'
+};
+
+var PM_BPF_IP_NEEDED=['host __IP__','src host __IP__','dst host __IP__','not host __IP__','host __IP__ and port 443','host __IP__ and port 53','tcp and host __IP__'];
+
+function pmBpfPreset(){
+  var sel=document.getElementById('pm-bpf-preset');
+  if(!sel) return;
+  var v=sel.value;
+  var isCustom=(v==='custom');
+  var needsIp=PM_BPF_IP_NEEDED.indexOf(v)>-1;
+  // Show/hide groups
+  document.getElementById('pm-bpf-custom-group').style.display=isCustom?'block':'none';
+  document.getElementById('pm-bpf-ip-group').style.display=needsIp?'block':'none';
+  // Update hint
+  var hintEl=document.getElementById('pm-bpf-hint');
+  if(hintEl) hintEl.textContent=PM_BPF_HINTS[v]||'';
+  // Update IP label
+  var ipLabel=document.getElementById('pm-bpf-ip-label');
+  if(ipLabel){
+    if(v==='src host __IP__') ipLabel.textContent='Source IP address';
+    else if(v==='dst host __IP__') ipLabel.textContent='Destination IP address';
+    else if(v==='not host __IP__') ipLabel.textContent='IP address to exclude';
+    else ipLabel.textContent='IP address';
+  }
+  pmGenerate();
+}
+
+function pmGetBpf(){
+  var sel=document.getElementById('pm-bpf-preset');
+  if(!sel) return '';
+  var v=sel.value;
+  if(v==='') return '';
+  if(v==='custom') return (document.getElementById('pm-bpf')?document.getElementById('pm-bpf').value.trim():'');
+  // Replace __IP__ placeholder
+  if(PM_BPF_IP_NEEDED.indexOf(v)>-1){
+    var ip=(document.getElementById('pm-bpf-ip')?document.getElementById('pm-bpf-ip').value.trim():'');
+    return ip?v.replace('__IP__',ip):'';
+  }
+  return v;
+}
+
+var PM_SHELL='ps';
+var PM_SHELL_HINTS={
+  ps:'PowerShell \u2014 native on Windows 10/11. Open via Win+X, Start menu, or search "PowerShell".',
+  cmd:'Command Prompt \u2014 open via Win+R \u2192 cmd, or search "Command Prompt". Works on all Windows versions.',
+  bash:'Bash / WSL \u2014 Linux, macOS, or Windows Subsystem for Linux. On Windows: search "WSL" or "Ubuntu" in Start menu.',
+  gui:'Wireshark GUI \u2014 step-by-step instructions for setting up the capture through the Wireshark interface.'
+};
+function pmSetShell(s){
+  PM_SHELL=s;
+  ['ps','cmd','bash','gui'].forEach(function(k){
+    var b=document.getElementById('pm-stog-'+k);
+    if(b) b.classList.toggle('active',k===s);
+  });
+  var hint=document.getElementById('pm-shell-hint');
+  if(hint) hint.textContent=PM_SHELL_HINTS[s]||'';
+  pmGenerate();
+}
+
+function pmGenerate(){
+  var iface=pmGetIface();
+  var saveDir=pmG('pm-savedir')||'C:\\Captures\\';
+  var prefix=pmG('pm-prefix')||'mirror';
+  var rotSecs=pmG('pm-rot-secs')||'300';
+  var rotFiles=pmG('pm-rot-files')||'36';
+  var bpf=pmGetBpf();
+  var snaplen=pmG('pm-snaplen')||'0';
+  var totalMins=Math.round(parseInt(rotSecs)*parseInt(rotFiles)/60);
+  if(saveDir&&saveDir[saveDir.length-1]!=='\\'&&saveDir[saveDir.length-1]!=='/'){ saveDir+=PM_SHELL==='bash'?'/':'\\'; }
+  var outPattern=saveDir+prefix+'_%d.pcap';
+  var summary='Rotation: every '+rotSecs+'s, keep '+rotFiles+' files ('+totalMins+' min total)';
+
+  var script='';
+  var tsExeWin='"C:\\Program Files\\Wireshark\\tshark.exe"';
+  var tsExeLinux='tshark';
+
+  if(PM_SHELL==='cmd'){
+    var tsCmd=[
+      tsExeWin,
+      '-i "'+iface+'"',
+      '-s '+snaplen,
+      '-b duration:'+rotSecs,
+      '-b files:'+rotFiles,
+      '-w "'+outPattern+'"'
+    ];
+    if(bpf) tsCmd.splice(2,0,'-f "'+bpf+'"');
+    script=[
+      'REM Port Mirror Capture - run in Command Prompt on your PC',
+      'REM '+summary,
+      (bpf?'REM BPF filter: '+bpf:'REM No filter - capturing all traffic'),
+      'REM Interface: '+iface,
+      'REM Output: '+outPattern,
+      'REM',
+      'REM If tshark is not recognised, check Wireshark is installed at:',
+      'REM C:\\Program Files\\Wireshark\\',
+      '',
+      tsCmd.join(' '),
+      '',
+      'REM To open a saved file in Wireshark:',
+      'REM "C:\\Program Files\\Wireshark\\Wireshark.exe" "'+saveDir+prefix+'_001.pcap"',
+      '',
+      'REM When done: disable Port Mirror on the switch (see steps on the left)'
+    ].join('\n');
+  } else if(PM_SHELL==='ps'){
+    var tsCmdPs=[
+      tsExeWin,
+      '-i "'+iface+'"',
+      '-s '+snaplen,
+      '-b duration:'+rotSecs,
+      '-b files:'+rotFiles,
+      '-w "'+outPattern+'"'
+    ];
+    if(bpf) tsCmdPs.splice(2,0,'-f "'+bpf+'"');
+    script=[
+      '# Port Mirror Capture \u2014 run in PowerShell on your PC',
+      '# '+summary,
+      (bpf?'# BPF filter: '+bpf:'# No filter \u2014 capturing all traffic'),
+      '# Interface: '+iface,
+      '# Output: '+outPattern,
+      '',
+      tsCmdPs.join(' '),
+      '',
+      '# To open a saved file in Wireshark:',
+      '# "C:\\Program Files\\Wireshark\\Wireshark.exe" "'+saveDir+prefix+'_001.pcap"',
+      '',
+      '# When done: disable Port Mirror on the switch (see steps on the left)'
+    ].join('\n');
+  } else if(PM_SHELL==='gui'){
+    // Build Wireshark GUI step-by-step instructions
+    var hasRotation=(parseInt(rotSecs)>0&&parseInt(rotFiles)>0);
+    // Build GUI steps as HTML - not a code block
+    var guiHtml='<div class="steps-wrap" style="margin-top:0;">';
+    guiHtml+='<div class="steps-title">Wireshark GUI \u2014 Step by Step</div>';
+
+    var guiData=[
+      {
+        title:'Open Wireshark',
+        body:'Launch Wireshark. On Windows, <strong>right-click \u2192 Run as Administrator</strong> to ensure you have access to all network interfaces.'
+      },
+      {
+        title:'Open Capture Options',
+        body:'Go to <strong>Capture \u2192 Options</strong> (or press <strong>Ctrl+K</strong>). The Capture Options window opens showing all available interfaces.'
+      },
+      {
+        title:'Select your interface',
+        body:'In the interface list find and tick <strong>'+esc(iface)+'</strong>. If it is not visible click <strong>Manage Interfaces</strong> and ensure it is enabled. This is the port connected to the switch mirror port.'
+      },
+      {
+        title: bpf ? 'Set capture filter: <code>'+esc(bpf)+'</code>' : 'Capture filter',
+        body: bpf
+          ? 'In the <strong>Capture filter</strong> box at the bottom of the interface row type: <strong><code>'+esc(bpf)+'</code></strong>. The box turns <span style="color:var(--green);font-weight:600;">green</span> when the syntax is valid. This limits what is captured to just the traffic you need.'
+          : 'Leave the <strong>Capture filter</strong> box empty to capture all traffic on the interface. You can apply a display filter later without losing any packets.'
+      },
+      {
+        title:'Set output file',
+        body:'Click the <strong>Output</strong> tab at the top of the Capture Options window. Set <strong>File</strong> to: <strong>'+esc(saveDir+prefix+'.pcap')+'</strong>. Wireshark will number the files automatically.'
+      },
+      {
+        title: hasRotation ? 'Configure file rotation' : 'File options',
+        body: hasRotation
+          ? 'Still in the Output tab: tick <strong>Create a new file automatically</strong> \u2192 tick <strong>after</strong> and enter <strong>'+rotSecs+' seconds</strong>. Tick <strong>Use a ring buffer with</strong> \u2192 enter <strong>'+rotFiles+' files</strong>. This gives you <strong>'+totalMins+' minutes</strong> of rolling capture ('+rotFiles+' \u00d7 '+rotSecs+'s), overwriting the oldest file when full.'
+          : 'Adjust file options as needed. The output file set above will be overwritten each capture session.'
+      },
+      {
+        title:'Set snap length',
+        body:'Click the <strong>Options</strong> tab. Set <strong>Snap length</strong> to <strong>'+(snaplen==='0'?'0 (captures full packets \u2014 recommended)':snaplen+' bytes')+'</strong>.'
+      },
+      {
+        title:'Start capture',
+        body:'Click <strong>Start</strong>. Packets begin appearing in the main window. Files rotate automatically in the background. Leave it running while you reproduce the issue.'
+      },
+      {
+        title:'Apply a display filter (optional)',
+        body:'While capturing, type a filter in the <strong>display filter bar</strong> at the top of the main window to focus on specific traffic without stopping the capture. Try: <code>ip</code> to see all IP traffic, or <code>tcp.analysis.flags</code> to spot TCP issues.'
+      },
+      {
+        title:'Stop capture',
+        body:'Press the <strong>red square Stop button</strong> in the toolbar, or go to <strong>Capture \u2192 Stop</strong>. Your files are already saved to '+esc(saveDir)+'.'
+      },
+      {
+        title:'Disable port mirror when done',
+        body:'Return to the switch web UI and disable port mirroring (see the steps on the left). <strong>Do this promptly</strong> \u2014 leaving mirroring active degrades switch/router performance and the destination port cannot carry normal traffic while active.'
+      }
+    ];
+
+    guiData.forEach(function(s,i){
+      guiHtml+='<div class="step"><div class="step-num">'+(i+1)+'</div><div><h4>'+s.title+'</h4><p>'+s.body+'</p></div></div>';
+    });
+    guiHtml+='</div>';
+
+    document.getElementById('script-output').innerHTML=guiHtml;
+    document.getElementById('filter-output').style.display='none';
+    document.getElementById('steps-output').style.display='none';
+    return;
+  } else {
+    var tsCmdBash=[
+      tsExeLinux,
+      '-i "'+iface+'"',
+      '-s '+snaplen,
+      '-b duration:'+rotSecs,
+      '-b files:'+rotFiles,
+      '-w "'+outPattern+'"'
+    ];
+    if(bpf) tsCmdBash.splice(2,0,'-f "'+bpf+'"');
+    script=[
+      '#!/usr/bin/env bash',
+      '# Port Mirror Capture \u2014 run in terminal on your PC',
+      '# '+summary,
+      (bpf?'# BPF filter: '+bpf:'# No filter \u2014 capturing all traffic'),
+      '# Interface: '+iface,
+      '# Output: '+outPattern,
+      '',
+      tsCmdBash.join(' '),
+      '',
+      '# To open a saved file in Wireshark:',
+      '# wireshark "'+saveDir+prefix+'_001.pcap"',
+      '',
+      '# When done: disable Port Mirror on the switch (see steps on the left)'
+    ].join('\n');
+  }
+
+  document.getElementById('script-output').innerHTML='<div class="code-block"><button class="copy-btn" onclick="copyText(\'gen-script\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script">'+esc(script)+'</pre></div>';
+  document.getElementById('filter-output').style.display='none';
+  document.getElementById('steps-output').style.display='none';
+}
+function updatePortMirrorModel(){ pmUpdate(); }
+
+
+
+
+function setUnifiType(type){
+  ST_UNIFI_TYPE=type;
+  var cfg=UNIFI_TYPES[type];
+  if(!cfg) return;
+  // Update hint
+  var hintEl=document.getElementById('unifi-type-hint');
+  if(hintEl) hintEl.innerHTML=cfg.hint;
+  // Update warn
+  var warnEl=document.getElementById('unifi-type-warn');
+  if(warnEl){ warnEl.innerHTML=cfg.warn; warnEl.style.display=cfg.warn?'block':'none'; }
+  // Update iface dropdown
+  IFACE_PRESETS.unifi=cfg.ifaces;
+  populateIfaceSelect();
+  // Set default username for this device type
+  var userEl=document.getElementById('f-user');
+  if(userEl && (!userEl.value || Object.keys(UNIFI_TYPES).some(function(k){return UNIFI_TYPES[k].defaultUser===userEl.value;}))) {
+    userEl.value=cfg.defaultUser;
+  }
+  // Ensure pipe mode is default for UniFi
+  if(ST.dest!=='pipe') setDest('pipe');
+  generate();
+}
+
+// ─── METHOD DEFAULT USERS ────────────────────────────────
+var METHOD_DEFAULT_USERS={
+  unifi:null,      // handled per sub-type by setUnifiType
+  sshdump:null,    // no sensible default - varies
+  portmirror:'admin',
+  watchguard:'admin'
+};
+
+// ─── METHOD SELECTION ─────────────────────────────────────
+function selectMethod(m,el){
+  ST.method=m;
+  document.querySelectorAll('.method-tile').forEach(function(t){t.classList.remove('selected');});
+  el.classList.add('selected');
+  document.getElementById('method-extras').innerHTML=METHOD_EXTRAS[m];
+  // For UniFi, initialise sub-type selector (handles username + iface)
+  if(m==='unifi'){
+    ST_UNIFI_TYPE='ap';
+    setUnifiType('ap');
+  } else {
+    populateIfaceSelect();
+    var hint=IFACE_HINTS[m]||'';
+    document.getElementById('iface-info').innerHTML=hint;
+    document.getElementById('iface-info').style.display=hint?'block':'none';
+    // Set default username for non-UniFi methods
+    var defUser=METHOD_DEFAULT_USERS[m];
+    if(defUser){
+      var userEl=document.getElementById('f-user');
+      // Only overwrite if empty or still a known default
+      var knownDefaults=['admin','root','ubnt','ui'];
+      if(userEl && (!userEl.value || knownDefaults.indexOf(userEl.value)>-1)){
+        userEl.value=defUser;
+      }
+    }
+    // DrayTek: initialise model info panel after extras are injected
+    if(m==='portmirror') setTimeout(function(){updatePortMirrorModel();},50);
+  }
+  var cw=document.getElementById('compat-warn');
+  var cwHtml=COMPAT_WARNS[m]||'';
+  cw.innerHTML=cwHtml;
+  cw.style.display=cwHtml?'block':'none';
+  // portmirror: hide irrelevant cards, show only method + portmirror card + output
+  var pmOnly=(m==='portmirror');
+  ['card-connection','card-interface','card-bpf','card-capture'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(el) el.style.display=pmOnly?'none':'block';
+  });
+  var pmCard=document.getElementById('card-portmirror');
+  if(pmCard) pmCard.style.display=pmOnly?'block':'none';
+  var mainToggle=document.getElementById('main-shell-toggle');
+  if(mainToggle) mainToggle.style.display=pmOnly?'none':'flex';
+  if(pmOnly) setTimeout(function(){pmUpdate();},50);
+  // sshdump + portmirror: disable rotation
+  if(m==='sshdump'||m==='portmirror'){
+    setRotation('none');
+    ['rot-time','rot-size','rot-both'].forEach(function(id){
+      var b=document.getElementById(id);
+      if(b){b.disabled=true;b.style.opacity='0.4';b.title='Not available for this method';}
+    });
+  } else {
+    ['rot-time','rot-size','rot-both'].forEach(function(id){
+      var b=document.getElementById(id);
+      if(b){b.disabled=false;b.style.opacity='1';b.title='';}
+    });
+  }
+  generate();
+}
+
+function populateIfaceSelect(){
+  var sel=document.getElementById('f-iface-select');
+  sel.innerHTML='';
+  var presets=ST.method==='unifi'?UNIFI_TYPES[ST_UNIFI_TYPE].ifaces:IFACE_PRESETS[ST.method];
+  if(!presets) return;
+  presets.forEach(function(opt){
+    var o=document.createElement('option');
+    o.value=opt.v; o.textContent=opt.l;
+    sel.appendChild(o);
+  });
+  // Set default interface for this device type
+  var defaultIface=ST.method==='unifi'?UNIFI_TYPES[ST_UNIFI_TYPE].defaultIface:'';
+  if(defaultIface) sel.value=defaultIface;
+  sel.onchange=handleIfaceSelect;
+  handleIfaceSelect();
+}
+
+function handleIfaceSelect(){
+  var v=document.getElementById('f-iface-select').value;
+  var cg=document.getElementById('iface-custom-group');
+  if(v==='custom'){cg.style.display='block';}else{cg.style.display='none';}
+  generate();
+}
+
+function getIface(){
+  var v=document.getElementById('f-iface-select').value;
+  if(v==='custom') return document.getElementById('f-iface-custom').value.trim()||'eth0';
+  return v;
+}
+
+// ─── AUTH ─────────────────────────────────────────────────
+function toggleAuthField(){
+  var auth=g('f-auth');
+  var extra=document.getElementById('auth-extra');
+  var lbl=document.getElementById('auth-extra-label');
+  if(auth==='key'){
+    extra.style.display='block';
+    lbl.textContent='Key path';
+    document.getElementById('f-auth-val').placeholder='~/.ssh/id_rsa';
+  } else if(auth==='sshpass'){
+    extra.style.display='block';
+    lbl.textContent='Password (stored in script - insecure)';
+    document.getElementById('f-auth-val').placeholder='MyPassword123';
+  } else {
+    extra.style.display='none';
+  }
+  generate();
+}
+
+// ─── BPF BUILDER ──────────────────────────────────────────
+var BPF_PROTO_MAP={
+  tcp:'tcp', udp:'udp', icmp:'icmp', arp:'arp',
+  dns:'port 53', http:'tcp port 80', https:'tcp port 443',
+  dhcp:'udp port 67 or udp port 68',
+  sip:'udp port 5060 or tcp port 5060',
+  ntp:'udp port 123', smb:'tcp port 445', rdp:'tcp port 3389'
+};
+
+var BPF_WS_MAP={
+  tcp:'tcp', udp:'udp', icmp:'icmp', arp:'arp',
+  dns:'dns', http:'http', https:'tls',
+  dhcp:'dhcp', sip:'sip', ntp:'ntp', smb:'smb', rdp:'rdp'
+};
+
+function toggleChip(el,group,key){
+  el.classList.toggle('active');
+  ST.bpfProtos[key]=el.classList.contains('active');
+  generate();
+}
+
+function toggleBpfSection(hdr){
+  hdr.classList.toggle('open');
+  hdr.nextElementSibling.classList.toggle('open');
+}
+
+var hostModeActive=null;
+var portModeActive=null;
+
+function setBpfHostMode(mode){
+  hostModeActive=hostModeActive===mode?null:mode;
+  document.querySelectorAll('#bpf-host-group').forEach(function(){});
+  var chips=document.querySelectorAll('.bpf-section-body .bpf-chip-group');
+  // Update chip appearance - find host chips
+  var hostBody=document.querySelectorAll('.bpf-section')[1].querySelector('.bpf-chip-group');
+  hostBody.querySelectorAll('.bpf-chip').forEach(function(c){
+    c.classList.toggle('active', c.getAttribute('onclick').indexOf("'"+mode+"'")>-1 && hostModeActive===mode);
+  });
+  var hg=document.getElementById('bpf-host-group');
+  if(hostModeActive){
+    hg.style.display='block';
+    var hints={host:'Single host IP or hostname',net:'e.g. 192.168.1.0/24',src:'Source IP only',dst:'Destination IP only',not:'Exclude this host from capture'};
+    document.getElementById('bpf-host-hint').textContent=hints[mode]||'';
+    document.getElementById('bpf-host-val').placeholder=mode==='net'?'192.168.1.0/24':'192.168.1.100';
+  } else {
+    hg.style.display='none';
+  }
+  generate();
+}
+
+function setBpfPortMode(mode){
+  portModeActive=portModeActive===mode?null:mode;
+  var portBody=document.querySelectorAll('.bpf-section')[2].querySelector('.bpf-chip-group');
+  portBody.querySelectorAll('.bpf-chip').forEach(function(c){
+    c.classList.toggle('active', c.getAttribute('onclick').indexOf("'"+mode+"'")>-1 && portModeActive===mode);
+  });
+  var pg=document.getElementById('bpf-port-group');
+  var pg2=document.getElementById('bpf-port2-group');
+  if(portModeActive){
+    pg.style.display='block';
+    var phints={port:'Port number (e.g. 8080)',portrange:'Start port',not:'Exclude this port'};
+    document.getElementById('bpf-port-hint').textContent=phints[mode]||'';
+    pg2.style.display=mode==='portrange'?'block':'none';
+  } else {
+    pg.style.display='none';
+    pg2.style.display='none';
+  }
+  generate();
+}
+
+function assembleBpf(){
+  var parts=[];
+  // Protocols
+  var activeProt=Object.keys(ST.bpfProtos).filter(function(k){return ST.bpfProtos[k];});
+  if(activeProt.length){
+    var protoStr=activeProt.map(function(k){return BPF_PROTO_MAP[k];}).join(' or ');
+    parts.push(activeProt.length>1?'('+protoStr+')':protoStr);
+  }
+  // Host
+  if(hostModeActive){
+    var hv=g('bpf-host-val');
+    if(hv){
+      if(hostModeActive==='host') parts.push('host '+hv);
+      else if(hostModeActive==='net') parts.push('net '+hv);
+      else if(hostModeActive==='src') parts.push('src host '+hv);
+      else if(hostModeActive==='dst') parts.push('dst host '+hv);
+      else if(hostModeActive==='not') parts.push('not host '+hv);
+    }
+  }
+  // Port
+  if(portModeActive){
+    var pv=g('bpf-port-val');
+    var pv2=g('bpf-port-val2');
+    if(pv){
+      if(portModeActive==='port') parts.push('port '+pv);
+      else if(portModeActive==='portrange'&&pv2) parts.push('portrange '+pv+'-'+pv2);
+      else if(portModeActive==='not') parts.push('not port '+pv);
+    }
+  }
+  return parts.join(' and ');
+}
+
+function assembleWsFilter(){
+  var parts=[];
+  var activeProt=Object.keys(ST.bpfProtos).filter(function(k){return ST.bpfProtos[k];});
+  if(activeProt.length){
+    var wsProts=activeProt.map(function(k){return BPF_WS_MAP[k];});
+    parts.push(wsProts.length>1?'('+wsProts.join(' || ')+')':wsProts[0]);
+  }
+  if(hostModeActive){
+    var hv=g('bpf-host-val');
+    if(hv){
+      if(hostModeActive==='host') parts.push('ip.addr == '+hv);
+      else if(hostModeActive==='net') parts.push('ip.addr == '+hv);
+      else if(hostModeActive==='src') parts.push('ip.src == '+hv);
+      else if(hostModeActive==='dst') parts.push('ip.dst == '+hv);
+      else if(hostModeActive==='not') parts.push('!ip.addr == '+hv);
+    }
+  }
+  if(portModeActive){
+    var pv=g('bpf-port-val');
+    var pv2=g('bpf-port-val2');
+    if(pv){
+      if(portModeActive==='port') parts.push('tcp.port == '+pv+' || udp.port == '+pv);
+      else if(portModeActive==='portrange'&&pv2) parts.push('(tcp.port >= '+pv+' && tcp.port <= '+pv2+')');
+      else if(portModeActive==='not') parts.push('!(tcp.port == '+pv+' || udp.port == '+pv+')');
+    }
+  }
+  return parts.join(' && ');
+}
+
+// ─── ROTATION ─────────────────────────────────────────────
+function setRotation(mode){
+  ST.rotation=mode;
+  ['none','time','size','both'].forEach(function(m){
+    var b=document.getElementById('rot-'+m);
+    if(b) b.classList.toggle('active',m===mode);
+  });
+  var isRot=(mode!=='none');
+  document.getElementById('rot-fields-none').style.display=isRot?'none':'block';
+  document.getElementById('rot-fields-rotating').style.display=isRot?'block':'none';
+  var hasTime=(mode==='time'||mode==='both');
+  var hasSize=(mode==='size'||mode==='both');
+  document.getElementById('rot-time-fields').style.display=hasTime?'block':'none';
+  document.getElementById('rot-size-fields').style.display=hasSize?'block':'none';
+  // Pipe mode incompatible with rotation
+  if(isRot && ST.dest==='pipe'){
+    setDest('scp');
+  }
+  generate();
+}
+
+document.getElementById('f-rot-files').addEventListener('change',function(){
+  document.getElementById('rot-files-custom-group').style.display=this.value==='custom'?'block':'none';
+  generate();
+});
+// ─── DEST TOGGLE ─────────────────────────────────────────
+function setDest(d){
+  ST.dest=d;
+  document.getElementById('dest-scp').classList.toggle('active',d==='scp');
+  document.getElementById('dest-pipe').classList.toggle('active',d==='pipe');
+  document.getElementById('dest-scp-fields').style.display=d==='scp'?'block':'none';
+  document.getElementById('dest-pipe-fields').style.display=d==='pipe'?'block':'none';
+  generate();
+}
+
+// ─── SNAPLEN ──────────────────────────────────────────────
+document.getElementById('f-snaplen').addEventListener('change',function(){
+  document.getElementById('snaplen-custom-group').style.display=this.value==='custom'?'block':'none';
+  generate();
+});
+
+function handleRemotePathSel(){
+  var v=document.getElementById('f-remote-path-sel').value;
+  document.getElementById('remote-path-custom-group').style.display=v==='custom'?'block':'none';
+  generate();
+}
+
+function getRemotePath(){
+  var v=document.getElementById('f-remote-path-sel').value;
+  return v==='custom'?(g('f-remote-path-custom')||'/tmp/capture.pcap'):v;
+}
+
+function getSnaplen(){
+  var v=document.getElementById('f-snaplen').value;
+  return v==='custom'?(g('f-snaplen-custom')||'65535'):v;
+}
+
+function getRotSecs(){
+  var val=parseInt(g('f-rot-secs')||'10',10);
+  var unit=parseInt(g('f-rot-secs-unit')||'60',10);
+  return val*unit;
+}
+function getRotMB(){
+  var val=parseInt(g('f-rot-mb')||'100',10);
+  var unit=parseInt(g('f-rot-mb-unit')||'1',10);
+  return val*unit;
+}
+function getRotFiles(){
+  var v=document.getElementById('f-rot-files').value;
+  return v==='custom'?(parseInt(g('f-rot-files-custom')||'10',10)):parseInt(v,10);
+}
+function getRotRemoteDir(){ return g('f-rot-remote-dir')||'/tmp/cap'; }
+function getRotLocalDir(){ return g('f-rot-local-dir')||(ST.shell==='ps'?'C:\\Captures\\':'~/captures/'); }
+// ─── SHELL TOGGLE ─────────────────────────────────────────
+function switchShell(s){
+  ST.shell=s;
+  document.getElementById('stog-ps').classList.toggle('active',s==='ps');
+  document.getElementById('stog-bash').classList.toggle('active',s==='bash');
+  generate();
+}
+
+// ─── HELPER ──────────────────────────────────────────────
+function g(id){var el=document.getElementById(id);return el?el.value.trim():'';}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ─── GENERATE ─────────────────────────────────────────────
+function generate(){
+  var host=g('f-host'), user=g('f-user'), port=g('f-port')||'22';
+  var iface=getIface();
+  var bpfRaw=assembleBpf();
+  var bpfOverride=g('bpf-override');
+  var bpfFinal=bpfOverride||bpfRaw;
+  var snaplen=getSnaplen();
+  var count=g('f-count')||'0';
+  var duration=g('f-duration')||'0';
+  var authMode=g('f-auth');
+  var authVal=g('f-auth-val');
+
+  // Update assembled BPF display
+  var asmEl=document.getElementById('bpf-assembled');
+  if(asmEl){
+    if(bpfRaw){asmEl.innerHTML=esc(bpfRaw);}
+    else{asmEl.innerHTML='<span class="placeholder">No filter \u2014 captures all traffic</span>';}
+  }
+
+  if(!host||!user){
+    // Port mirror doesn't need SSH credentials - generate anyway
+    if(ST.method!=='portmirror'){
+      document.getElementById('script-output').innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><p>Enter a host and username<br>to generate your script.</p></div>';
+      document.getElementById('filter-output').style.display='none';
+      document.getElementById('steps-output').style.display='none';
+      return;
+    }
+  }
+
+  // Build SSH/SCP base strings (same for both shells)
+  var sshBase, scpBase, authNote;
+  if(authMode==='key'&&authVal){
+    sshBase='ssh -i "'+authVal+'" -p '+port+' '+user+'@'+host;
+    scpBase='scp -i "'+authVal+'" -P '+port;
+    authNote='# Auth: SSH key ('+authVal+')';
+  } else if(authMode==='sshpass'&&authVal){
+    sshBase='sshpass -p "'+authVal+'" ssh -p '+port+' '+user+'@'+host;
+    scpBase='sshpass -p "'+authVal+'" scp -P '+port;
+    authNote='# Auth: sshpass (WARNING: password visible in script)';
+  } else {
+    sshBase='ssh -p '+port+' '+user+'@'+host;
+    scpBase='scp -P '+port;
+    authNote='# Auth: password prompt';
+  }
+
+  var script='';
+  var isRotating=(ST.rotation!=='none');
+
+  if(ST.method==='portmirror'){
+    pmGenerate();
+    return;
+  } else if(ST.method==='sshdump'){
+    script=buildSshdump(host,user,port,iface,bpfFinal,authMode,authVal);
+  } else if(isRotating){
+    script=buildRotatingScript(host,user,port,sshBase,scpBase,iface,snaplen,bpfFinal,authNote);
+  } else {
+    var remotePath=getRemotePath();
+    var localPath=(ST.dest==='scp'?g('f-local-path'):g('f-pipe-local-path'))||(ST.shell==='ps'?'C:\\Captures\\capture.pcap':'~/capture.pcap');
+    var tcpArgs=['-i',iface,'-s',snaplen];
+    if(bpfFinal) tcpArgs.push("'"+bpfFinal+"'");
+    if(count!=='0') tcpArgs.push('-c',count);
+    var tcpdump='tcpdump '+tcpArgs.join(' ')+' -w '+remotePath;
+    if(duration!=='0') tcpdump='timeout '+duration+' '+tcpdump;
+    if(ST.dest==='scp'){
+      script=buildScpScript(ST.method,host,user,port,sshBase,scpBase,tcpdump,remotePath,localPath,authNote,bpfFinal);
+    } else {
+      script=buildPipeScript(ST.method,host,user,port,sshBase,iface,snaplen,bpfFinal,count,duration,localPath,authNote);
+    }
+  }
+
+  // WS filter
+  var wsFilter=assembleWsFilter();
+  if(!wsFilter&&host) wsFilter='ip.addr == '+host;
+
+  // Render
+  document.getElementById('script-output').innerHTML='<div class="code-block"><button class="copy-btn" onclick="copyText(\'gen-script\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script">'+esc(script)+'</pre></div>';
+
+  document.getElementById('filter-text').textContent=wsFilter;
+  document.getElementById('filter-output').style.display=wsFilter?'block':'none';
+
+  // Steps
+  var stepsData=METHOD_STEPS[ST.method]||[];
+  var stHtml='';
+  stepsData.forEach(function(s,i){
+    var codeStr=typeof s.code==='function'?s.code():s.code||'';
+    stHtml+='<div class="step"><div class="step-num">'+(i+1)+'</div><div><h4>'+s.title+'</h4><p>'+s.body+'</p>'+(codeStr?'<code>'+esc(codeStr)+'</code>':'')+'</div></div>';
+  });
+  document.getElementById('steps-list').innerHTML=stHtml;
+  document.getElementById('steps-output').style.display=stHtml?'block':'none';
+}
+
+function buildPortMirrorCapture(bpf){
+  var modelSel=document.getElementById('f-pm-model');
+  var modelKey=modelSel?modelSel.value:'2865';
+  var m=PORTMIRROR_MODELS[modelKey]||PORTMIRROR_MODELS['2865'];
+  var localPath=g('f-local-path')||(ST.shell==='ps'?'C:\\Captures\\draytek_capture.pcap':'~/draytek_capture.pcap');
+  var wsFilter=assembleWsFilter()||bpf||'';
+  // Build Wireshark CLI command for the mirror port
+  // User runs this on their PC after connecting to the mirror port
+  var iface=getIface()||'Ethernet'; // on Windows this is the adapter name
+  var wsCapFilter=bpf||'';
+
+  if(ST.shell==='ps'){
+    var lines=[
+      '# DrayTek Port Mirror \u2014 Wireshark Capture Command',
+      '# Run this on your PC AFTER:',
+      '#   1. Enabling LAN Port Mirror on the DrayTek (see steps below)',
+      '#   2. Plugging your PC Ethernet into the mirror destination port',
+      '#   3. Your PC adapter will show as "'+iface+'" \u2014 adjust if different',
+      '',
+      '"C:\\Program Files\\Wireshark\\tshark.exe" -i "'+iface+'"'+(wsCapFilter?' -f "'+wsCapFilter+'"':'')+(localPath?' -w "'+localPath+'"':''),
+      '',
+      '# \u26a0\ufe0f When done: disable LAN Port Mirror on the DrayTek',
+      '# (Configuration \u2192 LAN \u2192 LAN Port Mirror \u2192 Disabled \u2192 Apply)',
+      '# The mirror port re-joins the LAN and normal traffic resumes on that port'
+    ].filter(function(l){return l!==undefined&&l!=='';}).join('\n');
+    return lines;
+  } else {
+    return [
+      '#!/usr/bin/env bash',
+      '# DrayTek Port Mirror \u2014 Wireshark Capture Command',
+      '# Run on your PC AFTER connecting to the mirror port on the DrayTek',
+      '',
+      'IFACE="'+iface+'"  # adjust to your Ethernet interface (ip link show)',
+      (wsCapFilter?'FILTER="'+wsCapFilter+'"':'# No BPF filter \u2014 captures all traffic'),
+      '',
+      'tshark -i "$IFACE"'+(wsCapFilter?' -f "$FILTER"':'')+(localPath?' -w "'+localPath+'"':''),
+      '',
+      '# \u26a0\ufe0f When done: disable LAN Port Mirror on the DrayTek',
+      '# (Configuration \u2192 LAN \u2192 LAN Port Mirror \u2192 Disabled \u2192 Apply)',
+      '# The mirror port re-joins the LAN and normal traffic resumes on that port'
+    ].filter(function(l){return l!==undefined;}).join('\n');
+  }
+}
+  function buildScpScript(method,host,user,port,sshBase,scpBase,tcpdump,remotePath,localPath,authNote,bpf){
+var label={'unifi':'UniFi SSH + tcpdump','portmirror':'DrayTek SSH + tcpdump','watchguard':'WatchGuard Fireware SSH + tcpdump'}[method]||'Remote tcpdump';
+  if(ST.shell==='ps'){
+    return [
+      '# '+label+' - Remote file then SCP',
+      authNote,
+      '# Target: '+host,
+      '',
+      '# Step 1 - Start capture on remote device',
+      '# (Ctrl+C or wait for packet/time limit to stop)',
+      sshBase+' "'+tcpdump+'"',
+      '',
+      '# Step 2 - Copy PCAP to local machine',
+      scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
+      '',
+      '# Step 3 - Clean up remote temp file',
+      sshBase+' "rm '+remotePath+'"',
+      '',
+      'Write-Host "Done. Capture saved to: '+localPath+'" -ForegroundColor Green'
+    ].join('\n');
+  } else {
+    return [
+      '#!/usr/bin/env bash',
+      '# '+label+' - Remote file then SCP',
+      authNote,
+      '# Target: '+host,
+      '',
+      '# Step 1 - Start capture on remote device',
+      '# (Ctrl+C or wait for packet/time limit to stop)',
+      sshBase+' "'+tcpdump+'"',
+      '',
+      '# Step 2 - Copy PCAP to local machine',
+      scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
+      '',
+      '# Step 3 - Clean up remote temp file',
+      sshBase+' "rm '+remotePath+'"',
+      '',
+      'echo "Done. Capture saved to: '+localPath+'"'
+    ].join('\n');
+  }
+}
+
+function buildRotatingScript(host,user,port,sshBase,scpBase,iface,snaplen,bpf,authNote){
+  var label={'unifi':'UniFi','portmirror':'DrayTek','watchguard':'WatchGuard'}[ST.method]||'Remote';
+  var rotFiles=getRotFiles();
+  var remoteDir=getRotRemoteDir();
+  var localDir=getRotLocalDir();
+  var hasTime=(ST.rotation==='time'||ST.rotation==='both');
+  var hasSize=(ST.rotation==='size'||ST.rotation==='both');
+  var rotSecs=hasTime?getRotSecs():0;
+  var rotMB=hasSize?getRotMB():0;
+
+  // tcpdump flags: -G (secs), -C (MB, no unit suffix), -W (file count), -w pattern
+  // -w must use strftime patterns for rotation; tcpdump on embedded devices may vary
+  var tcpBase='tcpdump -i '+iface+' -s '+snaplen;
+  if(bpf) tcpBase+=" '"+bpf+"'";
+  if(hasTime) tcpBase+=' -G '+rotSecs;
+  if(hasSize) tcpBase+=' -C '+rotMB;
+  tcpBase+=' -W '+rotFiles;
+  // Use %Y%m%d_%H%M%S pattern - supported by tcpdump >= 4.x with strftime
+  var remotePattern=remoteDir+'_%Y%m%d_%H%M%S.pcap';
+  tcpBase+=' -w '+remotePattern;
+
+  var rotNote='';
+  if(hasTime) rotNote+='# Rotates every '+rotSecs+'s';
+  if(hasSize) rotNote+=(rotNote?' + ':' # ')+rotMB+'MB max per file';
+  rotNote+=' | keeps last '+rotFiles+' files (circular)';
+
+  if(ST.shell==='ps'){
+    var scpLoop='';
+    if(ST.dest==='scp'){
+      scpLoop=[
+        '',
+        '# Step 2 - Watch for completed files and SCP each one locally',
+        '# Run this in a separate PowerShell window while capture is running',
+        '$RemoteDir  = "'+remoteDir+'"',
+        '$LocalDir   = "'+localDir+'"',
+        '$Seen = @{}',
+        'while ($true) {',
+        '    $Files = ('+sshBase+' "ls ${RemoteDir}_*.pcap 2>/dev/null").Split()',
+        '    foreach ($F in $Files) {',
+        '        if ($F -and -not $Seen[$F]) {',
+        '            $Name = Split-Path $F -Leaf',
+        '            '+scpBase+' '+user+'@'+host+':$F "$LocalDir$Name"',
+        '            Write-Host "Pulled: $Name" -ForegroundColor Green',
+        '            $Seen[$F] = $true',
+        '        }',
+        '    }',
+        '    Start-Sleep -Seconds 30',
+        '}',
+      ].join('\n');
+    }
+    return [
+      '# '+label+' - Rotating Capture',
+      authNote,
+      rotNote,
+      '# NOTE: Requires tcpdump >= 4.x on device for -G/-C/-W flags',
+      '# NOTE: UniFi and most Linux-based devices support this natively',
+      '',
+      '# Step 1 - Start rotating capture on remote device',
+      '# Files written to: '+remotePattern,
+      sshBase+' "'+tcpBase+'"',
+      scpLoop,
+      '',
+      '# Step 3 - When done, clean up all rotation files on device',
+      sshBase+' "rm -f '+remoteDir+'_*.pcap"',
+      '',
+      'Write-Host "Rotating capture complete" -ForegroundColor Green'
+    ].filter(function(l){return l!==undefined;}).join('\n');
+  } else {
+    var scpBash='';
+    if(ST.dest==='scp'){
+      scpBash=[
+        '',
+        '# Step 2 - In a separate terminal: watch and pull completed files',
+        'REMOTE_DIR="'+remoteDir+'"',
+        'LOCAL_DIR="'+localDir+'"',
+        'declare -A SEEN',
+        'while true; do',
+        '  for F in $('+sshBase+' "ls ${REMOTE_DIR}_*.pcap 2>/dev/null"); do',
+        '    if [[ -z "${SEEN[$F]}" ]]; then',
+        '      NAME=$(basename "$F")',
+        '      '+scpBase+' '+user+'@'+host+':"$F" "${LOCAL_DIR}${NAME}"',
+        '      echo "Pulled: $NAME"',
+        '      SEEN[$F]=1',
+        '    fi',
+        '  done',
+        '  sleep 30',
+        'done',
+      ].join('\n');
+    }
+    return [
+      '#!/usr/bin/env bash',
+      '# '+label+' - Rotating Capture',
+      authNote,
+      rotNote,
+      '# NOTE: Requires tcpdump >= 4.x on device for -G/-C/-W flags',
+      '',
+      '# Step 1 - Start rotating capture on remote device',
+      '# Files written to: '+remotePattern,
+      sshBase+' "'+tcpBase+'"',
+      scpBash,
+      '',
+      '# Step 3 - When done, clean up rotation files on device',
+      sshBase+' "rm -f '+remoteDir+'_*.pcap"',
+      '',
+      'echo "Rotating capture complete"'
+    ].filter(function(l){return l!==undefined;}).join('\n');
+  }
+}
+function buildPipeScript(method,host,user,port,sshBase,iface,snaplen,bpf,count,duration,localPath,authNote){
+  var label={'unifi':'UniFi','portmirror':'DrayTek','watchguard':'WatchGuard'}[method]||'Remote';
+  var tcpdumpArgs='tcpdump -i '+iface+' -s '+snaplen+(bpf?" '"+bpf+"'":'')+(count!=='0'?' -c '+count:'');
+  if(duration!=='0') tcpdumpArgs='timeout '+duration+' '+tcpdumpArgs;
+  var tcpdumpPipe=tcpdumpArgs+' -w -';
+
+  if(ST.shell==='ps'){
+    return [
+      '# '+label+' \u2014 Pipe direct to local file',
+      authNote,
+      '# Traffic piped over SSH into a local file \u2014 no temp file on the device',
+      '# Target: '+host,
+      '',
+      '# Requires OpenSSH in PATH (built-in on Windows 10+)',
+      sshBase+' "'+tcpdumpPipe+'" | Set-Content -Path "'+localPath+'" -Encoding Byte',
+      '',
+      '# Alternative using plink (PuTTY):',
+      '# plink -P '+port+' '+user+'@'+host+' "'+tcpdumpPipe+'" | Set-Content "'+localPath+'" -Encoding Byte',
+      '',
+      'Write-Host "Streaming to: '+localPath+'" -ForegroundColor Cyan',
+      'Write-Host "Press Ctrl+C to stop capture" -ForegroundColor Yellow'
+    ].join('\n');
+  } else {
+    return [
+      '#!/usr/bin/env bash',
+      '# '+label+' \u2014 Pipe direct to local file',
+      authNote,
+      '# Traffic piped over SSH into a local file \u2014 no temp file on the device',
+      '# Target: '+host,
+      '',
+      sshBase+' "'+tcpdumpPipe+'" > "'+localPath+'"',
+      '',
+      '# OR stream straight into Wireshark for live view:',
+      '# '+sshBase+' "'+tcpdumpPipe+'" | wireshark -k -i -',
+      '',
+      'echo "Streaming to: '+localPath+'"',
+      'echo "Press Ctrl+C to stop capture"'
+    ].join('\n');
+  }
+}
+
+function buildSshdump(host,user,port,iface,bpf,authMode,authVal){
+  var authFlag='';
+  if(authMode==='key'&&authVal){
+    authFlag=' --sshkey "'+authVal+'"';
+  }
+  if(ST.shell==='ps'){
+    var wsPath='C:\\Program Files\\Wireshark\\sshdump.exe';
+    var wsPathSel=document.getElementById('f-ws-path-sel');
+    if(wsPathSel){
+      var sv=wsPathSel.value;
+      wsPath=sv==='default-linux'?'/usr/lib/wireshark/extcap/sshdump':(sv==='custom'?g('f-ws-path-custom')||wsPath:wsPath);
+    }
+    return [
+      '# Wireshark sshdump - Live capture direct into Wireshark',
+      '# Opens as a Wireshark named pipe - requires Wireshark to be running',
+      '',
+      '$SSHDump = "'+wsPath+'"',
+      '$Host    = "'+host+'"',
+      '$Port    = "'+port+'"',
+      '$User    = "'+user+'"',
+      '$Iface   = "'+iface+'"',
+      bpf ? '$BPF     = \''+bpf+'\'' : '',
+      '',
+      '# Option A: Run sshdump from PowerShell',
+      '& $SSHDump --extcap-interface=sshdump --capture \\',
+      '  --remote-host $Host --remote-port $Port \\',
+      '  --remote-username $User --remote-interface $Iface \\',
+      (bpf ? '  --remote-capture-filter $BPF \\' : ''),
+      '  --fifo=\\\\.\pipe\\wireshark',
+      authFlag ? '  '+authFlag : '',
+      '',
+      '# Option B: Wireshark GUI',
+      '# Capture > Options > Manage Interfaces > Remote Interfaces',
+      '# Host: '+host+'  Port: '+port+'  User: '+user+'  Interface: '+iface,
+      bpf ? '# Capture filter: '+bpf : ''
+    ].filter(function(l){return l!=='';}).join('\n');
+  } else {
+    return [
+      '#!/usr/bin/env bash',
+      '# Wireshark sshdump - Live capture direct into Wireshark',
+      '',
+      'SSHDUMP="/usr/lib/wireshark/extcap/sshdump"',
+      'REMOTE_HOST="'+host+'"',
+      'SSH_PORT="'+port+'"',
+      'SSH_USER="'+user+'"',
+      'REMOTE_IFACE="'+iface+'"',
+      bpf ? 'BPF_FILTER=\''+bpf+'\'' : '',
+      '',
+      '# Option A: Launch sshdump directly',
+      '$SSHDUMP --extcap-interface=sshdump --capture \\',
+      '  --remote-host "$REMOTE_HOST" --remote-port "$SSH_PORT" \\',
+      '  --remote-username "$SSH_USER" --remote-interface "$REMOTE_IFACE" \\',
+      (bpf ? '  --remote-capture-filter "$BPF_FILTER" \\' : ''),
+      '  --fifo=/tmp/ws_pipe'+authFlag,
+      '',
+      '# Option B: Pipe directly into Wireshark',
+      'ssh -p "$SSH_PORT" "${SSH_USER}@${REMOTE_HOST}" \\',
+      '  "tcpdump -i $REMOTE_IFACE -s 0'+(bpf?" '"+bpf+"'":'')+" -w -\" | wireshark -k -i -"
+    ].filter(function(l){return l!=='';}).join('\n');
+  }
+}
+
+// ─── PCAP ANALYSIS ───────────────────────────────────────
+function handleDragOver(e){e.preventDefault();document.getElementById('drop-zone').classList.add('drag-over');}
+function handleDragLeave(){document.getElementById('drop-zone').classList.remove('drag-over');}
+function handleDrop(e){e.preventDefault();document.getElementById('drop-zone').classList.remove('drag-over');var f=e.dataTransfer.files[0];if(f)analysePcap(f);}
+function handleFileSelect(e){if(e.target.files[0])analysePcap(e.target.files[0]);}
+
+var WARN_MB=100, HARD_MB=500, _pendingFile=null;
+
+function analysePcap(file){
+  _pendingFile=file;
+  var mb=file.size/1048576;
+  if(mb>HARD_MB){showSizeWarn(file,mb,true);return;}
+  if(mb>WARN_MB){showSizeWarn(file,mb,false);return;}
+  startAnalysis(file);
+}
+
+function showSizeWarn(file,mb,hard){
+  var ms=mb.toFixed(1), fn=file.name;
+  var c50='editcap -c 50000 "'+fn+'" "split_'+fn+'"';
+  var cti='editcap -i 300 "'+fn+'" "split_'+fn+'"';
+  var procBtn=hard?'':'<button class="btn-primary" id="sw-proceed">Analyse anyway ('+ms+' MB)</button>';
+  var topMsg=hard
+    ?('<p>Files over '+HARD_MB+' MB are likely to freeze or crash the browser. Split with <strong>editcap</strong> first, then analyse each chunk.</p>')
+    :('<p>Files over '+WARN_MB+' MB may take a while and could freeze the tab temporarily. Proceed anyway, or split first using <strong>editcap</strong> (bundled with Wireshark).</p>');
+  var note='editcap is bundled with Wireshark - C:\\Program Files\\Wireshark\\editcap.exe on Windows, or run directly on Linux/Mac.';
+  var rows=[
+    '<div class="size-warn">',
+    '<h3><span style="font-size:16px;">⚠️</span> '+ms+' MB - '+(hard?'too large to analyse directly':'large file detected')+'</h3>',
+    topMsg,
+    '<p style="font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:600;">Split by packet count (50k per file):</p>',
+    '<div class="editcap-block" style="position:relative">',
+    '<pre id="sw-c50">'+esc(c50)+'</pre>',
+    '<button class="copy-btn" id="sw-cp50" style="position:absolute;top:8px;right:8px;">Copy</button>',
+    '</div>',
+    '<p style="font-size:12px;color:var(--text-2);margin-bottom:6px;font-weight:600;">Split by time (5-minute chunks):</p>',
+    '<div class="editcap-block" style="position:relative">',
+    '<pre id="sw-cti">'+esc(cti)+'</pre>',
+    '<button class="copy-btn" id="sw-cpti" style="position:absolute;top:8px;right:8px;">Copy</button>',
+    '</div>',
+    '<p style="font-size:11px;color:var(--text-3);margin-bottom:12px;">'+esc(note)+'</p>',
+    '<div class="size-warn-actions">',
+    procBtn,
+    '<button class="btn-secondary" id="sw-back">← Choose a different file</button>',
+    '</div></div>'
+  ];
+  document.getElementById('drop-wrap').style.display='none';
+  document.getElementById('size-warn-wrap').innerHTML=rows.join('');
+  document.getElementById('size-warn-wrap').style.display='block';
+  var b50=document.getElementById('sw-cp50');
+  var bti=document.getElementById('sw-cpti');
+  var bk=document.getElementById('sw-back');
+  var bp=document.getElementById('sw-proceed');
+  if(b50) b50.addEventListener('click',function(){copyByElemId('sw-c50');});
+  if(bti) bti.addEventListener('click',function(){copyByElemId('sw-cti');});
+  if(bk)  bk.addEventListener('click',resetAnalysis);
+  if(bp)  bp.addEventListener('click',proceedAnyway);
+}
+function proceedAnyway(){
+  document.getElementById('size-warn-wrap').style.display='none';
+  if(_pendingFile) startAnalysis(_pendingFile);
+}
+
+function startAnalysis(file){
+  document.getElementById('drop-wrap').style.display='none';
+  document.getElementById('size-warn-wrap').style.display='none';
+  document.getElementById('progress-wrap').innerHTML='<div class="progress-wrap"><h3>Analysing '+esc(file.name)+'</h3><p>Parsing packets in your browser - nothing is uploaded</p><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div><div class="progress-pct" id="prog-pct">0%</div></div>';
+  document.getElementById('progress-wrap').style.display='block';
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var buf=new Uint8Array(e.target.result);
+    setTimeout(function(){parsePcapAsync(buf,file.name,file.size,function(r){
+      document.getElementById('progress-wrap').style.display='none';
+      renderAnalysis(r);
+    });},50);
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function setProgress(pct){
+  var f=document.getElementById('prog-fill'), l=document.getElementById('prog-pct');
+  if(f)f.style.width=pct+'%';
+  if(l)l.textContent=Math.round(pct)+'%';
+}
+
+function parsePcapAsync(buf,fname,fsize,cb){
+  var res=parsePcapHeader(buf,fname,fsize);
+  if(!res.valid||res.pcapng){setProgress(100);setTimeout(function(){cb(res);},50);return;}
+  var r32=res._le?function(o){return r32le(buf,o);}:function(o){return r32be(buf,o);};
+  var snaplen=r32(16), lt=r32(20), o=24, total=buf.length;
+  var s=res._s, seen=res._seen;
+  function chunk(){
+    var dl=Date.now()+16, pk=0;
+    while(o+16<=buf.length&&pk<2000&&Date.now()<dl){
+      var ts=r32(o),incl=r32(o+8),orig=r32(o+12); o+=16;
+      if(incl>buf.length-o)break;
+      if(res.count===0)s.t0=ts; s.t1=ts;
+      s.bytes+=orig;
+      if(orig>snaplen&&snaplen>0)s.trunc++;
+      if(orig>9000)s.giant++;
+      var p=buf.slice(o,o+incl); o+=incl; res.count++;
+      if(lt===1)parsePacket(p,s,seen,ts);
+      pk++;
+    }
+    setProgress(Math.min(99,o/total*100));
+    if(o+16<=buf.length){setTimeout(chunk,0);}
+    else{
+      setProgress(100);
+      res.dur=s.t1-s.t0; res.bytes=s.bytes; res.tcp=s.tcp; res.udp=s.udp;
+      buildFindings(res,s);
+      setTimeout(function(){cb(res);},50);
+    }
+  }
+  setTimeout(chunk,0);
+}
+
+function parsePcapHeader(buf,fname,fsize){
+  var res={fname:fname,fsize:fsize,valid:false,pcapng:false,count:0,findings:[],dur:0,_le:false};
+  if(buf.length<24){res.findings.push({sev:'critical',title:'File too small',desc:'Not a valid PCAP.',count:''});return res;}
+  var magic=(buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3];
+  if(magic===0xa1b2c3d4||magic===0xa1b23c4d){res.valid=true;}
+  else if(magic===0xd4c3b2a1||magic===0x4d3cb2a1){res._le=true;res.valid=true;}
+  else if(magic===0x0a0d0d0a){res.valid=true;res.pcapng=true;}
+  if(!res.valid){res.findings.push({sev:'critical',title:'Invalid file',desc:'Magic bytes 0x'+magic.toString(16).toUpperCase()+' \u2014 not a PCAP/PCAPNG.',count:''});return res;}
+  if(res.pcapng){
+    res.count=countPcapngPackets(buf);
+    res.findings.push({sev:'info',title:'PCAPNG format',desc:'Deep per-packet analysis is limited for PCAPNG. Open in Wireshark for full detail.',count:res.count+' packets (estimated)'});
+    return res;
+  }
+  res._s={
+    tcp:0,syn:0,rst:0,fin:0,http:0,https:0,sip:0,
+    rtr:0,zwin:0,dupAck:0,
+    udp:0,dns:0,dnsErr:0,dnsSlow:0,dnsNxdomain:0,dnsServfail:0,
+    dhcp:0,dhcpDiscover:0,dhcpOffer:0,dhcpReq:0,dhcpAck:0,dhcpNak:0,dhcpRogue:0,dhcpOfferSrcs:{},
+    rtp:0,rtcp:0,stun:0,teamsRelay:0,
+    icmp:0,icmpUnreach:0,icmpTtl:0,
+    arp:0,arpReq:0,arpRep:0,arpGratuitous:0,
+    stp:0,stpTc:0,
+    tlsOld:0,
+    bytes:0,trunc:0,giant:0,t0:0,t1:0,totalBcast:0,
+    synMap:{},dnsMap:{},seqMap:{},ackMap:{}
+  };
+  res._seen={};
+  return res;
+}
+
+function r32le(b,o){return b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24);}
+function r32be(b,o){return(b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3];}
+
+function parsePacket(p,s,seen,ts){
+  if(p.length<14)return;
+  if(p[0]===0xff&&p[1]===0xff&&p[2]===0xff&&p[3]===0xff&&p[4]===0xff&&p[5]===0xff) s.totalBcast++;
+  var et=(p[12]<<8)|p[13];
+  // STP
+  if(p[0]===0x01&&p[1]===0x80&&p[2]===0xc2&&et<0x0600){
+    s.stp++;
+    if(p.length>18&&(p[18]&0x01))s.stpTc++;
+    return;
+  }
+  if(et===0x0800&&p.length>=34){
+    var ihl=(p[14]&0xf)*4, pr=p[23];
+    var srcIp=p[26]+'.'+p[27]+'.'+p[28]+'.'+p[29];
+    var dstIp=p[30]+'.'+p[31]+'.'+p[32]+'.'+p[33];
+    if(pr===6&&p.length>=14+ihl+20){
+      s.tcp++;
+      var tb=14+ihl;
+      var sp=(p[tb]<<8)|p[tb+1], dp=(p[tb+2]<<8)|p[tb+3];
+      var sq=r32be(p,tb+4), aq=r32be(p,tb+8);
+      var fl=p[tb+13], win=(p[tb+14]<<8)|p[tb+15];
+      var doff=(p[tb+12]>>4)*4;
+      if(fl&0x02&&!(fl&0x10)){s.syn++;s.synMap[srcIp+':'+sp+'->'+dstIp+':'+dp]=1;}
+      if(fl&0x10&&fl&0x02){var sk=dstIp+':'+dp+'->'+srcIp+':'+sp;if(s.synMap[sk])delete s.synMap[sk];}
+      if(fl&0x04)s.rst++;
+      if(fl&0x01)s.fin++;
+      if(win===0)s.zwin++;
+      var seqK=srcIp+':'+sp+'->'+dstIp+':'+dp;
+      if(seen[seqK]===sq&&!(fl&0x02))s.rtr++;
+      seen[seqK]=sq;
+      var pktData=p.length-(14+ihl+doff);
+      var ackK=seqK+':ack';
+      if(pktData===0&&fl===0x10&&s.ackMap[ackK]===aq)s.dupAck++;
+      s.ackMap[ackK]=aq;
+      if(dp===80||sp===80)s.http++;
+      if(dp===443||sp===443){
+        s.https++;
+        var tBase=tb+doff;
+        if(p.length>tBase+4&&p[tBase]===0x16){var tv=p[tBase+1];if(tv===3&&p[tBase+2]<=2)s.tlsOld++;}
+      }
+      if(dp===5060||sp===5060)s.sip++;
+    } else if(pr===17&&p.length>=14+ihl+8){
+      s.udp++;
+      var ub=14+ihl;
+      var us=(p[ub]<<8)|p[ub+1], ud=(p[ub+2]<<8)|p[ub+3];
+      if(ud===53||us===53){
+        s.dns++;
+        if(p.length>ub+12){
+          var dnsF=(p[ub+10]<<8)|p[ub+11];
+          var isR=(dnsF>>15)&1, rc=dnsF&0x0f;
+          var txid=(p[ub+8]<<8)|p[ub+9];
+          if(!isR){s.dnsMap[txid]={ts:ts};}
+          else{
+            if(rc>0)s.dnsErr++;
+            if(rc===3)s.dnsNxdomain++;
+            if(rc===2)s.dnsServfail++;
+            if(s.dnsMap[txid]){if(ts-s.dnsMap[txid].ts>2)s.dnsSlow++;delete s.dnsMap[txid];}
+          }
+        }
+      }
+      if(ud===67||ud===68){
+        s.dhcp++;
+        if(p.length>ub+249){
+          var ob=ub+8+240, mt=0;
+          for(var oi=ob;oi<p.length-2;){
+            var oc=p[oi];
+            if(oc===255)break;
+            if(oc===0){oi++;continue;}
+            var ol=p[oi+1];
+            if(oc===53&&ol===1)mt=p[oi+2];
+            oi+=2+ol;
+          }
+          if(mt===1)s.dhcpDiscover++;
+          if(mt===2){s.dhcpOffer++;s.dhcpOfferSrcs[srcIp]=(s.dhcpOfferSrcs[srcIp]||0)+1;if(Object.keys(s.dhcpOfferSrcs).length>1)s.dhcpRogue=1;}
+          if(mt===3)s.dhcpReq++;
+          if(mt===5)s.dhcpAck++;
+          if(mt===6)s.dhcpNak++;
+        }
+      }
+      // RTP heuristic: version=2, even port, not well-known
+      if(p.length>ub+12){var rv=(p[ub+8]>>6)&3;if(rv===2&&us>1024&&ud>1024&&us!==53&&ud!==53&&us!==67&&ud!==68)s.rtp++;}
+      if(p.length>ub+8&&((p[ub+8]>>6)&3)===2&&p[ub+9]>=200&&p[ub+9]<=205)s.rtcp++;
+      if(p.length>ub+16&&p[ub+12]===0x21&&p[ub+13]===0x12&&p[ub+14]===0xa4&&p[ub+15]===0x42)s.stun++;
+      if((ud>=3478&&ud<=3481)||(us>=3478&&us<=3481))s.teamsRelay++;
+    } else if(pr===1&&p.length>=14+ihl+4){
+      s.icmp++;
+      var it=p[14+ihl];
+      if(it===3)s.icmpUnreach++;
+      if(it===11)s.icmpTtl++;
+    }
+  } else if(et===0x0806&&p.length>=28){
+    s.arp++;
+    var ao=(p[20]<<8)|p[21];
+    if(ao===1){s.arpReq++;var tip=p[38]+'.'+p[39]+'.'+p[40]+'.'+p[41],sip2=p[28]+'.'+p[29]+'.'+p[30]+'.'+p[31];if(tip===sip2)s.arpGratuitous++;}
+    if(ao===2)s.arpRep++;
+  }
+}
+
+function buildFindings(res,s){
+  var c=res.count||1;
+  var uSyns=Object.keys(s.synMap).length;
+  var uDns=Object.keys(s.dnsMap).length;
+  // TCP
+  if(s.rtr>0){var pct=(s.rtr/c*100).toFixed(1);res.findings.push({sev:pct>5?'critical':'warning',title:'TCP Retransmissions',desc:s.rtr+' retransmitted packets ('+pct+'% of capture). Clusters suggest a bad port or cable; scattered suggest interference or congestion.',count:s.rtr+' packets'});}
+  if(s.dupAck>10)res.findings.push({sev:'warning',title:'Duplicate ACKs',desc:'Receiver sending repeated ACKs \u2014 sign of out-of-order or lost packets upstream. Usually appears just before retransmissions.',count:s.dupAck+' dup ACKs'});
+  if(s.rst>20)res.findings.push({sev:'warning',title:'High TCP RST count',desc:'Firewall dropping connections, application errors, or a service not listening on the target port.',count:s.rst+' RSTs'});
+  if(s.zwin>5)res.findings.push({sev:'warning',title:'TCP Zero Window',desc:'Receiver buffer full \u2014 slow application or memory pressure on the receiving end, not the network.',count:s.zwin+' packets'});
+  if(uSyns>5)res.findings.push({sev:'warning',title:'TCP SYN With No SYN-ACK',desc:'Connections started but never completed. Firewall may be blocking return traffic, or destination is unreachable. Classic sign of internet/routing failure.',count:uSyns+' unanswered SYNs'});
+  if(s.rtr===0&&s.zwin===0&&s.rst<5&&s.dupAck<3&&s.tcp>0&&uSyns<3)res.findings.push({sev:'ok',title:'TCP looks healthy',desc:'No retransmissions, zero-window, duplicate ACKs, or unanswered SYNs.',count:s.tcp+' TCP packets'});
+  // DNS
+  if(s.dnsErr>0)res.findings.push({sev:'warning',title:'DNS Errors',desc:'Failed DNS responses detected. '+(s.dnsNxdomain?s.dnsNxdomain+' NXDOMAIN (domain not found). ':'')+( s.dnsServfail?s.dnsServfail+' SERVFAIL (resolver cannot answer). ':'')+'Check internal zones and forwarder connectivity.',count:s.dnsErr+' error responses'});
+  if(uDns>3)res.findings.push({sev:'warning',title:'DNS Queries With No Response',desc:'DNS queries sent but no response received. DNS server unreachable or firewall blocking UDP/TCP 53.',count:uDns+' unanswered queries'});
+  if(s.dnsSlow>0)res.findings.push({sev:'warning',title:'Slow DNS Responses (>2s)',desc:'Slow forwarder, overloaded resolver, or unreachable upstream. Users will perceive general slowness.',count:s.dnsSlow+' slow responses'});
+  if(s.dns>0&&s.dnsErr===0&&uDns===0)res.findings.push({sev:'ok',title:'DNS looks healthy',desc:'All sampled DNS responses returned successful RCODEs with no timeouts.',count:s.dns+' DNS packets'});
+  // DHCP
+  if(s.dhcpDiscover>0&&s.dhcpOffer===0)res.findings.push({sev:'critical',title:'DHCP Discover With No Offer',desc:'Client broadcasting Discover but no server responding. DHCP service may be down, or helper-address not configured on this VLAN.',count:s.dhcpDiscover+' Discovers, 0 Offers'});
+  else if(s.dhcpRogue)res.findings.push({sev:'critical',title:'Rogue DHCP Server Detected',desc:'DHCP Offers from multiple source IPs \u2014 a rogue DHCP server is present. Clients may receive wrong IP, gateway, or DNS. Sources: '+Object.keys(s.dhcpOfferSrcs).join(', '),count:Object.keys(s.dhcpOfferSrcs).length+' offer sources'});
+  else if(s.dhcpNak>0)res.findings.push({sev:'warning',title:'DHCP NAK',desc:'Server refused address. Pool may be exhausted or client is on wrong subnet.',count:s.dhcpNak+' NAKs'});
+  else if(s.dhcp>0&&s.dhcpDiscover>0&&s.dhcpAck>0)res.findings.push({sev:'ok',title:'DHCP sequence complete',desc:'Discover \u2192 Offer \u2192 Request \u2192 ACK all present.',count:s.dhcp+' DHCP packets'});
+  else if(s.dhcp>0)res.findings.push({sev:'info',title:'DHCP activity',desc:'DHCP traffic present.',count:s.dhcp+' packets'});
+  // ARP / storm
+  var bpct=s.totalBcast>0?(s.totalBcast/c*100).toFixed(1):0;
+  if(s.arp>200||(s.arp>50&&bpct>20))res.findings.push({sev:'critical',title:'Broadcast Storm / Possible Loop',desc:'Very high ARP volume with '+bpct+'% broadcast ratio. Switching loop or storm in progress. Network performance severely impacted.',count:s.arp+' ARP, '+bpct+'% bcast'});
+  else if(s.arp>50)res.findings.push({sev:'warning',title:'High ARP volume',desc:'Elevated ARP traffic. Could indicate scanning, misconfigured routing, or early loop signs.',count:s.arp+' ARP ('+s.arpReq+' req / '+s.arpRep+' rep)'});
+  // STP
+  if(s.stpTc>5)res.findings.push({sev:'warning',title:'STP Topology Changes',desc:'TC flag set repeatedly \u2014 a port is flapping and causing STP reconvergence. Enable BPDU Guard on access ports.',count:s.stpTc+' TC flags / '+s.stp+' BPDUs'});
+  else if(s.stp>0&&s.stpTc===0)res.findings.push({sev:'ok',title:'STP stable',desc:'STP BPDUs present, no topology change flags. Spanning tree is stable.',count:s.stp+' BPDUs'});
+  // ICMP
+  if(s.icmpUnreach>0)res.findings.push({sev:'warning',title:'ICMP Destination Unreachable',desc:'Router or firewall sending type 3 unreachable. Routing table may be missing a route or a firewall policy is rejecting traffic.',count:s.icmpUnreach+' messages'});
+  if(s.icmpTtl>0)res.findings.push({sev:'warning',title:'ICMP TTL Exceeded',desc:'Packets dropped due to TTL expiry \u2014 possible routing loop or too many hops. Run a traceroute to confirm.',count:s.icmpTtl+' messages'});
+  // VoIP / Teams
+  if(s.stun>0&&s.rtp===0)res.findings.push({sev:'warning',title:'STUN / ICE With No RTP',desc:'ICE negotiation detected but no RTP media followed. Teams or WebRTC ICE may have failed \u2014 check UDP 3478-3481 is open outbound.',count:s.stun+' STUN packets'});
+  else if(s.stun>0&&s.rtp>0)res.findings.push({sev:'info',title:'Teams / WebRTC media',desc:'STUN ICE and RTP both present \u2014 call established successfully.',count:s.stun+' STUN, '+s.rtp+' RTP'});
+  if(s.teamsRelay>0&&s.stun===0)res.findings.push({sev:'warning',title:'Teams TURN Relay',desc:'Traffic on UDP 3478-3481 without STUN \u2014 Teams may be using relay fallback. Check firewall rules for those ports.',count:s.teamsRelay+' packets'});
+  if(s.sip>0)res.findings.push({sev:'info',title:'SIP / VoIP traffic',desc:'SIP signalling detected. Use Wireshark Telephony \u2192 VoIP Calls for the full call ladder.',count:s.sip+' SIP packets'});
+  // TLS / HTTP
+  if(s.tlsOld>0)res.findings.push({sev:'warning',title:'Outdated TLS (1.0/1.1)',desc:'Deprecated TLS versions in use. Fails PCI-DSS and Cyber Essentials compliance.',count:s.tlsOld+' handshakes'});
+  if(s.http>0)res.findings.push({sev:'info',title:'Cleartext HTTP',desc:'Unencrypted HTTP present \u2014 content visible in this capture.',count:s.http+' packets'});
+  if(s.trunc>0)res.findings.push({sev:'info',title:'Truncated packets',desc:'Packets exceeded snaplen. Re-capture with -s 0.',count:s.trunc+' packets'});
+}
+
+function renderAnalysis(r){
+  var html='';
+  if(!r.valid){
+    html='<div class="card" style="margin-top:16px;"><div class="finding critical"><div class="finding-hdr"><span class="badge">Error</span><h4>'+r.findings[0].title+'</h4></div><p>'+r.findings[0].desc+'</p></div></div>';
+    document.getElementById('analysis-out').innerHTML=html;
+    document.getElementById('analysis-out').style.display='block';
+    return;
+  }
+  var mb=(r.fsize/1048576).toFixed(2), dur=r.dur?r.dur+'s':'N/A';
+  var issues=r.findings.filter(function(f){return f.sev==='critical'||f.sev==='warning';}).length;
+  html+='<div class="analysis-summary">';
+  html+='<div class="sum-stat"><div class="num">'+r.count.toLocaleString()+'</div><div class="lbl">Packets</div></div>';
+  html+='<div class="sum-stat"><div class="num">'+mb+' MB</div><div class="lbl">File Size</div></div>';
+  html+='<div class="sum-stat"><div class="num">'+dur+'</div><div class="lbl">Duration</div></div>';
+  html+='<div class="sum-stat"><div class="num">'+issues+'</div><div class="lbl">Issues</div></div>';
+  html+='<div style="flex:1;font-size:12px;color:var(--text-2);">'+esc(r.fname)+(r.pcapng?' <span style="color:var(--accent)">(PCAPNG)</span>':'')+'<br>';
+  html+='<button style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;" onclick="resetAnalysis()">← Analyse another file</button></div></div>';
+  html+='<div class="findings-grid">';
+  if(!r.findings.length) html+='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-2);">No specific issues detected.</div>';
+  r.findings.forEach(function(f){
+    html+='<div class="finding '+f.sev+'"><div class="finding-hdr"><span class="badge">'+f.sev+'</span><h4>'+f.title+'</h4></div><p>'+f.desc+'</p>'+(f.count?'<div class="fc">'+f.count+'</div>':'')+'</div>';
+  });
+  html+='</div>';
+  document.getElementById('analysis-out').innerHTML=html;
+  document.getElementById('analysis-out').style.display='block';
+}
+
+function resetAnalysis(){
+  document.getElementById('analysis-out').style.display='none';
+  document.getElementById('size-warn-wrap').style.display='none';
+  document.getElementById('progress-wrap').style.display='none';
+  document.getElementById('drop-wrap').style.display='block';
+  document.getElementById('pcap-file').value='';
+  _pendingFile=null;
+}
+
+function copyRaw(btn,text){
+  navigator.clipboard.writeText(text).then(function(){
+    var o=btn.textContent; btn.textContent='Copied!';
+    setTimeout(function(){btn.textContent=o;},1200);
+  });
+}
+
+// ─── FILTER REFERENCE ────────────────────────────────────
+var FD=[
+  {cat:'IP & Host',filters:[
+    {d:'Traffic to/from IP',f:'ip.addr == 192.168.1.1'},
+    {d:'Traffic from IP',f:'ip.src == 192.168.1.1'},
+    {d:'Traffic to IP',f:'ip.dst == 192.168.1.1'},
+    {d:'Subnet traffic',f:'ip.addr == 192.168.1.0/24'},
+    {d:'Between two hosts',f:'ip.addr == 10.0.0.1 && ip.addr == 10.0.0.2'},
+    {d:'Exclude IP',f:'!ip.addr == 192.168.1.1'},
+    {d:'IPv6 traffic',f:'ipv6'}
+  ]},
+  {cat:'TCP',filters:[
+    {d:'TCP port',f:'tcp.port == 443'},
+    {d:'TCP SYN only',f:'tcp.flags.syn==1 && tcp.flags.ack==0'},
+    {d:'TCP RST packets',f:'tcp.flags.reset==1'},
+    {d:'Retransmissions',f:'tcp.analysis.retransmission'},
+    {d:'Duplicate ACKs',f:'tcp.analysis.duplicate_ack'},
+    {d:'Zero window',f:'tcp.window_size==0'},
+    {d:'All TCP errors',f:'tcp.analysis.flags'},
+    {d:'Slow connections (>1s)',f:'tcp.time_delta > 1'}
+  ]},
+  {cat:'DNS',filters:[
+    {d:'All DNS',f:'dns'},
+    {d:'DNS queries',f:'dns.flags.response==0'},
+    {d:'DNS responses',f:'dns.flags.response==1'},
+    {d:'NXDOMAIN',f:'dns.flags.rcode==3'},
+    {d:'SERVFAIL',f:'dns.flags.rcode==2'},
+    {d:'DNS for domain',f:'dns.qry.name contains "example.com"'}
+  ]},
+  {cat:'HTTP / TLS',filters:[
+    {d:'All HTTP',f:'http'},
+    {d:'HTTP GET',f:'http.request.method=="GET"'},
+    {d:'HTTP POST',f:'http.request.method=="POST"'},
+    {d:'HTTP errors 4xx/5xx',f:'http.response.code >= 400'},
+    {d:'TLS handshake',f:'tls.handshake'},
+    {d:'TLS ClientHello',f:'tls.handshake.type==1'},
+    {d:'TLS 1.0 (deprecated)',f:'tls.record.version==0x0301'},
+    {d:'TLS certificate',f:'tls.handshake.type==11'}
+  ]},
+  {cat:'DHCP',filters:[
+    {d:'All DHCP',f:'dhcp'},
+    {d:'DHCP Discover',f:'dhcp.option.dhcp==1'},
+    {d:'DHCP Offer',f:'dhcp.option.dhcp==2'},
+    {d:'DHCP Request',f:'dhcp.option.dhcp==3'},
+    {d:'DHCP ACK',f:'dhcp.option.dhcp==5'},
+    {d:'DHCP NAK',f:'dhcp.option.dhcp==6'}
+  ]},
+  {cat:'ARP',filters:[
+    {d:'All ARP',f:'arp'},
+    {d:'ARP requests',f:'arp.opcode==1'},
+    {d:'ARP replies',f:'arp.opcode==2'},
+    {d:'Gratuitous ARP',f:'arp.isgratuitous==1'},
+    {d:'ARP for IP',f:'arp.dst.proto_ipv4==192.168.1.1'}
+  ]},
+  {cat:'VoIP / SIP',filters:[
+    {d:'All SIP',f:'sip'},
+    {d:'SIP INVITE',f:'sip.Method=="INVITE"'},
+    {d:'SIP errors 4xx+',f:'sip.Status-Code >= 400'},
+    {d:'RTP streams',f:'rtp'},
+    {d:'RTCP',f:'rtcp'},
+    {d:'SIP or RTP',f:'sip || rtp'}
+  ]},
+  {cat:'ICMP',filters:[
+    {d:'All ICMP',f:'icmp'},
+    {d:'Ping requests',f:'icmp.type==8'},
+    {d:'Ping replies',f:'icmp.type==0'},
+    {d:'Destination unreachable',f:'icmp.type==3'},
+    {d:'TTL exceeded',f:'icmp.type==11'}
+  ]},
+  {cat:'Compound',filters:[
+    {d:'Exclude broadcast',f:'!eth.dst==ff:ff:ff:ff:ff:ff'},
+    {d:'Large packets >1400B',f:'frame.len > 1400'},
+    {d:'Non-HTTP TCP',f:'tcp && !tcp.port==80 && !tcp.port==443'},
+    {d:'All errors (TCP+DNS)',f:'tcp.analysis.flags || dns.flags.rcode > 0'},
+    {d:'VLAN tagged',f:'vlan'},
+    {d:'Multicast',f:'eth.dst[0] & 1'}
+  ]}
+];
+
+function renderFilters(q){
+  var html='';
+  FD.forEach(function(cat){
+    var rows=cat.filters.filter(function(f){
+      if(!q)return true;
+      return f.d.toLowerCase().indexOf(q)>-1||f.f.toLowerCase().indexOf(q)>-1;
+    });
+    if(!rows.length)return;
+    html+='<div class="filter-cat card"><h3>'+cat.cat+'</h3>';
+    rows.forEach(function(f){
+      html+='<div class="filter-row"><span class="filter-desc">'+f.d+'</span><button class="filter-code" onclick="copyCode(this,\''+f.f.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+'\')" title="Click to copy">'+esc(f.f)+'</button></div>';
+    });
+    html+='</div>';
+  });
+  document.getElementById('filter-grid').innerHTML=html||'<p style="color:var(--text-2);font-size:13px;">No matches.</p>';
+}
+
+function filterSearch(q){renderFilters(q.toLowerCase());}
+
+function copyCode(btn,text){
+  navigator.clipboard.writeText(text).then(function(){
+    var o=btn.textContent;btn.textContent='Copied!';
+    setTimeout(function(){btn.textContent=o;},1200);
+  });
+}
+
+// ─── TROUBLESHOOT SCENARIOS ──────────────────────────────
+var TS_SCENARIOS=[
+  {
+    id:'slow',
+    icon:'\ud83d\udc22',
+    title:'Slow network / high latency',
+    subtitle:'Users complaining everything feels sluggish',
+    tags:['latency','slow','performance','retransmit','sluggish','lag'],
+    filters:[
+      {desc:'TCP retransmissions',f:'tcp.analysis.retransmission'},
+      {desc:'Out-of-order packets',f:'tcp.analysis.out_of_order'},
+      {desc:'Duplicate ACKs (early loss sign)',f:'tcp.analysis.duplicate_ack'},
+      {desc:'Zero window (receiver buffer full)',f:'tcp.window_size == 0'},
+      {desc:'All TCP issues combined',f:'tcp.analysis.flags'},
+      {desc:'Slow round trips > 300ms',f:'tcp.time_delta > 0.3'},
+      {desc:'Large gaps between packets',f:'frame.time_delta > 1'}
+    ],
+    look:[
+      {sev:'bad',text:'Retransmit bursts clustered in time - likely a failing switch port, bad cable, or Wi-Fi congestion rather than bandwidth saturation.'},
+      {sev:'bad',text:'Zero window advertised by the server - application or server is overwhelmed, not the network itself.'},
+      {sev:'bad',text:'High time_delta on a LAN connection (<1ms expected) - suggests CPU or disk bottleneck at the endpoint.'},
+      {sev:'warn',text:'Scattered retransmits throughout the whole capture - intermittent interference or marginal link quality.'},
+      {sev:'ok',text:'No tcp.analysis.flags at all - network layer is clean, look at DNS, application response times, or server-side logs.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source          Dest            Protocol  Info',
+        '142   0.000000  192.168.1.55    10.0.0.5        TCP       [SYN] Seq=0 Win=65535',
+        '143   0.000312  10.0.0.5        192.168.1.55    TCP       [SYN, ACK] Seq=0 Ack=1',
+        '144   0.000401  192.168.1.55    10.0.0.5        TCP       [ACK] Seq=1 Ack=1',
+        '145   0.001200  192.168.1.55    10.0.0.5        TCP       [PSH, ACK] Seq=1 Len=1448',
+        '146   0.302881  192.168.1.55    10.0.0.5        TCP       [TCP Retransmission] Seq=1 Len=1448',
+        '147   0.904123  192.168.1.55    10.0.0.5        TCP       [TCP Retransmission] Seq=1 Len=1448',
+        '148   2.108450  10.0.0.5        192.168.1.55    TCP       [TCP ZeroWindow] Win=0',
+        '149   2.108512  192.168.1.55    10.0.0.5        TCP       [TCP ZeroWindowProbe]'
+      ],
+      explain:'Packet 145 sends data but gets no ACK. Wireshark flags packets 146 and 147 as retransmissions after 300ms and 900ms gaps respectively - the sending side is waiting and resending. Packet 148 then shows the server advertising a zero window, meaning its receive buffer is full and it cannot accept more data. This combination points to a stressed server rather than a bad network path.'
+    },
+    next:'If retransmits are on Wi-Fi traffic, run a Wi-Fi survey. On a wired link, try a different cable and port, then check switch port error counters. If zero window, look at server CPU and memory. Use <strong>Statistics &rarr; TCP Stream Graphs &rarr; Time-Sequence</strong> for a visual of the retransmit pattern.'
+  },
+  {
+    id:'voip',
+    icon:'\ud83d\udcde',
+    title:'VoIP / Teams call quality',
+    subtitle:'Calls dropping, choppy audio, one-way audio',
+    tags:['voip','sip','teams','rtp','audio','call','choppy','one-way','drop'],
+    filters:[
+      {desc:'All SIP signalling',f:'sip'},
+      {desc:'SIP errors (4xx / 5xx)',f:'sip.Status-Code >= 400'},
+      {desc:'SIP INVITE (call setup)',f:'sip.Method == "INVITE"'},
+      {desc:'RTP media streams',f:'rtp'},
+      {desc:'Teams STUN / ICE checks',f:'stun'},
+      {desc:'Teams TURN relay ports',f:'udp.port >= 3478 && udp.port <= 3481'},
+      {desc:'Teams relay via TCP 443',f:'tcp.port == 443 && ip.addr == 13.107.64.0/18'},
+      {desc:'RTCP quality stats',f:'rtcp'},
+      {desc:'SIP or RTP combined',f:'sip || rtp'}
+    ],
+    look:[
+      {sev:'bad',text:'SIP 401 Unauthorized in response to REGISTER - credential mismatch or wrong auth realm on the SIP trunk.'},
+      {sev:'bad',text:'SIP 404 Not Found - destination number or URI does not exist on the provider or PBX.'},
+      {sev:'bad',text:'STUN binding requests present but no RTP stream following - ICE negotiation failed, media path never opened.'},
+      {sev:'bad',text:'Teams traffic only on tcp.port 443 to Microsoft IPs - UDP 3478-3481 is being blocked, Teams is falling back to relay which degrades quality.'},
+      {sev:'bad',text:'RTP packets only flowing one direction - classic one-way audio. NAT or firewall is blocking the return media path.'},
+      {sev:'warn',text:'Gaps of >20ms between RTP packets - jitter exceeding buffer threshold, will cause choppy audio.'},
+      {sev:'warn',text:'RTCP receiver reports with fraction lost > 0 - packet loss on the media stream, audible as clicks or dropouts.'},
+      {sev:'ok',text:'Bidirectional RTP with consistent inter-packet timing and no RTCP loss reports - media path is healthy.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source          Dest            Protocol  Info',
+        '-- EXAMPLE 1: SIP 401 Unauthorized (credential failure) --',
+        '1     0.000000  192.168.1.10    5.10.200.1      SIP       Request: INVITE sip:02012345678@trunk.provider.com',
+        '2     0.041200  5.10.200.1      192.168.1.10    SIP       Status: 100 Trying',
+        '3     0.043100  5.10.200.1      192.168.1.10    SIP       Status: 401 Unauthorized',
+        '4     0.043400  192.168.1.10    5.10.200.1      SIP       Request: ACK',
+        '5     0.044000  192.168.1.10    5.10.200.1      SIP       Request: INVITE  (with auth attempt)',
+        '6     0.085000  5.10.200.1      192.168.1.10    SIP       Status: 401 Unauthorized',
+        '7     0.085200  192.168.1.10    5.10.200.1      SIP       Request: ACK',
+        '--- (call fails, no further SIP traffic)',
+        '',
+        '-- EXAMPLE 2: One-way audio (RTP only flowing one direction) --',
+        '50    5.000000  192.168.1.10    5.10.200.50     RTP       PT=PCMU SSRC=0x1a2b3c4d Seq=1001 Time=80000',
+        '51    5.020000  192.168.1.10    5.10.200.50     RTP       PT=PCMU SSRC=0x1a2b3c4d Seq=1002 Time=80160',
+        '52    5.040000  192.168.1.10    5.10.200.50     RTP       PT=PCMU SSRC=0x1a2b3c4d Seq=1003 Time=80320',
+        '--- (no RTP packets arriving from 5.10.200.50 in return - silence one way)',
+        '',
+        '-- EXAMPLE 3: Teams UDP blocked, falling back to TCP relay --',
+        '80    8.000000  192.168.1.20    52.114.75.24    STUN      Binding Request  XOR-MAPPED-ADDRESS',
+        '81    8.021000  192.168.1.20    52.114.75.24    STUN      Binding Request  (retransmit)',
+        '82    8.521000  192.168.1.20    52.114.75.24    STUN      Binding Request  (retransmit)',
+        '83    9.022000  192.168.1.20    52.114.75.24    STUN      Binding Request  (retransmit)',
+        '--- (no STUN response, no RTP established)',
+        '90    9.500000  192.168.1.20    13.107.64.16    TCP       [SYN] Dport=443',
+        '91    9.501000  13.107.64.16    192.168.1.20    TCP       [SYN, ACK]',
+        '92    9.502000  192.168.1.20    13.107.64.16    TCP       [ACK] - Teams now relaying via TCP 443'
+      ],
+      explain:'Example 1 - SIP 401 twice: The PBX sends an INVITE, gets a 401 challenge, resends with credentials, but gets another 401. This means the credentials in the second INVITE are wrong - check the SIP trunk username, password, and auth realm. Open the second INVITE in Wireshark and expand SIP headers to see the Authorization field.\n\nExample 2 - One-way audio: RTP packets flow from the PBX (192.168.1.10) to the remote end (5.10.200.50) but nothing comes back. The far end is sending audio but it is being dropped somewhere in the return path. Classic cause: SIP ALG on the router is rewriting SDP incorrectly, or the firewall has no rule allowing inbound UDP on the negotiated RTP port range. Disable SIP ALG first.\n\nExample 3 - Teams UDP blocked: STUN binding requests to Microsoft IPs (52.114.x.x) go unanswered after multiple retransmits - UDP 3478 is being dropped by the firewall. Teams detects this and falls back to TCP port 443 via a relay server (13.107.64.x). The call will work but with higher latency and potential quality issues. Fix: open UDP 3478-3481 outbound to 13.107.64.0/18 and 52.112.0.0/14.'
+    },
+    next:'For SIP: use <strong>Telephony &rarr; VoIP Calls</strong> to see the full ladder diagram and play back RTP audio if present. For Teams: confirm UDP 3478-3481 is open outbound to 13.107.64.0/18 and 52.112.0.0/14. For one-way audio, disable SIP ALG on all routers and firewalls between the PBX and the internet.'
+  },
+  {
+    id:'dhcp',
+    icon:'\ud83c\udf10',
+    title:'DHCP not working',
+    subtitle:'Devices getting 169.254.x.x or no IP address',
+    tags:['dhcp','ip address','169','apipa','no ip','address','pool'],
+    filters:[
+      {desc:'All DHCP traffic',f:'dhcp'},
+      {desc:'DHCP Discover (client searching)',f:'dhcp.option.dhcp == 1'},
+      {desc:'DHCP Offer (server responding)',f:'dhcp.option.dhcp == 2'},
+      {desc:'DHCP Request (client accepting)',f:'dhcp.option.dhcp == 3'},
+      {desc:'DHCP ACK (server confirming)',f:'dhcp.option.dhcp == 5'},
+      {desc:'DHCP NAK (server refusing)',f:'dhcp.option.dhcp == 6'},
+      {desc:'Multiple offers - rogue DHCP',f:'dhcp.option.dhcp == 2'}
+    ],
+    look:[
+      {sev:'bad',text:'Discover with no Offer - DHCP server unreachable. Missing relay/helper address, DHCP service not running, or VLAN misconfiguration.'},
+      {sev:'bad',text:'NAK after Request - pool exhausted or client requesting an address from the wrong subnet.'},
+      {sev:'bad',text:'Two Offers from different source IPs - rogue DHCP server present. The unexpected source IP is the rogue.'},
+      {sev:'warn',text:'More than 2 seconds between Discover and Offer - DHCP server slow to respond, possibly under load or relayed across a slow WAN link.'},
+      {sev:'ok',text:'Discover > Offer > Request > ACK all present in order - DHCP is working correctly end to end.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source           Dest              Protocol  Info',
+        '1     0.000000  0.0.0.0          255.255.255.255   DHCP      Discover - Transaction ID 0x3d1c',
+        '2     0.000100  0.0.0.0          255.255.255.255   DHCP      Discover - Transaction ID 0x3d1c  (retransmit)',
+        '3     4.001200  0.0.0.0          255.255.255.255   DHCP      Discover - Transaction ID 0x3d1c  (retransmit)',
+        '4     8.002400  0.0.0.0          255.255.255.255   DHCP      Discover - Transaction ID 0x3d1c  (retransmit)',
+        '--- (no DHCP Offer ever appears)',
+        '',
+        '-- ROGUE DHCP EXAMPLE --',
+        '1     0.000000  0.0.0.0          255.255.255.255   DHCP      Discover - Transaction ID 0x9a2f',
+        '2     0.012000  192.168.1.1      255.255.255.255   DHCP      Offer - Your IP: 192.168.1.105  (legitimate server)',
+        '3     0.013500  192.168.1.240    255.255.255.255   DHCP      Offer - Your IP: 10.0.0.50      (ROGUE - wrong subnet!)'
+      ],
+      explain:'Top example: the client broadcasts Discover repeatedly with no Offer ever arriving. The client will eventually assign itself a 169.254.x.x APIPA address. This means the DHCP server is unreachable from this VLAN - check the helper-address or DHCP relay configuration on the switch SVI. Bottom example: two Offers arrive from different sources. The client will typically take whichever arrives first, which could be the rogue handing out wrong IPs, DNS, or gateway addresses. The rogue source IP (192.168.1.240) needs to be tracked down by MAC address.'
+    },
+    next:'<strong>No Offer:</strong> Verify DHCP service is running and check the ip helper-address on the VLAN SVI. <strong>NAK:</strong> Check pool utilisation on the DHCP server. <strong>Rogue DHCP:</strong> Note the source MAC of the rogue Offer, find the switch port it is connected to, and either unplug the device or enable DHCP Snooping on the switch to block unauthorised DHCP servers.'
+  },
+  {
+    id:'dns',
+    icon:'\ud83d\udd0d',
+    title:'DNS failures',
+    subtitle:'Sites not loading, intermittent resolution, wrong IPs',
+    tags:['dns','nxdomain','resolution','domain','lookup','name','servfail'],
+    filters:[
+      {desc:'All DNS traffic',f:'dns'},
+      {desc:'Failed responses (NXDOMAIN / SERVFAIL)',f:'dns.flags.rcode > 0'},
+      {desc:'NXDOMAIN only',f:'dns.flags.rcode == 3'},
+      {desc:'SERVFAIL only',f:'dns.flags.rcode == 2'},
+      {desc:'DNS queries only',f:'dns.flags.response == 0'},
+      {desc:'DNS to unexpected servers',f:'dns && !ip.dst == 8.8.8.8 && !ip.dst == 1.1.1.1'},
+      {desc:'DNS for a specific domain',f:'dns.qry.name contains "example.com"'},
+      {desc:'High query volume (flood)',f:'dns.flags.response == 0'}
+    ],
+    look:[
+      {sev:'bad',text:'NXDOMAIN for internal domain names - split DNS not working, client is querying the wrong server, or the internal zone is missing.'},
+      {sev:'bad',text:'SERVFAIL responses - upstream or forwarder is unreachable or misconfigured. The DNS server can be reached but it cannot resolve.'},
+      {sev:'bad',text:'DNS queries going to an unexpected IP - client has wrong DNS server from DHCP, or a rogue DHCP is handing out attacker-controlled DNS.'},
+      {sev:'bad',text:'Query with no response for 4+ seconds - DNS server is unreachable, firewall blocking UDP/TCP 53, or the server is down.'},
+      {sev:'warn',text:'Same query repeated many times in quick succession - application retry storm, usually caused by an app timing out waiting for resolution.'},
+      {sev:'ok',text:'Query immediately followed by A record response - DNS is healthy for this client and domain.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source          Dest            Protocol  Info',
+        '10    0.000000  192.168.1.50    192.168.1.1     DNS       Standard query A internal.company.local',
+        '11    0.000312  192.168.1.1     192.168.1.50    DNS       Standard query response A 10.0.0.25',
+        '',
+        '-- NXDOMAIN EXAMPLE --',
+        '20    0.000000  192.168.1.50    8.8.8.8         DNS       Standard query A internal.company.local',
+        '21    0.021000  8.8.8.8         192.168.1.50    DNS       Standard query response No such name (NXDOMAIN)',
+        '',
+        '-- SLOW DNS EXAMPLE --',
+        '30    0.000000  192.168.1.50    192.168.1.1     DNS       Standard query A www.example.com',
+        '31    4.003100  192.168.1.1     192.168.1.50    DNS       Standard query response SERVFAIL',
+        '32    4.003200  192.168.1.50    192.168.1.1     DNS       Standard query A www.example.com  (retry)'
+      ],
+      explain:'Packets 10-11 show healthy DNS - query and response in 0.3ms. Packets 20-21 show the problem: the client is sending queries for an internal domain (company.local) directly to Google 8.8.8.8 instead of the internal DNS server. Google has no idea what company.local is, so it returns NXDOMAIN. The client should be pointed at the internal DNS server via DHCP. Packets 30-32 show the DNS forwarder returning SERVFAIL after a 4-second timeout - the internal server cannot reach its upstream resolver, causing a 4-second delay on every lookup before the client retries.'
+    },
+    next:'<strong>NXDOMAIN for internal names:</strong> Verify the client is pointing at the internal DNS server, not a public resolver. <strong>SERVFAIL:</strong> Check the DNS server can reach its forwarders (firewall rule on UDP/TCP 53 outbound?). <strong>Use Statistics &rarr; DNS</strong> in Wireshark to get a full breakdown of query response times and error rates across the entire capture.'
+  },
+  {
+    id:'internet',
+    icon:'\ud83c\udf0d',
+    title:'Can\'t reach internet',
+    subtitle:'LAN works fine but external sites fail',
+    tags:['internet','gateway','routing','no internet','wan','external','outside'],
+    filters:[
+      {desc:'ICMP unreachable (routing failure)',f:'icmp.type == 3'},
+      {desc:'ICMP TTL exceeded (routing loop)',f:'icmp.type == 11'},
+      {desc:'ARP for default gateway',f:'arp.dst.proto_ipv4 == 192.168.1.1'},
+      {desc:'TCP SYN with no reply',f:'tcp.flags.syn == 1 && tcp.flags.ack == 0'},
+      {desc:'DNS queries leaving the network',f:'dns && ip.dst != 192.168.1.0/24'},
+      {desc:'ICMP ping to gateway',f:'icmp && ip.dst == 192.168.1.1'}
+    ],
+    look:[
+      {sev:'bad',text:'ARP request for default gateway with no ARP reply - gateway is down, wrong gateway IP configured, or VLAN mismatch between client and router.'},
+      {sev:'bad',text:'ICMP type 3 code 1 (host unreachable) from the gateway - routing table missing a route, or gateway not forwarding traffic.'},
+      {sev:'bad',text:'TCP SYN packets leaving but no SYN-ACK ever returning - firewall or NAT is dropping return traffic, or the WAN link is down.'},
+      {sev:'bad',text:'ICMP type 11 TTL exceeded from two alternating IPs - routing loop between two devices.'},
+      {sev:'warn',text:'DNS resolving successfully but TCP SYNs not completing - name resolution works, so it is a routing or firewall issue, not DNS.'},
+      {sev:'ok',text:'SYN followed quickly by SYN-ACK from the destination - TCP path to the internet is open and working.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source          Dest              Protocol  Info',
+        '5     0.000000  192.168.1.50    192.168.1.1       ARP       Who has 192.168.1.1? Tell 192.168.1.50',
+        '6     0.000180  192.168.1.1     192.168.1.50      ARP       192.168.1.1 is at aa:bb:cc:dd:ee:ff',
+        '7     0.001000  192.168.1.50    93.184.216.34     TCP       [SYN] Seq=0 Dport=443',
+        '8     0.001010  192.168.1.50    93.184.216.34     TCP       [SYN] Seq=0 Dport=443',
+        '--- (no SYN-ACK ever arrives)',
+        '9     3.001000  192.168.1.50    93.184.216.34     TCP       [TCP Retransmission] [SYN]',
+        '10    9.001000  192.168.1.50    93.184.216.34     TCP       [TCP Retransmission] [SYN]',
+        '',
+        '-- ROUTING LOOP EXAMPLE --',
+        '20    0.000000  192.168.1.50    8.8.8.8           ICMP      Echo request',
+        '21    0.001000  192.168.2.1     192.168.1.50      ICMP      Time-to-live exceeded (from 192.168.2.1)',
+        '22    0.002000  192.168.1.50    8.8.8.8           ICMP      Echo request',
+        '23    0.003000  192.168.2.1     192.168.1.50      ICMP      Time-to-live exceeded (from 192.168.2.1)'
+      ],
+      explain:'Packets 5-6 show ARP succeeding - the gateway is reachable. Packet 7 sends a TCP SYN to an external server (example.com at 93.184.216.34) but no SYN-ACK ever comes back. The client retransmits the SYN at 3s and 9s intervals. Since the gateway responded to ARP, the problem is further up - either the WAN link is down, the firewall has no outbound NAT rule, or there is an upstream provider issue. Packets 20-23 show a routing loop: every ping to 8.8.8.8 comes back as TTL exceeded from 192.168.2.1, meaning traffic is bouncing between two routers rather than reaching the internet.'
+    },
+    next:'<strong>SYN no reply:</strong> Capture on the WAN side too - does the SYN actually leave the firewall? If yes, the issue is upstream. If no, check NAT/outbound policy rules. <strong>Routing loop:</strong> Run traceroute from the client - you will see two hops alternating. Check static routes on both devices for conflicting entries. <strong>ARP fails:</strong> Verify the client gateway setting matches the actual router LAN IP and that both are on the same VLAN.'
+  },
+  {
+    id:'storm',
+    icon:'\u26a1',
+    title:'Broadcast storm / switching loop',
+    subtitle:'Network grinding to a halt, switches overwhelmed',
+    tags:['broadcast','storm','loop','stp','arp flood','spanning tree','bpdu'],
+    filters:[
+      {desc:'All broadcast traffic',f:'eth.dst == ff:ff:ff:ff:ff:ff'},
+      {desc:'ARP requests (flood indicator)',f:'arp.opcode == 1'},
+      {desc:'STP BPDU packets',f:'stp'},
+      {desc:'STP topology change flag set',f:'stp.flags.tc == 1'},
+      {desc:'All non-unicast (multicast + broadcast)',f:'eth.dst[0] & 1'},
+      {desc:'Frames from a specific MAC',f:'eth.src == aa:bb:cc:dd:ee:ff'}
+    ],
+    look:[
+      {sev:'bad',text:'Thousands of ARP requests per second, same sender or multiple sources - broadcast storm in progress, network unusable for normal traffic.'},
+      {sev:'bad',text:'Same source MAC appearing in frames arriving from multiple directions simultaneously - loop confirmed, the frame is circling.'},
+      {sev:'bad',text:'STP topology change flag set on every BPDU - a port is constantly flapping, causing the spanning tree to reconverge repeatedly.'},
+      {sev:'bad',text:'No STP BPDUs present at all on a trunk port - BPDU filtering enabled or STP disabled, loop protection is off.'},
+      {sev:'warn',text:'Broadcast traffic above 20% of total frame count - elevated but not yet a full storm. Check for misconfigured devices.'},
+      {sev:'ok',text:'STP BPDUs present at regular 2-second intervals, topology change flag not set - spanning tree is stable.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source             Dest                Protocol  Info',
+        '-- EXAMPLE 1: Active broadcast storm (ARP flood) --',
+        '1     0.000000  aa:bb:cc:11:22:33  ff:ff:ff:ff:ff:ff   ARP       Who has 192.168.1.1? Tell 192.168.1.55',
+        '2     0.000001  aa:bb:cc:11:22:33  ff:ff:ff:ff:ff:ff   ARP       Who has 192.168.1.1? Tell 192.168.1.55',
+        '3     0.000002  aa:bb:cc:11:22:33  ff:ff:ff:ff:ff:ff   ARP       Who has 192.168.1.1? Tell 192.168.1.55',
+        '4     0.000003  aa:bb:cc:11:22:33  ff:ff:ff:ff:ff:ff   ARP       Who has 192.168.1.1? Tell 192.168.1.55',
+        '... (thousands of identical frames per second)',
+        '',
+        '-- EXAMPLE 2: Duplicate MAC - definitive loop proof --',
+        '200   1.000000  aa:bb:cc:44:55:66  ff:ff:ff:ff:ff:ff   ARP       Who has 10.0.0.1? [via port Gi0/1]',
+        '201   1.000002  aa:bb:cc:44:55:66  ff:ff:ff:ff:ff:ff   ARP       Who has 10.0.0.1? [via port Gi0/3]',
+        '202   1.000004  aa:bb:cc:44:55:66  ff:ff:ff:ff:ff:ff   ARP       Who has 10.0.0.1? [via port Gi0/1]',
+        '203   1.000006  aa:bb:cc:44:55:66  ff:ff:ff:ff:ff:ff   ARP       Who has 10.0.0.1? [via port Gi0/3]',
+        '',
+        '-- EXAMPLE 3: STP instability (TC flag every BPDU) --',
+        '300   0.000000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=32768/aa:bb:cc:dd:ee:01  TC',
+        '301   0.500000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=32768/aa:bb:cc:dd:ee:01  TC',
+        '302   1.000000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=32768/aa:bb:cc:dd:ee:01  TC',
+        '',
+        '-- EXAMPLE 4: STP misconfiguration (all switches same priority) --',
+        '400   0.000000  00:aa:bb:cc:dd:01  01:80:c2:00:00:00   STP       Conf. Root=32768/00:aa:bb:cc:dd:01  Port=Gi0/1',
+        '401   0.000100  00:aa:bb:cc:dd:02  01:80:c2:00:00:00   STP       Conf. Root=32768/00:aa:bb:cc:dd:01  Port=Gi0/2',
+        '402   0.000200  00:aa:bb:cc:dd:03  01:80:c2:00:00:00   STP       Conf. Root=32768/00:aa:bb:cc:dd:01  Port=Gi0/1',
+        '--- New switch added to network ---',
+        '500   5.000000  00:11:00:00:00:01  01:80:c2:00:00:00   STP       Conf. Root=32768/00:11:00:00:00:01  TC  (new root!)',
+        '501   5.000500  00:aa:bb:cc:dd:01  01:80:c2:00:00:00   STP       Conf. Root=32768/00:11:00:00:00:01  TC',
+        '502   5.001000  00:aa:bb:cc:dd:02  01:80:c2:00:00:00   STP       Conf. Root=32768/00:11:00:00:00:01  TC',
+        '',
+        '-- HEALTHY STP (for comparison) --',
+        '600   0.000000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=4096/00:11:22:33:44:55',
+        '601   2.001000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=4096/00:11:22:33:44:55',
+        '602   4.002000  00:11:22:33:44:55  01:80:c2:00:00:00   STP       Conf. Root=4096/00:11:22:33:44:55'
+      ],
+      explain:'Example 1 - ARP flood: The same frame arrives thousands of times per second (timestamps microseconds apart). A frame is circling the loop and re-broadcasting on every lap. The network is saturated. Unplug inter-switch uplinks one at a time until the flood stops.\n\nExample 2 - Duplicate MAC (definitive loop proof): The same source MAC (aa:bb:cc:44:55:66) arrives alternately on two different switch ports (Gi0/1 and Gi0/3). A switch learns which port each MAC is behind - if the same MAC keeps flipping between ports, the frame is arriving from multiple directions simultaneously. This proves a loop. Wireshark shows you the MAC; the switch MAC address table (show mac address-table) shows which ports.\n\nExample 3 - STP instability: BPDUs arriving every 500ms with TC flag on every frame - a port is constantly flapping and spanning tree is reconverging. Healthy STP (packets 600-602) shows clean 2-second intervals with no TC flag.\n\nExample 4 - STP misconfiguration (all switches on default priority 32768): All three switches are advertising the same root priority (32768). STP has no choice but to use MAC addresses to break the tie - whichever switch has the lowest MAC becomes root. This may not be the switch you want as root (it could be an access switch rather than your core). Worse, when a new switch is added (packet 500) with a lower MAC (00:11:xx vs 00:aa:xx), it immediately takes over as root and triggers a full topology change across the network - you see TC flags on every BPDU as all switches recalculate. Fix: set the intended root switch to priority 4096 and the secondary to 8192. Healthy BPDUs (600-602) show Root=4096 rather than 32768, confirming deliberate root placement.'
+    },
+    next:'<strong>Active storm:</strong> Unplug suspected ports one at a time starting with inter-switch uplinks until traffic drops. <strong>STP TC flag:</strong> Enable BPDU Guard on all access ports - they should never receive BPDUs, and if they do, the port shuts down automatically. <strong>Find the loop:</strong> Use <strong>Statistics &rarr; Conversations</strong> in Wireshark and sort by packets to find the top MAC generating traffic. Track that MAC to a switch port using the MAC address table.'
+  }
+];
+
+
+function tsSearch(q){
+  renderScenarios(q.toLowerCase().trim());
+}
+
+function renderScenarios(q){
+  var scenarios=q
+    ? TS_SCENARIOS.filter(function(s){
+        return s.title.toLowerCase().indexOf(q)>-1
+          || s.subtitle.toLowerCase().indexOf(q)>-1
+          || s.tags.some(function(t){return t.indexOf(q)>-1;});
+      })
+    : TS_SCENARIOS;
+
+  var html='<div class="ts-grid">';
+  if(!scenarios.length){
+    html+='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-2);font-size:13px;">No matching scenarios.</div>';
+  }
+  scenarios.forEach(function(s){
+    html+='<div class="ts-card" id="ts-'+s.id+'">';
+    html+='<div class="ts-header" onclick="toggleScenario(\'ts-'+s.id+'\')">';
+    html+='<div class="ts-icon">'+s.icon+'</div>';
+    html+='<div class="ts-title-wrap"><div class="ts-title">'+s.title+'</div><div class="ts-subtitle">'+s.subtitle+'</div></div>';
+    html+='<div class="ts-chevron">&#9660;</div>';
+    html+='</div>';
+    html+='<div class="ts-body">';
+    // Tags
+    html+='<div style="margin-top:10px;margin-bottom:2px;">';
+    s.tags.forEach(function(t){ html+='<span class="ts-tag">'+t+'</span>'; });
+    html+='</div>';
+    // Filters
+    html+='<div class="ts-section-label">Wireshark Filters</div>';
+    s.filters.forEach(function(f,i){
+      var eid='tsf-'+s.id+'-'+i;
+      html+='<div class="ts-filter-row">';
+      html+='<span class="ts-filter-desc">'+f.desc+'</span>';
+      html+='<button class="ts-filter-code" id="'+eid+'" onclick="copyByElemId(\''+eid+'\')">'+esc(f.f)+'</button>';
+      html+='</div>';
+    });
+    // What to look for
+    html+='<div class="ts-section-label">What to look for</div>';
+    s.look.forEach(function(l){
+      html+='<div class="ts-look-item"><span class="ts-look-sev '+l.sev+'">'+(l.sev==='bad'?'Bad':l.sev==='warn'?'Warn':'Good')+'</span><span>'+l.text+'</span></div>';
+    });
+    // Example
+    if(s.example){
+      html+='<div class="ts-section-label">Example - what it looks like</div>';
+      html+='<div class="ts-example-wrap"><pre>';
+      s.example.packets.forEach(function(line,i){
+        if(i===0){
+          html+='<span class="hdr">'+esc(line)+'</span>\n';
+        } else if(line===''||line.indexOf('--')===0){
+          html+='<span class="hdr">'+esc(line)+'</span>\n';
+        } else if(line.indexOf('Retransmission')>-1||line.indexOf('ZeroWindow')>-1||line.indexOf('ROGUE')>-1||line.indexOf('Unauthorized')>-1||line.indexOf('NXDOMAIN')>-1||line.indexOf('SERVFAIL')>-1||line.indexOf('no DHCP')>-1||line.indexOf('TC')>-1||line.indexOf('thousands')>-1||line.indexOf('no SYN-ACK')>-1||line.indexOf('exceeded')>-1||line.indexOf('retransmit')>-1){
+          html+='<span class="bad-line">'+esc(line)+'</span>\n';
+        } else {
+          html+=esc(line)+'\n';
+        }
+      });
+      html+='</pre></div>';
+      html+='<div class="ts-example-plain">'+s.example.explain.replace(/\n\n/g,'<br><br>').replace(/\n/g,'<br>')+'</div>';
+    }
+    // Next step
+    html+='<div class="ts-section-label">Next step</div>';
+    html+='<div class="ts-next">'+s.next+'</div>';
+    html+='</div>'; // ts-body
+    html+='</div>'; // ts-card
+  });
+  html+='</div>';
+  document.getElementById('ts-grid').innerHTML=html;
+}
+
+function toggleScenario(id){
+  var card=document.getElementById(id);
+  if(card) card.classList.toggle('open');
+}
+function copyByElemId(id){
+  var el=document.getElementById(id);
+  if(el) navigator.clipboard.writeText(el.textContent).then(function(){showToast('Copied');});
+}
+function copyText(id){
+  var el=document.getElementById(id);
+  if(el)navigator.clipboard.writeText(el.textContent).then(function(){showToast('Copied to clipboard');});
+}
+function showToast(msg){
+  var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2000);
+}
+
+// ─── AUTHORSHIP ──────────────────────────────────────────
+// Seb's Wireshark Helper
+// Created by Sebastian Hanney
+// Part of Seb's Workshop - Personal IT Engineering Toolkit
+// https://sebit.uk
+//
+// Client-side PCAP analysis, capture script generation,
+// port mirror setup guides and Wireshark filter reference.
+// No data leaves the browser. No external API calls.
+// ─────────────────────────────────────────────────────────
+
+// ─── INIT ────────────────────────────────────────────────
+// Default to Port Mirror - show port mirror card, hide others
+ST.method='portmirror';
+['card-connection','card-interface','card-bpf','card-capture'].forEach(function(id){
+  var el=document.getElementById(id);
+  if(el) el.style.display='none';
+});
+var pmCard=document.getElementById('card-portmirror');
+if(pmCard) pmCard.style.display='block';
+var mainToggle=document.getElementById('main-shell-toggle');
+if(mainToggle) mainToggle.style.display='none';
+// Inject port mirror extras and initialise
+document.getElementById('method-extras').innerHTML=METHOD_EXTRAS['portmirror']||'';
+setTimeout(function(){pmUpdate();},50);
+// Auth field default (used when switching to UniFi/WatchGuard)
+document.getElementById('f-auth').value='pass';
+toggleAuthField();
+</script>
+</body>
+</html>

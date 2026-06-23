@@ -202,6 +202,32 @@ button{ font-family:var(--sans); cursor:pointer; }
 .btn-sm{ padding:6px 10px; font-size:12px; }
 .btn-icon{ width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:14px; }
 
+.mode-switch{
+  display:inline-flex;
+  gap:4px;
+  padding:4px;
+  background:var(--surface-alt);
+  border:1px solid var(--border);
+  border-radius:9px;
+  margin-bottom:20px;
+}
+.mode-btn{
+  padding:8px 16px;
+  border-radius:6px;
+  border:none;
+  background:transparent;
+  color:var(--text-muted);
+  font-size:13.5px;
+  font-weight:600;
+  font-family:var(--sans);
+  cursor:pointer;
+  transition:background .15s,color .15s;
+}
+.mode-btn:hover{ color:var(--text); }
+.mode-btn.active{ background:var(--surface); color:var(--accent); box-shadow:var(--shadow); }
+.mono-cell{ font-family:var(--mono); font-size:12.5px; }
+.text-muted{ color:var(--text-muted); }
+
 .file-label{
   display:inline-flex;
   align-items:center;
@@ -435,8 +461,15 @@ footer{ text-align:center; padding:24px; color:var(--text-muted); font-size:12px
 
   <div class="intro">
     <h2>Seb's Draytek VPN Auditor</h2>
-    <p>Paste or upload a Draytek Remote Dial-in User configuration export, review and audit every account in one table, edit fields directly, reorder entries to fill gaps, and re-export back to a file in the same format.</p>
+    <p>Paste or upload a Draytek VPN configuration export, review and audit every account in one table, edit fields directly, reorder entries to fill gaps, and re-export back to a file in the same format.</p>
   </div>
+
+  <div class="mode-switch" role="tablist">
+    <button class="mode-btn active" id="mode-btn-dialin" onclick="switchMode('dialin')">Remote Dial-in Users</button>
+    <button class="mode-btn" id="mode-btn-lan2lan" onclick="switchMode('lan2lan')">LAN-to-LAN (Beta, view only)</button>
+  </div>
+
+  <div id="mode-dialin">
 
   <details class="help-collapse" id="format-help">
     <summary>📄 Expected import format &amp; field reference</summary>
@@ -524,6 +557,73 @@ footer{ text-align:center; padding:24px; color:var(--text-muted); font-size:12px
     <div class="icon">🔐</div>
     <h4>No data loaded yet</h4>
     <p>Upload a file or load sample data to parse it straight away, or paste an export above and click Parse export.</p>
+  </div>
+
+  </div>
+
+  <div id="mode-lan2lan" style="display:none;">
+
+    <details class="help-collapse" id="lan2lan-format-help">
+      <summary>📄 Expected import format &amp; field reference</summary>
+      <div class="help-body">
+        <p>This tool expects a Draytek LAN-to-LAN (site-to-site) VPN configuration export: a flags line, a header line starting <code>NumberOfCfg:...</code>, followed by one comma-delimited row per profile slot, then <code>remotemore:</code> and <code>virtualmap:</code> blocks, then password/PSK arrays, terminated by a line reading <code>endoflan2lanfile!</code>.</p>
+        <p><strong>This view is read-only.</strong> Fields confirmed so far include: Enable, Profile Name, Call Direction, Idle Timeout, Remote Gateway IP, Local/Remote Network and Subnet Mask, and all four IPsec Security Method ciphers (AH, ESP-DES, ESP-3DES, ESP-AES) for Dial-In and Both profiles. A number of fields - including routing mode settings and a couple of low-impact numeric flags - are not yet confirmed and are simply not shown, rather than displayed with guessed meaning.</p>
+        <p><strong>Password/PSK handling:</strong> uses the same reversible +13 byte offset as the Remote Dial-in User file. Decoded for display behind the reveal toggle only.</p>
+        <p><strong>Coming soon:</strong> additional remote subnets per profile (the GUI's "More Remote Subnet" option - the file's <code>remotemore</code>/<code>virtualmap</code> blocks likely hold this but aren't mapped yet), VPN Server Type for Dial-Out profiles (PPTP/IPsec/L2TP/SSL/OpenVPN/WireGuard), and a combined weak-cipher summary across both the Dial-in and LAN-to-LAN tabs.</p>
+      </div>
+    </details>
+
+    <div class="panel" id="lan2lan-import-panel">
+      <div class="panel-header">
+        <h3>Import</h3>
+        <span class="status-line" id="lan2lan-import-status"></span>
+      </div>
+      <div class="panel-body">
+        <textarea class="dropzone" id="lan2lan-import-text" placeholder="Paste the exported LAN-to-LAN config text here, or drop a .bak file onto this box..."></textarea>
+        <div class="btn-row">
+          <label class="file-label">
+            📁 Upload file
+            <input type="file" id="lan2lan-file-input" accept=".txt,.cfg,.log,.bak,.conf,.dat" style="display:none">
+          </label>
+          <button class="btn btn-primary" onclick="parseLan2LanImport()">Parse export</button>
+          <button class="btn" onclick="loadLan2LanSample()">Load sample data</button>
+          <button class="btn btn-danger" onclick="clearLan2Lan()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" id="lan2lan-results-panel" style="display:none;">
+      <div class="panel-header">
+        <h3>LAN-to-LAN profiles</h3>
+        <input class="search-box" id="lan2lan-search-box" placeholder="Filter by profile name..." oninput="renderLan2LanTable()">
+      </div>
+      <div class="panel-body">
+        <div class="table-wrap">
+          <table class="users-table">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Enabled</th>
+                <th>Profile Name</th>
+                <th>Direction</th>
+                <th>Remote Gateway</th>
+                <th>Local Network</th>
+                <th>Remote Network <span class="text-muted" style="font-weight:400;font-size:11px;" title="Additional remote subnets per profile (the GUI's More Remote Subnet option) aren't mapped yet - only the primary subnet is shown">+more soon</span></th>
+                <th>IPsec Security</th>
+              </tr>
+            </thead>
+            <tbody id="lan2lan-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" id="lan2lan-empty-state">
+      <div class="icon">🔗</div>
+      <h4>No data loaded yet</h4>
+      <p>Upload a file or load sample data to parse it straight away, or paste an export above and click Parse export.</p>
+    </div>
+
   </div>
 
   </main>
@@ -3739,7 +3839,8 @@ function renderTable(){
       var cpItem = cipherPills[cp];
       var cpActive = u[cpItem.key];
       var cpCls = "type-pill" + (cpActive ? " active" : "") + (cpActive && cpItem.severity ? " pill-" + cpItem.severity : "");
-      html += "<span class=\"" + cpCls + "\"" + (cpActive && cpItem.title ? " title=\"" + escapeHTML(cpItem.title) + "\"" : "") + ">" + cpItem.label + "</span>";
+      html += "<span class=\"" + cpCls + "\" onclick=\"toggleType(" + i + ",'" + cpItem.key + "')\"" +
+        (cpActive && cpItem.title ? " title=\"" + escapeHTML(cpItem.title) + "\"" : "") + ">" + cpItem.label + "</span>";
     }
     html += "</div></td>";
 
@@ -4138,7 +4239,270 @@ document.querySelectorAll(".modal-overlay").forEach(function(ov){
   ov.addEventListener("click", function(e){ if(e.target === ov) closeModal(ov.id); });
 });
 
+/* -----------------------------------------------------------
+   LAN-TO-LAN (site-to-site) VIEW-ONLY MODULE
 
+   Field map confirmed against real Vigor exports (see project notes).
+   This is deliberately VIEW ONLY - no editing, no re-export - because
+   several fields (e.g. index 12, index 13) carry different meanings
+   depending on Call Direction (Dial-Out vs Dial-In vs Both), and a
+   safe editor would need that full split mapped out first. Any field
+   not confirmed below is simply not shown, never guessed at.
+
+   CONFIRMED fields used here:
+     [0]  enabled              0/1
+     [1]  profileName          "???" = unset
+     [2]  callDirection        0=Both, 1=Dial-In, 2=Dial-Out
+     [4]  idleTimeout          seconds; 4294967295 (uint32 of -1) = Always on / never
+     [13] remoteGatewayIP      Dial-Out: Server IP/Host Name. Also seen populated for Dial-In
+                                (Specify Remote VPN Gateway) in at least one real example.
+     [52] AH unchecked         0=checked,1=unchecked (Dial-In/Both only)
+     [53] ESP-DES unchecked    0=checked,1=unchecked
+     [54] ESP-3DES unchecked   0=checked,1=unchecked
+     [55] ESP-AES unchecked    0=checked,1=unchecked
+     [61] localNetworkAddr     raw uint32, big-endian
+     [62] localNetworkMask     raw uint32, big-endian
+     [63] remoteNetworkAddr    raw uint32, big-endian
+     [64] remoteNetworkMask    raw uint32, big-endian
+----------------------------------------------------------- */
+
+var LAN2LAN_PROFILES = [];
+
+function uint32ToIp(n){
+  n = Number(n);
+  if(!isFinite(n) || n < 0) return "";
+  return [(n>>>24)&255,(n>>>16)&255,(n>>>8)&255,n&255].join(".");
+}
+
+function lan2lanFieldsToProfile(fields, slotIndex){
+  var p = {
+    slot: slotIndex,
+    enabled: b(fields[0]),
+    profileName: (fields[1] && fields[1] !== "???") ? fields[1] : "",
+    callDirection: fields[2] || "0",
+    idleTimeout: fields[4] || "0",
+    remoteGatewayIP: fields[13] || "",
+    cipherAHUnchecked: b(fields[52]),
+    cipherDESUnchecked: b(fields[53]),
+    cipherDES3Unchecked: b(fields[54]),
+    cipherAESUnchecked: b(fields[55]),
+    localNetworkAddr: fields[61] || "0",
+    localNetworkMask: fields[62] || "0",
+    remoteNetworkAddr: fields[63] || "0",
+    remoteNetworkMask: fields[64] || "0"
+  };
+  p.isBlank = (p.profileName === "" && !p.enabled);
+  return p;
+}
+
+function lan2lanDirectionLabel(code){
+  if(code === "1") return "Dial-In";
+  if(code === "2") return "Dial-Out";
+  return "Both";
+}
+
+function parseLan2LanImport(){
+  var text = document.getElementById("lan2lan-import-text").value;
+  if(!text || text.replace(/\s/g, "") === ""){
+    setLan2LanStatus("Nothing to parse - paste or upload an export first.", "err");
+    return;
+  }
+  var lines = text.split(/\r?\n/);
+  var profiles = [];
+  var sawFooter = false;
+  var profileSectionDone = false;
+  var slot = 0;
+
+  for(var i = 0; i < lines.length; i++){
+    var raw = lines[i];
+    if(raw.replace(/\s/g, "") === "") continue;
+    if(/^endoflan2lanfile/i.test(raw)){ sawFooter = true; continue; }
+    if(/^remotemore:/i.test(raw) || /^virtualmap:/i.test(raw) ||
+       /^encDinPassword:/i.test(raw) || /^encDoutPassword:/i.test(raw) ||
+       /^encInPreSharedKey:/i.test(raw) || /^encOutPreSharedKey:/i.test(raw)){
+      profileSectionDone = true; // reached the footer blocks, profile rows are done -
+      continue;                  // keep scanning so we can still detect the final sentinel line
+    }
+    if(profileSectionDone) continue;
+
+    var line = raw;
+    if(/^NumberOfCfg/i.test(line)){
+      // header line: 5 metadata fields then the first profile's row appended directly
+      var headerFields = line.split(",");
+      var rest = headerFields.slice(5);
+      if(rest.length >= 40){
+        profiles.push(lan2lanFieldsToProfile(rest, slot));
+        slot++;
+      }
+      continue;
+    }
+    if(i === 0){
+      // line 0 is the flags array, not profile data - skip entirely (purpose unconfirmed,
+      // does NOT reliably track enabled state - see project notes)
+      continue;
+    }
+
+    var fields = line.split(",");
+    if(fields.length < 40) continue;
+    profiles.push(lan2lanFieldsToProfile(fields, slot));
+    slot++;
+  }
+
+  if(profiles.length === 0){
+    setLan2LanStatus("Could not find any LAN-to-LAN profile rows - check the format note above.", "err");
+    return;
+  }
+
+  if(!sawFooter){
+    setLan2LanStatus("Parsed " + profiles.length + " slots, but no \"endoflan2lanfile!\" footer was found - export may be incomplete.", "err");
+  } else {
+    var activeCount = 0;
+    for(var c = 0; c < profiles.length; c++){ if(!profiles[c].isBlank) activeCount++; }
+    setLan2LanStatus("Parsed " + profiles.length + " slots (" + activeCount + " in use).", "ok");
+  }
+
+  LAN2LAN_PROFILES = profiles;
+  renderLan2LanTable();
+  document.getElementById("lan2lan-results-panel").style.display = "block";
+  document.getElementById("lan2lan-empty-state").style.display = "none";
+}
+
+function setLan2LanStatus(msg, kind){
+  var el = document.getElementById("lan2lan-import-status");
+  el.textContent = msg;
+  el.className = "status-line" + (kind ? " " + kind : "");
+}
+
+var LAN2LAN_CIPHERS = [
+  {flag:"cipherAHUnchecked", label:"AH", severity:"weak", title:"Authentication Header provides integrity checking only - it does not encrypt traffic. If this is the only method enabled, data is sent in the clear."},
+  {flag:"cipherDESUnchecked", label:"DES", severity:"bad", title:"DES uses a 56-bit key and can be brute-forced in hours on commodity hardware. Should not be enabled."},
+  {flag:"cipherDES3Unchecked", label:"3DES", severity:"weak", title:"3DES is deprecated by NIST and most vendors - still meaningfully stronger than DES but should be migrated to AES where possible."},
+  {flag:"cipherAESUnchecked", label:"AES", severity:"", title:""}
+];
+
+function renderLan2LanTable(){
+  var tbody = document.getElementById("lan2lan-tbody");
+  var search = document.getElementById("lan2lan-search-box").value.toLowerCase();
+  var html = "";
+
+  for(var i = 0; i < LAN2LAN_PROFILES.length; i++){
+    var p = LAN2LAN_PROFILES[i];
+    if(p.isBlank) continue;
+    if(search && p.profileName.toLowerCase().indexOf(search) === -1) continue;
+
+    var rowClass = "user-row" + (p.enabled ? "" : " disabled-row");
+    html += "<tr class=\"" + rowClass + "\">";
+    html += "<td><span class=\"idx-badge\">" + (p.slot + 1) + "</span></td>";
+    html += "<td>" + (p.enabled
+      ? "<span class=\"badge badge-ok\">Enabled</span>"
+      : "<span class=\"badge badge-muted\">Disabled</span>") + "</td>";
+    html += "<td><strong>" + escapeHTML(p.profileName || "(unnamed)") + "</strong></td>";
+    html += "<td>" + escapeHTML(lan2lanDirectionLabel(p.callDirection)) + "</td>";
+
+    var dirCode = p.callDirection;
+    var gatewayDisplay = p.remoteGatewayIP;
+    html += "<td class=\"mono-cell\">" + (gatewayDisplay ? escapeHTML(gatewayDisplay) : "<span class=\"text-muted\">&mdash;</span>") + "</td>";
+
+    var localNet = uint32ToIp(p.localNetworkAddr);
+    var localMask = uint32ToIp(p.localNetworkMask);
+    html += "<td class=\"mono-cell\">" + (localNet && localNet !== "0.0.0.0" ? escapeHTML(localNet + " / " + localMask) : "<span class=\"text-muted\">&mdash;</span>") + "</td>";
+
+    var remoteNet = uint32ToIp(p.remoteNetworkAddr);
+    var remoteMask = uint32ToIp(p.remoteNetworkMask);
+    html += "<td class=\"mono-cell\">" + (remoteNet && remoteNet !== "0.0.0.0" ? escapeHTML(remoteNet + " / " + remoteMask) : "<span class=\"text-muted\">&mdash;</span>") + "</td>";
+
+    // IPsec security method pills - only meaningful for Dial-In/Both, where the GUI
+    // exposes the "Allowed IPsec Security Method" checkboxes
+    html += "<td><div class=\"type-pills\">";
+    if(dirCode === "1" || dirCode === "0"){
+      var ahActive = !p.cipherAHUnchecked;
+      var desActive = !p.cipherDESUnchecked;
+      var des3Active = !p.cipherDES3Unchecked;
+      var aesActive = !p.cipherAESUnchecked;
+      var ahOnly = ahActive && !desActive && !des3Active && !aesActive;
+      for(var c = 0; c < LAN2LAN_CIPHERS.length; c++){
+        var cph = LAN2LAN_CIPHERS[c];
+        var checked = !p[cph.flag]; // stored as "unchecked" flag, so invert for "is this active"
+        var sev = cph.severity;
+        var title = cph.title;
+        if(cph.label === "AH" && ahOnly){
+          sev = "bad";
+          title = "AH is the ONLY security method enabled on this tunnel. AH provides integrity checking only, no encryption at all - traffic on this tunnel is sent in the clear.";
+        }
+        var cls = "type-pill" + (checked ? " active" : "") + (checked && sev ? " pill-" + sev : "");
+        html += "<span class=\"" + cls + "\"" + (checked && title ? " title=\"" + escapeHTML(title) + "\"" : "") + ">" + cph.label + "</span>";
+      }
+    } else {
+      html += "<span class=\"text-muted\">n/a (Dial-Out)</span>";
+    }
+    html += "</div></td>";
+
+    html += "</tr>";
+  }
+
+  tbody.innerHTML = html || "<tr><td colspan=\"8\" style=\"text-align:center;color:var(--text-muted);padding:24px;\">No matching profiles.</td></tr>";
+}
+
+function loadLan2LanSample(){
+  // Synthetic sample data only - no real names, IPs or keys from any real export
+  var sample = [
+    "NumberOfCfg:4,1,4,200,16,0,???,0,0,300,0,255.255.255.255,0,0,2,0,2,443,,0,0,0,0,???,,0,1,0,1,,0,,40,2,0,28800,3600,0,0,0,0,0,0,40,0,0,2,0,,,???,,1,0,,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4294967040,1,0,0,0,0,LAN1,0,0,0,0,,,,0,0",
+    "1,HQ-Site,2,3,4294967295,0,255.255.255.255,1,0,3,0,2,0,203.0.113.10,0,0,0,0,???,,0,1,0,1,,0,,40,2,0,28800,3600,0,0,0,0,0,0,40,0,0,2,0,,,???,,1,0,,1,0,0,0,0,0,0,0,0,0,0,3232235776,4294967040,3232236032,4294967040,1,0,0,0,0,LAN1,0,0,0,0,,,,0,0",
+    "1,Branch-Office,1,0,300,0,255.255.255.255,0,0,3,0,2,443,198.51.100.20,0,0,0,0,???,,0,1,0,1,,0,,40,2,0,28800,3600,0,0,0,0,0,0,40,0,0,2,1,,,???,,1,0,,1,0,1,0,0,0,0,0,0,0,0,3232235776,4294967040,3232236288,4294967040,1,0,0,0,0,LAN1,0,0,0,0,,,,0,0",
+    "0,???,0,0,300,0,255.255.255.255,0,0,3,0,2,443,,0,0,0,0,???,,0,1,0,3,,0,,40,2,0,28800,3600,0,0,0,0,0,0,40,0,0,2,0,,,???,,1,0,,1,0,0,0,0,0,0,0,0,0,0,0,0,0,4294967040,1,0,0,0,0,LAN1,0,0,0,0,,,,0,0",
+    "endoflan2lanfile!"
+  ].join("\n");
+  document.getElementById("lan2lan-import-text").value = sample;
+  setLan2LanStatus("Loaded sample data.", "ok");
+  parseLan2LanImport();
+}
+
+function clearLan2Lan(){
+  document.getElementById("lan2lan-import-text").value = "";
+  LAN2LAN_PROFILES = [];
+  document.getElementById("lan2lan-results-panel").style.display = "none";
+  document.getElementById("lan2lan-empty-state").style.display = "block";
+  setLan2LanStatus("", "");
+}
+
+document.getElementById("lan2lan-file-input").addEventListener("change", function(e){
+  var f = e.target.files && e.target.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var bytes = new Uint8Array(ev.target.result);
+    document.getElementById("lan2lan-import-text").value = bytesToRawString(bytes);
+    setLan2LanStatus("Loaded " + f.name + " (" + f.size + " bytes). Parsing...", "ok");
+    parseLan2LanImport();
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+var lan2lanDz = document.getElementById("lan2lan-import-text");
+lan2lanDz.addEventListener("dragover", function(e){ e.preventDefault(); lan2lanDz.classList.add("dragover"); });
+lan2lanDz.addEventListener("dragleave", function(){ lan2lanDz.classList.remove("dragover"); });
+lan2lanDz.addEventListener("drop", function(e){
+  e.preventDefault();
+  lan2lanDz.classList.remove("dragover");
+  var f = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(!f) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    var bytes = new Uint8Array(ev.target.result);
+    lan2lanDz.value = bytesToRawString(bytes);
+    setLan2LanStatus("Loaded " + f.name + " (" + f.size + " bytes). Parsing...", "ok");
+    parseLan2LanImport();
+  };
+  reader.readAsArrayBuffer(f);
+});
+
+function switchMode(mode){
+  var isDialin = (mode === "dialin");
+  document.getElementById("mode-dialin").style.display = isDialin ? "" : "none";
+  document.getElementById("mode-lan2lan").style.display = isDialin ? "none" : "";
+  document.getElementById("mode-btn-dialin").classList.toggle("active", isDialin);
+  document.getElementById("mode-btn-lan2lan").classList.toggle("active", !isDialin);
+}
 
 </script>
 </body>
