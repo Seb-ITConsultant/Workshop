@@ -1,31 +1,17 @@
 <!DOCTYPE html>
 <!--
-  ============================================================
   Seb's Workshop - Wireshark Helper
-  ============================================================
   Created by: Sebastian Hanney
-  Part of:    Seb's Workshop - Personal IT Engineering Toolkit
-  Purpose:    Client-side PCAP analyser, capture script builder,
-              port mirror setup guide and Wireshark filter reference
-              for MSP engineers and network technicians.
-
-  All processing runs entirely in the browser.
-  No data is uploaded or transmitted externally.
-
-  © Sebastian Hanney. All rights reserved.
-  ============================================================
+  Copyright Sebastian Hanney. All rights reserved.
 -->
 <html lang="en" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="author" content="Sebastian Hanney">
-<meta name="description" content="Seb's Wireshark Helper - PCAP analyser, capture script builder and port mirror guide. Created by Sebastian Hanney as part of Seb's Workshop.">
-<meta name="creator" content="Sebastian Hanney">
+<meta name="description" content="Seb's Wireshark Helper - PCAP analyser, capture builder and port mirror guide by Sebastian Hanney.">
 <title>Wireshark Helper - Seb's Workshop</title>
-<script>
-(function(){var t=localStorage.getItem('sw-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();
-</script>
+<script>(function(){var t=localStorage.getItem('sw-theme');if(t)document.documentElement.setAttribute('data-theme',t);})();</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -33,122 +19,81 @@
   --accent:#0d9488;--accent-hover:#0f766e;--bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5f9;
   --border:#e2e8f0;--text:#0f172a;--text-2:#475569;--text-3:#94a3b8;
   --code-bg:#0f172a;--code-text:#e2e8f0;
-  --shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
-  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07);
-  --radius:8px;--green:#16a34a;--amber:#d97706;--red:#dc2626;--blue:#2563eb;
+  --shadow:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 6px -1px rgba(0,0,0,.07);
+  --radius:8px;--green:#16a34a;--amber:#d97706;--amber-lt:rgba(217,119,6,.12);
+  --red:#dc2626;--blue:#2563eb;--mono:'JetBrains Mono',monospace;--font:'DM Sans',sans-serif;
 }
 [data-theme="dark"]{
   --accent:#00dba8;--accent-hover:#00c49a;--bg:#0a0f1a;--surface:#111827;--surface2:#1e2535;
   --border:#1e2d3d;--text:#f1f5f9;--text-2:#94a3b8;--text-3:#475569;
   --code-bg:#060c16;--code-text:#a5f3eb;
   --shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 6px -1px rgba(0,0,0,.3);
-  --green:#22c55e;--amber:#f59e0b;--red:#f87171;--blue:#60a5fa;
+  --green:#22c55e;--amber:#f59e0b;--amber-lt:rgba(245,158,11,.12);--red:#f87171;--blue:#60a5fa;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
-
-/* NAV */
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;}
+a{color:inherit;}
 .nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:var(--shadow);}
 .nav-left{display:flex;align-items:center;gap:12px;}
-.back-link{display:flex;align-items:center;gap:6px;color:var(--text-2);text-decoration:none;font-size:13px;font-weight:500;padding:4px 8px;border-radius:6px;transition:background .15s,color .15s;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text-2);text-decoration:none;font-size:13px;font-weight:500;padding:4px 8px;border-radius:6px;transition:all .15s;}
 .back-link:hover{background:var(--surface2);color:var(--accent);}
 .back-link svg{width:14px;height:14px;}
 .nav-divider{width:1px;height:20px;background:var(--border);}
 .nav-title{font-weight:600;font-size:15px;}
 .nav-title span{color:var(--accent);}
-.theme-toggle{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px;cursor:pointer;color:var(--text-2);display:flex;align-items:center;transition:background .15s,color .15s;}
-.theme-toggle:hover{color:var(--accent);background:var(--border);}
+.theme-toggle{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:6px;cursor:pointer;color:var(--text-2);display:flex;align-items:center;transition:all .15s;}
+.theme-toggle:hover{color:var(--accent);}
 .theme-toggle svg{width:16px;height:16px;}
-
-/* HERO */
 .hero{background:var(--surface);border-bottom:1px solid var(--border);padding:28px 32px 0;}
-.hero-inner{max-width:1160px;margin:0 auto;}
 .hero h1{font-size:22px;font-weight:600;margin-bottom:4px;}
 .hero p{color:var(--text-2);font-size:14px;margin-bottom:20px;}
 .tabs{display:flex;}
-.tab-btn{padding:10px 20px;font-size:13px;font-weight:500;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-2);cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;}
+.tab-btn{padding:10px 20px;font-size:13px;font-weight:500;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--text-2);cursor:pointer;transition:all .15s;font-family:var(--font);white-space:nowrap;}
 .tab-btn:hover{color:var(--text);}
 .tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
-
-/* MAIN */
 .main{max-width:1160px;margin:0 auto;padding:28px 32px;}
 .tab-panel{display:none;}
 .tab-panel.active{display:block;}
-
-/* BUILDER GRID */
 .builder-grid{display:grid;grid-template-columns:380px 1fr;gap:20px;align-items:start;}
-
-/* CARD */
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);}
 .card+.card{margin-top:16px;}
 .card-title{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
 .card-title svg{width:13px;height:13px;color:var(--accent);}
-
-/* METHOD TILES */
 .method-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:4px;}
-.method-tile{border:2px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;background:var(--surface2);text-align:left;}
+.method-tile{border:2px solid var(--border);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all .15s;background:var(--surface2);}
 .method-tile:hover{border-color:var(--accent);}
-.method-tile.selected{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
-.method-tile .mt-icon{font-size:17px;margin-bottom:3px;}
-.method-tile .mt-name{font-size:12px;font-weight:600;color:var(--text);}
-.method-tile .mt-desc{font-size:11px;color:var(--text-2);margin-top:1px;}
-.beta-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:color-mix(in srgb,var(--amber) 15%,transparent);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);vertical-align:middle;letter-spacing:.04em;text-transform:uppercase;}
-
-/* FORM */
+.method-tile.selected,.method-tile.active{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
+.mt-icon{font-size:17px;margin-bottom:3px;}
+.mt-name{font-size:12px;font-weight:600;color:var(--text);}
+.mt-desc{font-size:11px;color:var(--text-2);margin-top:1px;}
+.beta-badge{font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:var(--amber-lt);color:var(--amber);border:1px solid color-mix(in srgb,var(--amber) 30%,transparent);vertical-align:middle;letter-spacing:.04em;text-transform:uppercase;}
 .form-group{margin-bottom:13px;}
 .form-label{display:block;font-size:12px;font-weight:500;color:var(--text-2);margin-bottom:5px;}
-.form-label .req{color:var(--accent);margin-left:2px;}
-.form-input,.form-select{width:100%;padding:7px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none;font-family:'DM Sans',sans-serif;transition:border-color .15s,box-shadow .15s;}
+.form-input,.form-select{width:100%;padding:7px 10px;font-size:13px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);outline:none;font-family:var(--font);transition:border-color .15s,box-shadow .15s;}
 .form-input:focus,.form-select:focus{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 15%,transparent);}
-.form-select option{background:var(--surface);}
 .form-hint{font-size:11px;color:var(--text-3);margin-top:3px;}
 .form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* SECTION DIVIDER */
 .sec-divider{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:16px 0 10px;padding-top:14px;border-top:1px solid var(--border);}
-
-/* DESTINATION TOGGLE */
-.dest-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;margin-bottom:13px;}
-.dest-btn{flex:1;padding:6px 10px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;line-height:1.3;text-align:center;}
-.dest-btn.active{background:var(--accent);color:white;}
-
-/* BPF BUILDER */
-.bpf-sections{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
-.bpf-section{border:1px solid var(--border);border-radius:6px;overflow:hidden;}
-.bpf-section-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--surface2);cursor:pointer;font-size:12px;font-weight:600;user-select:none;}
-.bpf-section-header:hover{background:var(--border);}
-.bpf-section-header .chevron{transition:transform .2s;font-size:10px;color:var(--text-3);}
-.bpf-section-header.open .chevron{transform:rotate(180deg);}
-.bpf-section-body{padding:10px 12px;display:none;}
-.bpf-section-body.open{display:block;}
+.dest-toggle,.rot-toggle,.shell-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;margin-bottom:12px;}
+.dest-btn,.rot-btn,.stog-btn{flex:1;padding:5px 8px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:var(--font);transition:all .15s;line-height:1.3;text-align:center;}
+.dest-btn.active,.rot-btn.active,.stog-btn.active{background:var(--accent);color:white;}
 .bpf-chip-group{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px;}
-.bpf-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'DM Sans',sans-serif;color:var(--text-2);}
+.bpf-chip{padding:3px 10px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);font-size:11px;font-weight:500;cursor:pointer;transition:all .15s;font-family:var(--font);color:var(--text-2);}
 .bpf-chip:hover{border-color:var(--accent);color:var(--accent);}
 .bpf-chip.active{background:var(--accent);border-color:var(--accent);color:white;}
-.bpf-result{background:var(--code-bg);border-radius:6px;padding:8px 10px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--code-text);min-height:32px;margin-top:8px;word-break:break-all;line-height:1.6;}
+.bpf-result{background:var(--code-bg);border-radius:6px;padding:8px 10px;font-family:var(--mono);font-size:11px;color:var(--code-text);min-height:32px;word-break:break-all;line-height:1.6;}
 .bpf-result .placeholder{color:#475569;font-style:italic;}
-
-/* SHELL TOGGLE */
-.shell-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;}
-.stog-btn{padding:4px 14px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;}
-.stog-btn.active{background:var(--accent);color:white;}
-
-/* OUTPUT */
 .output-sticky{position:sticky;top:68px;}
 .output-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
 .output-label{font-size:12px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;}
-
 .code-block{background:var(--code-bg);border-radius:8px;padding:14px;position:relative;margin-bottom:12px;}
-.code-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--code-text);white-space:pre-wrap;word-break:break-all;line-height:1.75;}
-.copy-btn{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#94a3b8;font-size:11px;font-weight:500;padding:3px 9px;border-radius:4px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;display:flex;align-items:center;gap:4px;}
+.code-block pre{font-family:var(--mono);font-size:11.5px;color:var(--code-text);white-space:pre-wrap;word-break:break-all;line-height:1.75;}
+.copy-btn{position:absolute;top:9px;right:9px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);color:#94a3b8;font-size:11px;font-weight:500;padding:3px 9px;border-radius:4px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:4px;transition:all .15s;}
 .copy-btn:hover{background:var(--accent);color:white;border-color:var(--accent);}
 .copy-btn svg{width:11px;height:11px;}
-
 .filter-out-block{background:color-mix(in srgb,var(--accent) 7%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 25%,var(--border));border-radius:8px;padding:12px 14px;position:relative;margin-bottom:12px;}
 .filter-out-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;}
-.filter-out-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--text);line-height:1.6;word-break:break-all;}
-
-/* STEPS */
+.filter-out-block pre{font-family:var(--mono);font-size:11.5px;color:var(--text);line-height:1.6;word-break:break-all;}
 .steps-wrap{margin-top:14px;}
 .steps-title{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
 .step{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--border);}
@@ -156,22 +101,18 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .step-num{background:var(--accent);color:white;width:20px;height:20px;border-radius:50%;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
 .step h4{font-size:12px;font-weight:600;margin-bottom:2px;}
 .step p{font-size:12px;color:var(--text-2);}
-.step code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;display:inline-block;margin-top:3px;}
-
-/* EMPTY */
+.step code{font-family:var(--mono);font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;display:inline-block;margin-top:3px;}
 .empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:160px;color:var(--text-3);text-align:center;gap:8px;}
 .empty-state svg{width:32px;height:32px;opacity:.35;}
 .empty-state p{font-size:13px;}
-
-/* ANALYSE */
 .drop-zone{border:2px dashed var(--border);border-radius:var(--radius);padding:48px 24px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface2);}
 .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface));}
 .drop-zone svg{width:38px;height:38px;color:var(--text-3);margin-bottom:10px;}
 .drop-zone h3{font-size:15px;font-weight:600;margin-bottom:4px;}
 .drop-zone p{font-size:13px;color:var(--text-2);}
-.drop-zone .ftypes{font-size:11px;color:var(--text-3);margin-top:6px;font-family:'JetBrains Mono',monospace;}
+.drop-zone .ftypes{font-size:11px;color:var(--text-3);margin-top:6px;font-family:var(--mono);}
 .analysis-summary{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:14px 20px;margin-bottom:16px;display:flex;align-items:center;gap:24px;flex-wrap:wrap;}
-.sum-stat .num{font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:var(--accent);}
+.sum-stat .num{font-size:22px;font-weight:700;font-family:var(--mono);color:var(--accent);}
 .sum-stat .lbl{font-size:11px;color:var(--text-2);}
 .findings-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .finding{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;border-left:3px solid var(--border);}
@@ -186,57 +127,43 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .finding.info .badge{background:color-mix(in srgb,var(--blue) 15%,transparent);color:var(--blue);}
 .finding.ok .badge{background:color-mix(in srgb,var(--green) 15%,transparent);color:var(--green);}
 .finding h4{font-size:12px;font-weight:600;}
-.finding p{font-size:12px;color:var(--text-2);margin-top:2px;}
-.finding .fc{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3);margin-top:3px;}
-
-/* FILTERS TAB */
+.finding p{font-size:12px;color:var(--text-2);margin-top:2px;line-height:1.5;}
+.finding .fc{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-top:3px;}
 .search-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:18px;}
 .search-bar svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
-.search-bar input{border:none;background:transparent;outline:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);width:100%;}
+.search-bar input{border:none;background:transparent;outline:none;font-family:var(--font);font-size:13px;color:var(--text);width:100%;}
 .filter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;}
 .filter-cat h3{font-size:11px;font-weight:700;color:var(--text-2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);}
 .filter-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);}
 .filter-row:last-child{border-bottom:none;}
 .filter-desc{font-size:12px;color:var(--text-2);flex:1;min-width:0;}
-.filter-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 7px;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:none;transition:opacity .15s;}
+.filter-code{font-family:var(--mono);font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 7px;border-radius:4px;cursor:pointer;white-space:nowrap;flex-shrink:0;border:none;transition:opacity .15s;}
 .filter-code:hover{opacity:.75;}
-
-/* PROGRESS */
+.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:var(--bg);padding:9px 15px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none;z-index:9999;font-weight:500;}
+.toast.show{opacity:1;transform:translateY(0);}
+.warn-box{background:color-mix(in srgb,var(--amber) 10%,var(--surface2));border:1px solid color-mix(in srgb,var(--amber) 30%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
+.warn-box .warn-icon{font-size:13px;flex-shrink:0;}
+.warn-box strong{color:color-mix(in srgb,var(--amber) 80%,var(--text));}
+.info-box{background:color-mix(in srgb,var(--accent) 7%,var(--surface2));border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;}
+.info-box code{font-family:var(--mono);font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:1px 5px;border-radius:3px;}
 .progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px 24px;text-align:center;margin-top:16px;}
 .progress-wrap h3{font-size:14px;font-weight:600;margin-bottom:4px;}
 .progress-wrap p{font-size:12px;color:var(--text-2);margin-bottom:14px;}
 .progress-track{height:6px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:8px;}
-.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .1s linear;width:0%;}
-.progress-pct{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent);font-weight:500;}
-/* SIZE WARNING */
+.progress-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .1s linear;}
+.progress-pct{font-family:var(--mono);font-size:12px;color:var(--accent);font-weight:500;}
 .size-warn{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px 24px;margin-top:16px;}
 .size-warn h3{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;}
 .size-warn p{font-size:13px;color:var(--text-2);margin-bottom:12px;line-height:1.6;}
 .size-warn .editcap-block{background:var(--code-bg);border-radius:6px;padding:12px 14px;margin-bottom:12px;position:relative;}
-.size-warn .editcap-block pre{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--code-text);white-space:pre-wrap;}
+.size-warn .editcap-block pre{font-family:var(--mono);font-size:11.5px;color:var(--code-text);white-space:pre-wrap;}
 .size-warn-actions{display:flex;gap:8px;flex-wrap:wrap;}
-.btn-primary{background:var(--accent);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:background .15s;}
+.btn-primary{background:var(--accent);color:white;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:background .15s;}
 .btn-primary:hover{background:var(--accent-hover);}
-.btn-secondary{background:var(--surface2);color:var(--text-2);border:1px solid var(--border);border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.btn-secondary{background:var(--surface2);color:var(--text-2);border:1px solid var(--border);border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;cursor:pointer;font-family:var(--font);transition:all .15s;}
 .btn-secondary:hover{color:var(--text);border-color:var(--text-2);}
-
-/* TOAST */
-.toast{position:fixed;bottom:20px;right:20px;background:var(--text);color:var(--bg);padding:9px 15px;border-radius:8px;font-size:13px;opacity:0;transform:translateY(6px);transition:all .2s;pointer-events:none;z-index:9999;font-weight:500;}
-.toast.show{opacity:1;transform:translateY(0);}
-
-/* PORT MIRROR STEPS */
-.pm-steps{display:flex;flex-direction:column;gap:0;}
-.pm-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
-.pm-step:last-child{border-bottom:none;}
-.pm-step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
-.pm-step-body{flex:1;min-width:0;}
-.pm-step-body strong{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:2px;}
-.pm-step-body span{font-size:12px;color:var(--text-2);line-height:1.55;}
-.pm-step-body code{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;}
-.pm-alt{background:color-mix(in srgb,var(--blue) 8%,var(--surface2));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.6;}
-.pm-alt strong{color:var(--blue);}
 .ts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;}
-.ts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:box-shadow .15s;}
+.ts-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);}
 .ts-card:hover{box-shadow:var(--shadow-md);}
 .ts-header{display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer;user-select:none;}
 .ts-header:hover{background:var(--surface2);}
@@ -251,7 +178,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ts-section-label{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin:12px 0 6px;}
 .ts-filter-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
 .ts-filter-desc{font-size:12px;color:var(--text-2);flex:1;padding-top:3px;}
-.ts-filter-code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 8px;border-radius:4px;cursor:pointer;border:none;white-space:nowrap;flex-shrink:0;transition:opacity .15s;}
+.ts-filter-code{font-family:var(--mono);font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:3px 8px;border-radius:4px;cursor:pointer;border:none;white-space:nowrap;flex-shrink:0;transition:opacity .15s;}
 .ts-filter-code:hover{opacity:.75;}
 .ts-look-item{font-size:12px;color:var(--text-2);padding:4px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:flex-start;}
 .ts-look-item:last-child{border-bottom:none;}
@@ -263,603 +190,505 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .ts-next strong{color:var(--text);}
 .ts-tag{display:inline-block;font-size:10px;padding:1px 7px;border-radius:10px;background:var(--surface2);border:1px solid var(--border);color:var(--text-3);margin-right:4px;margin-bottom:4px;}
 .ts-example-wrap{background:var(--code-bg);border-radius:6px;padding:12px 14px;margin-bottom:8px;overflow-x:auto;}
-.ts-example-wrap pre{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--code-text);white-space:pre;line-height:1.65;}
+.ts-example-wrap pre{font-family:var(--mono);font-size:10.5px;color:var(--code-text);white-space:pre;line-height:1.65;}
 .ts-example-wrap pre .hdr{color:#64748b;}
 .ts-example-wrap pre .bad-line{color:#fca5a5;}
-.ts-example-wrap pre .warn-line{color:#fcd34d;}
-.ts-example-plain{font-size:12px;color:var(--text-2);line-height:1.65;padding:8px 10px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent);}background:color-mix(in srgb,var(--accent) 7%,var(--surface2));border:1px solid color-mix(in srgb,var(--accent) 20%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;}
-.info-box code{font-family:'JetBrains Mono',monospace;font-size:10.5px;background:var(--code-bg);color:var(--code-text);padding:1px 5px;border-radius:3px;}
-/* WARNING BOX */
-.warn-box{background:color-mix(in srgb,var(--amber) 10%,var(--surface2));border:1px solid color-mix(in srgb,var(--amber) 30%,var(--border));border-radius:6px;padding:8px 11px;font-size:12px;color:var(--text-2);margin-bottom:10px;line-height:1.55;display:flex;gap:8px;align-items:flex-start;}
-.warn-box .warn-icon{font-size:13px;flex-shrink:0;margin-top:1px;}
-.warn-box strong{color:color-mix(in srgb,var(--amber) 80%,var(--text));}
-/* ROTATION TRIGGER TOGGLE */
-.rot-toggle{display:flex;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px;margin-bottom:12px;}
-.rot-btn{flex:1;padding:5px 8px;font-size:12px;font-weight:500;border:none;border-radius:4px;cursor:pointer;background:transparent;color:var(--text-2);font-family:'DM Sans',sans-serif;transition:all .15s;line-height:1.3;text-align:center;}
-.rot-btn.active{background:var(--accent);color:white;}
-
-@media(max-width:860px){
-  .builder-grid{grid-template-columns:1fr;}
-  .output-sticky{position:static;}
-  .findings-grid{grid-template-columns:1fr;}
-  .main{padding:20px 16px;}
-  .hero{padding:20px 16px 0;}
-}
+.ts-example-plain{font-size:12px;color:var(--text-2);line-height:1.65;padding:8px 10px;background:var(--surface2);border-radius:6px;border-left:3px solid var(--accent);}
+.pm-steps{display:flex;flex-direction:column;gap:0;}
+.pm-step{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;}
+.pm-step:last-child{border-bottom:none;}
+.pm-step-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:white;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.pm-step-body{flex:1;min-width:0;}
+.pm-step-body strong{font-size:13px;font-weight:600;color:var(--text);display:block;margin-bottom:2px;}
+.pm-step-body span{font-size:12px;color:var(--text-2);line-height:1.55;}
+.pm-step-body code{font-family:var(--mono);font-size:11px;background:var(--code-bg);color:var(--code-text);padding:2px 6px;border-radius:4px;}
+.pm-alt{background:color-mix(in srgb,var(--blue) 8%,var(--surface2));border:1px solid color-mix(in srgb,var(--blue) 20%,var(--border));border-radius:6px;padding:9px 12px;font-size:12px;color:var(--text-2);margin-top:8px;line-height:1.6;}
+.pm-alt strong{color:var(--blue);}
+@media(max-width:860px){.builder-grid{grid-template-columns:1fr;}.output-sticky{position:static;}.findings-grid{grid-template-columns:1fr;}.main{padding:20px 16px;}.hero{padding:20px 16px 0;}}
 </style>
 </head>
 <body>
-
 <nav class="nav">
   <div class="nav-left">
     <a href="index.html" class="back-link">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
       Workshop
     </a>
     <div class="nav-divider"></div>
-    <span class="nav-title"><span>Wireshark</span> Helper</span>
+    <div class="nav-title">Seb's <span>Wireshark Helper</span></div>
   </div>
   <button class="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
-    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
   </button>
 </nav>
 
 <div class="hero">
-  <div class="hero-inner">
+  <div>
     <h1>Wireshark Helper</h1>
-    <p>Drop a PCAP to analyse it instantly, look up display filters, or build remote capture scripts - everything runs in your browser.</p>
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('analyse',this)">
-        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse PCAP
-      </button>
-      <button class="tab-btn" onclick="switchTab('troubleshoot',this)">
-        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Troubleshoot
-      </button>
-      <button class="tab-btn" onclick="switchTab('filters',this)">
-        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter Reference
-      </button>
-      <button class="tab-btn" onclick="switchTab('builder',this)">
-        <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Capture Builder
-      </button>
-    </div>
+    <p>PCAP analyser - capture script builder - port mirror setup guide - display filter reference</p>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('analyse',this)">
+      <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>Analyse PCAP
+    </button>
+    <button class="tab-btn" onclick="switchTab('troubleshoot',this)">
+      <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>Troubleshoot
+    </button>
+    <button class="tab-btn" onclick="switchTab('filters',this)">
+      <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>Filter Reference
+    </button>
+    <button class="tab-btn" onclick="switchTab('builder',this)">
+      <svg style="width:12px;height:12px;display:inline;margin-right:5px;vertical-align:-1px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>Capture Builder
+    </button>
   </div>
 </div>
 
 <div class="main">
 
-<!-- ═══════════════════════════════════════════ BUILDER ═══ -->
-<div id="tab-builder" class="tab-panel">
-<div class="builder-grid">
-
-<!-- LEFT COLUMN -->
-<div>
-
-  <!-- METHOD -->
-  <div class="card">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-      Capture Method
-    </div>
-    <div class="method-grid">
-      <div class="method-tile selected" onclick="selectMethod('portmirror',this)">
-        <div class="mt-icon">🔀</div><div class="mt-name">Port Mirror</div><div class="mt-desc">DrayTek, Netgear, HP, UniFi</div>
-      </div>
-      <div class="method-tile" onclick="selectMethod('unifi',this)">
-        <div class="mt-icon">🔷</div><div class="mt-name">UniFi</div><div class="mt-desc">SSH + tcpdump</div>
-      </div>
-      <div class="method-tile" onclick="selectMethod('watchguard',this)">
-        <div class="mt-icon">🛡️</div><div class="mt-name">WatchGuard <span class="beta-badge">Beta</span></div><div class="mt-desc">Fireware SSH tcpdump</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- CONNECTION -->
-  <div class="card" id="card-connection">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
-      Connection
-    </div>
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Host / IP <span class="req">*</span></label>
-        <input type="text" class="form-input" id="f-host" placeholder="192.168.1.1" oninput="generate()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">SSH Port</label>
-        <input type="text" class="form-input" id="f-port" placeholder="22" oninput="generate()">
-      </div>
-    </div>
-    <div class="form-group">
-      <label class="form-label">Username <span class="req">*</span></label>
-      <input type="text" class="form-input" id="f-user" placeholder="admin" oninput="generate()">
-    </div>
-    <div class="form-group">
-      <label class="form-label">Auth Method</label>
-      <select class="form-select" id="f-auth" onchange="toggleAuthField()">
-        <option value="key">SSH Key (recommended)</option>
-        <option value="pass" selected>Password prompt</option>
-        <option value="sshpass">sshpass (scripted, insecure)</option>
-      </select>
-    </div>
-    <div id="auth-extra" style="display:none;">
-      <div class="form-group">
-        <label class="form-label" id="auth-extra-label">Key path</label>
-        <input type="text" class="form-input" id="f-auth-val" placeholder="~/.ssh/id_rsa" oninput="generate()">
-      </div>
-    </div>
-  </div>
-
-  <!-- INTERFACE -->
-  <div class="card" id="card-interface">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-      Interface
-    </div>
-    <div id="iface-info" class="info-box" style="display:none;"></div>
-    <div class="form-group">
-      <label class="form-label">Network Interface</label>
-      <select class="form-select" id="f-iface-select" onchange="handleIfaceSelect()"></select>
-    </div>
-    <div class="form-group" id="iface-custom-group" style="display:none;">
-      <label class="form-label">Custom Interface Name</label>
-      <input type="text" class="form-input" id="f-iface-custom" placeholder="eth0" oninput="generate()">
-    </div>
-
-    <!-- METHOD-SPECIFIC EXTRAS -->
-    <div id="method-extras"></div>
-  </div>
-
-  <!-- BPF BUILDER -->
-  <div class="card" id="card-bpf">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-      Capture Filter (BPF)
-    </div>
-
-    <div class="bpf-sections">
-      <!-- Protocol -->
-      <div class="bpf-section">
-        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
-          <span>Protocol</span><span class="chevron">&#9660;</span>
-        </div>
-        <div class="bpf-section-body">
-          <div class="bpf-chip-group" id="chips-proto">
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','tcp')">TCP</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','udp')">UDP</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','icmp')">ICMP</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','arp')">ARP</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','dns')">DNS (port 53)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','http')">HTTP (80)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','https')">HTTPS (443)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','dhcp')">DHCP (67/68)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','sip')">SIP (5060)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','ntp')">NTP (123)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','smb')">SMB (445)</button>
-            <button class="bpf-chip" onclick="toggleChip(this,'proto','rdp')">RDP (3389)</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Host -->
-      <div class="bpf-section">
-        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
-          <span>Host / IP</span><span class="chevron">&#9660;</span>
-        </div>
-        <div class="bpf-section-body">
-          <div class="bpf-chip-group">
-            <button class="bpf-chip" onclick="setBpfHostMode('host')">Single host</button>
-            <button class="bpf-chip" onclick="setBpfHostMode('net')">Subnet</button>
-            <button class="bpf-chip" onclick="setBpfHostMode('src')">Source only</button>
-            <button class="bpf-chip" onclick="setBpfHostMode('dst')">Dest only</button>
-            <button class="bpf-chip" onclick="setBpfHostMode('not')">Exclude host</button>
-          </div>
-          <div class="form-group" id="bpf-host-group" style="display:none;">
-            <input type="text" class="form-input" id="bpf-host-val" placeholder="192.168.1.100" oninput="generate()">
-            <div class="form-hint" id="bpf-host-hint"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Port -->
-      <div class="bpf-section">
-        <div class="bpf-section-header" onclick="toggleBpfSection(this)">
-          <span>Port</span><span class="chevron">&#9660;</span>
-        </div>
-        <div class="bpf-section-body">
-          <div class="bpf-chip-group">
-            <button class="bpf-chip" onclick="setBpfPortMode('port')">Single port</button>
-            <button class="bpf-chip" onclick="setBpfPortMode('portrange')">Port range</button>
-            <button class="bpf-chip" onclick="setBpfPortMode('not')">Exclude port</button>
-          </div>
-          <div id="bpf-port-group" style="display:none;">
-            <div class="form-row">
-              <div class="form-group">
-                <input type="text" class="form-input" id="bpf-port-val" placeholder="443" oninput="generate()">
-                <div class="form-hint" id="bpf-port-hint"></div>
-              </div>
-              <div class="form-group" id="bpf-port2-group" style="display:none;">
-                <input type="text" class="form-input" id="bpf-port-val2" placeholder="8443" oninput="generate()">
-                <div class="form-hint">End port</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Assembled BPF -->
-    <div class="form-label" style="margin-bottom:5px;">Assembled BPF Filter</div>
-    <div class="bpf-result" id="bpf-assembled"><span class="placeholder">No filter - captures all traffic</span></div>
-    <div style="margin-top:8px;">
-      <label class="form-label">Override / append manually</label>
-      <input type="text" class="form-input" id="bpf-override" placeholder="Leave blank to use assembled filter" oninput="generate()">
-      <div class="form-hint">Overrides the assembled filter if filled in</div>
-    </div>
-  </div>
-
-  <!-- CAPTURE OPTIONS -->
-  <div class="card" id="card-capture">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Capture Options
-    </div>
-
-    <!-- Per-method compatibility warning -->
-    <div id="compat-warn" style="display:none;"></div>
-
-    <div class="form-group">
-      <label class="form-label">Snap Length (bytes)</label>
-      <select class="form-select" id="f-snaplen" onchange="generate()">
-        <option value="0">0 - Full packets (recommended)</option>
-        <option value="65535">65535 - Max safe</option>
-        <option value="1500">1500 - Ethernet MTU headers only</option>
-        <option value="96">96 - Headers only (minimal)</option>
-        <option value="custom">Custom…</option>
-      </select>
-    </div>
-    <div class="form-group" id="snaplen-custom-group" style="display:none;">
-      <input type="text" class="form-input" id="f-snaplen-custom" placeholder="e.g. 9000" oninput="generate()">
-    </div>
-
-    <!-- ROTATING CAPTURE -->
-    <div class="sec-divider">Rotating Capture</div>
-    <div class="rot-toggle">
-      <button class="rot-btn active" id="rot-none" onclick="setRotation('none')">Single file</button>
-      <button class="rot-btn" id="rot-time" onclick="setRotation('time')">By time</button>
-      <button class="rot-btn" id="rot-size" onclick="setRotation('size')">By size</button>
-      <button class="rot-btn" id="rot-both" onclick="setRotation('both')">Time + size</button>
-    </div>
-
-    <div id="rot-fields-none">
-      <div class="form-row">
-        <div class="form-group">
-          <label class="form-label">Packet count <span style="color:var(--text-3);font-weight:400;">(0=unlimited)</span></label>
-          <input type="text" class="form-input" id="f-count" placeholder="0" oninput="generate()">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Duration (secs) <span style="color:var(--text-3);font-weight:400;">(0=unlimited)</span></label>
-          <input type="text" class="form-input" id="f-duration" placeholder="0" oninput="generate()">
-        </div>
-      </div>
-    </div>
-
-    <div id="rot-fields-rotating" style="display:none;">
-      <div id="rot-time-fields">
-        <div class="form-group">
-          <label class="form-label">Rotate every</label>
-          <div class="form-row">
-            <input type="text" class="form-input" id="f-rot-secs" placeholder="600" oninput="generate()">
-            <select class="form-select" id="f-rot-secs-unit" onchange="generate()">
-              <option value="1">seconds</option>
-              <option value="60" selected>minutes</option>
-              <option value="3600">hours</option>
-            </select>
-          </div>
-          <div class="form-hint">e.g. 10 minutes = new file every 600s</div>
-        </div>
-      </div>
-      <div id="rot-size-fields" style="display:none;">
-        <div class="form-group">
-          <label class="form-label">Rotate at file size</label>
-          <div class="form-row">
-            <input type="text" class="form-input" id="f-rot-mb" placeholder="100" oninput="generate()">
-            <select class="form-select" id="f-rot-mb-unit" onchange="generate()">
-              <option value="1">MB</option>
-              <option value="1024">GB</option>
-            </select>
-          </div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Keep last N files <span style="color:var(--text-3);font-weight:400;">(circular buffer)</span></label>
-        <select class="form-select" id="f-rot-files" onchange="generate()">
-          <option value="5">5 files</option>
-          <option value="10" selected>10 files</option>
-          <option value="20">20 files</option>
-          <option value="48">48 files</option>
-          <option value="96">96 files</option>
-          <option value="custom">Custom…</option>
-        </select>
-      </div>
-      <div class="form-group" id="rot-files-custom-group" style="display:none;">
-        <input type="text" class="form-input" id="f-rot-files-custom" placeholder="e.g. 30" oninput="generate()">
-      </div>
-      <div class="form-group">
-        <label class="form-label">Remote base path for files</label>
-        <input type="text" class="form-input" id="f-rot-remote-dir" placeholder="/tmp/cap" oninput="generate()">
-        <div class="form-hint">Files named cap_YYYYMMDD_HHMMSS_N.pcap - must have write access</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Local save directory (for SCP mode)</label>
-        <input type="text" class="form-input" id="f-rot-local-dir" placeholder="C:\Captures\" oninput="generate()">
-        <div class="form-hint">SCP mode only - each rotated file is pulled as it completes</div>
-      </div>
-      <div class="warn-box">
-        <span class="warn-icon">&#9888;&#65039;</span>
-        <span><strong>Rotating + SCP:</strong> each file is pulled after rotation completes. For live monitoring use pipe mode and split with <code>editcap</code> post-capture instead.</span>
-      </div>
-    </div>
-
-    <!-- DESTINATION -->
-    <div class="sec-divider">Capture Destination</div>
-    <div class="dest-toggle">
-      <button class="dest-btn active" id="dest-scp" onclick="setDest('scp')">Remote file + SCP down</button>
-      <button class="dest-btn" id="dest-pipe" onclick="setDest('pipe')">Pipe direct to local file</button>
-    </div>
-    <div id="dest-scp-fields">
-      <div class="form-group">
-        <label class="form-label">Remote temp path</label>
-        <select class="form-select" id="f-remote-path-sel" onchange="handleRemotePathSel()">
-          <option value="/tmp/capture.pcap">/tmp/capture.pcap</option>
-          <option value="/var/tmp/capture.pcap">/var/tmp/capture.pcap</option>
-          <option value="/root/capture.pcap">/root/capture.pcap</option>
-          <option value="custom">Custom…</option>
-        </select>
-      </div>
-      <div class="form-group" id="remote-path-custom-group" style="display:none;">
-        <input type="text" class="form-input" id="f-remote-path-custom" placeholder="/tmp/mycap.pcap" oninput="generate()">
-      </div>
-      <div class="form-group" id="scp-local-single">
-        <label class="form-label">Local save path</label>
-        <input type="text" class="form-input" id="f-local-path" placeholder="C:\Captures\capture.pcap" oninput="generate()">
-      </div>
-    </div>
-    <div id="dest-pipe-fields" style="display:none;">
-      <div class="info-box">Traffic piped over SSH directly into a local file - no temp file on the device. Rotating capture is not available in pipe mode (tcpdump rotation requires writing named files on the remote device).</div>
-      <div class="form-group">
-        <label class="form-label">Local save path</label>
-        <input type="text" class="form-input" id="f-pipe-local-path" placeholder="C:\Captures\live.pcap" oninput="generate()">
-      </div>
-    </div>
-  </div>
-
-  <!-- PORT MIRROR -->
-  <div class="card" id="card-portmirror" style="display:none;">
-    <div class="card-title">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-      Port Mirror Setup
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">DrayTek model</label>
-      <select class="form-select" id="f-pm-model" onchange="pmUpdate()">
-        <optgroup label="DrayTek">
-          <option value="2865">Vigor 2865 / 2866</option>
-          <option value="3910">Vigor 3910</option>
-        </optgroup>
-        <optgroup label="Netgear">
-          <option value="netgear-smart">Netgear Smart Managed (GS3xx / MS series)</option>
-          <option value="netgear-managed">Netgear Fully Managed (M4xxx / M5xxx)</option>
-        </optgroup>
-        <optgroup label="HP / Aruba">
-          <option value="hp-procurve">HP ProCurve / Aruba (2xxx / 3xxx series)</option>
-        </optgroup>
-        <optgroup label="D-Link">
-          <option value="dlink-smart">D-Link Smart Managed (DGS-1210 / DGS-1510)</option>
-        </optgroup>
-        <optgroup label="UniFi">
-          <option value="unifi-sw">UniFi Switch (USW / USW-Pro / USW-Enterprise)</option>
-        </optgroup>
-      </select>
-    </div>
-
-    <!-- STEP-BY-STEP INSTRUCTIONS -->
-    <div class="sec-divider">Web UI Steps</div>
-    <div class="pm-steps" id="pm-steps"></div>
-
-    <!-- CAPTURE SETTINGS -->
-    <div class="sec-divider">Capture Settings</div>
-    <div class="form-group">
-      <label class="form-label">Your PC network interface</label>
-      <select class="form-select" id="pm-iface-sel" onchange="pmToggleCustomIface()">
-        <option value="Ethernet">Ethernet (Windows default)</option>
-        <option value="eth0">eth0 (Linux)</option>
-        <option value="en0">en0 (macOS)</option>
-        <option value="custom">Custom&hellip;</option>
-      </select>
-    </div>
-    <div class="form-group" id="pm-iface-custom-group" style="display:none;">
-      <input type="text" class="form-input" id="pm-iface-custom" placeholder="e.g. Ethernet 2" oninput="pmGenerate()">
-      <div class="form-hint">Run <code>tshark -D</code> or check Wireshark interface list</div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Save to folder</label>
-      <input type="text" class="form-input" id="pm-savedir" placeholder="C:\Captures\" oninput="pmGenerate()" value="C:\Captures\">
-    </div>
-    <div class="form-group">
-      <label class="form-label">File prefix</label>
-      <input type="text" class="form-input" id="pm-prefix" placeholder="mirror" oninput="pmGenerate()" value="mirror">
-      <div class="form-hint">Files saved as prefix_001.pcap, prefix_002.pcap&hellip;</div>
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label class="form-label">Rotate every (seconds)</label>
-        <input type="text" class="form-input" id="pm-rot-secs" value="300" oninput="pmGenerate()">
-        <div class="form-hint">300 = 5 min files</div>
-      </div>
-      <div class="form-group">
-        <label class="form-label">Keep last N files</label>
-        <input type="text" class="form-input" id="pm-rot-files" value="36" oninput="pmGenerate()">
-        <div class="form-hint">36 &times; 5 min = 3 hrs</div>
-      </div>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Capture filter</label>
-      <select class="form-select" id="pm-bpf-preset" onchange="pmBpfPreset()">
-        <option value="">No filter &mdash; capture all traffic (recommended to start)</option>
-        <optgroup label="By host">
-          <option value="host __IP__">Specific IP address (all traffic to/from)</option>
-          <option value="src host __IP__">Traffic FROM a specific IP</option>
-          <option value="dst host __IP__">Traffic TO a specific IP</option>
-          <option value="not host __IP__">Exclude a specific IP</option>
-        </optgroup>
-        <optgroup label="By protocol">
-          <option value="tcp">TCP only</option>
-          <option value="udp">UDP only</option>
-          <option value="icmp">ICMP (ping) only</option>
-          <option value="arp">ARP only</option>
-          <option value="not arp and not stp">Exclude ARP and STP (reduce noise)</option>
-        </optgroup>
-        <optgroup label="By port / service">
-          <option value="port 53">DNS (port 53)</option>
-          <option value="port 80 or port 443">Web traffic (HTTP + HTTPS)</option>
-          <option value="port 443">HTTPS only (port 443)</option>
-          <option value="port 67 or port 68">DHCP (ports 67/68)</option>
-          <option value="port 5060">SIP / VoIP (port 5060)</option>
-          <option value="udp portrange 3478-3481">Microsoft Teams media (UDP 3478-3481)</option>
-          <option value="port 445">SMB / file shares (port 445)</option>
-          <option value="port 3389">RDP (port 3389)</option>
-        </optgroup>
-        <optgroup label="Combinations">
-          <option value="host __IP__ and port 443">Specific IP + HTTPS only</option>
-          <option value="host __IP__ and port 53">Specific IP + DNS only</option>
-          <option value="not broadcast and not multicast">Unicast only (exclude broadcasts)</option>
-          <option value="tcp and host __IP__">TCP traffic to/from a specific IP</option>
-        </optgroup>
-        <option value="custom">Custom&hellip; (enter manually)</option>
-      </select>
-      <div class="form-hint" id="pm-bpf-hint" style="margin-top:4px;"></div>
-    </div>
-
-    <div class="form-group" id="pm-bpf-ip-group" style="display:none;">
-      <label class="form-label" id="pm-bpf-ip-label">IP address</label>
-      <input type="text" class="form-input" id="pm-bpf-ip" placeholder="192.168.1.50" oninput="pmGenerate()">
-    </div>
-
-    <div class="form-group" id="pm-bpf-custom-group" style="display:none;">
-      <label class="form-label">Custom BPF filter</label>
-      <input type="text" class="form-input" id="pm-bpf" placeholder="e.g. host 192.168.1.50 and port 443" oninput="pmGenerate()">
-      <div class="form-hint">Uses Berkeley Packet Filter syntax &mdash; see Filter Reference tab for help</div>
-    </div>
-    <!-- Hidden field used by pmGenerate to read final BPF value -->
-    <input type="hidden" id="pm-bpf-final" value="">
-
-    <div class="form-group">
-      <label class="form-label">Snap length</label>
-      <select class="form-select" id="pm-snaplen" onchange="pmGenerate()">
-        <option value="0">0 - Full packets (recommended)</option>
-        <option value="65535">65535 - Max safe</option>
-        <option value="1500">1500 - Headers only</option>
-      </select>
-    </div>
-
-    <div class="sec-divider">Script format</div>
-    <div class="rot-toggle" style="margin-bottom:6px;">
-      <button class="rot-btn active" id="pm-stog-ps" onclick="pmSetShell('ps')">PowerShell</button>
-      <button class="rot-btn" id="pm-stog-cmd" onclick="pmSetShell('cmd')">CMD</button>
-      <button class="rot-btn" id="pm-stog-bash" onclick="pmSetShell('bash')">Bash / WSL</button>
-      <button class="rot-btn" id="pm-stog-gui" onclick="pmSetShell('gui')">Wireshark GUI</button>
-    </div>
-    <div class="form-hint" id="pm-shell-hint">PowerShell - native on Windows 10/11, open via Win+X or Start menu</div>
-
-  </div>
-
-</div><!-- end left col -->
-
-<!-- RIGHT COLUMN: OUTPUT -->
-<div class="output-sticky">
-  <div class="card">
-    <div class="output-header">
-      <div class="output-label">Generated Script</div>
-      <div class="shell-toggle" id="main-shell-toggle">
-        <button class="stog-btn active" id="stog-ps" onclick="switchShell('ps')">PowerShell</button>
-        <button class="stog-btn" id="stog-bash" onclick="switchShell('bash')">Bash</button>
-      </div>
-    </div>
-
-    <div id="script-output">
-      <div class="empty-state">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-        <p>Enter a host and username<br>to generate your script.</p>
-      </div>
-    </div>
-
-    <div id="filter-output" style="display:none;">
-      <div class="filter-out-block">
-        <div class="filter-out-label">Wireshark Display Filter</div>
-        <pre id="filter-text"></pre>
-        <button class="copy-btn" style="background:rgba(13,148,136,.2);border-color:rgba(13,148,136,.35);color:var(--accent);" onclick="copyText('filter-text')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy
-        </button>
-      </div>
-    </div>
-
-    <div id="steps-output" style="display:none;" class="steps-wrap">
-      <div class="steps-title">Pre-flight Checklist</div>
-      <div id="steps-list"></div>
-    </div>
-
-  </div>
-</div>
-
-</div><!-- builder-grid -->
-</div><!-- tab-builder -->
-
-<!-- ═══════════════════════════════════════════ ANALYSE ═══ -->
+<!-- ANALYSE TAB -->
 <div id="tab-analyse" class="tab-panel active">
   <div id="drop-wrap">
-    <div class="drop-zone" id="drop-zone" onclick="document.getElementById('pcap-file').click()"
-      ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      <h3>Drop a PCAP here</h3>
-      <p>Or click to browse - analysed entirely in your browser, nothing uploaded</p>
-      <div class="ftypes">.pcap &nbsp;·&nbsp; .pcapng &nbsp;·&nbsp; .cap</div>
-      <div style="margin-top:10px;font-size:11px;color:var(--text-3);">Best under 200 MB &nbsp;·&nbsp; Large files will show a split suggestion first</div>
-    </div>
-    <input type="file" id="pcap-file" accept=".pcap,.pcapng,.cap" style="display:none" onchange="handleFileSelect(event)">
+  <div id="drop-zone" class="drop-zone" onclick="document.getElementById('file-input').click()"
+    ondrop="handleDrop(event)" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    <h3>Drop your PCAP here</h3>
+    <p>or click to browse</p>
+    <div class="ftypes">.pcap .pcapng .cap</div>
   </div>
-  <div id="size-warn-wrap" style="display:none;"></div>
-  <div id="progress-wrap" style="display:none;"></div>
-  <div id="analysis-out" style="display:none;"></div>
+  </div>
+  <input type="file" id="file-input" id="pcap-file" accept=".pcap,.pcapng,.cap" style="display:none" onchange="handleFileSelect(event)">
+  <div id="progress-area">
+    <div id="progress-wrap"></div>
+    <div id="size-warn-wrap"></div>
+  </div>
+  <div id="analysis-area">
+    <div id="analysis-out"></div>
+  </div>
 </div>
 
-<!-- ═══════════════════════════════════════════ FILTERS ═══ -->
-<div id="tab-filters" class="tab-panel">
-  <div class="search-bar">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" placeholder="Search filters…" oninput="filterSearch(this.value)">
-  </div>
-  <div class="filter-grid" id="filter-grid"></div>
-</div>
-
-<!-- ═══════════════════════════════════════════ TROUBLESHOOT ═══ -->
+<!-- TROUBLESHOOT TAB -->
 <div id="tab-troubleshoot" class="tab-panel">
   <div class="search-bar">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-    <input type="text" id="ts-search" placeholder="Describe the problem… e.g. slow, VoIP, DHCP" oninput="tsSearch(this.value)">
+    <input type="text" id="ts-search" placeholder="Describe the problem... e.g. slow, VoIP, DHCP, SMB" oninput="tsSearch(this.value)">
   </div>
   <div id="ts-grid"></div>
 </div>
 
+<!-- FILTER REFERENCE TAB -->
+<div id="tab-filters" class="tab-panel">
+  <div class="search-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input type="text" placeholder="Search filters..." oninput="filterSearch(this.value)">
+  </div>
+  <div class="filter-grid" id="filter-grid"></div>
+</div>
+
+<!-- CAPTURE BUILDER TAB -->
+<div id="tab-builder" class="tab-panel">
+  <div class="builder-grid">
+
+    <!-- LEFT COLUMN -->
+    <div>
+
+      <!-- METHOD -->
+      <div class="card">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          Capture Method
+        </div>
+        <div class="method-grid">
+          <div class="method-tile selected" onclick="selectMethod('portmirror',this)">
+            <div class="mt-icon">&#x1F500;</div><div class="mt-name">Port Mirror</div><div class="mt-desc">DrayTek, Netgear, HP, UniFi, D-Link</div>
+          </div>
+          <div class="method-tile" onclick="selectMethod('unifi',this)">
+            <div class="mt-icon">&#x1F537;</div><div class="mt-name">UniFi</div><div class="mt-desc">SSH + tcpdump</div>
+          </div>
+          <div class="method-tile" onclick="selectMethod('watchguard',this)">
+            <div class="mt-icon">&#x1F6E1;&#xFE0F;</div><div class="mt-name">WatchGuard <span class="beta-badge">Beta</span></div><div class="mt-desc">Fireware SSH tcpdump</div>
+          </div>
+        </div>
+        <div id="method-extras"></div>
+        <div id="method-extras"></div>
+      </div>
+
+      <!-- CONNECTION (hidden for portmirror) -->
+      <div class="card" id="card-connection" style="display:none;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          Connection
+        </div>
+        <div id="unifi-type-selector" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Device type</label>
+            <select class="form-select" id="f-unifi-type" onchange="setUnifiType(this.value)">
+              <option value="udm">UDM / UDM-Pro (root)</option>
+              <option value="usg">USG / USG-Pro legacy (ubnt)</option>
+              <option value="ap">AP - UAP / U6 series (ui)</option>
+              <option value="sw">Switch - USW series (ui)</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Host / IP <span class="req">*</span></label>
+          <input type="text" class="form-input" id="f-host" placeholder="192.168.1.1" oninput="generate()">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Username <span class="req">*</span></label>
+            <input type="text" class="form-input" id="f-user" placeholder="admin" oninput="generate()">
+          </div>
+          <div class="form-group">
+            <label class="form-label">SSH Port</label>
+            <input type="text" class="form-input" id="f-port" placeholder="22" oninput="generate()">
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Authentication</label>
+          <select class="form-select" id="f-auth" onchange="toggleAuthField()">
+            <option value="pass">Password prompt (interactive)</option>
+            <option value="key">SSH key file</option>
+            <option value="sshpass">sshpass (password in script)</option>
+          </select>
+        </div>
+        <div class="form-group" id="auth-val-group" style="display:none;">
+          <input type="text" class="form-input" id="f-auth-val" placeholder="~/.ssh/id_rsa or password" oninput="generate()">
+        </div>
+      </div>
+
+      <!-- INTERFACE (hidden for portmirror) -->
+      <div class="card" id="card-interface" style="display:none;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+          Interface
+        </div>
+        <div class="form-group">
+          <label class="form-label">Network interface</label>
+          <select class="form-select" id="f-iface" onchange="handleIfaceSel()">
+            <option value="eth0">eth0</option>
+            <option value="br0">br0 (LAN bridge)</option>
+            <option value="eth1">eth1</option>
+            <option value="any">any (all interfaces)</option>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+        <div class="form-group" id="iface-custom-group" style="display:none;">
+          <input type="text" class="form-input" id="f-iface-custom" placeholder="e.g. ath0" oninput="generate()">
+        </div>
+        <div class="info-box" id="iface-info" style="display:none;"></div>
+      </div>
+
+      <!-- BPF BUILDER (hidden for portmirror) -->
+      <div class="card" id="card-bpf" style="display:none;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Capture Filter (BPF)
+        </div>
+        <div id="bpf-chips-wrap">
+          <div class="sec-divider" style="margin-top:0;border-top:none;">Quick add</div>
+          <div class="bpf-chip-group" id="bpf-chips"></div>
+        </div>
+        <div class="form-group" style="margin-top:10px;">
+          <label class="form-label">Override / manual filter</label>
+          <input type="text" class="form-input" id="bpf-override" placeholder="Leave blank to use chip selection" oninput="generate()">
+        </div>
+        <div style="margin-top:8px;">
+          <div class="form-hint" style="margin-bottom:4px;">Assembled filter:</div>
+          <div class="bpf-result" id="bpf-assembled"><span class="placeholder">No filter - captures all traffic</span></div>
+        </div>
+      </div>
+
+      <!-- CAPTURE OPTIONS (hidden for portmirror) -->
+      <div class="card" id="card-capture" style="display:none;">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Capture Options
+        </div>
+        <div id="compat-warn" style="display:none;"></div>
+        <div class="form-group">
+          <label class="form-label">Snap length (bytes)</label>
+          <select class="form-select" id="f-snaplen" onchange="generate()">
+            <option value="0">0 - Full packets (recommended)</option>
+            <option value="65535">65535 - Max safe</option>
+            <option value="1500">1500 - Headers only</option>
+            <option value="96">96 - Minimal headers</option>
+          </select>
+        </div>
+        <div class="sec-divider">Capture mode</div>
+        <div class="rot-toggle">
+          <button class="rot-btn active" id="rot-none" onclick="setRotation('none')">Single file</button>
+          <button class="rot-btn" id="rot-time" onclick="setRotation('time')">Timed chunks</button>
+          <button class="rot-btn" id="rot-size" onclick="setRotation('size')">Size chunks</button>
+        </div>
+        <div id="rot-fields-none">
+          <div class="form-row">
+            <div class="form-group"><label class="form-label">Packet count (0=unlimited)</label><input type="text" class="form-input" id="f-count" placeholder="0" oninput="generate()"></div>
+            <div class="form-group"><label class="form-label">Duration secs (0=unlimited)</label><input type="text" class="form-input" id="f-duration" placeholder="0" oninput="generate()"></div>
+          </div>
+        </div>
+        <div id="rot-fields-rotating" style="display:none;">
+          <div id="rot-time-fields">
+            <div class="form-group">
+              <label class="form-label">Split every</label>
+              <div class="form-row">
+                <input type="text" class="form-input" id="f-rot-secs" placeholder="5" oninput="generate()">
+                <select class="form-select" id="f-rot-secs-unit" onchange="generate()">
+                  <option value="1">seconds</option>
+                  <option value="60" selected>minutes</option>
+                  <option value="3600">hours</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div id="rot-size-fields" style="display:none;">
+            <div class="form-group">
+              <label class="form-label">Split at size</label>
+              <div class="form-row">
+                <input type="text" class="form-input" id="f-rot-mb" placeholder="100" oninput="generate()">
+                <select class="form-select" id="f-rot-mb-unit" onchange="generate()">
+                  <option value="1">MB</option>
+                  <option value="1024">GB</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Total capture duration</label>
+            <div class="form-row">
+              <input type="text" class="form-input" id="f-rot-total" placeholder="2" oninput="generate()">
+              <select class="form-select" id="f-rot-total-unit" onchange="generate()">
+                <option value="60">minutes</option>
+                <option value="3600" selected>hours</option>
+              </select>
+            </div>
+            <div class="form-hint" id="rot-summary"></div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Remote directory</label>
+            <input type="text" class="form-input" id="f-rot-remote-dir" placeholder="/tmp" oninput="generate()">
+          </div>
+          <div class="form-group" id="rot-local-dir-group">
+            <label class="form-label">Local save directory (SCP mode)</label>
+            <input type="text" class="form-input" id="f-rot-local-dir" placeholder="C:\Captures\" oninput="generate()">
+          </div>
+        </div>
+        <div class="sec-divider">File naming</div>
+        <div class="form-group">
+          <label class="form-label">Filename prefix</label>
+          <input type="text" class="form-input" id="f-prefix" value="PcapTrace" oninput="generate()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Include in filename</label>
+          <div style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="fn-datetime" checked onchange="generate()"> Date and time stamp</label>
+            <label style="display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;"><input type="checkbox" id="fn-hostname" checked onchange="generate()"> Device hostname</label>
+          </div>
+          <div class="form-hint" id="fn-preview" style="margin-top:6px;font-family:var(--mono);font-size:11px;"></div>
+        </div>
+        <div class="sec-divider">Capture destination</div>
+        <div class="dest-toggle">
+          <button class="dest-btn active" id="dest-scp" onclick="setDest('scp')">Remote file + SCP down</button>
+          <button class="dest-btn" id="dest-pipe" onclick="setDest('pipe')">Pipe to local file</button>
+        </div>
+        <div id="dest-scp-fields">
+          <div class="form-group">
+            <label class="form-label">Remote temp path</label>
+            <select class="form-select" id="f-remote-path-sel" onchange="handleRemotePathSel()">
+              <option value="/tmp/capture.pcap">/tmp/capture.pcap</option>
+              <option value="/var/tmp/capture.pcap">/var/tmp/capture.pcap</option>
+              <option value="/root/capture.pcap">/root/capture.pcap</option>
+              <option value="custom">Custom...</option>
+            </select>
+          </div>
+          <div class="form-group" id="remote-path-custom-group" style="display:none;">
+            <input type="text" class="form-input" id="f-remote-path-custom" placeholder="/tmp/mycap.pcap" oninput="generate()">
+          </div>
+          <div class="form-group" id="scp-local-single">
+            <label class="form-label">Local save path</label>
+            <input type="text" class="form-input" id="f-local-path" placeholder="C:\Captures\capture.pcap" oninput="generate()">
+          </div>
+        </div>
+        <div id="dest-pipe-fields" style="display:none;">
+          <div class="info-box">Traffic piped over SSH directly to a local file. Single file mode only.</div>
+          <div class="form-group">
+            <label class="form-label">Local save path</label>
+            <input type="text" class="form-input" id="f-pipe-local-path" placeholder="C:\Captures\live.pcap" oninput="generate()">
+          </div>
+        </div>
+      </div>
+
+      <!-- PORT MIRROR CARD (shown when portmirror selected) -->
+      <div class="card" id="card-portmirror">
+        <div class="card-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+          Port Mirror Setup
+        </div>
+        <div class="form-group">
+          <label class="form-label">Device</label>
+          <select class="form-select" id="f-pm-model" onchange="pmUpdate()">
+            <optgroup label="DrayTek">
+              <option value="2865">Vigor 2865 / 2866</option>
+              <option value="3910">Vigor 3910</option>
+            </optgroup>
+            <optgroup label="Netgear">
+              <option value="netgear-smart">Netgear Smart Managed (GS3xx / MS series)</option>
+              <option value="netgear-managed">Netgear Fully Managed (M4xxx / M5xxx)</option>
+            </optgroup>
+            <optgroup label="HP / Aruba">
+              <option value="hp-procurve">HP ProCurve / Aruba (2xxx / 3xxx series)</option>
+            </optgroup>
+            <optgroup label="D-Link">
+              <option value="dlink-smart">D-Link Smart Managed (DGS-1210 / DGS-1510)</option>
+            </optgroup>
+            <optgroup label="UniFi">
+              <option value="unifi-sw">UniFi Switch (USW / USW-Pro / USW-Enterprise)</option>
+            </optgroup>
+          </select>
+        </div>
+        <div class="sec-divider">Web UI Steps</div>
+        <div class="pm-steps" id="pm-steps"></div>
+        <div class="sec-divider">Capture Settings</div>
+        <div class="form-group">
+          <label class="form-label">Your PC network interface</label>
+          <select class="form-select" id="pm-iface-sel" onchange="pmToggleCustomIface()">
+            <option value="Ethernet">Ethernet (Windows default)</option>
+            <option value="eth0">eth0 (Linux)</option>
+            <option value="en0">en0 (macOS)</option>
+            <option value="custom">Custom...</option>
+          </select>
+        </div>
+        <div class="form-group" id="pm-iface-custom-group" style="display:none;">
+          <input type="text" class="form-input" id="pm-iface-custom" placeholder="e.g. Ethernet 2" oninput="pmGenerate()">
+          <div class="form-hint">Run tshark -D to list interfaces</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Save to folder</label>
+          <input type="text" class="form-input" id="pm-savedir" value="C:\Captures\" oninput="pmGenerate()">
+        </div>
+        <div class="form-group">
+          <label class="form-label">File prefix</label>
+          <input type="text" class="form-input" id="pm-prefix" value="PcapTrace" oninput="pmGenerate()">
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Rotate every (seconds)</label>
+            <input type="text" class="form-input" id="pm-rot-secs" value="300" oninput="pmGenerate()">
+            <div class="form-hint">300 = 5 min files</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Keep last N files</label>
+            <input type="text" class="form-input" id="pm-rot-files" value="36" oninput="pmGenerate()">
+            <div class="form-hint">36 x 5 min = 3 hrs</div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Capture filter</label>
+          <select class="form-select" id="pm-bpf-preset" onchange="pmBpfPreset()">
+            <option value="">No filter - capture all traffic (recommended to start)</option>
+            <optgroup label="By host">
+              <option value="host __IP__">Specific IP address (all traffic to/from)</option>
+              <option value="src host __IP__">Traffic FROM a specific IP</option>
+              <option value="dst host __IP__">Traffic TO a specific IP</option>
+              <option value="not host __IP__">Exclude a specific IP</option>
+            </optgroup>
+            <optgroup label="By protocol">
+              <option value="tcp">TCP only</option>
+              <option value="udp">UDP only</option>
+              <option value="icmp">ICMP (ping) only</option>
+              <option value="arp">ARP only</option>
+              <option value="not arp and not stp">Exclude ARP and STP (reduce noise)</option>
+            </optgroup>
+            <optgroup label="By port / service">
+              <option value="port 53">DNS (port 53)</option>
+              <option value="port 80 or port 443">Web traffic (HTTP + HTTPS)</option>
+              <option value="port 443">HTTPS only</option>
+              <option value="port 67 or port 68">DHCP (ports 67/68)</option>
+              <option value="port 5060">SIP / VoIP (port 5060)</option>
+              <option value="udp portrange 3478-3481">Teams media (UDP 3478-3481)</option>
+              <option value="port 445">SMB / file shares (port 445)</option>
+              <option value="port 3389">RDP (port 3389)</option>
+            </optgroup>
+            <optgroup label="Combinations">
+              <option value="host __IP__ and port 443">Specific IP + HTTPS only</option>
+              <option value="host __IP__ and port 53">Specific IP + DNS only</option>
+              <option value="not broadcast and not multicast">Unicast only</option>
+              <option value="tcp and host __IP__">TCP to/from a specific IP</option>
+            </optgroup>
+            <option value="custom">Custom...</option>
+          </select>
+          <div class="form-hint" id="pm-bpf-hint" style="margin-top:4px;"></div>
+        </div>
+        <div class="form-group" id="pm-bpf-ip-group" style="display:none;">
+          <label class="form-label" id="pm-bpf-ip-label">IP address</label>
+          <input type="text" class="form-input" id="pm-bpf-ip" placeholder="192.168.1.50" oninput="pmGenerate()">
+        </div>
+        <div class="form-group" id="pm-bpf-custom-group" style="display:none;">
+          <label class="form-label">Custom BPF filter</label>
+          <input type="text" class="form-input" id="pm-bpf" placeholder="e.g. host 192.168.1.50 and port 443" oninput="pmGenerate()">
+          <div class="form-hint">BPF syntax - see Filter Reference tab</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Snap length</label>
+          <select class="form-select" id="pm-snaplen" onchange="pmGenerate()">
+            <option value="0">0 - Full packets (recommended)</option>
+            <option value="65535">65535 - Max safe</option>
+            <option value="1500">1500 - Headers only</option>
+          </select>
+        </div>
+        <div class="sec-divider">Script format</div>
+        <div class="rot-toggle" style="margin-bottom:6px;">
+          <button class="rot-btn active" id="pm-stog-cmd" onclick="pmSetShell('cmd')">CMD</button>
+          <button class="rot-btn" id="pm-stog-ps" onclick="pmSetShell('ps')">PowerShell</button>
+          <button class="rot-btn" id="pm-stog-bash" onclick="pmSetShell('bash')">Bash / WSL</button>
+          <button class="rot-btn" id="pm-stog-gui" onclick="pmSetShell('gui')">Wireshark GUI</button>
+        </div>
+        <div class="form-hint" id="pm-shell-hint">PowerShell - native on Windows 10/11, open via Win+X or Start menu</div>
+      </div>
+
+    </div><!-- end left col -->
+
+    <!-- RIGHT COLUMN -->
+    <div class="output-sticky">
+      <div class="card">
+        <div class="output-header">
+          <div class="output-label">Generated Script</div>
+          <div class="shell-toggle" id="main-shell-toggle" style="display:none;">
+            <button class="stog-btn active" id="stog-ps" onclick="switchShell('ps')">PowerShell</button>
+            <button class="stog-btn" id="stog-bash" onclick="switchShell('bash')">Bash</button>
+          </div>
+        </div>
+        <div id="script-output">
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+            <p>Select a method and configure settings<br>to generate your capture script.</p>
+          </div>
+        </div>
+        <div id="filter-output" class="filter-out-block" style="display:none;">
+          <div class="filter-out-label">Wireshark Display Filter</div>
+          <div style="position:relative;">
+            <button class="copy-btn" style="position:static;float:right;margin-bottom:4px;" onclick="copyText('filter-text')">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy
+            </button>
+            <pre id="filter-text"></pre>
+          </div>
+        </div>
+        <div id="steps-output" class="steps-wrap" style="display:none;">
+          <div class="steps-title">Pre-flight Steps</div>
+          <div id="steps-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- builder-grid -->
+</div><!-- tab-builder -->
+
 </div><!-- main -->
 <div class="toast" id="toast"></div>
-<footer style="text-align:center;padding:20px 24px;font-size:11px;color:var(--text-3);border-top:1px solid var(--border);margin-top:40px;font-family:'DM Sans',sans-serif;">
-  Built by <strong style="color:var(--text-2);">Sebastian Hanney</strong> &mdash; <a href="index.html" style="color:var(--accent);text-decoration:none;">Seb's Workshop</a>
+<footer style="text-align:center;padding:20px 24px;font-size:11px;color:var(--text-3);border-top:1px solid var(--border);margin-top:40px;font-family:var(--font);">
+  Built by <strong style="color:var(--text-2);">Sebastian Hanney</strong> - <a href="index.html" style="color:var(--accent);text-decoration:none;">Seb's Workshop</a>
 </footer>
-
 <script>
+
 // ─── THEME ───────────────────────────────────────────────
 function toggleTheme(){
   var t=document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark';
@@ -869,6 +698,7 @@ function toggleTheme(){
 }
 function updateThemeIcon(t){
   var el=document.getElementById('theme-icon');
+  if(!el)return;
   if(t==='dark'){
     el.innerHTML='<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>';
   } else {
@@ -1341,7 +1171,7 @@ function pmGetBpf(){
   return v;
 }
 
-var PM_SHELL='ps';
+var PM_SHELL='cmd';
 var PM_SHELL_HINTS={
   ps:'PowerShell \u2014 native on Windows 10/11. Open via Win+X, Start menu, or search "PowerShell".',
   cmd:'Command Prompt \u2014 open via Win+R \u2192 cmd, or search "Command Prompt". Works on all Windows versions.',
@@ -1362,28 +1192,33 @@ function pmSetShell(s){
 function pmGenerate(){
   var iface=pmGetIface();
   var saveDir=pmG('pm-savedir')||'C:\\Captures\\';
-  var prefix=pmG('pm-prefix')||'mirror';
+  var prefix=pmG('pm-prefix')||'PcapTrace';
   var rotSecs=pmG('pm-rot-secs')||'300';
   var rotFiles=pmG('pm-rot-files')||'36';
   var bpf=pmGetBpf();
   var snaplen=pmG('pm-snaplen')||'0';
   var totalMins=Math.round(parseInt(rotSecs)*parseInt(rotFiles)/60);
   if(saveDir&&saveDir[saveDir.length-1]!=='\\'&&saveDir[saveDir.length-1]!=='/'){ saveDir+=PM_SHELL==='bash'?'/':'\\'; }
-  var outPattern=saveDir+prefix+'_%d.pcap';
   var summary='Rotation: every '+rotSecs+'s, keep '+rotFiles+' files ('+totalMins+' min total)';
 
   var script='';
   var tsExeWin='"C:\\Program Files\\Wireshark\\tshark.exe"';
   var tsExeLinux='tshark';
 
+  // tshark -b duration:N rotates files and appends a counter + timestamp automatically
+  // The -w pattern is the base path; tshark appends _YYYYMMDDHHMMSS_NNN.pcap when rotating
+  // For the machine name we set it as a variable before calling tshark
+
   if(PM_SHELL==='cmd'){
+    // Build the tshark command with %PCAPOUT% variable reference
     var tsCmd=[
       tsExeWin,
       '-i "'+iface+'"',
       '-s '+snaplen,
+      '-F pcap',
       '-b duration:'+rotSecs,
       '-b files:'+rotFiles,
-      '-w "'+outPattern+'"'
+      '-w "%PCAPOUT%"'
     ];
     if(bpf) tsCmd.splice(2,0,'-f "'+bpf+'"');
     script=[
@@ -1391,42 +1226,46 @@ function pmGenerate(){
       'REM '+summary,
       (bpf?'REM BPF filter: '+bpf:'REM No filter - capturing all traffic'),
       'REM Interface: '+iface,
-      'REM Output: '+outPattern,
-      'REM',
-      'REM If tshark is not recognised, check Wireshark is installed at:',
-      'REM C:\\Program Files\\Wireshark\\',
+      '',
+      'REM Create output folder if it does not exist',
+      'IF NOT EXIST "'+saveDir+'" MD "'+saveDir+'"',
+      '',
+      'REM Set output path',
+      'SET PCAPOUT='+saveDir+prefix+'_%COMPUTERNAME%.pcap',
+      'ECHO Saving to: %PCAPOUT%',
       '',
       tsCmd.join(' '),
       '',
-      'REM To open a saved file in Wireshark:',
-      'REM "C:\\Program Files\\Wireshark\\Wireshark.exe" "'+saveDir+prefix+'_001.pcap"',
-      '',
       'REM When done: disable Port Mirror on the switch (see steps on the left)'
     ].join('\n');
+
   } else if(PM_SHELL==='ps'){
-    var tsCmdPs=[
-      tsExeWin,
-      '-i "'+iface+'"',
-      '-s '+snaplen,
-      '-b duration:'+rotSecs,
-      '-b files:'+rotFiles,
-      '-w "'+outPattern+'"'
+    // Build args array separately for PowerShell splatting
+    var psArgs=[
+      '-i', '"'+iface+'"',
+      '-s', snaplen,
+      '-F', 'pcap',
+      '-b', 'duration:'+rotSecs,
+      '-b', 'files:'+rotFiles,
+      '-w', '"$pcapOut"'
     ];
-    if(bpf) tsCmdPs.splice(2,0,'-f "'+bpf+'"');
+    if(bpf) psArgs.splice(4,0,'-f','"'+bpf+'"');
+    // PS: $pcapOut includes .pcap - tshark inserts counter+timestamp before the extension
+    var tsLine='& '+tsExeWin+' '+psArgs.join(' ');
     script=[
-      '# Port Mirror Capture \u2014 run in PowerShell on your PC',
+      '# Port Mirror Capture - run in PowerShell on your PC',
       '# '+summary,
-      (bpf?'# BPF filter: '+bpf:'# No filter \u2014 capturing all traffic'),
+      (bpf?'# BPF filter: '+bpf:'# No filter - capturing all traffic'),
       '# Interface: '+iface,
-      '# Output: '+outPattern,
+      '# Files created as: '+prefix+'_COMPUTERNAME_00001_YYYYMMDDHHMMSS.pcap',
       '',
-      tsCmdPs.join(' '),
+      'if (-not (Test-Path "'+saveDir+'")) { New-Item -ItemType Directory -Path "'+saveDir+'" | Out-Null }',
+      '$pcapOut = "'+saveDir+prefix+'_" + $env:COMPUTERNAME + ".pcap"',
+      'Write-Host "Saving to: $pcapOut" -ForegroundColor Cyan',
       '',
-      '# To open a saved file in Wireshark:',
-      '# "C:\\Program Files\\Wireshark\\Wireshark.exe" "'+saveDir+prefix+'_001.pcap"',
-      '',
-      '# When done: disable Port Mirror on the switch (see steps on the left)'
+      tsLine
     ].join('\n');
+
   } else if(PM_SHELL==='gui'){
     // Build Wireshark GUI step-by-step instructions
     var hasRotation=(parseInt(rotSecs)>0&&parseInt(rotFiles)>0);
@@ -1495,35 +1334,62 @@ function pmGenerate(){
     document.getElementById('steps-output').style.display='none';
     return;
   } else {
+    // Bash / WSL
+    var outPatternBash=saveDir+prefix+'_$(hostname -s).pcap';
     var tsCmdBash=[
       tsExeLinux,
       '-i "'+iface+'"',
       '-s '+snaplen,
+      '-F pcap',
       '-b duration:'+rotSecs,
       '-b files:'+rotFiles,
-      '-w "'+outPattern+'"'
+      '-w "'+outPatternBash+'"'
     ];
     if(bpf) tsCmdBash.splice(2,0,'-f "'+bpf+'"');
     script=[
       '#!/usr/bin/env bash',
-      '# Port Mirror Capture \u2014 run in terminal on your PC',
+      '# Port Mirror Capture - run in terminal on your PC',
       '# '+summary,
-      (bpf?'# BPF filter: '+bpf:'# No filter \u2014 capturing all traffic'),
+      (bpf?'# BPF filter: '+bpf:'# No filter - capturing all traffic'),
       '# Interface: '+iface,
-      '# Output: '+outPattern,
+      '# Files saved as: '+prefix+'_hostname_00001_YYYYMMDDHHMMSS',
+      '# Open in Wireshark via File > Open',
+      '',
+      '# Create output folder if it does not exist',
+      'mkdir -p "'+saveDir+'"',
       '',
       tsCmdBash.join(' '),
       '',
-      '# To open a saved file in Wireshark:',
-      '# wireshark "'+saveDir+prefix+'_001.pcap"',
       '',
       '# When done: disable Port Mirror on the switch (see steps on the left)'
     ].join('\n');
   }
 
-  document.getElementById('script-output').innerHTML='<div class="code-block"><button class="copy-btn" onclick="copyText(\'gen-script\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script">'+esc(script)+'</pre></div>';
-  document.getElementById('filter-output').style.display='none';
-  document.getElementById('steps-output').style.display='none';
+  // Strip comment lines to build clean commands-only version
+  // Filter is shell-aware so PS commands never appear in CMD output
+  var cleanLines=script.split('\n').filter(function(line){
+    var t=line.trim();
+    if(t==='') return false;
+    if(t==='#!/usr/bin/env bash') return false;
+    // Strip comment lines per shell
+    if(PM_SHELL==='cmd'&&t.indexOf('REM ')===0) return false;
+    if(PM_SHELL==='cmd'&&t.indexOf('rem ')===0) return false;
+    if((PM_SHELL==='ps'||PM_SHELL==='bash')&&t.indexOf('#')===0) return false;
+    // Extra guard: if CMD shell, drop any line containing PS-specific syntax
+    if(PM_SHELL==='cmd'&&(t.indexOf('Get-ChildItem')===0||t.indexOf('$')===0||t.indexOf('if (-not')===0)) return false;
+    return true;
+  });
+  var cleanScript=cleanLines.join('\n');
+
+  var soEl=document.getElementById('script-output');
+  if(soEl) soEl.innerHTML=
+    '<div class="code-block" style="margin-bottom:8px;"><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Full script with notes</div><button class="copy-btn" onclick="copyText(\'gen-script\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script">'+esc(script)+'</pre></div>'+
+    '<div class="code-block"><div style="font-size:10px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;">Commands only</div><button class="copy-btn" onclick="copyText(\'gen-script-clean\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script-clean">'+esc(cleanScript)+'</pre></div>';
+
+  var foEl=document.getElementById('filter-output');
+  var stEl=document.getElementById('steps-output');
+  if(foEl) foEl.style.display='none';
+  if(stEl) stEl.style.display='none';
 }
 function updatePortMirrorModel(){ pmUpdate(); }
 
@@ -1566,7 +1432,7 @@ function selectMethod(m,el){
   ST.method=m;
   document.querySelectorAll('.method-tile').forEach(function(t){t.classList.remove('selected');});
   el.classList.add('selected');
-  document.getElementById('method-extras').innerHTML=METHOD_EXTRAS[m];
+  var meEl=document.getElementById('method-extras');if(meEl)meEl.innerHTML=METHOD_EXTRAS[m]||'';
   // For UniFi, initialise sub-type selector (handles username + iface)
   if(m==='unifi'){
     ST_UNIFI_TYPE='ap';
@@ -1574,8 +1440,8 @@ function selectMethod(m,el){
   } else {
     populateIfaceSelect();
     var hint=IFACE_HINTS[m]||'';
-    document.getElementById('iface-info').innerHTML=hint;
-    document.getElementById('iface-info').style.display=hint?'block':'none';
+    var ifaceInfoEl=document.getElementById('iface-info');
+    if(ifaceInfoEl){ifaceInfoEl.innerHTML=hint;ifaceInfoEl.style.display=hint?'block':'none';}
     // Set default username for non-UniFi methods
     var defUser=METHOD_DEFAULT_USERS[m];
     if(defUser){
@@ -1621,8 +1487,8 @@ function selectMethod(m,el){
 }
 
 function populateIfaceSelect(){
-  var sel=document.getElementById('f-iface-select');
-  sel.innerHTML='';
+  var sel=document.getElementById('f-iface-select')||document.getElementById('f-iface');
+  if(sel)sel.innerHTML='';
   var presets=ST.method==='unifi'?UNIFI_TYPES[ST_UNIFI_TYPE].ifaces:IFACE_PRESETS[ST.method];
   if(!presets) return;
   presets.forEach(function(opt){
@@ -1638,14 +1504,14 @@ function populateIfaceSelect(){
 }
 
 function handleIfaceSelect(){
-  var v=document.getElementById('f-iface-select').value;
+  var v=(document.getElementById('f-iface-select')||document.getElementById('f-iface')||{}).value||'';
   var cg=document.getElementById('iface-custom-group');
   if(v==='custom'){cg.style.display='block';}else{cg.style.display='none';}
   generate();
 }
 
 function getIface(){
-  var v=document.getElementById('f-iface-select').value;
+  var v=(document.getElementById('f-iface-select')||document.getElementById('f-iface')||{}).value||'';
   if(v==='custom') return document.getElementById('f-iface-custom').value.trim()||'eth0';
   return v;
 }
@@ -1656,15 +1522,15 @@ function toggleAuthField(){
   var extra=document.getElementById('auth-extra');
   var lbl=document.getElementById('auth-extra-label');
   if(auth==='key'){
-    extra.style.display='block';
-    lbl.textContent='Key path';
+    if(extra)extra.style.display='block';
+    if(lbl)lbl.textContent='Key path';
     document.getElementById('f-auth-val').placeholder='~/.ssh/id_rsa';
   } else if(auth==='sshpass'){
-    extra.style.display='block';
-    lbl.textContent='Password (stored in script - insecure)';
+    if(extra)extra.style.display='block';
+    if(lbl)lbl.textContent='Password (stored in script - insecure)';
     document.getElementById('f-auth-val').placeholder='MyPassword123';
   } else {
-    extra.style.display='none';
+    if(extra)extra.style.display='none';
   }
   generate();
 }
@@ -1709,12 +1575,12 @@ function setBpfHostMode(mode){
   });
   var hg=document.getElementById('bpf-host-group');
   if(hostModeActive){
-    hg.style.display='block';
+    if(hg)hg.style.display='block';
     var hints={host:'Single host IP or hostname',net:'e.g. 192.168.1.0/24',src:'Source IP only',dst:'Destination IP only',not:'Exclude this host from capture'};
-    document.getElementById('bpf-host-hint').textContent=hints[mode]||'';
-    document.getElementById('bpf-host-val').placeholder=mode==='net'?'192.168.1.0/24':'192.168.1.100';
+    var bhh=document.getElementById('bpf-host-hint');if(bhh)bhh.textContent=hints[mode]||'';
+    (document.getElementById('bpf-host-val')||{}).placeholder=mode==='net'?'192.168.1.0/24':'192.168.1.100';
   } else {
-    hg.style.display='none';
+    if(hg)hg.style.display='none';
   }
   generate();
 }
@@ -1728,13 +1594,13 @@ function setBpfPortMode(mode){
   var pg=document.getElementById('bpf-port-group');
   var pg2=document.getElementById('bpf-port2-group');
   if(portModeActive){
-    pg.style.display='block';
+    if(pg)pg.style.display='block';
     var phints={port:'Port number (e.g. 8080)',portrange:'Start port',not:'Exclude this port'};
-    document.getElementById('bpf-port-hint').textContent=phints[mode]||'';
-    pg2.style.display=mode==='portrange'?'block':'none';
+    var bph=document.getElementById('bpf-port-hint');if(bph)bph.textContent=phints[mode]||'';
+    if(pg2)pg2.style.display=mode==='portrange'?'block':'none';
   } else {
-    pg.style.display='none';
-    pg2.style.display='none';
+    if(pg)pg.style.display='none';
+    if(pg2)pg2.style.display='none';
   }
   generate();
 }
@@ -1803,28 +1669,23 @@ function assembleWsFilter(){
 // ─── ROTATION ─────────────────────────────────────────────
 function setRotation(mode){
   ST.rotation=mode;
-  ['none','time','size','both'].forEach(function(m){
+  ['none','time','size'].forEach(function(m){
     var b=document.getElementById('rot-'+m);
     if(b) b.classList.toggle('active',m===mode);
   });
   var isRot=(mode!=='none');
   document.getElementById('rot-fields-none').style.display=isRot?'none':'block';
   document.getElementById('rot-fields-rotating').style.display=isRot?'block':'none';
-  var hasTime=(mode==='time'||mode==='both');
-  var hasSize=(mode==='size'||mode==='both');
+  var hasTime=(mode==='time');
+  var hasSize=(mode==='size');
   document.getElementById('rot-time-fields').style.display=hasTime?'block':'none';
   document.getElementById('rot-size-fields').style.display=hasSize?'block':'none';
   // Pipe mode incompatible with rotation
-  if(isRot && ST.dest==='pipe'){
-    setDest('scp');
-  }
+  if(isRot && ST.dest==='pipe') setDest('scp');
+  updateRotSummary();
   generate();
 }
 
-document.getElementById('f-rot-files').addEventListener('change',function(){
-  document.getElementById('rot-files-custom-group').style.display=this.value==='custom'?'block':'none';
-  generate();
-});
 // ─── DEST TOGGLE ─────────────────────────────────────────
 function setDest(d){
   ST.dest=d;
@@ -1836,10 +1697,13 @@ function setDest(d){
 }
 
 // ─── SNAPLEN ──────────────────────────────────────────────
-document.getElementById('f-snaplen').addEventListener('change',function(){
-  document.getElementById('snaplen-custom-group').style.display=this.value==='custom'?'block':'none';
-  generate();
-});
+(function(){
+  var snapSel=document.getElementById('f-snaplen');
+  if(snapSel) snapSel.addEventListener('change',function(){
+    var scg=document.getElementById('snaplen-custom-group');if(scg)scg.style.display=this.value==='custom'?'block':'none';
+    generate();
+  });
+})();
 
 function handleRemotePathSel(){
   var v=document.getElementById('f-remote-path-sel').value;
@@ -1868,7 +1732,9 @@ function getRotMB(){
   return val*unit;
 }
 function getRotFiles(){
-  var v=document.getElementById('f-rot-files').value;
+  var el=document.getElementById('f-rot-files');
+  if(!el) return Math.ceil(getTotalSecs()/(getChunkSecs()||300));
+  var v=el.value;
   return v==='custom'?(parseInt(g('f-rot-files-custom')||'10',10)):parseInt(v,10);
 }
 function getRotRemoteDir(){ return g('f-rot-remote-dir')||'/tmp/cap'; }
@@ -1901,12 +1767,15 @@ function generate(){
   // Update assembled BPF display
   var asmEl=document.getElementById('bpf-assembled');
   if(asmEl){
-    if(bpfRaw){asmEl.innerHTML=esc(bpfRaw);}
-    else{asmEl.innerHTML='<span class="placeholder">No filter \u2014 captures all traffic</span>';}
+    if(bpfRaw) asmEl.innerHTML=esc(bpfRaw);
+    else asmEl.innerHTML='<span class="placeholder">No filter - captures all traffic</span>';
   }
 
+  // Update filename preview and rotation summary
+  updateFnPreview();
+  updateRotSummary();
+
   if(!host||!user){
-    // Port mirror doesn't need SSH credentials - generate anyway
     if(ST.method!=='portmirror'){
       document.getElementById('script-output').innerHTML='<div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg><p>Enter a host and username<br>to generate your script.</p></div>';
       document.getElementById('filter-output').style.display='none';
@@ -1915,14 +1784,14 @@ function generate(){
     }
   }
 
-  // Build SSH/SCP base strings (same for both shells)
+  // SSH/SCP base strings
   var sshBase, scpBase, authNote;
   if(authMode==='key'&&authVal){
     sshBase='ssh -i "'+authVal+'" -p '+port+' '+user+'@'+host;
     scpBase='scp -i "'+authVal+'" -P '+port;
     authNote='# Auth: SSH key ('+authVal+')';
   } else if(authMode==='sshpass'&&authVal){
-    sshBase='sshpass -p "'+authVal+'" ssh -p '+port+' '+user+'@'+host;
+    sshBase='sshpass -p "'+authVal+'" ssh -o StrictHostKeyChecking=no -p '+port+' '+user+'@'+host;
     scpBase='sshpass -p "'+authVal+'" scp -P '+port;
     authNote='# Auth: sshpass (WARNING: password visible in script)';
   } else {
@@ -1940,41 +1809,42 @@ function generate(){
   } else if(ST.method==='sshdump'){
     script=buildSshdump(host,user,port,iface,bpfFinal,authMode,authVal);
   } else if(isRotating){
-    script=buildRotatingScript(host,user,port,sshBase,scpBase,iface,snaplen,bpfFinal,authNote);
-  } else {
-    var remotePath=getRemotePath();
+    var rotSecs=ST.rotation==='time'?getChunkSecs():0;
+    var rotMB=ST.rotation==='size'?getRotMB():0;
+    var totalSecs=getTotalSecs();
+    var remoteDir=g('f-rot-remote-dir')||'/tmp';
+    var localDir=g('f-rot-local-dir')||(ST.shell==='ps'?'C:\\Captures\\':'~/captures/');
     var localPath=(ST.dest==='scp'?g('f-local-path'):g('f-pipe-local-path'))||(ST.shell==='ps'?'C:\\Captures\\capture.pcap':'~/capture.pcap');
-    var tcpArgs=['-i',iface,'-s',snaplen];
-    if(bpfFinal) tcpArgs.push("'"+bpfFinal+"'");
-    if(count!=='0') tcpArgs.push('-c',count);
-    var tcpdump='tcpdump '+tcpArgs.join(' ')+' -w '+remotePath;
-    if(duration!=='0') tcpdump='timeout '+duration+' '+tcpdump;
+    script=buildScpScript(ST.method,host,user,port,sshBase,scpBase,iface,snaplen,bpfFinal,authNote,true,rotSecs,rotMB,totalSecs,remoteDir,localPath,localDir);
+  } else {
+    var localPath=(ST.dest==='scp'?g('f-local-path'):g('f-pipe-local-path'))||(ST.shell==='ps'?'C:\\Captures\\capture.pcap':'~/capture.pcap');
     if(ST.dest==='scp'){
-      script=buildScpScript(ST.method,host,user,port,sshBase,scpBase,tcpdump,remotePath,localPath,authNote,bpfFinal);
+      script=buildScpScript(ST.method,host,user,port,sshBase,scpBase,iface,snaplen,bpfFinal,authNote,false,0,0,duration,'/tmp',localPath,'');
     } else {
       script=buildPipeScript(ST.method,host,user,port,sshBase,iface,snaplen,bpfFinal,count,duration,localPath,authNote);
     }
   }
 
-  // WS filter
+  // WS display filter
   var wsFilter=assembleWsFilter();
   if(!wsFilter&&host) wsFilter='ip.addr == '+host;
 
-  // Render
   document.getElementById('script-output').innerHTML='<div class="code-block"><button class="copy-btn" onclick="copyText(\'gen-script\')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy</button><pre id="gen-script">'+esc(script)+'</pre></div>';
+  var filterTextEl=document.getElementById('filter-text');
+  var filterOutEl=document.getElementById('filter-output');
+  if(filterTextEl) filterTextEl.textContent=wsFilter;
+  if(filterOutEl) filterOutEl.style.display=wsFilter?'block':'none';
 
-  document.getElementById('filter-text').textContent=wsFilter;
-  document.getElementById('filter-output').style.display=wsFilter?'block':'none';
-
-  // Steps
   var stepsData=METHOD_STEPS[ST.method]||[];
   var stHtml='';
   stepsData.forEach(function(s,i){
     var codeStr=typeof s.code==='function'?s.code():s.code||'';
     stHtml+='<div class="step"><div class="step-num">'+(i+1)+'</div><div><h4>'+s.title+'</h4><p>'+s.body+'</p>'+(codeStr?'<code>'+esc(codeStr)+'</code>':'')+'</div></div>';
   });
-  document.getElementById('steps-list').innerHTML=stHtml;
-  document.getElementById('steps-output').style.display=stHtml?'block':'none';
+  var stepsListEl=document.getElementById('steps-list');
+  var stepsOutEl=document.getElementById('steps-output');
+  if(stepsListEl) stepsListEl.innerHTML=stHtml;
+  if(stepsOutEl) stepsOutEl.style.display=stHtml?'block':'none';
 }
 
 function buildPortMirrorCapture(bpf){
@@ -2020,256 +1890,341 @@ function buildPortMirrorCapture(bpf){
     ].filter(function(l){return l!==undefined;}).join('\n');
   }
 }
-  function buildScpScript(method,host,user,port,sshBase,scpBase,tcpdump,remotePath,localPath,authNote,bpf){
-var label={'unifi':'UniFi SSH + tcpdump','portmirror':'DrayTek SSH + tcpdump','watchguard':'WatchGuard Fireware SSH + tcpdump'}[method]||'Remote tcpdump';
+
+// ─── FILENAME BUILDER ────────────────────────────────────
+function getPrefix(){
+  var p=(document.getElementById('f-prefix')?document.getElementById('f-prefix').value.trim():'PcapTrace')||'PcapTrace';
+  return p;
+}
+function getFilenameBase(forRemote){
+  // forRemote=true: use strftime patterns for tcpdump -w
+  // forRemote=false: use shell variable expansion for local machine name
+  var prefix=getPrefix();
+  var useDate=document.getElementById('fn-datetime')&&document.getElementById('fn-datetime').checked;
+  var useHost=document.getElementById('fn-hostname')&&document.getElementById('fn-hostname').checked;
+  var parts=[prefix];
+  if(useHost){
+    if(forRemote){
+      parts.push('$(hostname -s)'); // remote device hostname via shell
+    } else {
+      if(ST.shell==='ps') parts.push('$env:COMPUTERNAME');
+      else parts.push('$(hostname -s)');
+    }
+  }
+  if(useDate){
+    if(forRemote){
+      parts.push('$(date +%Y%m%d_%H%M%S)'); // evaluated at capture start on device
+    } else {
+      if(ST.shell==='ps') parts.push('$(Get-Date -Format yyyyMMdd_HHmmss)');
+      else parts.push('$(date +%Y%m%d_%H%M%S)');
+    }
+  }
+  return parts.join('_');
+}
+
+function updateFnPreview(){
+  var prefix=getPrefix();
+  var useDate=document.getElementById('fn-datetime')&&document.getElementById('fn-datetime').checked;
+  var useHost=document.getElementById('fn-hostname')&&document.getElementById('fn-hostname').checked;
+  var parts=[prefix];
+  if(useHost) parts.push('AP-LOUNGE');
+  if(useDate) parts.push('20250623_143000');
+  var el=document.getElementById('fn-preview');
+  if(el) el.textContent='Example: '+parts.join('_')+(ST.rotation!=='none'?'_001':'')+'.pcap';
+}
+
+function getTotalSecs(){
+  var val=parseInt(document.getElementById('f-rot-total')?document.getElementById('f-rot-total').value||'2':'2',10);
+  var unit=parseInt(document.getElementById('f-rot-total-unit')?document.getElementById('f-rot-total-unit').value||'3600':'3600',10);
+  return val*unit;
+}
+
+function getChunkSecs(){
+  var val=parseInt(g('f-rot-secs')||'300',10);
+  var unit=parseInt(g('f-rot-secs-unit')||'1',10);
+  return val*unit;
+}
+
+function updateRotSummary(){
+  if(ST.rotation==='none'||ST.rotation==='size') return;
+  var chunk=getChunkSecs();
+  var total=getTotalSecs();
+  var files=Math.ceil(total/chunk);
+  var el=document.getElementById('rot-summary');
+  if(el) el.textContent=files+' files of '+chunk+'s each ('+Math.round(total/60)+' min total)';
+}
+
+// ─── COMMAND BUILDERS ─────────────────────────────────────
+
+// Build tcpdump command for remote device
+// BPF filter MUST come immediately after interface (-i) and snaplen (-s)
+// before any rotation flags
+function buildTcpdumpCmd(iface,snaplen,bpf,rotSecs,rotMB,totalSecs,singleFile,remotePattern){
+  var parts=['tcpdump'];
+  parts.push('-i',iface);
+  parts.push('-s',snaplen);
+  if(bpf) parts.push('-f',"'"+bpf+"'"); // -f not positional but cleaner
+  if(singleFile){
+    if(totalSecs&&totalSecs!=='0') parts.unshift('timeout',totalSecs);
+    parts.push('-w',remotePattern);
+  } else {
+    // Chunked rotation
+    if(rotSecs) parts.push('-G',rotSecs);
+    if(rotMB) parts.push('-C',rotMB);
+    // -W = number of files (total/chunk rounded up)
+    var nFiles=rotSecs?Math.ceil(getTotalSecs()/rotSecs):100;
+    parts.push('-W',nFiles);
+    // strftime pattern -- requires tcpdump 4.x with strftime support
+    // Note: on some embedded devices (older UniFi AP firmware) strftime may not work
+    // Use a static numbered pattern as fallback if needed
+    parts.push('-w',remotePattern);
+  }
+  return parts.join(' ');
+}
+
+function buildScpScript(method,host,user,port,sshBase,scpBase,iface,snaplen,bpf,authNote,isRotating,rotSecs,rotMB,totalSecs,remoteDir,localPath,localDir){
+  var label={'unifi':'UniFi SSH','watchguard':'WatchGuard Fireware SSH'}[method]||'Remote SSH';
+  var prefix=getPrefix();
+  var useDate=document.getElementById('fn-datetime')&&document.getElementById('fn-datetime').checked;
+  var useHost=document.getElementById('fn-hostname')&&document.getElementById('fn-hostname').checked;
+
+  if(!isRotating){
+    // Single file
+    var remotePath=getRemotePath();
+    var tcpArgs='tcpdump -i '+iface+' -s '+snaplen;
+    if(bpf) tcpArgs+=" '"+bpf+"'";
+    var count=g('f-count')||'0';
+    var dur=g('f-duration')||'0';
+    if(count!=='0') tcpArgs+=' -c '+count;
+    tcpArgs+=' -w '+remotePath;
+    if(dur!=='0') tcpArgs='timeout '+dur+' '+tcpArgs;
+
+    if(ST.shell==='ps'){
+      return [
+        '# '+label+' - Single file capture',
+        authNote,
+        '# Target: '+host,
+        '',
+        '# Step 1 - Start capture (Ctrl+C or wait for limit)',
+        sshBase+' "'+tcpArgs+'"',
+        '',
+        '# Step 2 - Copy to local machine',
+        scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
+        '',
+        '# Step 3 - Remove temp file on device',
+        sshBase+' "rm -f '+remotePath+'"',
+        '',
+        'Write-Host "Saved to: '+localPath+'" -ForegroundColor Green'
+      ].join('\n');
+    } else {
+      return [
+        '#!/usr/bin/env bash',
+        '# '+label+' - Single file capture',
+        authNote,
+        '# Target: '+host,
+        '',
+        '# Step 1 - Start capture (Ctrl+C or wait for limit)',
+        sshBase+' "'+tcpArgs+'"',
+        '',
+        '# Step 2 - Copy to local machine',
+        scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
+        '',
+        '# Step 3 - Remove temp file on device',
+        sshBase+' "rm -f '+remotePath+'"',
+        '',
+        'echo "Saved to: '+localPath+'"'
+      ].join('\n');
+    }
+  }
+
+  // Chunked / timed capture
+  // Build filename pattern with device hostname and datetime via shell expansion
+  var hostPart=useHost?'_$(hostname -s)':'';
+  var datePart=useDate?'_%Y%m%d_%H%M%S':'';  // strftime for tcpdump -G
+  var nFiles=Math.ceil(getTotalSecs()/(rotSecs||300));
+  var remotePattern=remoteDir+'/'+prefix+hostPart+datePart+'_%03d.pcap';
+  var tcpCmd='tcpdump -i '+iface+' -s '+snaplen;
+  if(bpf) tcpCmd+=" '"+bpf+"'";
+  if(rotSecs) tcpCmd+=' -G '+rotSecs;
+  if(rotMB) tcpCmd+=' -C '+rotMB;
+  tcpCmd+=' -W '+nFiles;
+  tcpCmd+=' -w '+remotePattern;
+  // Wrap in timeout for total duration
+  var totalS=getTotalSecs();
+  tcpCmd='timeout '+totalS+' '+tcpCmd;
+
+  var noteFiles='# '+nFiles+' files of '+rotSecs+'s each = '+(Math.round(totalS/60))+' min total';
+
   if(ST.shell==='ps'){
+    var scpBlock=[
+      '',
+      '# Step 2 - After capture completes, SCP all files to local machine',
+      '$Files = ('+sshBase+' "ls '+remoteDir+'/'+prefix+'*.pcap 2>/dev/null").Trim().Split()',
+      'foreach ($F in $Files) {',
+      '    $Name = Split-Path $F -Leaf',
+      '    '+scpBase+' '+user+'@'+host+':$F "'+localDir+'$Name"',
+      '    Write-Host "Pulled: $Name" -ForegroundColor Green',
+      '}',
+      '',
+      '# Step 3 - Clean up remote files',
+      sshBase+' "rm -f '+remoteDir+'/'+prefix+'*.pcap"'
+    ].join('\n');
     return [
-      '# '+label+' - Remote file then SCP',
+      '# '+label+' - Timed chunked capture',
       authNote,
+      noteFiles,
+      '# NOTE: Requires tcpdump 4.x with strftime support on the remote device',
+      '# NOTE: If %Y%m%d pattern is not supported, files will be numbered only',
       '# Target: '+host,
       '',
-      '# Step 1 - Start capture on remote device',
-      '# (Ctrl+C or wait for packet/time limit to stop)',
-      sshBase+' "'+tcpdump+'"',
+      '# Step 1 - Run timed capture on remote device',
+      '# Stops automatically after '+Math.round(totalS/60)+' minutes',
+      sshBase+' "'+tcpCmd+'"',
+      scpBlock,
       '',
-      '# Step 2 - Copy PCAP to local machine',
-      scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
-      '',
-      '# Step 3 - Clean up remote temp file',
-      sshBase+' "rm '+remotePath+'"',
-      '',
-      'Write-Host "Done. Capture saved to: '+localPath+'" -ForegroundColor Green'
+      'Write-Host "Complete. Files saved to: '+localDir+'" -ForegroundColor Green'
     ].join('\n');
   } else {
+    var scpBlockBash=[
+      '',
+      '# Step 2 - SCP all files to local machine',
+      'for F in $('+sshBase+' "ls '+remoteDir+'/'+prefix+'*.pcap 2>/dev/null"); do',
+      '  NAME=$(basename "$F")',
+      '  '+scpBase+' '+user+'@'+host+':"$F" "'+localDir+'$NAME"',
+      '  echo "Pulled: $NAME"',
+      'done',
+      '',
+      '# Step 3 - Clean up remote files',
+      sshBase+' "rm -f '+remoteDir+'/'+prefix+'*.pcap"'
+    ].join('\n');
     return [
       '#!/usr/bin/env bash',
-      '# '+label+' - Remote file then SCP',
+      '# '+label+' - Timed chunked capture',
       authNote,
+      noteFiles,
+      '# NOTE: Requires tcpdump 4.x with strftime support on the remote device',
       '# Target: '+host,
       '',
-      '# Step 1 - Start capture on remote device',
-      '# (Ctrl+C or wait for packet/time limit to stop)',
-      sshBase+' "'+tcpdump+'"',
+      '# Step 1 - Run timed capture on remote device',
+      '# Stops automatically after '+Math.round(totalS/60)+' minutes',
+      sshBase+' "'+tcpCmd+'"',
+      scpBlockBash,
       '',
-      '# Step 2 - Copy PCAP to local machine',
-      scpBase+' '+user+'@'+host+':'+remotePath+' "'+localPath+'"',
-      '',
-      '# Step 3 - Clean up remote temp file',
-      sshBase+' "rm '+remotePath+'"',
-      '',
-      'echo "Done. Capture saved to: '+localPath+'"'
+      'echo "Complete. Files saved to: '+localDir+'"'
     ].join('\n');
   }
 }
 
-function buildRotatingScript(host,user,port,sshBase,scpBase,iface,snaplen,bpf,authNote){
-  var label={'unifi':'UniFi','portmirror':'DrayTek','watchguard':'WatchGuard'}[ST.method]||'Remote';
-  var rotFiles=getRotFiles();
-  var remoteDir=getRotRemoteDir();
-  var localDir=getRotLocalDir();
-  var hasTime=(ST.rotation==='time'||ST.rotation==='both');
-  var hasSize=(ST.rotation==='size'||ST.rotation==='both');
-  var rotSecs=hasTime?getRotSecs():0;
-  var rotMB=hasSize?getRotMB():0;
-
-  // tcpdump flags: -G (secs), -C (MB, no unit suffix), -W (file count), -w pattern
-  // -w must use strftime patterns for rotation; tcpdump on embedded devices may vary
-  var tcpBase='tcpdump -i '+iface+' -s '+snaplen;
-  if(bpf) tcpBase+=" '"+bpf+"'";
-  if(hasTime) tcpBase+=' -G '+rotSecs;
-  if(hasSize) tcpBase+=' -C '+rotMB;
-  tcpBase+=' -W '+rotFiles;
-  // Use %Y%m%d_%H%M%S pattern - supported by tcpdump >= 4.x with strftime
-  var remotePattern=remoteDir+'_%Y%m%d_%H%M%S.pcap';
-  tcpBase+=' -w '+remotePattern;
-
-  var rotNote='';
-  if(hasTime) rotNote+='# Rotates every '+rotSecs+'s';
-  if(hasSize) rotNote+=(rotNote?' + ':' # ')+rotMB+'MB max per file';
-  rotNote+=' | keeps last '+rotFiles+' files (circular)';
-
-  if(ST.shell==='ps'){
-    var scpLoop='';
-    if(ST.dest==='scp'){
-      scpLoop=[
-        '',
-        '# Step 2 - Watch for completed files and SCP each one locally',
-        '# Run this in a separate PowerShell window while capture is running',
-        '$RemoteDir  = "'+remoteDir+'"',
-        '$LocalDir   = "'+localDir+'"',
-        '$Seen = @{}',
-        'while ($true) {',
-        '    $Files = ('+sshBase+' "ls ${RemoteDir}_*.pcap 2>/dev/null").Split()',
-        '    foreach ($F in $Files) {',
-        '        if ($F -and -not $Seen[$F]) {',
-        '            $Name = Split-Path $F -Leaf',
-        '            '+scpBase+' '+user+'@'+host+':$F "$LocalDir$Name"',
-        '            Write-Host "Pulled: $Name" -ForegroundColor Green',
-        '            $Seen[$F] = $true',
-        '        }',
-        '    }',
-        '    Start-Sleep -Seconds 30',
-        '}',
-      ].join('\n');
-    }
-    return [
-      '# '+label+' - Rotating Capture',
-      authNote,
-      rotNote,
-      '# NOTE: Requires tcpdump >= 4.x on device for -G/-C/-W flags',
-      '# NOTE: UniFi and most Linux-based devices support this natively',
-      '',
-      '# Step 1 - Start rotating capture on remote device',
-      '# Files written to: '+remotePattern,
-      sshBase+' "'+tcpBase+'"',
-      scpLoop,
-      '',
-      '# Step 3 - When done, clean up all rotation files on device',
-      sshBase+' "rm -f '+remoteDir+'_*.pcap"',
-      '',
-      'Write-Host "Rotating capture complete" -ForegroundColor Green'
-    ].filter(function(l){return l!==undefined;}).join('\n');
-  } else {
-    var scpBash='';
-    if(ST.dest==='scp'){
-      scpBash=[
-        '',
-        '# Step 2 - In a separate terminal: watch and pull completed files',
-        'REMOTE_DIR="'+remoteDir+'"',
-        'LOCAL_DIR="'+localDir+'"',
-        'declare -A SEEN',
-        'while true; do',
-        '  for F in $('+sshBase+' "ls ${REMOTE_DIR}_*.pcap 2>/dev/null"); do',
-        '    if [[ -z "${SEEN[$F]}" ]]; then',
-        '      NAME=$(basename "$F")',
-        '      '+scpBase+' '+user+'@'+host+':"$F" "${LOCAL_DIR}${NAME}"',
-        '      echo "Pulled: $NAME"',
-        '      SEEN[$F]=1',
-        '    fi',
-        '  done',
-        '  sleep 30',
-        'done',
-      ].join('\n');
-    }
-    return [
-      '#!/usr/bin/env bash',
-      '# '+label+' - Rotating Capture',
-      authNote,
-      rotNote,
-      '# NOTE: Requires tcpdump >= 4.x on device for -G/-C/-W flags',
-      '',
-      '# Step 1 - Start rotating capture on remote device',
-      '# Files written to: '+remotePattern,
-      sshBase+' "'+tcpBase+'"',
-      scpBash,
-      '',
-      '# Step 3 - When done, clean up rotation files on device',
-      sshBase+' "rm -f '+remoteDir+'_*.pcap"',
-      '',
-      'echo "Rotating capture complete"'
-    ].filter(function(l){return l!==undefined;}).join('\n');
-  }
-}
 function buildPipeScript(method,host,user,port,sshBase,iface,snaplen,bpf,count,duration,localPath,authNote){
-  var label={'unifi':'UniFi','portmirror':'DrayTek','watchguard':'WatchGuard'}[method]||'Remote';
-  var tcpdumpArgs='tcpdump -i '+iface+' -s '+snaplen+(bpf?" '"+bpf+"'":'')+(count!=='0'?' -c '+count:'');
-  if(duration!=='0') tcpdumpArgs='timeout '+duration+' '+tcpdumpArgs;
-  var tcpdumpPipe=tcpdumpArgs+' -w -';
+  var label={'unifi':'UniFi','watchguard':'WatchGuard'}[method]||'Remote';
+  // -w - pipes raw pcap to stdout; shell redirects to local file
+  // PowerShell: cannot reliably redirect binary SSH output - use Out-File with -AsByteStream (PS7+)
+  // Best approach on Windows: write to temp named pipe or use plink
+  var tcpCmd='tcpdump -i '+iface+' -s '+snaplen;
+  if(bpf) tcpCmd+=" '"+bpf+"'";
+  if(count&&count!=='0') tcpCmd+=' -c '+count;
+  if(duration&&duration!=='0') tcpCmd='timeout '+duration+' '+tcpCmd;
+  tcpCmd+=' -w -';
 
   if(ST.shell==='ps'){
     return [
-      '# '+label+' \u2014 Pipe direct to local file',
+      '# '+label+' - Pipe direct to local file',
       authNote,
-      '# Traffic piped over SSH into a local file \u2014 no temp file on the device',
+      '# NOTE: Requires PowerShell 7+ for binary-safe redirect.',
+      '# On PowerShell 5 (Windows built-in) use the plink option below.',
       '# Target: '+host,
       '',
-      '# Requires OpenSSH in PATH (built-in on Windows 10+)',
-      sshBase+' "'+tcpdumpPipe+'" | Set-Content -Path "'+localPath+'" -Encoding Byte',
+      '# Option A: PowerShell 7+ (pwsh.exe)',
+      sshBase+' "'+tcpCmd+'" | Set-Content -Path "'+localPath+'" -AsByteStream',
       '',
-      '# Alternative using plink (PuTTY):',
-      '# plink -P '+port+' '+user+'@'+host+' "'+tcpdumpPipe+'" | Set-Content "'+localPath+'" -Encoding Byte',
+      '# Option B: plink (PuTTY) - works on all Windows versions',
+      '# plink -P '+port+' -batch '+user+'@'+host+' "'+tcpCmd+'" > "'+localPath+'"',
       '',
       'Write-Host "Streaming to: '+localPath+'" -ForegroundColor Cyan',
-      'Write-Host "Press Ctrl+C to stop capture" -ForegroundColor Yellow'
+      'Write-Host "Ctrl+C to stop" -ForegroundColor Yellow'
     ].join('\n');
   } else {
     return [
       '#!/usr/bin/env bash',
-      '# '+label+' \u2014 Pipe direct to local file',
+      '# '+label+' - Pipe direct to local file',
       authNote,
-      '# Traffic piped over SSH into a local file \u2014 no temp file on the device',
       '# Target: '+host,
       '',
-      sshBase+' "'+tcpdumpPipe+'" > "'+localPath+'"',
+      sshBase+' "'+tcpCmd+'" > "'+localPath+'"',
       '',
-      '# OR stream straight into Wireshark for live view:',
-      '# '+sshBase+' "'+tcpdumpPipe+'" | wireshark -k -i -',
+      '# OR stream straight into Wireshark:',
+      '# '+sshBase+' "'+tcpCmd+'" | wireshark -k -i -',
       '',
       'echo "Streaming to: '+localPath+'"',
-      'echo "Press Ctrl+C to stop capture"'
+      'echo "Ctrl+C to stop"'
     ].join('\n');
   }
 }
 
 function buildSshdump(host,user,port,iface,bpf,authMode,authVal){
-  var authFlag='';
-  if(authMode==='key'&&authVal){
-    authFlag=' --sshkey "'+authVal+'"';
+  var wsPath='C:\\Program Files\\Wireshark\\sshdump.exe';
+  var wsPathSel=document.getElementById('f-ws-path-sel');
+  if(wsPathSel){
+    var sv=wsPathSel.value;
+    if(sv==='default-linux') wsPath='/usr/lib/wireshark/extcap/sshdump';
   }
+  var keyFlag=authMode==='key'&&authVal?' --sshkey "'+authVal+'"':'';
+
   if(ST.shell==='ps'){
-    var wsPath='C:\\Program Files\\Wireshark\\sshdump.exe';
-    var wsPathSel=document.getElementById('f-ws-path-sel');
-    if(wsPathSel){
-      var sv=wsPathSel.value;
-      wsPath=sv==='default-linux'?'/usr/lib/wireshark/extcap/sshdump':(sv==='custom'?g('f-ws-path-custom')||wsPath:wsPath);
-    }
-    return [
-      '# Wireshark sshdump - Live capture direct into Wireshark',
-      '# Opens as a Wireshark named pipe - requires Wireshark to be running',
+    var lines=[
+      '# Wireshark sshdump - Live remote capture',
+      '# Wireshark must be open before running this command',
       '',
-      '$SSHDump = "'+wsPath+'"',
-      '$Host    = "'+host+'"',
-      '$Port    = "'+port+'"',
-      '$User    = "'+user+'"',
-      '$Iface   = "'+iface+'"',
-      bpf ? '$BPF     = \''+bpf+'\'' : '',
+      '# Option A: Wireshark GUI (recommended)',
+      '# Capture > Options > Manage Interfaces > Remote Interfaces tab',
+      '# Add: Host='+host+' Port='+port+' User='+user+' Interface='+iface,
+      (bpf?'# Capture filter: '+bpf:''),
       '',
-      '# Option A: Run sshdump from PowerShell',
-      '& $SSHDump --extcap-interface=sshdump --capture \\',
-      '  --remote-host $Host --remote-port $Port \\',
-      '  --remote-username $User --remote-interface $Iface \\',
-      (bpf ? '  --remote-capture-filter $BPF \\' : ''),
-      '  --fifo=\\\\.\pipe\\wireshark',
-      authFlag ? '  '+authFlag : '',
+      '# Option B: sshdump CLI (feeds named pipe to open Wireshark)',
+      '# Create the named pipe first in a separate terminal:',
+      '# cmd /c "mklink /? > nul" (pipe creation not needed on Windows - Wireshark handles it)',
       '',
-      '# Option B: Wireshark GUI',
-      '# Capture > Options > Manage Interfaces > Remote Interfaces',
-      '# Host: '+host+'  Port: '+port+'  User: '+user+'  Interface: '+iface,
-      bpf ? '# Capture filter: '+bpf : ''
-    ].filter(function(l){return l!=='';}).join('\n');
+      '"'+wsPath+'" `',
+      '  --extcap-interface sshdump --capture `',
+      '  --remote-host "'+host+'" `',
+      '  --remote-port '+port+' `',
+      '  --remote-username "'+user+'" `',
+      '  --remote-interface "'+iface+'" `',
+      (bpf?'  --remote-capture-filter "'+bpf+'" `':''),
+      (keyFlag?'  --sshkey "'+authVal+'" `':''),
+      '  --fifo "\\\\.\\pipe\\wireshark"'
+    ].filter(function(l){return l!==undefined&&l!=='';}).join('\n');
+    return lines;
   } else {
     return [
       '#!/usr/bin/env bash',
-      '# Wireshark sshdump - Live capture direct into Wireshark',
+      '# Wireshark sshdump - Live remote capture',
       '',
       'SSHDUMP="/usr/lib/wireshark/extcap/sshdump"',
-      'REMOTE_HOST="'+host+'"',
-      'SSH_PORT="'+port+'"',
-      'SSH_USER="'+user+'"',
-      'REMOTE_IFACE="'+iface+'"',
-      bpf ? 'BPF_FILTER=\''+bpf+'\'' : '',
       '',
-      '# Option A: Launch sshdump directly',
-      '$SSHDUMP --extcap-interface=sshdump --capture \\',
-      '  --remote-host "$REMOTE_HOST" --remote-port "$SSH_PORT" \\',
-      '  --remote-username "$SSH_USER" --remote-interface "$REMOTE_IFACE" \\',
-      (bpf ? '  --remote-capture-filter "$BPF_FILTER" \\' : ''),
-      '  --fifo=/tmp/ws_pipe'+authFlag,
+      '# Option A: Wireshark GUI (recommended)',
+      '# Capture > Options > Manage Interfaces > Remote Interfaces',
+      '# Host: '+host+'  Port: '+port+'  User: '+user+'  Interface: '+iface,
       '',
-      '# Option B: Pipe directly into Wireshark',
-      'ssh -p "$SSH_PORT" "${SSH_USER}@${REMOTE_HOST}" \\',
-      '  "tcpdump -i $REMOTE_IFACE -s 0'+(bpf?" '"+bpf+"'":'')+" -w -\" | wireshark -k -i -"
-    ].filter(function(l){return l!=='';}).join('\n');
+      '# Option B: sshdump via named pipe',
+      '# Create pipe first, then run sshdump, then open Wireshark',
+      'mkfifo /tmp/ws_pipe',
+      'wireshark -k -i /tmp/ws_pipe &',
+      '"$SSHDUMP" \\',
+      '  --extcap-interface sshdump --capture \\',
+      '  --remote-host "'+host+'" \\',
+      '  --remote-port '+port+' \\',
+      '  --remote-username "'+user+'" \\',
+      '  --remote-interface "'+iface+'" \\',
+      (bpf?'  --remote-capture-filter "'+bpf+'" \\':''),
+      (keyFlag?'  --sshkey "'+authVal+'" \\':''),
+      '  --fifo /tmp/ws_pipe',
+      '',
+      '# Option C: Simpler - pipe tcpdump directly into Wireshark (no sshdump needed)',
+      'ssh -p '+port+' '+user+'@'+host+' \\',
+      (bpf?'  "tcpdump -i '+iface+' -s 0 \''+bpf+'\' -w -" | wireshark -k -i -':
+           '  "tcpdump -i '+iface+' -s 0 -w -" | wireshark -k -i -')
+    ].filter(function(l){return l!==undefined;}).join('\n');
   }
 }
 
@@ -2318,8 +2273,8 @@ function showSizeWarn(file,mb,hard){
     '<button class="btn-secondary" id="sw-back">← Choose a different file</button>',
     '</div></div>'
   ];
-  document.getElementById('drop-wrap').style.display='none';
-  document.getElementById('size-warn-wrap').innerHTML=rows.join('');
+  var dwEl=document.getElementById('drop-wrap');if(dwEl)dwEl.style.display='none';
+  var swEl=document.getElementById('size-warn-wrap');if(swEl)swEl.innerHTML=rows.join('');
   document.getElementById('size-warn-wrap').style.display='block';
   var b50=document.getElementById('sw-cp50');
   var bti=document.getElementById('sw-cpti');
@@ -2336,9 +2291,9 @@ function proceedAnyway(){
 }
 
 function startAnalysis(file){
-  document.getElementById('drop-wrap').style.display='none';
+  var dwEl=document.getElementById('drop-wrap');if(dwEl)dwEl.style.display='none';
   document.getElementById('size-warn-wrap').style.display='none';
-  document.getElementById('progress-wrap').innerHTML='<div class="progress-wrap"><h3>Analysing '+esc(file.name)+'</h3><p>Parsing packets in your browser - nothing is uploaded</p><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div><div class="progress-pct" id="prog-pct">0%</div></div>';
+  var pwEl=document.getElementById('progress-wrap');if(pwEl)pwEl.innerHTML='<div class="progress-wrap"><h3>Analysing '+esc(file.name)+'</h3><p>Parsing packets in your browser - nothing is uploaded</p><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div><div class="progress-pct" id="prog-pct">0%</div></div>';
   document.getElementById('progress-wrap').style.display='block';
   var reader=new FileReader();
   reader.onload=function(e){
@@ -2373,7 +2328,7 @@ function parsePcapAsync(buf,fname,fsize,cb){
       if(orig>snaplen&&snaplen>0)s.trunc++;
       if(orig>9000)s.giant++;
       var p=buf.slice(o,o+incl); o+=incl; res.count++;
-      if(lt===1)parsePacket(p,s,seen,ts);
+      if(lt===1){parsePacket(p,s,seen,ts);parsePacketExtra(p,s,ts);}
       pk++;
     }
     setProgress(Math.min(99,o/total*100));
@@ -2412,7 +2367,12 @@ function parsePcapHeader(buf,fname,fsize){
     stp:0,stpTc:0,
     tlsOld:0,
     bytes:0,trunc:0,giant:0,t0:0,t1:0,totalBcast:0,
-    synMap:{},dnsMap:{},seqMap:{},ackMap:{}
+    synMap:{},dnsMap:{},seqMap:{},ackMap:{},
+    smb:0,smb2Src:{},smb2Dst:{},
+    krb:0,krbSkew:0,
+    mdns:0,mdnsSrc:{},
+    danteMulticast:0,avMulticast:0,
+    dnsPerSrc:{},dhcpMac:{},ipSrc:{}
   };
   res._seen={};
   return res;
@@ -2559,13 +2519,14 @@ function buildFindings(res,s){
   if(s.tlsOld>0)res.findings.push({sev:'warning',title:'Outdated TLS (1.0/1.1)',desc:'Deprecated TLS versions in use. Fails PCI-DSS and Cyber Essentials compliance.',count:s.tlsOld+' handshakes'});
   if(s.http>0)res.findings.push({sev:'info',title:'Cleartext HTTP',desc:'Unencrypted HTTP present \u2014 content visible in this capture.',count:s.http+' packets'});
   if(s.trunc>0)res.findings.push({sev:'info',title:'Truncated packets',desc:'Packets exceeded snaplen. Re-capture with -s 0.',count:s.trunc+' packets'});
+  buildFindingsExtra(res,s,res.count);
 }
 
 function renderAnalysis(r){
   var html='';
   if(!r.valid){
     html='<div class="card" style="margin-top:16px;"><div class="finding critical"><div class="finding-hdr"><span class="badge">Error</span><h4>'+r.findings[0].title+'</h4></div><p>'+r.findings[0].desc+'</p></div></div>';
-    document.getElementById('analysis-out').innerHTML=html;
+    var aoEl=document.getElementById('analysis-out');if(aoEl)aoEl.innerHTML=html;
     document.getElementById('analysis-out').style.display='block';
     return;
   }
@@ -2584,7 +2545,7 @@ function renderAnalysis(r){
     html+='<div class="finding '+f.sev+'"><div class="finding-hdr"><span class="badge">'+f.sev+'</span><h4>'+f.title+'</h4></div><p>'+f.desc+'</p>'+(f.count?'<div class="fc">'+f.count+'</div>':'')+'</div>';
   });
   html+='</div>';
-  document.getElementById('analysis-out').innerHTML=html;
+  var aoEl=document.getElementById('analysis-out');if(aoEl)aoEl.innerHTML=html;
   document.getElementById('analysis-out').style.display='block';
 }
 
@@ -2592,18 +2553,54 @@ function resetAnalysis(){
   document.getElementById('analysis-out').style.display='none';
   document.getElementById('size-warn-wrap').style.display='none';
   document.getElementById('progress-wrap').style.display='none';
-  document.getElementById('drop-wrap').style.display='block';
-  document.getElementById('pcap-file').value='';
+  var dwEl=document.getElementById('drop-wrap');if(dwEl)dwEl.style.display='block';
+  var pfEl=document.getElementById('pcap-file')||document.getElementById('file-input');if(pfEl)pfEl.value='';
   _pendingFile=null;
 }
 
-function copyRaw(btn,text){
-  navigator.clipboard.writeText(text).then(function(){
-    var o=btn.textContent; btn.textContent='Copied!';
-    setTimeout(function(){btn.textContent=o;},1200);
-  });
+function copyToClipboard(text){
+  // Try modern clipboard API first
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    return navigator.clipboard.writeText(text).then(function(){
+      showToast('Copied to clipboard');
+    }).catch(function(){
+      fallbackCopy(text);
+    });
+  }
+  fallbackCopy(text);
 }
-
+function fallbackCopy(text){
+  // execCommand fallback for sandboxed environments
+  var ta=document.createElement('textarea');
+  ta.value=text;
+  ta.style.position='fixed';
+  ta.style.top='-9999px';
+  ta.style.left='-9999px';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{
+    document.execCommand('copy');
+    showToast('Copied to clipboard');
+  } catch(e){
+    showToast('Copy failed - select text manually');
+  }
+  document.body.removeChild(ta);
+}
+function copyRaw(btn,text){
+  copyToClipboard(text);
+}
+function copyCode(btn,text){
+  copyToClipboard(text);
+}
+function copyByElemId(id){
+  var el=document.getElementById(id);
+  if(el) copyToClipboard(el.textContent||el.innerText||'');
+}
+function copyText(id){
+  var el=document.getElementById(id);
+  if(el) copyToClipboard(el.textContent||el.innerText||'');
+}
 // ─── FILTER REFERENCE ────────────────────────────────────
 var FD=[
   {cat:'IP & Host',filters:[
@@ -2697,19 +2694,63 @@ function renderFilters(q){
     });
     html+='</div>';
   });
-  document.getElementById('filter-grid').innerHTML=html||'<p style="color:var(--text-2);font-size:13px;">No matches.</p>';
+  var fgEl=document.getElementById('filter-grid');if(fgEl)fgEl.innerHTML=html||'<p style="color:var(--text-2);font-size:13px;">No matches.</p>';
 }
 
 function filterSearch(q){renderFilters(q.toLowerCase());}
 
-function copyCode(btn,text){
-  navigator.clipboard.writeText(text).then(function(){
-    var o=btn.textContent;btn.textContent='Copied!';
-    setTimeout(function(){btn.textContent=o;},1200);
-  });
+// ─── TROUBLESHOOT SCENARIOS ──────────────────────────────
+
+function parsePacketExtra(p,s,ts){
+  if(p.length<14)return;
+  var et=(p[12]<<8)|p[13];
+  if(et!==0x0800||p.length<34)return;
+  var ihl=(p[14]&0xf)*4,pr=p[23];
+  var srcIp=p[26]+'.'+p[27]+'.'+p[28]+'.'+p[29];
+  var dstIp=p[30]+'.'+p[31]+'.'+p[32]+'.'+p[33];
+  if(pr===6&&p.length>=14+ihl+4){
+    var dp=(p[14+ihl+2]<<8)|p[14+ihl+3];
+    if(dp===445){s.smb++;s.smb2Src[srcIp]=(s.smb2Src[srcIp]||0)+1;if(!s.smb2Dst[srcIp])s.smb2Dst[srcIp]={};s.smb2Dst[srcIp][dstIp]=1;}
+  }
+  if((pr===17||pr===6)&&p.length>=14+ihl+12){
+    var up=14+ihl+(pr===6?(p[14+ihl+12]>>4)*4:0);
+    if(p.length>up+4){
+      var kdp=(p[up+2]<<8)|p[up+3],ksp=(p[up]<<8)|p[up+1];
+      if(kdp===88||ksp===88){
+        s.krb++;
+        var pl2=p.slice(up+8);
+        for(var ki=0;ki<Math.min(pl2.length-3,200);ki++){if(pl2[ki]===0x02&&pl2[ki+1]===0x01&&pl2[ki+2]===0x19){s.krbSkew++;break;}}
+      }
+    }
+  }
+  if(pr===17&&p.length>=14+ihl+8){
+    var mu=14+ihl,ms=(p[mu]<<8)|p[mu+1],md=(p[mu+2]<<8)|p[mu+3];
+    if(md===5353||ms===5353){s.mdns++;s.mdnsSrc[srcIp]=(s.mdnsSrc[srcIp]||0)+1;}
+    if(md===53){s.dnsPerSrc[srcIp]=(s.dnsPerSrc[srcIp]||0)+1;}
+    if(md===67&&p.length>mu+8+34){var hb=mu+8+28;var mac=[p[hb],p[hb+1],p[hb+2],p[hb+3],p[hb+4],p[hb+5]].map(function(b){return b.toString(16).padStart(2,'0');}).join(':');s.dhcpMac[mac]=(s.dhcpMac[mac]||0)+1;}
+  }
+  if(pr===17&&p[30]===224&&p[31]===0&&p[32]===1&&p[33]===51)s.danteMulticast++;
+  if(pr===17&&p[30]===239)s.avMulticast++;
+  s.ipSrc[srcIp]=(s.ipSrc[srcIp]||0)+1;
 }
 
-// ─── TROUBLESHOOT SCENARIOS ──────────────────────────────
+function buildFindingsExtra(res,s,c){
+  var smbSrcs=Object.keys(s.smb2Src).sort(function(a,b){return s.smb2Src[b]-s.smb2Src[a];});
+  if(smbSrcs.length>0){var ts2=smbSrcs[0],dc=Object.keys(s.smb2Dst[ts2]||{}).length;if(s.smb2Src[ts2]>500&&dc>3)res.findings.push({sev:'critical',title:'SMB2 Mass Polling',desc:ts2+' sent '+s.smb2Src[ts2]+' SMB frames to '+dc+' hosts. Likely an RMM agent, backup client, or Windows Search indexing network shares. Run <strong>resmon.exe &rarr; Network tab</strong> on the source machine to identify the process.',count:s.smb2Src[ts2]+' frames to '+dc+' hosts'});}
+  if(s.krbSkew>0)res.findings.push({sev:'critical',title:'Kerberos Clock Skew (KRB_AP_ERR_SKEW)',desc:'Kerberos error code 25 detected - clock difference between client and DC exceeds the 5-minute tolerance. Causes authentication failures and Group Policy not applying. Run <strong>w32tm /resync /force</strong> on the DC then <strong>w32tm /resync</strong> on affected clients.',count:s.krbSkew+' skew errors in '+s.krb+' Kerberos packets'});
+  var mt=Object.keys(s.mdnsSrc).sort(function(a,b){return s.mdnsSrc[b]-s.mdnsSrc[a];})[0];
+  if(s.mdns>5000)res.findings.push({sev:'warning',title:'mDNS Flood',desc:'Very high mDNS volume.'+(mt?' Top source: '+mt+' ('+s.mdnsSrc[mt]+').':'')+' Printers advertising scan services or Chromebooks polling for Chromecasts. Enable Directed Multicast on APs to reduce airtime waste.',count:s.mdns+' mDNS frames'});
+  else if(s.mdns>1000)res.findings.push({sev:'info',title:'mDNS activity',desc:'Elevated mDNS - printers or Chromecast devices advertising.',count:s.mdns+' frames'});
+  if(s.danteMulticast>500)res.findings.push({sev:'warning',title:'Dante Audio Multicast Flood (224.0.1.51)',desc:'Sustained UDP to 224.0.1.51:16640 - Dante audio-over-IP multicast. Without IGMP snooping this floods every switch port at near-line-rate. Enable IGMP snooping on all switches immediately. Long term: place AV equipment on a dedicated VLAN.',count:s.danteMulticast+' frames'});
+  else if(s.avMulticast>2000)res.findings.push({sev:'info',title:'AV multicast traffic (239.x.x.x)',desc:'Elevated 239.x.x.x multicast - Dante audio, IPTV, or AV-over-IP. Enable IGMP snooping to prevent flooding every port.',count:s.avMulticast+' frames'});
+  var dSrcs=Object.keys(s.dnsPerSrc);
+  if(dSrcs.length>0&&s.dns>500){var dt=dSrcs.sort(function(a,b){return s.dnsPerSrc[b]-s.dnsPerSrc[a];})[0];var dpct=Math.round(s.dnsPerSrc[dt]/s.dns*100);if(dpct>40)res.findings.push({sev:'warning',title:'DNS Query Concentration',desc:dt+' generated '+dpct+'% of all DNS queries ('+s.dnsPerSrc[dt]+' of '+s.dns+'). Likely a filtering appliance with caching disabled. Enable DNS caching and set a minimum TTL floor of 300-600s.',count:s.dnsPerSrc[dt]+' queries from '+dt});}
+  var macs=Object.keys(s.dhcpMac).sort(function(a,b){return s.dhcpMac[b]-s.dhcpMac[a];});
+  if(macs.length>0&&s.dhcpMac[macs[0]]>10)res.findings.push({sev:'warning',title:'DHCP Churn - Repeated Requests',desc:'MAC '+macs[0]+' sent '+s.dhcpMac[macs[0]]+' DHCP requests. Normal devices request once per lease. Causes: wireless instability, lease time under 1 hour, or aggressive NIC power management.',count:s.dhcpMac[macs[0]]+' requests from same MAC'});
+  var sl=Object.keys(s.ipSrc).sort(function(a,b){return s.ipSrc[b]-s.ipSrc[a];}).slice(0,5);
+  if(sl.length>0&&c>500)res.findings.push({sev:'info',title:'Top Talkers (by frame count)',desc:'Top source IPs: '+sl.map(function(ip){return ip+' ('+s.ipSrc[ip]+')';}).join(', '),count:sl.length+' sources'});
+}
+
 var TS_SCENARIOS=[
   {
     id:'slow',
@@ -2995,7 +3036,62 @@ var TS_SCENARIOS=[
       explain:'Example 1 - ARP flood: The same frame arrives thousands of times per second (timestamps microseconds apart). A frame is circling the loop and re-broadcasting on every lap. The network is saturated. Unplug inter-switch uplinks one at a time until the flood stops.\n\nExample 2 - Duplicate MAC (definitive loop proof): The same source MAC (aa:bb:cc:44:55:66) arrives alternately on two different switch ports (Gi0/1 and Gi0/3). A switch learns which port each MAC is behind - if the same MAC keeps flipping between ports, the frame is arriving from multiple directions simultaneously. This proves a loop. Wireshark shows you the MAC; the switch MAC address table (show mac address-table) shows which ports.\n\nExample 3 - STP instability: BPDUs arriving every 500ms with TC flag on every frame - a port is constantly flapping and spanning tree is reconverging. Healthy STP (packets 600-602) shows clean 2-second intervals with no TC flag.\n\nExample 4 - STP misconfiguration (all switches on default priority 32768): All three switches are advertising the same root priority (32768). STP has no choice but to use MAC addresses to break the tie - whichever switch has the lowest MAC becomes root. This may not be the switch you want as root (it could be an access switch rather than your core). Worse, when a new switch is added (packet 500) with a lower MAC (00:11:xx vs 00:aa:xx), it immediately takes over as root and triggers a full topology change across the network - you see TC flags on every BPDU as all switches recalculate. Fix: set the intended root switch to priority 4096 and the secondary to 8192. Healthy BPDUs (600-602) show Root=4096 rather than 32768, confirming deliberate root placement.'
     },
     next:'<strong>Active storm:</strong> Unplug suspected ports one at a time starting with inter-switch uplinks until traffic drops. <strong>STP TC flag:</strong> Enable BPDU Guard on all access ports - they should never receive BPDUs, and if they do, the port shuts down automatically. <strong>Find the loop:</strong> Use <strong>Statistics &rarr; Conversations</strong> in Wireshark and sort by packets to find the top MAC generating traffic. Track that MAC to a switch port using the MAC address table.'
+  },
+  {
+    id:'saturation',
+    icon:'📊',
+    title:'Network saturation / background floods',
+    subtitle:'Everything feels slow but TCP looks clean - multiple sources flooding the network',
+    tags:['slow','saturation','smb','kerberos','mdns','dante','multicast','dhcp','churn','school','office','broadcast','rmm'],
+    filters:[
+      {desc:'SMB2 traffic (port 445)',f:'tcp.port == 445'},
+      {desc:'SMB2 QueryInfo commands',f:'smb2.cmd == 16'},
+      {desc:'Kerberos clock skew errors',f:'kerberos.error_code == 25'},
+      {desc:'All Kerberos errors',f:'kerberos.msg_type == 30'},
+      {desc:'All mDNS traffic',f:'mdns'},
+      {desc:'Dante audio multicast',f:'ip.dst == 224.0.1.51'},
+      {desc:'All UDP multicast',f:'udp && ip.dst >= 224.0.0.0'},
+      {desc:'DNS from one forwarder',f:'ip.src == <IP> && dns'},
+      {desc:'DHCP from one device',f:'bootp.hw.mac_addr == <MAC>'},
+      {desc:'Top talker traffic',f:'ip.src == <IP>'}
+    ],
+    look:[
+      {sev:'bad',text:'Single IP sending SMB frames to dozens of hosts - RMM agent, backup client, or Windows Search indexing network shares. Use resmon.exe > Network tab to find the offending process.'},
+      {sev:'bad',text:'Kerberos error code 25 (KRB_AP_ERR_SKEW) from multiple hosts - clock drift beyond 5 minutes. Causes authentication failures and Group Policy not applying.'},
+      {sev:'bad',text:'Dante multicast (224.0.1.51) near-MTU frames sustained throughout - audio device flooding every switch port. IGMP snooping contains it immediately.'},
+      {sev:'warn',text:'mDNS above 5,000 frames - printers and Chromebooks advertising services. Wastes wireless airtime at the lowest data rate on every SSID.'},
+      {sev:'warn',text:'Single IP generating 40%+ of DNS queries - filtering appliance with caching disabled, re-querying DC for records with multi-hour TTLs.'},
+      {sev:'warn',text:'Same MAC sending 10+ DHCP requests - wireless instability or short lease times causing device to repeatedly drop and rejoin.'},
+      {sev:'ok',text:'TCP analysis clean but network slow - background floods consume bandwidth without retransmissions. Look here first when TCP looks fine.'}
+    ],
+    example:{
+      packets:[
+        'No.   Time      Source           Dest             Protocol  Info',
+        '-- SMB2 MASS POLLING --',
+        '100   0.000000  10.100.152.6     10.100.152.20    SMB2      QueryInfo Request FILE_INFO/FileAllInformation',
+        '101   0.000100  10.100.152.6     10.100.152.21    SMB2      QueryInfo Request FILE_INFO/FileAllInformation',
+        '102   0.000200  10.100.152.6     10.100.152.22    SMB2      QueryInfo Request FILE_INFO/FileAllInformation',
+        '... (repeated across 42 hosts, 64,000+ frames in 44 minutes)',
+        '',
+        '-- KERBEROS CLOCK SKEW --',
+        '200   1.000000  10.100.152.141   10.100.152.6     KRB5      KRB Error: KRB5KRB_AP_ERR_SKEW (25)',
+        '201   1.500000  10.100.152.143   10.100.152.6     KRB5      KRB Error: KRB5KRB_AP_ERR_SKEW (25)',
+        '',
+        '-- DANTE AUDIO MULTICAST --',
+        '300   0.000000  10.100.152.30    224.0.1.51       UDP       Src=16384 Dst=16640 Len=1494',
+        '301   0.001000  10.100.152.30    224.0.1.51       UDP       Src=16384 Dst=16640 Len=1494',
+        '... (44,000 near-MTU frames without IGMP snooping - floods every port)',
+        '',
+        '-- DNS CONCENTRATION --',
+        '400   0.000000  10.100.152.7     10.100.152.6     DNS       Query: forcesafesearch.google.com',
+        '401   0.003200  10.100.152.7     10.100.152.6     DNS       Query: forcesafesearch.google.com',
+        '... (937 queries for same record in 44 min - TTL ignored, caching disabled)'
+      ],
+      explain:'Real-world pattern from a school network - 500,000 frames in 44 minutes, users reporting general slowness, but TCP analysis showed no major retransmit storms.\n\nSMB2 mass polling: The DC was hitting 42 hosts with QueryInfo commands continuously. Cause was an RMM agent running device scans during school hours. Fix: reschedule to out-of-hours, or identify the process in resmon.exe > Network tab.\n\nKerberos clock skew: 14 member servers had clock drift beyond 5 minutes. Reported as random login slowness. Fix: w32tm /resync /force on DC, then w32tm /resync on clients. Enforce NTP via GPO.\n\nDante multicast: An audio device was streaming at near-MTU to 224.0.1.51 continuously. Without IGMP snooping on switches this flooded every port and AP. Enabling IGMP snooping contained it immediately.\n\nDNS concentration: The filtering appliance had caching disabled. forcesafesearch.google.com - a multi-hour TTL record - was queried 937 times in 44 minutes. Enabling caching eliminated most of this load instantly.'
+    },
+    next:'<strong>Find top talker first:</strong> Statistics > Conversations sorted by packets. <strong>SMB polling:</strong> resmon.exe > Network tab on source machine. <strong>Kerberos skew:</strong> w32tm /resync /force on DC then w32tm /resync on clients. <strong>Dante/multicast:</strong> Enable IGMP snooping on all switches - fastest single fix. <strong>DNS storm:</strong> Enable caching on filtering appliance with TTL floor 300s+. <strong>DHCP churn:</strong> Increase lease to 8 hours minimum for stable environments.'
   }
+
 ];
 
 
@@ -3067,20 +3163,12 @@ function renderScenarios(q){
     html+='</div>'; // ts-card
   });
   html+='</div>';
-  document.getElementById('ts-grid').innerHTML=html;
+  var tgEl=document.getElementById('ts-grid');if(tgEl)tgEl.innerHTML=html;
 }
 
 function toggleScenario(id){
   var card=document.getElementById(id);
   if(card) card.classList.toggle('open');
-}
-function copyByElemId(id){
-  var el=document.getElementById(id);
-  if(el) navigator.clipboard.writeText(el.textContent).then(function(){showToast('Copied');});
-}
-function copyText(id){
-  var el=document.getElementById(id);
-  if(el)navigator.clipboard.writeText(el.textContent).then(function(){showToast('Copied to clipboard');});
 }
 function showToast(msg){
   var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
@@ -3110,11 +3198,12 @@ if(pmCard) pmCard.style.display='block';
 var mainToggle=document.getElementById('main-shell-toggle');
 if(mainToggle) mainToggle.style.display='none';
 // Inject port mirror extras and initialise
-document.getElementById('method-extras').innerHTML=METHOD_EXTRAS['portmirror']||'';
+var meEl2=document.getElementById('method-extras');if(meEl2)meEl2.innerHTML=METHOD_EXTRAS['portmirror']||'';
 setTimeout(function(){pmUpdate();},50);
 // Auth field default (used when switching to UniFi/WatchGuard)
 document.getElementById('f-auth').value='pass';
 toggleAuthField();
+
 </script>
 </body>
 </html>
