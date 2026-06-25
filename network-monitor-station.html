@@ -28,8 +28,7 @@ a{color:var(--accent);text-decoration:none}
 .hero p{color:var(--text2);max-width:640px;font-size:15px}
 .badge-pill{display:inline-flex;align-items:center;gap:5px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
 .tabs-wrap{max-width:980px;margin:0 auto;padding:0 24px 40px}
-.tabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
-.tabs::-webkit-scrollbar{display:none}
+.tabs{display:flex;flex-wrap:wrap;gap:2px;border-bottom:2px solid var(--border);margin-bottom:24px}
 .tab{padding:9px 13px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:5px}
 .tab:hover{color:var(--text);background:var(--surface2)}
 .tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
@@ -720,13 +719,8 @@ function buildMain(c) {
     L.push('    Write-Host "[..] Installing Speedtest CLI..." -ForegroundColor Cyan');
     L.push('    winget install --id Ookla.Speedtest.CLI --silent --accept-package-agreements --accept-source-agreements');
     L.push('    if (-not (Get-Command speedtest -ErrorAction SilentlyContinue)) {');
-    L.push('        $z = "$env:TEMP\\speedtest.zip"');
-    L.push('        Invoke-WebRequest "https://install.speedtest.net/app/cli/ooklaserver-windows-x86_64.zip" -OutFile $z');
-    L.push('        Expand-Archive $z -DestinationPath "$Tools\\speedtest" -Force');
-    L.push('        $env:PATH += ";$Tools\\speedtest"');
-    L.push("    }");
-    L.push('    Write-Host "[OK] Speedtest CLI ready" -ForegroundColor Green');
-    L.push('} else { Write-Host "[OK] Speedtest CLI already present" -ForegroundColor Green }');
+    L.push('        Write-Warning "[Speedtest] Not in PATH yet - try restarting shell or log off and back on"');
+    L.push('    }');
     L.push("");
   }
   if (c.installPingInfoView) {
@@ -743,7 +737,8 @@ function buildMain(c) {
     L.push("# WinMTR");
     L.push('if (-not (Test-Path "$Tools\\WinMTR\\WinMTR.exe")) {');
     L.push('    $z = "$env:TEMP\\winmtr.zip"');
-    L.push('    Invoke-WebRequest "https://sourceforge.net/projects/winmtr/files/WinMTR-v092.zip/download" -OutFile $z');
+    L.push('    $mtrUrl = "https://github.com/White-Tiger/WinMTR/releases/download/v0.92/WinMTR-v092.zip"');
+    L.push('    Invoke-WebRequest $mtrUrl -OutFile $z -UseBasicParsing');
     L.push('    Expand-Archive $z -DestinationPath "$Tools\\WinMTR" -Force');
     L.push('    Write-Host "[OK] WinMTR ready" -ForegroundColor Green');
     L.push('} else { Write-Host "[OK] WinMTR already present" -ForegroundColor Green }');
@@ -799,9 +794,12 @@ function buildMain(c) {
   if (c.createShortcut) {
     L.push("# Desktop shortcut to logs");
     L.push('$sh = New-Object -ComObject WScript.Shell');
-    L.push('$sc = $sh.CreateShortcut("$env:USERPROFILE\\Desktop\\Monitor Logs.lnk")');
-    L.push('$sc.TargetPath = $Logs; $sc.IconLocation = "shell32.dll,4"; $sc.Save()');
-    L.push('Write-Host "[OK] Desktop shortcut created" -ForegroundColor Green');
+    L.push('$desktopPath = [Environment]::GetFolderPath("Desktop")');
+    L.push('if (Test-Path $desktopPath) {');
+    L.push('    $sc = $sh.CreateShortcut("$desktopPath\\Monitor Logs.lnk")');
+    L.push('    $sc.TargetPath = $Logs; $sc.IconLocation = "shell32.dll,4"; $sc.Save()');
+    L.push('    Write-Host "[OK] Desktop shortcut created" -ForegroundColor Green');
+    L.push('} else { Write-Warning "[Shortcut] Desktop not found (OneDrive redirect?) - skipping" }');
     L.push("");
   }
 
@@ -843,6 +841,11 @@ function buildMain(c) {
   L.push('Write-Host "  Scripts: $Scripts" -ForegroundColor Cyan');
   if (c.wsEnabled) L.push('Write-Host "  PCAPs : $PcapDir" -ForegroundColor Cyan');
   L.push('Write-Host "==========================================" -ForegroundColor Cyan');
+  L.push('Write-Host ""');
+  L.push('Write-Host "  Monitors are running in the background." -ForegroundColor Green');
+  L.push('Write-Host "  You can safely close this window." -ForegroundColor Green');
+  L.push('Write-Host ""');
+  L.push('Read-Host "  Press Enter to close"');
   return L.join("\r\n");
 }
 
@@ -1192,15 +1195,18 @@ function buildSnapshot(c) {
     L.push('    $a=$_');
     L.push('    $ip=Get-NetIPAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -EA SilentlyContinue');
     L.push('    $gw=(Get-NetRoute -InterfaceIndex $a.ifIndex -DestinationPrefix "0.0.0.0/0" -EA SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1).NextHop');
+    L.push('    $speedRaw = $a.LinkSpeed');
+    L.push('    $speedMbps = if ($speedRaw -match "^(\\d+)") { [int]$Matches[1] } else { $speedRaw }');
     L.push('    $o+="Adapter : $($a.Name) [$($a.InterfaceDescription)]"');
-    L.push('    $o+="  MAC   : $($a.MacAddress)  Speed: $([Math]::Round($a.LinkSpeed/1000000)) Mbps"');
+    L.push('    $o+="  MAC   : $($a.MacAddress)  Speed: $speedMbps"');
     L.push('    $o+="  IP    : $($ip.IPAddress)/$($ip.PrefixLength)  GW: $gw"; $o+=("")');
-    L.push("}");
+    L.push('}');
   }
   if (c.snapDNS) {
     L.push('$o+="--- DNS ---"');
     L.push('Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object {$_.ServerAddresses} | ForEach-Object { $o+="$($_.InterfaceAlias): $($_.ServerAddresses -join ", ")" }');
-    L.push('$o+="Resolution test (' + c.dnsTestDomain + '): "+(try{([System.Net.Dns]::GetHostAddresses("' + c.dnsTestDomain + '")|Select-Object -ExpandProperty IPAddressToString)-join", "}catch{"FAILED"})');
+    L.push('$dnsResult = try { ([System.Net.Dns]::GetHostAddresses("' + c.dnsTestDomain + '")|Select-Object -ExpandProperty IPAddressToString) -join ", " } catch { "FAILED" }');
+    L.push('$o+="Resolution test (' + c.dnsTestDomain + '): $dnsResult"');
     L.push('$o+=("")');
   }
   if (c.snapMTU) {
@@ -1208,9 +1214,10 @@ function buildSnapshot(c) {
     L.push('$lo=576;$hi=' + c.mtuMax + ';$best=576');
     L.push('while($lo -le $hi){$mid=[int](($lo+$hi)/2);$buf=New-Object byte[]($mid-28)');
     L.push('  $po=New-Object System.Net.NetworkInformation.PingOptions;$po.DontFragment=$true');
-    L.push('  $r=(New-Object System.Net.NetworkInformation.Ping).Send("' + c.mtuTarget + '",1000,$buf,$po)');
-    L.push('  if($r.Status -eq "Success"){$best=$mid;$lo=$mid+1}else{$hi=$mid-1}}');
-    L.push('$o+="Path MTU: $best bytes"+(if($best -lt 1400){" - WARNING: below 1400"}else{""})');
+    L.push('  $pr=(New-Object System.Net.NetworkInformation.Ping).Send("' + c.mtuTarget + '",1000,$buf,$po)');
+    L.push('  if($pr.Status -eq "Success"){$best=$mid;$lo=$mid+1}else{$hi=$mid-1}}');
+    L.push('$mtuWarn = if ($best -lt 1400) { " - WARNING: below 1400" } else { "" }');
+    L.push('$o+="Path MTU: $best bytes$mtuWarn"');
     L.push('$o+=("")');
   }
   if (c.snapDHCP) {
@@ -1238,7 +1245,6 @@ function buildSnapshot(c) {
   L.push('Write-Host "[Snapshot] Saved to $OutputFile"');
   return L.join("\r\n");
 }
-
 // ---- DAILY REPORT ----
 function buildReport(c) {
   var L = [];
