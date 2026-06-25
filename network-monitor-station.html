@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Monitor Station - Seb's Workshop</title>
+<meta name="description" content="Generate a PowerShell deployment script for a network monitoring station.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>(function(){var t=localStorage.getItem("sw-theme");if(t)document.documentElement.setAttribute("data-theme",t);})();</script>
+<style>
+:root{--bg:#f8fafc;--surface:#ffffff;--surface2:#f1f5f9;--border:#e2e8f0;--border2:#cbd5e1;--text:#0f172a;--text2:#475569;--text3:#94a3b8;--accent:#0d9488;--accent-hover:#0f766e;--accent-dim:#ccfbf1;--danger:#dc2626;--danger-dim:#fee2e2;--warn:#d97706;--warn-dim:#fef3c7;--info:#2563eb;--info-dim:#dbeafe;--success:#16a34a;--success-dim:#dcfce7;--shadow:0 1px 3px rgba(0,0,0,.08);--shadow-md:0 4px 6px rgba(0,0,0,.07);--radius:8px;--radius-lg:12px}
+[data-theme="dark"]{--bg:#0f172a;--surface:#1e293b;--surface2:#334155;--border:#334155;--border2:#475569;--text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;--accent:#00dba8;--accent-hover:#00c49a;--accent-dim:#134e4a;--danger:#f87171;--danger-dim:#450a0a;--warn:#fbbf24;--warn-dim:#451a03;--info:#60a5fa;--info-dim:#1e3a5f;--success:#4ade80;--success-dim:#052e16;--shadow:0 1px 3px rgba(0,0,0,.3);--shadow-md:0 4px 6px rgba(0,0,0,.3)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6}
+a{color:var(--accent);text-decoration:none}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100;box-shadow:var(--shadow)}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--text2);font-size:14px;font-weight:500;transition:color .15s}
+.back-link:hover{color:var(--accent);text-decoration:none}
+.back-link svg{width:16px;height:16px}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text)}
+.theme-btn{background:none;border:1px solid var(--border2);color:var(--text2);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:6px;transition:all .15s}
+.theme-btn:hover{background:var(--surface2);color:var(--text)}
+.hero{padding:36px 24px 20px;max-width:980px;margin:0 auto}
+.hero h1{font-size:26px;font-weight:700;line-height:1.3;margin-bottom:8px}
+.hero h1 span{color:var(--accent)}
+.hero p{color:var(--text2);max-width:640px;font-size:15px}
+.badge-pill{display:inline-flex;align-items:center;gap:5px;background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;margin-bottom:12px;text-transform:uppercase;letter-spacing:.04em}
+.tabs-wrap{max-width:980px;margin:0 auto;padding:0 24px 40px}
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--border);margin-bottom:24px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{padding:9px 13px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;margin-bottom:-2px;white-space:nowrap;transition:all .15s;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:5px}
+.tab:hover{color:var(--text);background:var(--surface2)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);font-weight:600}
+.tab-dot{width:7px;height:7px;border-radius:50%;background:var(--success);flex-shrink:0;transition:background .2s}
+.tab-dot.off{background:var(--text3)}
+.pane{display:none}.pane.active{display:block}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px 24px;margin-bottom:16px;box-shadow:var(--shadow)}
+.card-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text2);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title svg{color:var(--accent);width:15px;height:15px;flex-shrink:0}
+.section-hint{font-size:13px;color:var(--text3);margin-bottom:14px;line-height:1.5}
+.module-banner{display:flex;align-items:center;justify-content:space-between;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 18px;margin-bottom:16px;gap:12px;box-shadow:var(--shadow)}
+.module-banner-left{display:flex;align-items:center;gap:10px}
+.module-banner h3{font-size:14px;font-weight:600;color:var(--text);margin:0}
+.module-banner p{font-size:12px;color:var(--text3);margin-top:2px}
+.toggle-wrap{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.toggle-label{font-size:13px;font-weight:600;min-width:52px;text-align:right}
+.toggle-label.on{color:var(--success)}
+.toggle-label.off-lbl{color:var(--text3)}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0;position:absolute}
+.toggle-slider{position:absolute;inset:0;background:var(--border2);border-radius:22px;cursor:pointer;transition:background .2s}
+.toggle-slider:before{content:"";position:absolute;width:16px;height:16px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .2s}
+.toggle input:checked + .toggle-slider{background:var(--accent)}
+.toggle input:checked + .toggle-slider:before{transform:translateX(18px)}
+.module-body.disabled{opacity:.4;pointer-events:none;user-select:none}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.form-grid.cols3{grid-template-columns:1fr 1fr 1fr}
+@media(max-width:640px){.form-grid,.form-grid.cols3{grid-template-columns:1fr}}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:13px;font-weight:500;color:var(--text2)}
+.field input,.field select,.field textarea{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:8px 11px;font-size:14px;color:var(--text);font-family:"DM Sans",sans-serif;transition:border .15s}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--accent)}
+.field small{font-size:12px;color:var(--text3)}
+.field input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer}
+.checkbox-row{flex-direction:row;align-items:center;gap:8px}
+.checkbox-row label{cursor:pointer;margin:0;font-size:14px;color:var(--text)}
+.ping-targets{display:flex;flex-direction:column;gap:8px}
+.ping-row{display:grid;grid-template-columns:88px 1fr 160px 32px;gap:8px;align-items:center}
+.ping-row input{background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:7px 10px;font-size:13px;color:var(--text);font-family:"DM Sans",sans-serif;width:100%;transition:border .15s}
+.ping-row input:focus{outline:none;border-color:var(--accent)}
+.type-badge{font-size:11px;font-weight:600;padding:3px 7px;border-radius:10px;text-align:center;white-space:nowrap}
+.badge-int{background:var(--info-dim);color:var(--info)}
+.badge-gw{background:var(--accent-dim);color:var(--accent)}
+.badge-ext{background:var(--warn-dim);color:var(--warn)}
+.remove-btn{background:none;border:1px solid var(--border2);border-radius:6px;color:var(--text3);cursor:pointer;font-size:15px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.remove-btn:hover{border-color:var(--danger);color:var(--danger);background:var(--danger-dim)}
+.add-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.add-btn{background:none;border:1px dashed var(--border2);border-radius:6px;color:var(--text2);cursor:pointer;font-size:13px;padding:6px 12px;font-family:"DM Sans",sans-serif;transition:all .15s}
+.add-btn:hover{border-color:var(--accent);color:var(--accent)}
+.output-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.output-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);flex-wrap:wrap;gap:8px}
+.output-header span{font-size:12px;font-weight:600;color:var(--text2);font-family:"JetBrains Mono",monospace}
+.copy-btn{background:var(--accent);color:#fff;border:none;border-radius:5px;padding:5px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:"DM Sans",sans-serif;transition:all .15s}
+.copy-btn:hover{background:var(--accent-hover)}
+.copy-btn.copied{background:var(--success)}
+pre{padding:16px;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.7;overflow-x:auto;color:var(--text);white-space:pre;max-height:560px;overflow-y:auto}
+.generate-row{display:flex;justify-content:center;margin:12px 0 24px}
+.generate-btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:15px;font-weight:700;cursor:pointer;font-family:"DM Sans",sans-serif;transition:all .2s;display:flex;align-items:center;gap:8px;box-shadow:0 2px 8px rgba(13,148,136,.25)}
+.generate-btn:hover{background:var(--accent-hover);transform:translateY(-1px)}
+.generate-btn:active{transform:translateY(0)}
+.info-box{border-radius:var(--radius);padding:12px 14px;font-size:13px;margin-bottom:14px;display:flex;gap:10px;align-items:flex-start;line-height:1.5}
+.info-box svg{width:15px;height:15px;flex-shrink:0;margin-top:2px}
+.info-box.info{background:var(--info-dim);color:var(--info)}
+.info-box.warn{background:var(--warn-dim);color:var(--warn)}
+.info-box.success{background:var(--accent-dim);color:var(--accent)}
+.script-selector{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.script-tab{border:1px solid var(--border2);border-radius:6px;padding:6px 12px;font-size:13px;font-weight:500;cursor:pointer;background:none;color:var(--text2);font-family:"DM Sans",sans-serif;transition:all .15s}
+.script-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.script-tab:hover:not(.active){background:var(--surface2)}
+.drop-zone{border:2px dashed var(--border2);border-radius:var(--radius-lg);padding:36px 24px;text-align:center;color:var(--text3);transition:all .2s;cursor:pointer;background:var(--surface2)}
+.drop-zone:hover,.drop-zone.dragover{border-color:var(--accent);color:var(--accent);background:var(--accent-dim)}
+.log-section{margin-bottom:22px}
+.log-section h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.log-table{width:100%;border-collapse:collapse;font-size:13px}
+.log-table th{text-align:left;padding:8px 10px;background:var(--surface2);border-bottom:2px solid var(--border);color:var(--text2);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.log-table td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text);vertical-align:top}
+.log-table tr:last-child td{border-bottom:none}
+.log-table tr:hover td{background:var(--surface2)}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px}
+.stat-card .val{font-size:22px;font-weight:700;color:var(--accent);font-family:"JetBrains Mono",monospace;line-height:1.2}
+.stat-card .lbl{font-size:12px;color:var(--text2);margin-top:3px}
+.sev-high{color:var(--danger);font-weight:600}
+.sev-med{color:var(--warn);font-weight:600}
+.sev-ok{color:var(--success);font-weight:600}
+.empty-state{text-align:center;padding:48px 20px;color:var(--text3);font-size:14px}
+.footer{text-align:center;padding:24px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
+code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:4px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a href="index.html" class="back-link">
+    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+    Workshop
+  </a>
+  <span class="topbar-title">Network Monitor Station</span>
+  <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">
+    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+    Dark mode
+  </button>
+</div>
+
+<div class="hero">
+  <div class="badge-pill">Script Generator</div>
+  <h1>Network <span>Monitor Station</span></h1>
+  <p>Configure each monitoring module below - toggle off what you do not need. Generate a PowerShell deployment bundle, copy all scripts to the target machine, and run Setup-MonitorStation.ps1 as Administrator.</p>
+</div>
+
+<div class="tabs-wrap">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('setup',this)">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+      Setup
+    </button>
+    <button class="tab" onclick="switchTab('wireshark',this)" id="tab-wireshark"><span class="tab-dot" id="dot-wireshark"></span>Wireshark</button>
+    <button class="tab" onclick="switchTab('ping',this)" id="tab-ping"><span class="tab-dot" id="dot-ping"></span>Ping Monitor</button>
+    <button class="tab" onclick="switchTab('speedtest',this)" id="tab-speedtest"><span class="tab-dot" id="dot-speedtest"></span>Speed Test</button>
+    <button class="tab" onclick="switchTab('ipscan',this)" id="tab-ipscan"><span class="tab-dot" id="dot-ipscan"></span>IP Scan</button>
+    <button class="tab" onclick="switchTab('jitter',this)" id="tab-jitter"><span class="tab-dot" id="dot-jitter"></span>Jitter / VoIP</button>
+    <button class="tab" onclick="switchTab('newdevice',this)" id="tab-newdevice"><span class="tab-dot" id="dot-newdevice"></span>New Device Alert</button>
+    <button class="tab" onclick="switchTab('ifaceerrors',this)" id="tab-ifaceerrors"><span class="tab-dot" id="dot-ifaceerrors"></span>Interface Errors</button>
+    <button class="tab" onclick="switchTab('network',this)" id="tab-network"><span class="tab-dot" id="dot-network"></span>Network Snapshot</button>
+    <button class="tab" onclick="switchTab('report',this)" id="tab-report"><span class="tab-dot" id="dot-report"></span>Daily Report</button>
+    <button class="tab" onclick="switchTab('output',this)">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+      Generate Script
+    </button>
+    <button class="tab" onclick="switchTab('logviewer',this)">
+      <svg width="13" height="13" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Log Viewer
+    </button>
+  </div>
+
+  <!-- SETUP -->
+  <div class="pane active" id="pane-setup">
+    <div class="card">
+      <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>Output Location</div>
+      <div class="form-grid">
+        <div class="field"><label>Output folder</label><input type="text" id="outputDir" value="C:\MonitorStation"><small>All logs, PCAPs and results saved here</small></div>
+        <div class="field"><label>Station label</label><input type="text" id="stationName" placeholder="e.g. Reception-PC"><small>Prefixed to log filenames (defaults to %COMPUTERNAME%)</small></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Tools to Install</div>
+      <div class="section-hint">Script checks for each tool before installing. Uses winget with a direct-download fallback.</div>
+      <div class="form-grid cols3">
+        <div class="field checkbox-row"><input type="checkbox" id="installWireshark" checked><label for="installWireshark">Wireshark + tshark</label></div>
+        <div class="field checkbox-row"><input type="checkbox" id="installSpeedtest" checked><label for="installSpeedtest">Speedtest CLI (Ookla)</label></div>
+        <div class="field checkbox-row"><input type="checkbox" id="installPingInfoView" checked><label for="installPingInfoView">PingInfoView (NirSoft)</label></div>
+        <div class="field checkbox-row"><input type="checkbox" id="installMTR" checked><label for="installMTR">WinMTR</label></div>
+        <div class="field checkbox-row"><input type="checkbox" id="createScheduled" checked><label for="createScheduled">Create Scheduled Tasks</label></div>
+        <div class="field checkbox-row"><input type="checkbox" id="createShortcut" checked><label for="createShortcut">Desktop shortcut to logs</label></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Scheduling</div>
+      <div class="form-grid">
+        <div class="field"><label>Task trigger</label><select id="taskTrigger"><option value="startup">At system startup</option><option value="logon">At user logon</option><option value="both">Both startup and logon</option></select></div>
+        <div class="field"><label>Run mode</label><select id="runMode"><option value="hidden">Hidden (background)</option><option value="interactive">Interactive (visible window)</option></select></div>
+      </div>
+    </div>
+    <div class="info-box warn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>Run Setup-MonitorStation.ps1 as Administrator. Wireshark installs Npcap which requires elevation.</div>
+  </div>
+
+  <!-- WIRESHARK -->
+  <div class="pane" id="pane-wireshark">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"/></svg><div><h3>Wireshark Capture</h3><p>Continuous ring-buffer packet capture via tshark</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="ws-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="wsEnabled" checked onchange="setModule('wireshark','wsEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="ws-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path stroke-linecap="round" stroke-width="2" d="M21 21l-4.35-4.35"/></svg>Capture Settings</div>
+        <div class="form-grid">
+          <div class="field"><label>Interface</label><select id="wsInterface"><option value="auto">Auto-detect (first active)</option><option value="Ethernet">Named: Ethernet</option><option value="Wi-Fi">Named: Wi-Fi</option><option value="1">Index 1</option><option value="2">Index 2</option></select></div>
+          <div class="field"><label>Capture filter (BPF)</label><input type="text" id="wsCaptureFilter" placeholder="Leave blank to capture all"><small>e.g. not arp and not icmp</small></div>
+          <div class="field"><label>File duration (minutes)</label><input type="number" id="wsFileDuration" value="60" min="1" max="1440"></div>
+          <div class="field"><label>Ring buffer file count</label><input type="number" id="wsFileCount" value="24" min="2" max="500"><small>24 x 60 min = 24 h rolling</small></div>
+          <div class="field"><label>Max file size (MB, 0=none)</label><input type="number" id="wsFileSize" value="100" min="0" max="4096"></div>
+          <div class="field"><label>Snapshot length (bytes)</label><input type="number" id="wsSnaplen" value="1518" min="64" max="65535"><small>1518 = full frame. 128 = headers only.</small></div>
+          <div class="field"><label>PCAP subfolder</label><input type="text" id="wsPcapSubfolder" value="PCAPs"></div>
+          <div class="field"><label>File prefix</label><input type="text" id="wsPcapPrefix" value="capture"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PING -->
+  <div class="pane" id="pane-ping">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.141 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/></svg><div><h3>Ping Monitor</h3><p>Continuous failure logging with RTT tracking and auto-traceroute</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="ping-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="pingEnabled" checked onchange="setModule('ping','pingEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="ping-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/></svg>Ping Targets</div>
+        <div class="section-hint">Gateway defaults to auto-detect at runtime. Green = Internal, teal = Gateway, amber = External.</div>
+        <div class="ping-targets" id="pingTargets"></div>
+        <div class="add-row">
+          <button class="add-btn" onclick="addPT('internal','')">+ Internal</button>
+          <button class="add-btn" onclick="addPT('gateway','auto')">+ Gateway</button>
+          <button class="add-btn" onclick="addPT('external','')">+ External</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Settings</div>
+        <div class="form-grid cols3">
+          <div class="field"><label>Interval (seconds)</label><input type="number" id="pingInterval" value="30" min="5" max="3600"></div>
+          <div class="field"><label>Timeout per ping (ms)</label><input type="number" id="pingTimeout" value="1000" min="100" max="10000"></div>
+          <div class="field"><label>Pings per check</label><input type="number" id="pingCount" value="4" min="1" max="20"><small>All must fail to log as FAIL</small></div>
+          <div class="field"><label>RTT warning threshold (ms)</label><input type="number" id="pingRttWarn" value="100" min="1" max="5000"></div>
+          <div class="field"><label>Loss % to trigger FAIL</label><input type="number" id="pingLossThresh" value="50" min="1" max="100"></div>
+          <div class="field"><label>Log mode</label><select id="pingLogMode"><option value="failures">Failures and slow only</option><option value="all">All results (verbose)</option></select></div>
+          <div class="field"><label>Log file</label><input type="text" id="pingLogFile" value="ping-failures.csv"></div>
+          <div class="field"><label>Retention (days, 0=keep all)</label><input type="number" id="pingLogRetain" value="30" min="0"></div>
+          <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="pingTraceroute" checked><label for="pingTraceroute">Auto-traceroute on failure</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SPEED TEST -->
+  <div class="pane" id="pane-speedtest">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg><div><h3>Speed Test</h3><p>Scheduled Ookla Speedtest CLI with degradation thresholds and quiet hours</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="st-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="stEnabled" checked onchange="setModule('speedtest','stEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="st-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Schedule</div>
+        <div class="form-grid cols3">
+          <div class="field"><label>Frequency</label><select id="stFrequency"><option value="15">Every 15 min</option><option value="30">Every 30 min</option><option value="60" selected>Every hour</option><option value="120">Every 2 hours</option><option value="360">Every 6 hours</option></select></div>
+          <div class="field"><label>Quiet hours start</label><input type="time" id="stQuietStart" value="00:00"></div>
+          <div class="field"><label>Quiet hours end</label><input type="time" id="stQuietEnd" value="06:00"><small>Set both 00:00 to disable</small></div>
+          <div class="field"><label>Download warn threshold (Mbps)</label><input type="number" id="stDownWarn" value="10" min="0"></div>
+          <div class="field"><label>Upload warn threshold (Mbps)</label><input type="number" id="stUpWarn" value="2" min="0"></div>
+          <div class="field"><label>Server ID (blank = nearest)</label><input type="text" id="stServerId" placeholder="e.g. 1234"></div>
+          <div class="field"><label>Log file</label><input type="text" id="stLogFile" value="speedtest-results.csv"></div>
+          <div class="field"><label>Retention (days)</label><input type="number" id="stLogRetain" value="90" min="1"></div>
+          <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="stAcceptLicense" checked><label for="stAcceptLicense">Auto-accept license</label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- IP SCAN -->
+  <div class="pane" id="pane-ipscan">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg><div><h3>IP / Subnet Scan</h3><p>Ping sweep to discover live hosts, with port check, rDNS, and ARP conflict detection</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="ipscan-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="ipscanEnabled" checked onchange="setModule('ipscan','ipscanEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="ipscan-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>Scan Settings</div>
+        <div class="form-grid">
+          <div class="field"><label>Subnet to scan</label><input type="text" id="scanSubnet" value="auto"><small>"auto" detects your local /24 at runtime</small></div>
+          <div class="field"><label>Scan frequency</label><select id="scanFrequency"><option value="60">Every hour</option><option value="360">Every 6 hours</option><option value="720">Every 12 hours</option><option value="1440" selected>Once daily</option></select></div>
+          <div class="field"><label>Ping threads (parallel)</label><input type="number" id="scanThreads" value="32" min="1" max="128"></div>
+          <div class="field"><label>Ping timeout (ms)</label><input type="number" id="scanTimeout" value="500" min="100" max="3000"></div>
+          <div class="field"><label>Log file</label><input type="text" id="scanLogFile" value="ip-scan.csv"></div>
+          <div class="field"><label>Retention (days)</label><input type="number" id="scanLogRetain" value="30" min="1"></div>
+        </div>
+        <div class="form-grid cols3" style="margin-top:12px">
+          <div class="field checkbox-row"><input type="checkbox" id="scanReverseDNS" checked><label for="scanReverseDNS">Reverse DNS lookup</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="scanPortCheck" checked><label for="scanPortCheck">Port check on live hosts</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="scanArpDupCheck" checked><label for="scanArpDupCheck">ARP duplicate IP check</label></div>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label>Ports to check (comma-separated)</label>
+          <input type="text" id="scanPorts" value="22,80,135,139,443,445,3389,8080">
+          <small>Only used when port check is enabled</small>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- JITTER -->
+  <div class="pane" id="pane-jitter">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg><div><h3>Jitter / VoIP Quality</h3><p>RTT variance logging for Teams, VoIP, and latency-sensitive applications</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="jitter-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="jitterEnabled" checked onchange="setModule('jitter','jitterEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="jitter-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6-6"/></svg>Settings</div>
+        <div class="form-grid">
+          <div class="field"><label>Primary probe target</label><input type="text" id="jitterTarget" value="8.8.8.8"></div>
+          <div class="field"><label>Secondary probe target</label><input type="text" id="jitterTarget2" value="1.1.1.1"></div>
+          <div class="field"><label>Pings per burst</label><input type="number" id="jitterBurst" value="20" min="5" max="100"><small>More = more accurate jitter measurement</small></div>
+          <div class="field"><label>Burst interval (seconds)</label><input type="number" id="jitterInterval" value="60" min="10" max="3600"></div>
+          <div class="field"><label>Jitter warn threshold (ms)</label><input type="number" id="jitterWarn" value="20" min="1"><small>Teams recommends under 30 ms</small></div>
+          <div class="field"><label>Log file</label><input type="text" id="jitterLogFile" value="jitter-log.csv"></div>
+        </div>
+        <div class="info-box info" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Jitter = average absolute deviation between consecutive RTT samples. Microsoft Teams thresholds: jitter under 30 ms, latency under 100 ms, packet loss under 1%.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NEW DEVICE -->
+  <div class="pane" id="pane-newdevice">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><div><h3>New Device Alert</h3><p>Compares ARP table against a baseline, logs any unknown MACs</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="newdevice-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="newdeviceEnabled" checked onchange="setModule('newdevice','newdeviceEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="newdevice-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.962-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/></svg>Alert Settings</div>
+        <div class="form-grid">
+          <div class="field"><label>Check interval (minutes)</label><input type="number" id="ndInterval" value="15" min="1" max="1440"></div>
+          <div class="field"><label>Baseline file</label><input type="text" id="ndBaselineFile" value="known-devices.csv"><small>Built from ARP table on first run</small></div>
+          <div class="field"><label>Alert log file</label><input type="text" id="ndLogFile" value="new-devices.csv"></div>
+          <div class="field"><label>Retention (days)</label><input type="number" id="ndLogRetain" value="90" min="1"></div>
+        </div>
+        <div class="form-grid cols3" style="margin-top:12px">
+          <div class="field checkbox-row"><input type="checkbox" id="ndReverseDNS" checked><label for="ndReverseDNS">Reverse DNS on new devices</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="ndOuiLookup" checked><label for="ndOuiLookup">OUI vendor lookup</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="ndPortScan"><label for="ndPortScan">Quick port scan on new device</label></div>
+        </div>
+        <div class="info-box warn" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>Run the setup script once on a clean, trusted network to build the baseline. Devices detected after that point will trigger alerts.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INTERFACE ERRORS -->
+  <div class="pane" id="pane-ifaceerrors">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg><div><h3>Interface Error Poller</h3><p>Watches NIC CRC errors and discards - catches bad cables before ping fails</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="ifaceerrors-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="ifaceEnabled" checked onchange="setModule('ifaceerrors','ifaceEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="ifaceerrors-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg>Poller Settings</div>
+        <div class="form-grid cols3">
+          <div class="field"><label>Poll interval (seconds)</label><input type="number" id="ifaceInterval" value="60" min="10" max="3600"></div>
+          <div class="field"><label>CRC error threshold</label><input type="number" id="ifaceCrcThresh" value="5" min="1"><small>Errors per poll interval</small></div>
+          <div class="field"><label>Discard threshold</label><input type="number" id="ifaceDiscardThresh" value="10" min="1"><small>Discards per poll interval</small></div>
+          <div class="field"><label>Log file</label><input type="text" id="ifaceLogFile" value="interface-errors.csv"></div>
+          <div class="field"><label>Retention (days)</label><input type="number" id="ifaceLogRetain" value="30" min="1"></div>
+          <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="ifaceAllAdapters"><label for="ifaceAllAdapters">All active adapters</label></div>
+        </div>
+        <div class="info-box info" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Uses <code>Get-NetAdapterStatistics</code>. CRC errors = physical layer problem (bad cable, SFP, switch port). Discards = congestion or buffer issues. Counters are delta-per-interval.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NETWORK SNAPSHOT -->
+  <div class="pane" id="pane-network">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg><div><h3>Network Snapshot</h3><p>One-shot diagnostics at startup - IP, DNS, MTU, routes, ARP, NTP</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label on" id="network-lbl">Enabled</span><label class="toggle"><input type="checkbox" id="snapEnabled" checked onchange="setModule('network','snapEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body" id="network-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>Checks to include</div>
+        <div class="form-grid cols3">
+          <div class="field checkbox-row"><input type="checkbox" id="snapIP" checked><label for="snapIP">IP / adapter info</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapGW" checked><label for="snapGW">Default gateway</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapDNS" checked><label for="snapDNS">DNS servers + resolution test</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapMTU" checked><label for="snapMTU">MTU discovery (PMTUD)</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapDHCP" checked><label for="snapDHCP">DHCP lease info</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapRoutes" checked><label for="snapRoutes">Routing table</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapNTP" checked><label for="snapNTP">NTP / time sync</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapARP" checked><label for="snapARP">ARP table</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="snapSpeed"><label for="snapSpeed">Baseline speed test</label></div>
+        </div>
+        <div class="form-grid" style="margin-top:14px">
+          <div class="field"><label>MTU probe target</label><input type="text" id="mtuTarget" value="8.8.8.8"></div>
+          <div class="field"><label>DNS test domain</label><input type="text" id="dnsTestDomain" value="www.google.com"></div>
+          <div class="field"><label>Snapshot file name</label><input type="text" id="snapFile" value="network-snapshot.txt"></div>
+          <div class="field"><label>Max MTU to test (bytes)</label><input type="number" id="mtuMax" value="1500" min="576" max="9000"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAILY REPORT -->
+  <div class="pane" id="pane-report">
+    <div class="module-banner">
+      <div class="module-banner-left"><svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color:var(--accent);flex-shrink:0"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg><div><h3>Daily Summary Report</h3><p>Email digest of the previous day - failures, speed, new devices</p></div></div>
+      <div class="toggle-wrap"><span class="toggle-label off-lbl" id="report-lbl">Disabled</span><label class="toggle"><input type="checkbox" id="reportEnabled" onchange="setModule('report','reportEnabled')"><span class="toggle-slider"></span></label></div>
+    </div>
+    <div class="module-body disabled" id="report-body">
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>SMTP Settings</div>
+        <div class="form-grid">
+          <div class="field"><label>SMTP server</label><input type="text" id="smtpServer" placeholder="smtp.office365.com"></div>
+          <div class="field"><label>Port</label><input type="number" id="smtpPort" value="587" min="1" max="65535"></div>
+          <div class="field"><label>From address</label><input type="text" id="smtpFrom" placeholder="monitor@yourdomain.com"></div>
+          <div class="field"><label>To address(es)</label><input type="text" id="smtpTo" placeholder="it@yourdomain.com"><small>Comma-separate multiple recipients</small></div>
+          <div class="field"><label>Username</label><input type="text" id="smtpUser" placeholder="monitor@yourdomain.com"></div>
+          <div class="field"><label>Send time</label><input type="time" id="reportTime" value="07:00"></div>
+        </div>
+        <div class="form-grid cols3" style="margin-top:12px">
+          <div class="field checkbox-row"><input type="checkbox" id="reportPingFails" checked><label for="reportPingFails">Ping failures summary</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="reportSpeed" checked><label for="reportSpeed">Speed test results</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="reportNewDevices" checked><label for="reportNewDevices">New devices detected</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="reportIfaceErrors" checked><label for="reportIfaceErrors">Interface errors</label></div>
+          <div class="field checkbox-row"><input type="checkbox" id="reportOnlyIssues" checked><label for="reportOnlyIssues">Skip if no issues</label></div>
+        </div>
+        <div class="info-box warn" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>SMTP password is not stored in the script. The script prompts on first run and saves a SecureString to a .cred file using Windows DPAPI (machine-specific, not portable).</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERATE -->
+  <div class="pane" id="pane-output">
+    <div class="info-box success"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Green dot = module included. Configure each tab, then generate. You get <strong>one script</strong> - copy it to the target machine and run as Administrator. It writes all module scripts to disk itself, installs tools, registers scheduled tasks, and starts the monitors.</div>
+    <div class="generate-row">
+      <button class="generate-btn" onclick="generateScripts()">
+        <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>
+        Generate Scripts
+      </button>
+    </div>
+    <div id="scriptOutput" style="display:none">
+      <div class="script-selector" id="scriptSelector"></div>
+      <p id="scriptDesc" style="font-size:13px;color:var(--text2);margin-bottom:10px;line-height:1.5;min-height:1.4em"></p>
+      <div class="output-block">
+        <div class="output-header">
+          <span id="scriptLabel">Setup-MonitorStation.ps1</span>
+          <button class="copy-btn" id="copyBtn" onclick="copyScript()">Copy</button>
+        </div>
+        <pre id="scriptPre"></pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG VIEWER -->
+  <div class="pane" id="pane-logviewer">
+    <div class="card">
+      <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>Load Log Files</div>
+      <div class="section-hint">Drop one or more log files generated by the monitoring scripts. File type is auto-detected from the filename.</div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('logIn').click()">
+        <svg width="36" height="36" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.45"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <p>Click to browse or drag log files here</p>
+        <p style="font-size:12px;margin-top:4px;color:var(--text3)">ping-failures.csv, speedtest-results.csv, jitter-log.csv, ip-scan.csv, new-devices.csv, interface-errors.csv, network-snapshot.txt</p>
+      </div>
+      <input type="file" id="logIn" multiple accept=".csv,.txt,.log" style="display:none" onchange="loadLogs(this.files)">
+    </div>
+    <div id="logResults">
+      <div class="empty-state"><svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin:0 auto 10px;display:block;opacity:.3"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg><p>No log files loaded yet</p></div>
+    </div>
+  </div>
+
+</div>
+<div class="footer">Network Monitor Station | Seb's Workshop | All processing client-side - no data leaves your browser</div>
+<script>
+// ---- THEME ----
+function toggleTheme() {
+  var t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem("sw-theme", t);
+  var btn = document.getElementById("themeBtn");
+  if (t === "dark") {
+    btn.innerHTML = "<svg width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z\"/" + "> Light mode";
+  } else {
+    btn.innerHTML = "<svg width=\"14\" height=\"14\" fill=\"none\" stroke=\"currentColor\" viewBox=\"0 0 24 24\"><path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z\"/" + "> Dark mode";
+  }
+}
+
+// ---- TABS ----
+function switchTab(id, btn) {
+  document.querySelectorAll(".pane").forEach(function(p) { p.classList.remove("active"); });
+  document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+  document.getElementById("pane-" + id).classList.add("active");
+  btn.classList.add("active");
+}
+
+// ---- MODULE TOGGLES ----
+// key -> { cbId, dotId, lblId, bodyId }
+var MOD = {
+  "wireshark":    { cb: "wsEnabled",        dot: "dot-wireshark",    lbl: "ws-lbl",          body: "ws-body" },
+  "ping":         { cb: "pingEnabled",       dot: "dot-ping",         lbl: "ping-lbl",        body: "ping-body" },
+  "speedtest":    { cb: "stEnabled",         dot: "dot-speedtest",    lbl: "st-lbl",          body: "st-body" },
+  "ipscan":       { cb: "ipscanEnabled",     dot: "dot-ipscan",       lbl: "ipscan-lbl",      body: "ipscan-body" },
+  "jitter":       { cb: "jitterEnabled",     dot: "dot-jitter",       lbl: "jitter-lbl",      body: "jitter-body" },
+  "newdevice":    { cb: "newdeviceEnabled",  dot: "dot-newdevice",    lbl: "newdevice-lbl",   body: "newdevice-body" },
+  "ifaceerrors":  { cb: "ifaceEnabled",      dot: "dot-ifaceerrors",  lbl: "ifaceerrors-lbl", body: "ifaceerrors-body" },
+  "network":      { cb: "snapEnabled",       dot: "dot-network",      lbl: "network-lbl",     body: "network-body" },
+  "report":       { cb: "reportEnabled",     dot: "dot-report",       lbl: "report-lbl",      body: "report-body" }
+};
+
+function setModule(modKey, cbId) {
+  var enabled = document.getElementById(cbId).checked;
+  var m = MOD[modKey];
+  var lbl  = m && document.getElementById(m.lbl);
+  var body = m && document.getElementById(m.body);
+  var dot  = m && document.getElementById(m.dot);
+  if (lbl)  { lbl.textContent = enabled ? "Enabled" : "Disabled"; lbl.className = "toggle-label " + (enabled ? "on" : "off-lbl"); }
+  if (body) { body.classList.toggle("disabled", !enabled); }
+  if (dot)  { dot.classList.toggle("off", !enabled); }
+}
+
+// Initialise dots on load
+document.addEventListener("DOMContentLoaded", function() {
+  Object.keys(MOD).forEach(function(k) {
+    var cb = document.getElementById(MOD[k].cb);
+    if (cb) setModule(k, MOD[k].cb);
+  });
+  initPT();
+});
+
+// ---- PING TARGETS ----
+var PT = [
+  { type: "internal", ip: "192.168.1.10", label: "Internal server" },
+  { type: "internal", ip: "192.168.1.20", label: "NAS / printer" },
+  { type: "gateway",  ip: "auto",          label: "Default gateway" },
+  { type: "external", ip: "1.1.1.1",       label: "Cloudflare DNS" },
+  { type: "external", ip: "8.8.8.8",       label: "Google DNS" }
+];
+
+function initPT() { renderPT(); }
+
+function renderPT() {
+  var c = document.getElementById("pingTargets");
+  if (!c) return;
+  c.innerHTML = "";
+  PT.forEach(function(t, i) {
+    var bc = { internal: "badge-int", gateway: "badge-gw", external: "badge-ext" }[t.type] || "badge-int";
+    var bl = { internal: "Internal", gateway: "Gateway", external: "External" }[t.type] || t.type;
+    var row = document.createElement("div");
+    row.className = "ping-row";
+    row.innerHTML =
+      "<span class=\"type-badge " + bc + "\">" + bl + "</span>" +
+      "<input type=\"text\" value=\"" + t.ip + "\" placeholder=\"IP or hostname\" onchange=\"PT[" + i + "].ip=this.value\">" +
+      "<input type=\"text\" value=\"" + t.label + "\" placeholder=\"Label\" onchange=\"PT[" + i + "].label=this.value\">" +
+      "<button class=\"remove-btn\" onclick=\"removePT(" + i + ")\">\u00d7</button>";
+    c.appendChild(row);
+  });
+}
+
+function addPT(type, ip) { PT.push({ type: type, ip: ip || "", label: "" }); renderPT(); }
+function removePT(i) { PT.splice(i, 1); renderPT(); }
+
+// ---- HELPERS ----
+function g(id)  { var e = document.getElementById(id); return e ? e.value  : ""; }
+function gb(id) { var e = document.getElementById(id); return e ? e.checked : false; }
+
+// ---- SCRIPT GENERATION ----
+var builtScripts = {};
+var activeScript = "main";
+
+var SCRIPT_LABELS = {
+  main:      "Setup-MonitorStation.ps1",
+  ping:      "Start-PingMonitor.ps1",
+  speedtest: "Start-SpeedTest.ps1",
+  ipscan:    "Start-IpScan.ps1",
+  jitter:    "Start-JitterMonitor.ps1",
+  newdevice: "Start-NewDeviceAlert.ps1",
+  iface:     "Start-IfaceErrors.ps1",
+  snapshot:  "Get-NetworkSnapshot.ps1",
+  report:    "Send-DailyReport.ps1"
+};
+
+function generateScripts() {
+  var c = {
+    outputDir: g("outputDir") || "C:\\MonitorStation",
+    stationName: g("stationName"),
+    installWireshark: gb("installWireshark"), installSpeedtest: gb("installSpeedtest"),
+    installPingInfoView: gb("installPingInfoView"), installMTR: gb("installMTR"),
+    createScheduled: gb("createScheduled"), createShortcut: gb("createShortcut"),
+    taskTrigger: g("taskTrigger"), runMode: g("runMode"),
+    wsEnabled: gb("wsEnabled"), wsInterface: g("wsInterface"),
+    wsCaptureFilter: g("wsCaptureFilter"), wsFileDuration: g("wsFileDuration") || "60",
+    wsFileCount: g("wsFileCount") || "24", wsFileSize: g("wsFileSize") || "100",
+    wsSnaplen: g("wsSnaplen") || "1518", wsPcapSubfolder: g("wsPcapSubfolder") || "PCAPs",
+    wsPcapPrefix: g("wsPcapPrefix") || "capture",
+    pingEnabled: gb("pingEnabled"), pingInterval: g("pingInterval") || "30",
+    pingTimeout: g("pingTimeout") || "1000", pingCount: g("pingCount") || "4",
+    pingRttWarn: g("pingRttWarn") || "100", pingLossThresh: g("pingLossThresh") || "50",
+    pingLogMode: g("pingLogMode"), pingLogFile: g("pingLogFile") || "ping-failures.csv",
+    pingLogRetain: g("pingLogRetain") || "30", pingTraceroute: gb("pingTraceroute"),
+    stEnabled: gb("stEnabled"), stFrequency: g("stFrequency") || "60",
+    stQuietStart: g("stQuietStart") || "00:00", stQuietEnd: g("stQuietEnd") || "06:00",
+    stDownWarn: g("stDownWarn") || "10", stUpWarn: g("stUpWarn") || "2",
+    stServerId: g("stServerId"), stLogFile: g("stLogFile") || "speedtest-results.csv",
+    stLogRetain: g("stLogRetain") || "90", stAcceptLicense: gb("stAcceptLicense"),
+    ipscanEnabled: gb("ipscanEnabled"), scanSubnet: g("scanSubnet") || "auto",
+    scanFrequency: g("scanFrequency") || "1440", scanThreads: g("scanThreads") || "32",
+    scanTimeout: g("scanTimeout") || "500", scanLogFile: g("scanLogFile") || "ip-scan.csv",
+    scanLogRetain: g("scanLogRetain") || "30", scanReverseDNS: gb("scanReverseDNS"),
+    scanPortCheck: gb("scanPortCheck"), scanArpDupCheck: gb("scanArpDupCheck"),
+    scanPorts: g("scanPorts") || "22,80,135,139,443,445,3389,8080",
+    jitterEnabled: gb("jitterEnabled"), jitterTarget: g("jitterTarget") || "8.8.8.8",
+    jitterTarget2: g("jitterTarget2") || "1.1.1.1", jitterBurst: g("jitterBurst") || "20",
+    jitterInterval: g("jitterInterval") || "60", jitterWarn: g("jitterWarn") || "20",
+    jitterLogFile: g("jitterLogFile") || "jitter-log.csv",
+    newdeviceEnabled: gb("newdeviceEnabled"), ndInterval: g("ndInterval") || "15",
+    ndBaselineFile: g("ndBaselineFile") || "known-devices.csv",
+    ndLogFile: g("ndLogFile") || "new-devices.csv", ndLogRetain: g("ndLogRetain") || "90",
+    ndReverseDNS: gb("ndReverseDNS"), ndOuiLookup: gb("ndOuiLookup"), ndPortScan: gb("ndPortScan"),
+    ifaceEnabled: gb("ifaceEnabled"), ifaceInterval: g("ifaceInterval") || "60",
+    ifaceCrcThresh: g("ifaceCrcThresh") || "5", ifaceDiscardThresh: g("ifaceDiscardThresh") || "10",
+    ifaceLogFile: g("ifaceLogFile") || "interface-errors.csv", ifaceLogRetain: g("ifaceLogRetain") || "30",
+    ifaceAllAdapters: gb("ifaceAllAdapters"),
+    snapEnabled: gb("snapEnabled"), snapIP: gb("snapIP"), snapGW: gb("snapGW"),
+    snapDNS: gb("snapDNS"), snapMTU: gb("snapMTU"), snapDHCP: gb("snapDHCP"),
+    snapRoutes: gb("snapRoutes"), snapNTP: gb("snapNTP"), snapARP: gb("snapARP"), snapSpeed: gb("snapSpeed"),
+    mtuTarget: g("mtuTarget") || "8.8.8.8", dnsTestDomain: g("dnsTestDomain") || "www.google.com",
+    snapFile: g("snapFile") || "network-snapshot.txt", mtuMax: g("mtuMax") || "1500",
+    reportEnabled: gb("reportEnabled"), smtpServer: g("smtpServer"), smtpPort: g("smtpPort") || "587",
+    smtpFrom: g("smtpFrom"), smtpTo: g("smtpTo"), smtpUser: g("smtpUser"),
+    reportTime: g("reportTime") || "07:00", reportPingFails: gb("reportPingFails"),
+    reportSpeed: gb("reportSpeed"), reportNewDevices: gb("reportNewDevices"),
+    reportIfaceErrors: gb("reportIfaceErrors"), reportOnlyIssues: gb("reportOnlyIssues")
+  };
+
+  builtScripts = {};
+  builtScripts["main"] = buildMain(c);
+
+  document.getElementById("scriptSelector").style.display = "none";
+  document.getElementById("scriptLabel").textContent = "Setup-MonitorStation.ps1";
+  document.getElementById("scriptDesc").textContent = "Copy this single script to the target machine and run as Administrator. It writes all module scripts to disk, installs tools, registers scheduled tasks, and starts the monitors automatically.";
+  document.getElementById("scriptPre").textContent = builtScripts["main"];
+  document.getElementById("scriptOutput").style.display = "block";
+  document.getElementById("scriptOutput").scrollIntoView({ behavior: "smooth" });
+}
+
+function hdr(filename, desc) {
+  return [
+    "# " + "=".repeat(60),
+    "# " + filename,
+    "# " + desc,
+    "# Generated by Seb's Workshop - Network Monitor Station",
+    "# " + new Date().toLocaleString("en-GB"),
+    "# " + "=".repeat(60),
+    ""
+  ].join("\r\n");
+}
+
+// ---- MAIN SETUP SCRIPT (embeds all modules via Set-Content) ----
+function buildMain(c) {
+  var d = c.outputDir;
+  var sn = c.stationName ? ('"' + c.stationName + '"') : "$env:COMPUTERNAME";
+  var L = [];
+  L.push("#Requires -RunAsAdministrator");
+  L.push(hdr("Setup-MonitorStation.ps1", "Single-file deployment - writes all module scripts to disk, installs tools, registers tasks, starts monitors"));
+  L.push("Set-ExecutionPolicy Bypass -Scope Process -Force");
+  L.push("[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12");
+  L.push("");
+  L.push('$Root    = "' + d + '"');
+  L.push("$Station = " + sn);
+  L.push('$Scripts = "$Root\\Scripts"');
+  L.push('$Logs    = "$Root\\Logs"');
+  L.push('$PcapDir = "$Root\\' + c.wsPcapSubfolder + '"');
+  L.push('$Tools   = "$Root\\Tools"');
+  L.push("");
+  L.push('foreach ($dir in @($Root,$Scripts,$Logs,$PcapDir,$Tools)) {');
+  L.push('    if (-not (Test-Path $dir)) { New-Item -ItemType Directory -Path $dir -Force | Out-Null }');
+  L.push("}");
+  L.push('Write-Host "[OK] Folders ready" -ForegroundColor Green');
+  L.push("");
+
+  // ---- embed module scripts via Set-Content ----
+  function embedScript(filename, lines) {
+    L.push("# ---- Write " + filename + " ----");
+    L.push("$s = @'");
+    L.push(lines);
+    L.push("'@");
+    L.push('Set-Content -Path "$Scripts\\' + filename + '" -Value $s -Encoding UTF8');
+    L.push('Write-Host "[OK] Written: ' + filename + '" -ForegroundColor Green');
+    L.push("");
+  }
+
+  if (c.pingEnabled)      embedScript("Start-PingMonitor.ps1",    buildPing(c));
+  if (c.stEnabled)        embedScript("Start-SpeedTest.ps1",      buildSpeedtest(c));
+  if (c.ipscanEnabled)    embedScript("Start-IpScan.ps1",         buildIpScan(c));
+  if (c.jitterEnabled)    embedScript("Start-JitterMonitor.ps1",  buildJitter(c));
+  if (c.newdeviceEnabled) embedScript("Start-NewDeviceAlert.ps1", buildNewDevice(c));
+  if (c.ifaceEnabled)     embedScript("Start-IfaceErrors.ps1",    buildIfaceErrors(c));
+  if (c.snapEnabled)      embedScript("Get-NetworkSnapshot.ps1",  buildSnapshot(c));
+  if (c.reportEnabled)    embedScript("Send-DailyReport.ps1",     buildReport(c));
+
+  // ---- tool installs ----
+  if (c.installWireshark) {
+    L.push("# Wireshark + tshark");
+    L.push('if (-not (Get-Command tshark -ErrorAction SilentlyContinue)) {');
+    L.push('    Write-Host "[..] Installing Wireshark..." -ForegroundColor Cyan');
+    L.push('    winget install --id WiresharkFoundation.Wireshark --silent --accept-package-agreements --accept-source-agreements');
+    L.push('    $env:PATH += ";C:\\Program Files\\Wireshark"');
+    L.push('    Write-Host "[OK] Wireshark installed" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] tshark already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installSpeedtest) {
+    L.push("# Speedtest CLI");
+    L.push('if (-not (Get-Command speedtest -ErrorAction SilentlyContinue)) {');
+    L.push('    Write-Host "[..] Installing Speedtest CLI..." -ForegroundColor Cyan');
+    L.push('    winget install --id Ookla.Speedtest.CLI --silent --accept-package-agreements --accept-source-agreements');
+    L.push('    if (-not (Get-Command speedtest -ErrorAction SilentlyContinue)) {');
+    L.push('        $z = "$env:TEMP\\speedtest.zip"');
+    L.push('        Invoke-WebRequest "https://install.speedtest.net/app/cli/ooklaserver-windows-x86_64.zip" -OutFile $z');
+    L.push('        Expand-Archive $z -DestinationPath "$Tools\\speedtest" -Force');
+    L.push('        $env:PATH += ";$Tools\\speedtest"');
+    L.push("    }");
+    L.push('    Write-Host "[OK] Speedtest CLI ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] Speedtest CLI already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installPingInfoView) {
+    L.push("# PingInfoView");
+    L.push('if (-not (Test-Path "$Tools\\PingInfoView\\PingInfoView.exe")) {');
+    L.push('    $z = "$env:TEMP\\piv.zip"');
+    L.push('    Invoke-WebRequest "https://www.nirsoft.net/utils/pinginfoview.zip" -OutFile $z');
+    L.push('    Expand-Archive $z -DestinationPath "$Tools\\PingInfoView" -Force');
+    L.push('    Write-Host "[OK] PingInfoView ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] PingInfoView already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installMTR) {
+    L.push("# WinMTR");
+    L.push('if (-not (Test-Path "$Tools\\WinMTR\\WinMTR.exe")) {');
+    L.push('    $z = "$env:TEMP\\winmtr.zip"');
+    L.push('    Invoke-WebRequest "https://sourceforge.net/projects/winmtr/files/WinMTR-v092.zip/download" -OutFile $z');
+    L.push('    Expand-Archive $z -DestinationPath "$Tools\\WinMTR" -Force');
+    L.push('    Write-Host "[OK] WinMTR ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] WinMTR already present" -ForegroundColor Green }');
+    L.push("");
+  }
+
+  // ---- network snapshot ----
+  if (c.snapEnabled) {
+    L.push("# Run network snapshot");
+    L.push('Write-Host "[..] Running network snapshot..." -ForegroundColor Cyan');
+    L.push('& "$Scripts\\Get-NetworkSnapshot.ps1" -OutputFile "$Logs\\' + c.snapFile + '"');
+    L.push("");
+  }
+
+  // ---- scheduled tasks ----
+  if (c.createScheduled) {
+    L.push("# Scheduled tasks");
+    var trigLine = (c.taskTrigger === "logon")
+      ? "New-ScheduledTaskTrigger -AtLogOn"
+      : "New-ScheduledTaskTrigger -AtStartup";
+
+    var contTasks = [];
+    if (c.pingEnabled)      contTasks.push({ name: "MonitorStation-Ping",      script: "Start-PingMonitor.ps1" });
+    if (c.jitterEnabled)    contTasks.push({ name: "MonitorStation-Jitter",    script: "Start-JitterMonitor.ps1" });
+    if (c.newdeviceEnabled) contTasks.push({ name: "MonitorStation-NewDevice", script: "Start-NewDeviceAlert.ps1" });
+    if (c.ifaceEnabled)     contTasks.push({ name: "MonitorStation-IfaceErr",  script: "Start-IfaceErrors.ps1" });
+    if (c.wsEnabled)        contTasks.push({ name: "MonitorStation-Capture",   script: "Start-Capture.ps1" });
+
+    contTasks.forEach(function(t) {
+      L.push('$a = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\' + t.script + '`\""');
+      L.push('Register-ScheduledTask -TaskName "' + t.name + '" -Action $a -Trigger (' + trigLine + ') -RunLevel Highest -Force | Out-Null');
+    });
+    if (c.stEnabled) {
+      L.push('$stA = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\Start-SpeedTest.ps1`\""');
+      L.push('$stT = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes ' + c.stFrequency + ') -Once -At (Get-Date)');
+      L.push('Register-ScheduledTask -TaskName "MonitorStation-Speedtest" -Action $stA -Trigger $stT -RunLevel Highest -Force | Out-Null');
+    }
+    if (c.ipscanEnabled) {
+      L.push('$isA = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\Start-IpScan.ps1`\""');
+      L.push('$isT = New-ScheduledTaskTrigger -RepetitionInterval (New-TimeSpan -Minutes ' + c.scanFrequency + ') -Once -At (Get-Date)');
+      L.push('Register-ScheduledTask -TaskName "MonitorStation-IpScan" -Action $isA -Trigger $isT -RunLevel Highest -Force | Out-Null');
+    }
+    if (c.reportEnabled) {
+      L.push('$rA = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\Send-DailyReport.ps1`\""');
+      L.push('$rT = New-ScheduledTaskTrigger -Daily -At "' + c.reportTime + '"');
+      L.push('Register-ScheduledTask -TaskName "MonitorStation-DailyReport" -Action $rA -Trigger $rT -RunLevel Highest -Force | Out-Null');
+    }
+    L.push('Write-Host "[OK] Scheduled tasks registered" -ForegroundColor Green');
+    L.push("");
+  }
+
+  // ---- desktop shortcut ----
+  if (c.createShortcut) {
+    L.push("# Desktop shortcut to logs");
+    L.push('$sh = New-Object -ComObject WScript.Shell');
+    L.push('$sc = $sh.CreateShortcut("$env:USERPROFILE\\Desktop\\Monitor Logs.lnk")');
+    L.push('$sc.TargetPath = $Logs; $sc.IconLocation = "shell32.dll,4"; $sc.Save()');
+    L.push('Write-Host "[OK] Desktop shortcut created" -ForegroundColor Green');
+    L.push("");
+  }
+
+  // ---- start tshark ----
+  if (c.wsEnabled) {
+    L.push("# Start tshark ring-buffer capture");
+    if (c.wsInterface === "auto") {
+      L.push('$iface = (Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | Select-Object -First 1).Name');
+    } else {
+      L.push('$iface = "' + c.wsInterface + '"');
+    }
+    L.push('$pcapArgs = @("-i",$iface,"-b","duration:' + (parseInt(c.wsFileDuration) * 60) + '","-b","files:' + c.wsFileCount + '","-s","' + c.wsSnaplen + '","-w","$PcapDir\\' + c.wsPcapPrefix + '.pcapng")');
+    if (c.wsFileSize && c.wsFileSize !== "0") L.push('$pcapArgs += @("-b","filesize:' + (parseInt(c.wsFileSize) * 1024) + '")');
+    if (c.wsCaptureFilter) L.push('$pcapArgs += @("-f","' + c.wsCaptureFilter + '")');
+    L.push('Start-Process -FilePath "tshark" -ArgumentList $pcapArgs -WindowStyle Hidden');
+    L.push('Write-Host "[OK] tshark capture started on $iface" -ForegroundColor Green');
+    L.push("");
+  }
+
+  // ---- launch continuous monitors ----
+  var launches = [];
+  if (c.pingEnabled)      launches.push("Start-PingMonitor.ps1");
+  if (c.jitterEnabled)    launches.push("Start-JitterMonitor.ps1");
+  if (c.newdeviceEnabled) launches.push("Start-NewDeviceAlert.ps1");
+  if (c.ifaceEnabled)     launches.push("Start-IfaceErrors.ps1");
+
+  if (launches.length > 0) {
+    L.push("# Launch continuous monitors in background");
+    launches.forEach(function(s) {
+      L.push('Start-Process "powershell.exe" -ArgumentList "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\' + s + '`\""');
+    });
+    L.push("");
+  }
+
+  L.push('Write-Host ""');
+  L.push('Write-Host "==========================================" -ForegroundColor Cyan');
+  L.push('Write-Host "  Monitor Station setup complete!" -ForegroundColor Cyan');
+  L.push('Write-Host "  Logs  : $Logs" -ForegroundColor Cyan');
+  L.push('Write-Host "  Scripts: $Scripts" -ForegroundColor Cyan');
+  if (c.wsEnabled) L.push('Write-Host "  PCAPs : $PcapDir" -ForegroundColor Cyan');
+  L.push('Write-Host "==========================================" -ForegroundColor Cyan');
+  return L.join("\r\n");
+}
+
+
+// ---- PING MONITOR ----
+function buildPing(c) {
+  var L = [];
+  L.push(hdr("Start-PingMonitor.ps1", "Continuous ping failure and slow RTT logger with auto-traceroute"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$LogPath = "$Root\\Logs\\' + c.pingLogFile + '"');
+  L.push('$TrDir   = "$Root\\Logs\\Traceroutes"');
+  if (c.pingTraceroute) L.push('if (-not (Test-Path $TrDir)) { New-Item -ItemType Directory -Path $TrDir -Force | Out-Null }');
+  L.push("");
+  L.push("$Targets = @(");
+  PT.forEach(function(t, i) {
+    var comma = i < PT.length - 1 ? "," : "";
+    if (t.ip === "auto") {
+      L.push('    [PSCustomObject]@{ IP=(Get-NetRoute -DestinationPrefix "0.0.0.0/0" | Sort-Object RouteMetric | Select-Object -First 1).NextHop; Label="' + (t.label || "Gateway") + '"; Type="gateway" }' + comma);
+    } else {
+      L.push('    [PSCustomObject]@{ IP="' + t.ip + '"; Label="' + (t.label || t.type) + '"; Type="' + t.type + '" }' + comma);
+    }
+  });
+  L.push(")");
+  L.push("");
+  L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,Target,Label,Type,Status,AvgRTT_ms,LossPct,Detail" }');
+  L.push("");
+  L.push("function Invoke-PingCheck($t) {");
+  L.push("    $p = New-Object System.Net.NetworkInformation.Ping");
+  L.push("    $ok = 0; $rtts = @()");
+  L.push("    1.." + c.pingCount + " | ForEach-Object {");
+  L.push('        try { $r=$p.Send($t.IP,' + c.pingTimeout + '); if ($r.Status -eq "Success") { $ok++; $rtts+=$r.RoundtripTime } } catch {}');
+  L.push("    }");
+  L.push("    $loss = [Math]::Round(((" + c.pingCount + "-$ok)/" + c.pingCount + ")*100,1)");
+  L.push("    $rtt  = if ($rtts) { [Math]::Round(($rtts | Measure-Object -Average).Average,1) } else { 0 }");
+  L.push("    return @{ Loss=$loss; RTT=$rtt }");
+  L.push("}");
+  L.push("");
+  L.push("function Write-Entry($t,$status,$rtt,$loss,$detail) {");
+  L.push('    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('    Add-Content $LogPath "`"$ts`",`"$($t.IP)`",`"$($t.Label)`",`"$($t.Type)`",`"$status`",$rtt,$loss,`"$detail`""');
+  L.push("}");
+  L.push("");
+  if (c.pingTraceroute) {
+    L.push("function Run-Traceroute($ip) {");
+    L.push('    $f = "$TrDir\\tracert_" + $ip.Replace(".","_") + "_" + (Get-Date -Format "yyyyMMdd_HHmmss") + ".txt"');
+    L.push('    & tracert -d -w 1000 $ip 2>&1 | Out-File $f');
+    L.push("}");
+    L.push("");
+  }
+  L.push('Write-Host "[PingMonitor] Running. Interval=' + c.pingInterval + 's"');
+  L.push("while ($true) {");
+  L.push("    foreach ($t in $Targets) {");
+  L.push("        if (-not $t.IP) { continue }");
+  L.push("        $r = Invoke-PingCheck $t");
+  L.push("        if ($r.Loss -ge " + c.pingLossThresh + ") {");
+  L.push('            Write-Entry $t "FAIL" $r.RTT $r.Loss "Loss $($r.Loss)%"');
+  if (c.pingTraceroute) L.push("            Run-Traceroute $t.IP");
+  L.push("        } elseif ($r.RTT -gt " + c.pingRttWarn + ") {");
+  L.push('            Write-Entry $t "SLOW" $r.RTT $r.Loss "RTT $($r.RTT)ms"');
+  L.push("        }");
+  L.push("    }");
+  L.push("    Start-Sleep -Seconds " + c.pingInterval);
+  L.push("}");
+  return L.join("\r\n");
+}
+
+// ---- SPEED TEST ----
+function buildSpeedtest(c) {
+  var L = [];
+  L.push(hdr("Start-SpeedTest.ps1", "Ookla Speedtest CLI - single run per scheduled invocation"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$LogPath = "$Root\\Logs\\' + c.stLogFile + '"');
+  L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,PingMs,DownloadMbps,UploadMbps,ServerName,ISP,Status" }');
+  L.push("");
+  L.push("function Test-QuietHours {");
+  L.push("    $qs=[TimeSpan]::Parse('" + c.stQuietStart + "'); $qe=[TimeSpan]::Parse('" + c.stQuietEnd + "')");
+  L.push("    if ($qs -eq $qe) { return $false }");
+  L.push("    $n=[DateTime]::Now.TimeOfDay");
+  L.push("    if ($qs -lt $qe) { return $n -ge $qs -and $n -lt $qe }");
+  L.push("    return $n -ge $qs -or $n -lt $qe");
+  L.push("}");
+  L.push('if (Test-QuietHours) { Write-Host "[SpeedTest] Quiet hours - skipping"; exit }');
+  L.push("");
+  var stArgs = ["'--format=json'"];
+  if (c.stAcceptLicense) { stArgs.push("'--accept-license'"); stArgs.push("'--accept-gdpr'"); }
+  if (c.stServerId) stArgs.push("'--server-id=" + c.stServerId + "'");
+  L.push("$stArgs = @(" + stArgs.join(",") + ")");
+  L.push("try {");
+  L.push('    $raw = & speedtest @stArgs 2>&1 | Out-String');
+  L.push('    $j   = $raw | ConvertFrom-Json');
+  L.push('    $dl  = [Math]::Round($j.download.bandwidth/125000,2)');
+  L.push('    $ul  = [Math]::Round($j.upload.bandwidth/125000,2)');
+  L.push('    $lat = $j.ping.latency');
+  L.push('    $srv = $j.server.name; $isp=$j.isp');
+  L.push('    $st  = if ($dl -lt ' + c.stDownWarn + ' -and $ul -lt ' + c.stUpWarn + ') { "SLOW_BOTH" }');
+  L.push('           elseif ($dl -lt ' + c.stDownWarn + ') { "SLOW_DOWN" }');
+  L.push('           elseif ($ul -lt ' + c.stUpWarn + ') { "SLOW_UP" } else { "OK" }');
+  L.push('    $ts = Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('    Add-Content $LogPath "`"$ts`",$lat,$dl,$ul,`"$srv`",`"$isp`",`"$st`""');
+  L.push('    Write-Host "[SpeedTest] Down:${dl} Up:${ul} Ping:${lat}ms Status:$st"');
+  L.push('} catch { $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"; Add-Content $LogPath "`"$ts`",,,,,`"ERROR:$_`"" }');
+  return L.join("\r\n");
+}
+
+// ---- IP SCAN ----
+function buildIpScan(c) {
+  var L = [];
+  var ports = c.scanPorts.split(",").map(function(p) { return p.trim(); });
+  L.push(hdr("Start-IpScan.ps1", "Parallel subnet ping sweep with optional port check, rDNS and ARP conflict detection"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$LogPath = "$Root\\Logs\\' + c.scanLogFile + '"');
+  L.push('$Threads = ' + c.scanThreads);
+  L.push('$Timeout = ' + c.scanTimeout);
+  L.push("");
+  if (c.scanSubnet === "auto") {
+    L.push('$localIP = Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.PrefixOrigin -ne "WellKnown" -and $_.IPAddress -notmatch "^169" } | Select-Object -First 1');
+    L.push('$octets  = $localIP.IPAddress.Split(".")');
+    L.push('$subnet  = "$($octets[0]).$($octets[1]).$($octets[2])"');
+  } else {
+    var oct = c.scanSubnet.split(".");
+    L.push('$subnet = "' + oct.slice(0,3).join(".") + '"');
+  }
+  L.push('Write-Host "[IpScan] Scanning $subnet.0/24 with $Threads threads..."');
+  L.push("");
+  L.push('$bag  = [System.Collections.Concurrent.ConcurrentBag[object]]::new()');
+  L.push('$sem  = New-Object System.Threading.SemaphoreSlim($Threads,$Threads)');
+  L.push('$tasks = 1..254 | ForEach-Object {');
+  L.push('    $ip = "$subnet.$_"');
+  L.push('    $sem.Wait()');
+  L.push('    [System.Threading.Tasks.Task]::Run({');
+  L.push('        try {');
+  L.push('            $p = New-Object System.Net.NetworkInformation.Ping');
+  L.push('            $r = $p.Send($ip,$Timeout)');
+  L.push('            if ($r.Status -eq "Success") {');
+  L.push('                $e = [PSCustomObject]@{ IP=$ip; RTT=$r.RoundtripTime; DNS=""; Ports="" }');
+  if (c.scanReverseDNS) {
+    L.push('                try { $e.DNS=[System.Net.Dns]::GetHostEntry($ip).HostName } catch {}');
+  }
+  if (c.scanPortCheck) {
+    L.push("                $op=@()");
+    L.push("                @(" + ports.join(",") + ") | ForEach-Object {");
+    L.push('                    $tc=New-Object System.Net.Sockets.TcpClient');
+    L.push('                    $ar=$tc.BeginConnect($ip,$_,$null,$null)');
+    L.push('                    if ($ar.AsyncWaitHandle.WaitOne(200)) { $op+=$_ }');
+    L.push('                    $tc.Close()');
+    L.push("                }");
+    L.push('                $e.Ports=$op -join "|"');
+  }
+  L.push('                $bag.Add($e)');
+  L.push("            }");
+  L.push("        } catch {} finally { $sem.Release() }");
+  L.push("    })");
+  L.push("}");
+  L.push('[System.Threading.Tasks.Task]::WaitAll($tasks)');
+  L.push("");
+  if (c.scanArpDupCheck) {
+    L.push("# ARP duplicate IP detection");
+    L.push('$arpRaw = & arp -a 2>&1');
+    L.push('$macMap = @{}');
+    L.push('$arpRaw | Where-Object { $_ -match "(\d+\.\d+\.\d+\.\d+)\s+([0-9a-f-]{17})" } | ForEach-Object {');
+    L.push('    $ip2=$Matches[1]; $mac=$Matches[2]');
+    L.push('    if ($macMap.ContainsKey($ip2) -and $macMap[$ip2] -ne $mac) {');
+    L.push('        $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+    L.push('        Add-Content "$Root\\Logs\\arp-conflicts.csv" "`"$ts`",`"$ip2`",`"$($macMap[$ip2])`",`"$mac`",DUPLICATE_IP"');
+    L.push('        Write-Warning "[IpScan] ARP conflict on $ip2: $($macMap[$ip2]) vs $mac"');
+    L.push('    } else { $macMap[$ip2]=$mac }');
+    L.push("}");
+    L.push("");
+  }
+  L.push('$ts  = Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('$srt = $bag | Sort-Object { [version]$_.IP }');
+  L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,IP,RTT_ms,Hostname,OpenPorts" }');
+  L.push('$srt | ForEach-Object { Add-Content $LogPath "`"$ts`",`"$($_.IP)`",$($_.RTT),`"$($_.DNS)`",`"$($_.Ports)`"" }');
+  L.push('Write-Host "[IpScan] $($srt.Count) live hosts. Log: $LogPath"');
+  return L.join("\r\n");
+}
+
+// ---- JITTER ----
+function buildJitter(c) {
+  var L = [];
+  L.push(hdr("Start-JitterMonitor.ps1", "RTT variance logger for VoIP and Teams quality monitoring"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$LogPath  = "$Root\\Logs\\' + c.jitterLogFile + '"');
+  L.push('$Burst    = ' + c.jitterBurst);
+  L.push('$Interval = ' + c.jitterInterval);
+  L.push('$WarnMs   = ' + c.jitterWarn);
+  L.push('$Targets  = @("' + c.jitterTarget + '","' + c.jitterTarget2 + '")');
+  L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,Target,AvgRTT_ms,MinRTT_ms,MaxRTT_ms,Jitter_ms,LossPct,Status" }');
+  L.push("");
+  L.push("function Measure-Jitter($target) {");
+  L.push("    $p=New-Object System.Net.NetworkInformation.Ping");
+  L.push("    $rtts=@(); $sent=0; $ok=0");
+  L.push("    1..$Burst | ForEach-Object {");
+  L.push("        $sent++");
+  L.push('        try { $r=$p.Send($target,2000); if ($r.Status -eq "Success") { $ok++; $rtts+=$r.RoundtripTime } } catch {}');
+  L.push("        Start-Sleep -Milliseconds 50");
+  L.push("    }");
+  L.push("    $loss=[Math]::Round((($sent-$ok)/$sent)*100,1)");
+  L.push("    if ($rtts.Count -lt 2) { return @{Avg=0;Min=0;Max=0;Jitter=0;Loss=$loss} }");
+  L.push("    $avg=[Math]::Round(($rtts|Measure-Object -Average).Average,2)");
+  L.push("    $min=($rtts|Measure-Object -Minimum).Minimum");
+  L.push("    $max=($rtts|Measure-Object -Maximum).Maximum");
+  L.push("    $diffs=@(); for($i=1;$i -lt $rtts.Count;$i++){$diffs+=[Math]::Abs($rtts[$i]-$rtts[$i-1])}");
+  L.push("    $jitter=[Math]::Round(($diffs|Measure-Object -Average).Average,2)");
+  L.push("    return @{Avg=$avg;Min=$min;Max=$max;Jitter=$jitter;Loss=$loss}");
+  L.push("}");
+  L.push("");
+  L.push('Write-Host "[JitterMonitor] Running. Burst=$Burst Interval=${Interval}s Warn=${WarnMs}ms"');
+  L.push("while ($true) {");
+  L.push("    foreach ($t in $Targets) {");
+  L.push("        $m=Measure-Jitter $t");
+  L.push('        $st=if($m.Jitter -gt $WarnMs){"HIGH_JITTER"}elseif($m.Loss -gt 1){"LOSS"}else{"OK"}');
+  L.push('        $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('        Add-Content $LogPath "`"$ts`",`"$t`",$($m.Avg),$($m.Min),$($m.Max),$($m.Jitter),$($m.Loss),`"$st`""');
+  L.push('        if ($st -ne "OK") { Write-Warning "[Jitter] $t jitter=$($m.Jitter)ms loss=$($m.Loss)%" }');
+  L.push("    }");
+  L.push("    Start-Sleep -Seconds $Interval");
+  L.push("}");
+  return L.join("\r\n");
+}
+
+// ---- NEW DEVICE ALERT ----
+function buildNewDevice(c) {
+  var L = [];
+  L.push(hdr("Start-NewDeviceAlert.ps1", "ARP-table new device detector with OUI vendor lookup and optional port scan"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$BaselineFile = "$Root\\Logs\\' + c.ndBaselineFile + '"');
+  L.push('$AlertLog     = "$Root\\Logs\\' + c.ndLogFile + '"');
+  L.push('$Interval     = ' + c.ndInterval + ' * 60');
+  L.push('if (-not (Test-Path $AlertLog)) { Add-Content $AlertLog "Timestamp,IP,MAC,Vendor,Hostname,OpenPorts,Action" }');
+  L.push("");
+  L.push("function Get-ArpTable {");
+  L.push('    $out=& arp -a 2>&1; $e=@{}');
+  L.push('    $out | Where-Object { $_ -match "(\d+\.\d+\.\d+\.\d+)\s+([0-9a-f-]{17})" } | ForEach-Object {');
+  L.push('        $e[$Matches[1]]=$Matches[2].ToUpper()');
+  L.push("    }");
+  L.push("    return $e");
+  L.push("}");
+  L.push("");
+  if (c.ndOuiLookup) {
+    L.push("# OUI vendor prefix table (first 3 octets)");
+    L.push("$OUI = @{");
+    L.push('    "00-50-56"="VMware";"00-0C-29"="VMware";"B8-27-EB"="Raspberry Pi";"DC-A6-32"="Raspberry Pi";');
+    L.push('    "00-1A-11"="Google";"94-65-2D"="Google";"F0-9F-C2"="Ubiquiti";"24-A4-3C"="Ubiquiti";');
+    L.push('    "00-17-88"="Philips Hue";"B4-FB-E4"="DrayTek";"00-50-7F"="DrayTek";"00-1D-AA"="DrayTek";');
+    L.push('    "AC-17-02"="Apple";"00-1C-B3"="Apple";"3C-22-FB"="Apple";"3C-06-30"="Apple"');
+    L.push("}");
+    L.push("function Get-Vendor($mac) {");
+    L.push('    $p=$mac.Substring(0,8).ToUpper(); if($OUI.ContainsKey($p)){return $OUI[$p]}else{return "Unknown"}');
+    L.push("}");
+    L.push("");
+  }
+  L.push("# Build baseline on first run");
+  L.push("if (-not (Test-Path $BaselineFile)) {");
+  L.push('    Write-Host "[NewDevice] Building baseline from ARP table..."');
+  L.push('    Add-Content $BaselineFile "IP,MAC,FirstSeen,Label"');
+  L.push("    (Get-ArpTable).GetEnumerator() | ForEach-Object {");
+  L.push('        $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('        Add-Content $BaselineFile "`"$($_.Key)`",`"$($_.Value)`",`"$ts`",baseline"');
+  L.push("    }");
+  L.push("}");
+  L.push("");
+  L.push('Write-Host "[NewDevice] Monitoring every ' + c.ndInterval + ' min. Baseline: $BaselineFile"');
+  L.push("while ($true) {");
+  L.push("    $bl=@{}; Import-Csv $BaselineFile | ForEach-Object { $bl[$_.MAC]=$_.IP }");
+  L.push("    $cur=Get-ArpTable");
+  L.push("    foreach ($ip in $cur.Keys) {");
+  L.push("        $mac=$cur[$ip]");
+  L.push("        if (-not $bl.ContainsKey($mac)) {");
+  L.push('            $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push("            $vendor=" + (c.ndOuiLookup ? "Get-Vendor $mac" : '""'));
+  if (c.ndReverseDNS) {
+    L.push('            $hn=try{[System.Net.Dns]::GetHostEntry($ip).HostName}catch{""}');
+  } else {
+    L.push('            $hn=""');
+  }
+  if (c.ndPortScan) {
+    L.push('            $op=@(); @(22,80,443,445,3389)|ForEach-Object{$tc=New-Object System.Net.Sockets.TcpClient;$ar=$tc.BeginConnect($ip,$_,$null,$null);if($ar.AsyncWaitHandle.WaitOne(200)){$op+=$_};$tc.Close()}');
+    L.push('            $ps=$op -join "|"');
+  } else {
+    L.push('            $ps=""');
+  }
+  L.push('            Add-Content $AlertLog "`"$ts`",`"$ip`",`"$mac`",`"$vendor`",`"$hn`",`"$ps`",NEW"');
+  L.push('            Write-Warning "[NewDevice] NEW: $ip $mac $vendor $hn"');
+  L.push('            Add-Content $BaselineFile "`"$ip`",`"$mac`",`"$ts`",auto-added"');
+  L.push("        }");
+  L.push("    }");
+  L.push("    Start-Sleep -Seconds $Interval");
+  L.push("}");
+  return L.join("\r\n");
+}
+
+// ---- INTERFACE ERRORS ----
+function buildIfaceErrors(c) {
+  var L = [];
+  L.push(hdr("Start-IfaceErrors.ps1", "NIC error delta poller - CRC errors, Rx/Tx discards via Get-NetAdapterStatistics"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$LogPath       = "$Root\\Logs\\' + c.ifaceLogFile + '"');
+  L.push('$Interval      = ' + c.ifaceInterval);
+  L.push('$CrcThresh     = ' + c.ifaceCrcThresh);
+  L.push('$DiscardThresh = ' + c.ifaceDiscardThresh);
+  L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,Adapter,ReceivedErrors,ReceivedDiscards,OutboundDiscards,Status" }');
+  L.push("");
+  L.push("# Snapshot baseline counters (cumulative since boot)");
+  L.push('$prev=@{}');
+  var filter = c.ifaceAllAdapters ? '' : ' -and $_.Name -notmatch "Loopback"';
+  L.push('Get-NetAdapter | Where-Object { $_.Status -eq "Up"' + filter + ' } | ForEach-Object {');
+  L.push('    $s=Get-NetAdapterStatistics -Name $_.Name -ErrorAction SilentlyContinue');
+  L.push('    if ($s) { $prev[$_.Name]=@{RxErr=$s.ReceivedPacketErrors;RxDisc=$s.ReceivedDiscardedPackets;TxDisc=$s.OutboundDiscardedPackets} }');
+  L.push("}");
+  L.push("");
+  L.push('Write-Host "[IfaceErrors] Polling every ${Interval}s. CRC>=$CrcThresh or Discard>=$DiscardThresh will log."');
+  L.push("while ($true) {");
+  L.push("    Start-Sleep -Seconds $Interval");
+  L.push('    Get-NetAdapter | Where-Object { $_.Status -eq "Up"' + filter + ' } | ForEach-Object {');
+  L.push("        $name=$_.Name");
+  L.push('        $s=Get-NetAdapterStatistics -Name $name -ErrorAction SilentlyContinue');
+  L.push("        if (-not $s -or -not $prev.ContainsKey($name)) { return }");
+  L.push("        $dRxErr =$s.ReceivedPacketErrors    -$prev[$name].RxErr");
+  L.push("        $dRxDisc=$s.ReceivedDiscardedPackets-$prev[$name].RxDisc");
+  L.push("        $dTxDisc=$s.OutboundDiscardedPackets-$prev[$name].TxDisc");
+  L.push("        $prev[$name]=@{RxErr=$s.ReceivedPacketErrors;RxDisc=$s.ReceivedDiscardedPackets;TxDisc=$s.OutboundDiscardedPackets}");
+  L.push('        $st=if($dRxErr -ge $CrcThresh){"CRC_ERRORS"}elseif($dRxDisc -ge $DiscardThresh -or $dTxDisc -ge $DiscardThresh){"DISCARDS"}else{"OK"}');
+  L.push('        if ($st -ne "OK") {');
+  L.push('            $ts=Get-Date -Format "yyyy-MM-dd HH:mm:ss"');
+  L.push('            Add-Content $LogPath "`"$ts`",`"$name`",$dRxErr,$dRxDisc,$dTxDisc,`"$st`""');
+  L.push('            Write-Warning "[IfaceErrors] $name - $st RxErr=$dRxErr RxDisc=$dRxDisc TxDisc=$dTxDisc"');
+  L.push("        }");
+  L.push("    }");
+  L.push("}");
+  return L.join("\r\n");
+}
+
+// ---- NETWORK SNAPSHOT ----
+function buildSnapshot(c) {
+  var L = [];
+  L.push(hdr("Get-NetworkSnapshot.ps1", "One-shot network diagnostics - adapters, DNS, MTU, routes, ARP, NTP"));
+  L.push('param([string]$OutputFile="' + c.outputDir + '\\Logs\\' + c.snapFile + '")');
+  L.push('$o=@()');
+  L.push('$o+="======================================================"');
+  L.push('$o+=" Network Snapshot - "+(Get-Date -Format "dd/MM/yyyy HH:mm:ss")');
+  L.push('$o+=" Host: $env:COMPUTERNAME"');
+  L.push('$o+="======================================================"; $o+=("")');
+  if (c.snapIP || c.snapGW) {
+    L.push('$o+="--- Adapters ---"');
+    L.push('Get-NetAdapter | Where-Object { $_.Status -eq "Up" } | ForEach-Object {');
+    L.push('    $a=$_');
+    L.push('    $ip=Get-NetIPAddress -InterfaceIndex $a.ifIndex -AddressFamily IPv4 -EA SilentlyContinue');
+    L.push('    $gw=(Get-NetRoute -InterfaceIndex $a.ifIndex -DestinationPrefix "0.0.0.0/0" -EA SilentlyContinue | Sort-Object RouteMetric | Select-Object -First 1).NextHop');
+    L.push('    $o+="Adapter : $($a.Name) [$($a.InterfaceDescription)]"');
+    L.push('    $o+="  MAC   : $($a.MacAddress)  Speed: $([Math]::Round($a.LinkSpeed/1000000)) Mbps"');
+    L.push('    $o+="  IP    : $($ip.IPAddress)/$($ip.PrefixLength)  GW: $gw"; $o+=("")');
+    L.push("}");
+  }
+  if (c.snapDNS) {
+    L.push('$o+="--- DNS ---"');
+    L.push('Get-DnsClientServerAddress -AddressFamily IPv4 | Where-Object {$_.ServerAddresses} | ForEach-Object { $o+="$($_.InterfaceAlias): $($_.ServerAddresses -join ", ")" }');
+    L.push('$o+="Resolution test (' + c.dnsTestDomain + '): "+(try{([System.Net.Dns]::GetHostAddresses("' + c.dnsTestDomain + '")|Select-Object -ExpandProperty IPAddressToString)-join", "}catch{"FAILED"})');
+    L.push('$o+=("")');
+  }
+  if (c.snapMTU) {
+    L.push('$o+="--- MTU Discovery (target: ' + c.mtuTarget + ') ---"');
+    L.push('$lo=576;$hi=' + c.mtuMax + ';$best=576');
+    L.push('while($lo -le $hi){$mid=[int](($lo+$hi)/2);$buf=New-Object byte[]($mid-28)');
+    L.push('  $po=New-Object System.Net.NetworkInformation.PingOptions;$po.DontFragment=$true');
+    L.push('  $r=(New-Object System.Net.NetworkInformation.Ping).Send("' + c.mtuTarget + '",1000,$buf,$po)');
+    L.push('  if($r.Status -eq "Success"){$best=$mid;$lo=$mid+1}else{$hi=$mid-1}}');
+    L.push('$o+="Path MTU: $best bytes"+(if($best -lt 1400){" - WARNING: below 1400"}else{""})');
+    L.push('$o+=("")');
+  }
+  if (c.snapDHCP) {
+    L.push('$o+="--- DHCP ---"');
+    L.push('Get-NetIPConfiguration | Where-Object {$_.IPv4Address} | ForEach-Object { $o+="$($_.InterfaceAlias): DHCP=$($_.NetIPv4Interface.Dhcp) Server=$($_.DhcpServer)" }');
+    L.push('$o+=("")');
+  }
+  if (c.snapRoutes) {
+    L.push('$o+="--- Routes (top 15) ---"');
+    L.push('Get-NetRoute -AddressFamily IPv4 | Where-Object {$_.DestinationPrefix -ne "255.255.255.255/32"} | Sort-Object RouteMetric | Select-Object -First 15 | ForEach-Object { $o+="  $($_.DestinationPrefix.PadRight(22)) via $($_.NextHop.PadRight(18)) metric $($_.RouteMetric)" }');
+    L.push('$o+=("")');
+  }
+  if (c.snapNTP) {
+    L.push('$o+="--- Time Sync ---"');
+    L.push('$o+=(& w32tm /query /status 2>&1)');
+    L.push('$o+=("")');
+  }
+  if (c.snapARP) {
+    L.push('$o+="--- ARP Table ---"');
+    L.push('$o+=(& arp -a 2>&1)');
+    L.push('$o+=("")');
+  }
+  L.push('$o+="======================================================"');
+  L.push('$o | Out-File -FilePath $OutputFile -Encoding UTF8');
+  L.push('Write-Host "[Snapshot] Saved to $OutputFile"');
+  return L.join("\r\n");
+}
+
+// ---- DAILY REPORT ----
+function buildReport(c) {
+  var L = [];
+  L.push(hdr("Send-DailyReport.ps1", "Daily HTML email summary of monitoring results via Send-MailMessage"));
+  L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$SmtpServer = "' + (c.smtpServer || "smtp.office365.com") + '"');
+  L.push('$SmtpPort   = ' + (c.smtpPort || "587"));
+  L.push('$From       = "' + (c.smtpFrom || "") + '"');
+  L.push('$To         = @("' + (c.smtpTo || "").split(",").map(function(x){return x.trim();}).join('","') + '")');
+  L.push('$User       = "' + (c.smtpUser || "") + '"');
+  L.push('$Logs       = "$Root\\Logs"');
+  L.push('$Yesterday  = (Get-Date).AddDays(-1).Date');
+  L.push("");
+  L.push("# Load or prompt for SMTP credential");
+  L.push('$credFile = "$Root\\smtp.cred"');
+  L.push("if (Test-Path $credFile) {");
+  L.push('    $cred=New-Object System.Management.Automation.PSCredential($User,(Import-Clixml $credFile))');
+  L.push("} else {");
+  L.push('    $pw=Read-Host "Enter SMTP password for $User" -AsSecureString');
+  L.push('    $pw | Export-Clixml $credFile');
+  L.push('    $cred=New-Object System.Management.Automation.PSCredential($User,$pw)');
+  L.push("}");
+  L.push("");
+  L.push('$body="<html><body style=\'font-family:Arial,sans-serif;font-size:14px\'>"');
+  L.push('$body+="<h2 style=\'color:#0d9488\'>Monitor Station Report - "+(Get-Date -Format "dd/MM/yyyy")+"</h2>"');
+  L.push('$body+="<p>Host: $env:COMPUTERNAME</p>"');
+  L.push('$issues=0');
+  if (c.reportPingFails) {
+    L.push('$pLog="$Logs\\' + c.pingLogFile + '"');
+    L.push('if (Test-Path $pLog) {');
+    L.push('    $pf=Import-Csv $pLog|Where-Object{$_.Status -ne "OK" -and [DateTime]$_.Timestamp -ge $Yesterday}');
+    L.push('    $body+="<h3>Ping Issues ($($pf.Count))</h3>"');
+    L.push('    if ($pf.Count -gt 0) { $issues+=$pf.Count');
+    L.push('        $body+="<table border=1 cellpadding=4 style=\'border-collapse:collapse\'><tr><th>Time</th><th>Target</th><th>Status</th><th>RTT</th><th>Loss%</th></tr>"');
+    L.push('        $pf|Select-Object -First 50|ForEach-Object{$body+="<tr><td>$($_.Timestamp)</td><td>$($_.Target)</td><td style=\'color:red\'>$($_.Status)</td><td>$($_.AvgRTT_ms)ms</td><td>$($_.LossPct)%</td></tr>"}');
+    L.push('        $body+="</table>"');
+    L.push('    } else { $body+="<p style=\'color:green\'>No failures</p>" }');
+    L.push("}");
+  }
+  if (c.reportSpeed) {
+    L.push('$sLog="$Logs\\' + c.stLogFile + '"');
+    L.push('if (Test-Path $sLog) {');
+    L.push('    $sr=Import-Csv $sLog|Where-Object{[DateTime]$_.Timestamp -ge $Yesterday}');
+    L.push('    if ($sr.Count -gt 0) {');
+    L.push('        $avgDl=[Math]::Round(($sr|Measure-Object -Property DownloadMbps -Average).Average,1)');
+    L.push('        $minDl=[Math]::Round(($sr|Measure-Object -Property DownloadMbps -Minimum).Minimum,1)');
+    L.push('        $body+="<h3>Speed Test ($($sr.Count) tests)</h3><p>Avg: ${avgDl} Mbps Down | Min: ${minDl} Mbps Down</p>"');
+    L.push('        $slow=$sr|Where-Object{$_.Status -ne "OK"}');
+    L.push('        if ($slow.Count -gt 0){$issues+=$slow.Count;$body+="<p style=\'color:orange\'>$($slow.Count) below-threshold results</p>"}');
+    L.push("    }");
+    L.push("}");
+  }
+  if (c.reportNewDevices) {
+    L.push('$ndLog="$Logs\\' + c.ndLogFile + '"');
+    L.push('if (Test-Path $ndLog) {');
+    L.push('    $nd=Import-Csv $ndLog|Where-Object{[DateTime]$_.Timestamp -ge $Yesterday}');
+    L.push('    $body+="<h3>New Devices ($($nd.Count))</h3>"');
+    L.push('    if ($nd.Count -gt 0){$issues+=$nd.Count;$nd|ForEach-Object{$body+="<p>$($_.Timestamp) - $($_.IP) $($_.MAC) $($_.Vendor) $($_.Hostname)</p>"}}');
+    L.push('    else{$body+="<p style=\'color:green\'>None</p>"}');
+    L.push("}");
+  }
+  if (c.reportIfaceErrors) {
+    L.push('$ifLog="$Logs\\' + c.ifaceLogFile + '"');
+    L.push('if (Test-Path $ifLog) {');
+    L.push('    $ife=Import-Csv $ifLog|Where-Object{[DateTime]$_.Timestamp -ge $Yesterday}');
+    L.push('    if ($ife.Count -gt 0){$issues+=$ife.Count;$body+="<h3 style=\'color:orange\'>Interface Errors ($($ife.Count))</h3>";$ife|ForEach-Object{$body+="<p>$($_.Timestamp) $($_.Adapter) - $($_.Status)</p>"}}');
+    L.push("}");
+  }
+  if (c.reportOnlyIssues) {
+    L.push('if ($issues -eq 0) { Write-Host "[Report] No issues - skipping email"; exit }');
+  }
+  L.push('$body+="</body></html>"');
+  L.push('$subj="Monitor Station - $env:COMPUTERNAME - "+(Get-Date -Format "dd/MM/yyyy")+" ($issues issues)"');
+  L.push('Send-MailMessage -From $From -To $To -Subject $subj -Body $body -BodyAsHtml -SmtpServer $SmtpServer -Port $SmtpPort -UseSsl -Credential $cred');
+  L.push('Write-Host "[Report] Sent to $($To -join ", ")"');
+  return L.join("\r\n");
+}
+
+// ---- COPY ----
+function copyScript() {
+  var btn = document.getElementById("copyBtn");
+  var text = builtScripts[activeScript] || "";
+  function done() { btn.textContent = "Copied!"; btn.classList.add("copied"); setTimeout(function(){ btn.textContent="Copy"; btn.classList.remove("copied"); },2000); }
+  try { navigator.clipboard.writeText(text).then(done).catch(function(){fallbackCopy(text);done();}); }
+  catch(e) { fallbackCopy(text); done(); }
+}
+function fallbackCopy(text) {
+  var ta=document.createElement("textarea"); ta.value=text; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); document.body.removeChild(ta);
+}
+
+// ---- LOG VIEWER ----
+var dz = document.getElementById("dropZone");
+if (dz) {
+  dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.classList.add("dragover"); });
+  dz.addEventListener("dragleave", function(){ dz.classList.remove("dragover"); });
+  dz.addEventListener("drop", function(e){ e.preventDefault(); dz.classList.remove("dragover"); loadLogs(e.dataTransfer.files); });
+}
+
+function loadLogs(files) {
+  var res = document.getElementById("logResults");
+  res.innerHTML = "<p style=\"color:var(--text2);font-size:13px;padding:10px 0\">Loading...</p>";
+  var parsed = { ping:[], speedtest:[], jitter:[], ipscan:[], newdevice:[], ifaceerrors:[], snapshot:[] };
+  var rem = files.length;
+  if (!rem) return;
+  Array.from(files).forEach(function(file) {
+    var r = new FileReader();
+    r.onload = function(e) {
+      var con = e.target.result, n = file.name.toLowerCase();
+      if      (n.indexOf("ping") > -1 || n.indexOf("failure") > -1) parsed.ping = parsed.ping.concat(parseCSV(con));
+      else if (n.indexOf("speed") > -1)                              parsed.speedtest = parsed.speedtest.concat(parseCSV(con));
+      else if (n.indexOf("jitter") > -1)                             parsed.jitter = parsed.jitter.concat(parseCSV(con));
+      else if (n.indexOf("ip-scan") > -1 || n.indexOf("ipscan") > -1) parsed.ipscan = parsed.ipscan.concat(parseCSV(con));
+      else if (n.indexOf("device") > -1)                             parsed.newdevice = parsed.newdevice.concat(parseCSV(con));
+      else if (n.indexOf("interface") > -1 || n.indexOf("iface") > -1) parsed.ifaceerrors = parsed.ifaceerrors.concat(parseCSV(con));
+      else if (n.endsWith(".txt") || n.indexOf("snapshot") > -1)    parsed.snapshot.push({ name: file.name, content: con });
+      else {
+        if      (con.indexOf("LossPct") > -1)      parsed.ping = parsed.ping.concat(parseCSV(con));
+        else if (con.indexOf("DownloadMbps") > -1)  parsed.speedtest = parsed.speedtest.concat(parseCSV(con));
+        else if (con.indexOf("Jitter_ms") > -1)     parsed.jitter = parsed.jitter.concat(parseCSV(con));
+        else if (con.indexOf("OpenPorts") > -1)     parsed.ipscan = parsed.ipscan.concat(parseCSV(con));
+        else if (con.indexOf("Vendor") > -1)        parsed.newdevice = parsed.newdevice.concat(parseCSV(con));
+        else if (con.indexOf("ReceivedErrors") > -1) parsed.ifaceerrors = parsed.ifaceerrors.concat(parseCSV(con));
+        else parsed.snapshot.push({ name: file.name, content: con });
+      }
+      if (--rem === 0) renderLogs(parsed);
+    };
+    r.readAsText(file);
+  });
+}
+
+function parseCSV(csv) {
+  var rows = csv.trim().split("\n");
+  if (rows.length < 2) return [];
+  var headers = rows[0].replace(/\r/,"").split(",").map(function(h){ return h.replace(/^"|"$/g,"").trim(); });
+  var data = [];
+  rows.slice(1).forEach(function(row) {
+    if (!row.trim()) return;
+    var cols = row.replace(/\r/,"").split(",").map(function(v){ return v.replace(/^"|"$/g,"").trim(); });
+    var obj = {};
+    headers.forEach(function(h,i){ obj[h]=cols[i]||""; });
+    data.push(obj);
+  });
+  return data;
+}
+
+function sc(val,lbl,color) {
+  return "<div class=\"stat-card\"><div class=\"val\" style=\"color:" + (color||"var(--accent)") + "\">" + val + "</div><div class=\"lbl\">" + lbl + "</div></div>";
+}
+
+function renderLogs(p) {
+  var html = "";
+
+  if (p.ping.length > 0) {
+    var fails = p.ping.filter(function(r){return r.Status==="FAIL";}).length;
+    var slows = p.ping.filter(function(r){return r.Status==="SLOW";}).length;
+    var byTgt = {};
+    p.ping.forEach(function(r){
+      if (!byTgt[r.Target]) byTgt[r.Target]={label:r.Label||"",fail:0,slow:0,maxRtt:0};
+      if (r.Status==="FAIL") byTgt[r.Target].fail++;
+      if (r.Status==="SLOW") byTgt[r.Target].slow++;
+      var rtt=parseFloat(r.AvgRTT_ms)||0;
+      if (rtt>byTgt[r.Target].maxRtt) byTgt[r.Target].maxRtt=rtt;
+    });
+    html += "<div class=\"log-section\"><h3>Ping Monitor (" + p.ping.length + " events)</h3>";
+    html += "<div class=\"stat-grid\">" + sc(p.ping.length,"Total") + sc(fails,"Failures","var(--danger)") + sc(slows,"Slow / high RTT","var(--warn)") + sc(Object.keys(byTgt).length,"Targets monitored") + "</div>";
+    html += "<table class=\"log-table\"><thead><tr><th>Target</th><th>Label</th><th>Failures</th><th>Slow</th><th>Max RTT</th></tr></thead><tbody>";
+    Object.keys(byTgt).forEach(function(ip){ var t=byTgt[ip]; html+="<tr><td><code>"+ip+"</code></td><td>"+t.label+"</td><td class=\""+(t.fail>0?"sev-high":"")+"\">"+t.fail+"</td><td class=\""+(t.slow>0?"sev-med":"")+"\">"+t.slow+"</td><td>"+t.maxRtt+"ms</td></tr>"; });
+    html += "</tbody></table>";
+    html += "<div style=\"margin-top:12px\"><table class=\"log-table\"><thead><tr><th>Time</th><th>Target</th><th>Status</th><th>RTT</th><th>Loss%</th></tr></thead><tbody>";
+    p.ping.slice(-80).reverse().forEach(function(r){ var cls=r.Status==="FAIL"?"sev-high":r.Status==="SLOW"?"sev-med":"sev-ok"; html+="<tr><td>"+r.Timestamp+"</td><td><code>"+r.Target+"</code></td><td class=\""+cls+"\">"+r.Status+"</td><td>"+r.AvgRTT_ms+"ms</td><td>"+r.LossPct+"%</td></tr>"; });
+    html += "</tbody></table></div></div>";
+  }
+
+  if (p.speedtest.length > 0) {
+    var dlV=p.speedtest.map(function(r){return parseFloat(r.DownloadMbps)||0;});
+    var ulV=p.speedtest.map(function(r){return parseFloat(r.UploadMbps)||0;});
+    var avgDl=(dlV.reduce(function(a,b){return a+b;},0)/dlV.length).toFixed(1);
+    var minDl=Math.min.apply(null,dlV).toFixed(1);
+    var avgUl=(ulV.reduce(function(a,b){return a+b;},0)/ulV.length).toFixed(1);
+    var stBad=p.speedtest.filter(function(r){return r.Status&&r.Status!=="OK";}).length;
+    html += "<div class=\"log-section\"><h3>Speed Test (" + p.speedtest.length + " results)</h3>";
+    html += "<div class=\"stat-grid\">" + sc(avgDl+" Mbps","Avg Download") + sc(minDl+" Mbps","Min Download","var(--danger)") + sc(avgUl+" Mbps","Avg Upload") + sc(stBad,"Below threshold","var(--warn)") + "</div>";
+    html += "<table class=\"log-table\"><thead><tr><th>Time</th><th>Download</th><th>Upload</th><th>Ping</th><th>Status</th></tr></thead><tbody>";
+    p.speedtest.slice(-50).reverse().forEach(function(r){ var cls=r.Status!=="OK"?"sev-med":""; html+="<tr><td>"+r.Timestamp+"</td><td>"+r.DownloadMbps+" Mbps</td><td>"+r.UploadMbps+" Mbps</td><td>"+r.PingMs+"ms</td><td class=\""+cls+"\">"+r.Status+"</td></tr>"; });
+    html += "</tbody></table></div>";
+  }
+
+  if (p.jitter.length > 0) {
+    var jBad=p.jitter.filter(function(r){return r.Status!=="OK";}).length;
+    var avgJ=(p.jitter.reduce(function(a,r){return a+(parseFloat(r.Jitter_ms)||0);},0)/p.jitter.length).toFixed(1);
+    html += "<div class=\"log-section\"><h3>Jitter Monitor (" + p.jitter.length + " samples)</h3>";
+    html += "<div class=\"stat-grid\">" + sc(avgJ+"ms","Avg Jitter") + sc(jBad,"High jitter / loss events","var(--warn)") + "</div>";
+    html += "<table class=\"log-table\"><thead><tr><th>Time</th><th>Target</th><th>Avg RTT</th><th>Jitter</th><th>Loss%</th><th>Status</th></tr></thead><tbody>";
+    p.jitter.slice(-60).reverse().forEach(function(r){ var cls=r.Status!=="OK"?"sev-med":""; html+="<tr><td>"+r.Timestamp+"</td><td>"+r.Target+"</td><td>"+r.AvgRTT_ms+"ms</td><td>"+r.Jitter_ms+"ms</td><td>"+r.LossPct+"%</td><td class=\""+cls+"\">"+r.Status+"</td></tr>"; });
+    html += "</tbody></table></div>";
+  }
+
+  if (p.ipscan.length > 0) {
+    var uniq={};
+    p.ipscan.forEach(function(r){uniq[r.IP]=r;});
+    var hosts=Object.keys(uniq).map(function(k){return uniq[k];});
+    hosts.sort(function(a,b){
+      try{
+        var av=a.IP.split(".").reduce(function(n,v,i){return n+parseInt(v,10)*(1<<(8*(3-i)));},0);
+        var bv=b.IP.split(".").reduce(function(n,v,i){return n+parseInt(v,10)*(1<<(8*(3-i)));},0);
+        return av-bv;
+      }catch(e){return 0;}
+    });
+    html += "<div class=\"log-section\"><h3>IP Scan (" + hosts.length + " live hosts)</h3>";
+    html += "<table class=\"log-table\"><thead><tr><th>IP</th><th>Hostname</th><th>RTT</th><th>Open Ports</th></tr></thead><tbody>";
+    hosts.forEach(function(r){ html+="<tr><td><code>"+r.IP+"</code></td><td>"+(r.Hostname||"-")+"</td><td>"+(r.RTT_ms||"-")+"ms</td><td>"+(r.OpenPorts?r.OpenPorts.replace(/\|/g,", "):"-")+"</td></tr>"; });
+    html += "</tbody></table></div>";
+  }
+
+  if (p.newdevice.length > 0) {
+    html += "<div class=\"log-section\"><h3 style=\"color:var(--warn)\">New Device Alerts (" + p.newdevice.length + ")</h3>";
+    html += "<table class=\"log-table\"><thead><tr><th>Time</th><th>IP</th><th>MAC</th><th>Vendor</th><th>Hostname</th><th>Open Ports</th></tr></thead><tbody>";
+    p.newdevice.forEach(function(r){ html+="<tr><td>"+r.Timestamp+"</td><td><code>"+r.IP+"</code></td><td><code>"+r.MAC+"</code></td><td>"+(r.Vendor||"-")+"</td><td>"+(r.Hostname||"-")+"</td><td>"+(r.OpenPorts?r.OpenPorts.replace(/\|/g,", "):"-")+"</td></tr>"; });
+    html += "</tbody></table></div>";
+  }
+
+  if (p.ifaceerrors.length > 0) {
+    html += "<div class=\"log-section\"><h3 style=\"color:var(--warn)\">Interface Errors (" + p.ifaceerrors.length + " events)</h3>";
+    html += "<table class=\"log-table\"><thead><tr><th>Time</th><th>Adapter</th><th>CRC Errors</th><th>Rx Discards</th><th>Tx Discards</th><th>Status</th></tr></thead><tbody>";
+    p.ifaceerrors.forEach(function(r){ html+="<tr><td>"+r.Timestamp+"</td><td>"+r.Adapter+"</td><td>"+r.ReceivedErrors+"</td><td>"+r.ReceivedDiscards+"</td><td>"+r.OutboundDiscards+"</td><td class=\"sev-med\">"+r.Status+"</td></tr>"; });
+    html += "</tbody></table></div>";
+  }
+
+  p.snapshot.forEach(function(s){
+    html += "<div class=\"log-section\"><h3>Snapshot: " + s.name + "</h3><div class=\"output-block\"><pre style=\"max-height:400px\">" + s.content.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + "</pre></div></div>";
+  });
+
+  if (!html) html = "<div class=\"empty-state\"><p>Could not parse the loaded files. Check they were generated by the monitoring scripts.</p></div>";
+  document.getElementById("logResults").innerHTML = html;
+}
+</script>
+</body>
+</html>
