@@ -115,6 +115,12 @@ pre{padding:16px;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-he
 .sev-med{color:var(--warn);font-weight:600}
 .sev-ok{color:var(--success);font-weight:600}
 .empty-state{text-align:center;padding:48px 20px;color:var(--text3);font-size:14px}
+.script-preview{margin-top:8px;display:none}
+.script-preview.visible{display:block}
+.preview-header{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-bottom:none;border-radius:var(--radius) var(--radius) 0 0}
+.preview-header span{font-size:12px;font-weight:600;color:var(--text2);font-family:"JetBrains Mono",monospace}
+.preview-actions{display:flex;gap:6px;align-items:center}
+.preview-hint{font-size:12px;color:var(--text3);font-style:italic}
 .footer{text-align:center;padding:24px;color:var(--text3);font-size:12px;border-top:1px solid var(--border);margin-top:20px}
 code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surface2);padding:1px 5px;border-radius:4px}
 </style>
@@ -188,10 +194,26 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
       <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Scheduling</div>
       <div class="form-grid">
         <div class="field"><label>Task trigger</label><select id="taskTrigger"><option value="startup">At system startup</option><option value="logon">At user logon</option><option value="both">Both startup and logon</option></select></div>
-        <div class="field"><label>Run mode</label><select id="runMode"><option value="hidden">Hidden (background)</option><option value="interactive">Interactive (visible window)</option></select></div>
+        <div class="field"><label>Run mode</label><select id="runMode"><option value="interactive" selected>Interactive (visible window)</option><option value="hidden">Hidden (background)</option></select></div>
       </div>
     </div>
     <div class="info-box warn"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>Run Setup-MonitorStation.ps1 as Administrator. Wireshark installs Npcap which requires elevation.</div>
+    <div class="card">
+      <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Install Tools Script</div>
+      <p class="section-hint">Just the tool installation portion - Wireshark, Speedtest CLI, PingInfoView, WinMTR. No monitors, no scheduled tasks. Useful for prepping a machine before deploying the monitors.</p>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="add-btn" onclick="previewSetup()" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+      </div>
+      <div id="preview-setup" class="script-preview">
+        <div class="preview-header">
+          <span>Install-Tools.ps1</span>
+          <button class="copy-btn" id="copy-setup" onclick="copyPreview('copy-setup','preview-pre-setup')">Copy</button>
+        </div>
+        <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+          <pre id="preview-pre-setup" style="max-height:300px"></pre>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- WIRESHARK -->
@@ -212,6 +234,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field"><label>Snapshot length (bytes)</label><input type="number" id="wsSnaplen" value="1518" min="64" max="65535"><small>1518 = full frame. 128 = headers only.</small></div>
           <div class="field"><label>PCAP subfolder</label><input type="text" id="wsPcapSubfolder" value="PCAPs"></div>
           <div class="field"><label>File prefix</label><input type="text" id="wsPcapPrefix" value="capture"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('wireshark','buildWsPreview','copy-ws')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-wireshark" class="script-preview">
+          <div class="preview-header">
+            <span>Start-Capture.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-ws','preview-pre-wireshark')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-wireshark" style="max-height:300px"></pre>
+          </div>
         </div>
       </div>
     </div>
@@ -248,6 +287,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="pingTraceroute" checked><label for="pingTraceroute">Auto-traceroute on failure</label></div>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('ping','buildPingPreview','copy-ping')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-ping" class="script-preview">
+          <div class="preview-header">
+            <span>Start-PingMonitor.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-ping','preview-pre-ping')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-ping" style="max-height:300px"></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -270,6 +326,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field"><label>Log file</label><input type="text" id="stLogFile" value="speedtest-results.csv"></div>
           <div class="field"><label>Retention (days)</label><input type="number" id="stLogRetain" value="90" min="1"></div>
           <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="stAcceptLicense" checked><label for="stAcceptLicense">Auto-accept license</label></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('speedtest','buildStPreview','copy-st')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-speedtest" class="script-preview">
+          <div class="preview-header">
+            <span>Start-SpeedTest.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-st','preview-pre-speedtest')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-speedtest" style="max-height:300px"></pre>
+          </div>
         </div>
       </div>
     </div>
@@ -303,6 +376,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <small>Only used when port check is enabled</small>
         </div>
       </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('ipscan','buildIpScanPreview','copy-ipscan')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-ipscan" class="script-preview">
+          <div class="preview-header">
+            <span>Start-IpScan.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-ipscan','preview-pre-ipscan')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-ipscan" style="max-height:300px"></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -324,6 +414,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field"><label>Log file</label><input type="text" id="jitterLogFile" value="jitter-log.csv"></div>
         </div>
         <div class="info-box info" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Jitter = average absolute deviation between consecutive RTT samples. Microsoft Teams thresholds: jitter under 30 ms, latency under 100 ms, packet loss under 1%.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('jitter','buildJitterPreview','copy-jitter')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-jitter" class="script-preview">
+          <div class="preview-header">
+            <span>Start-JitterMonitor.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-jitter','preview-pre-jitter')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-jitter" style="max-height:300px"></pre>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -350,6 +457,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
         </div>
         <div class="info-box warn" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M4.93 4.93l14.14 14.14"/></svg>Run the setup script once on a clean, trusted network to build the baseline. Devices detected after that point will trigger alerts.</div>
       </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('newdevice','buildNdPreview','copy-nd')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-newdevice" class="script-preview">
+          <div class="preview-header">
+            <span>Start-NewDeviceAlert.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-nd','preview-pre-newdevice')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-newdevice" style="max-height:300px"></pre>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -371,6 +495,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field checkbox-row" style="align-self:end;padding-bottom:4px"><input type="checkbox" id="ifaceAllAdapters"><label for="ifaceAllAdapters">All active adapters</label></div>
         </div>
         <div class="info-box info" style="margin-top:12px"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>Uses <code>Get-NetAdapterStatistics</code>. CRC errors = physical layer problem (bad cable, SFP, switch port). Discards = congestion or buffer issues. Counters are delta-per-interval.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('ifaceerrors','buildIfacePreview','copy-iface')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-ifaceerrors" class="script-preview">
+          <div class="preview-header">
+            <span>Start-IfaceErrors.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-iface','preview-pre-ifaceerrors')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-ifaceerrors" style="max-height:300px"></pre>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -400,6 +541,23 @@ code{font-family:"JetBrains Mono",monospace;font-size:12px;background:var(--surf
           <div class="field"><label>DNS test domain</label><input type="text" id="dnsTestDomain" value="www.google.com"></div>
           <div class="field"><label>Snapshot file name</label><input type="text" id="snapFile" value="network-snapshot.txt"></div>
           <div class="field"><label>Max MTU to test (bytes)</label><input type="number" id="mtuMax" value="1500" min="576" max="9000"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/></svg>Standalone Script</div>
+        <p class="section-hint">Run this script individually on any machine - no Setup required. Configure the options above then click Preview to generate.</p>
+        <div style="display:flex;gap:8px;margin-bottom:10px">
+          <button class="add-btn" onclick="previewScript('network','buildSnapPreview','copy-snap')" style="border-color:var(--accent);color:var(--accent)">Preview script</button>
+        </div>
+        <div id="preview-network" class="script-preview">
+          <div class="preview-header">
+            <span>Get-NetworkSnapshot.ps1</span>
+            <button class="copy-btn" id= + copy_id +  onclick="copyPreview('copy-snap','preview-pre-network')">Copy</button>
+          </div>
+          <div class="output-block" style="border-top:none;border-radius:0 0 var(--radius) var(--radius)">
+            <pre id="preview-pre-network" style="max-height:300px"></pre>
+          </div>
         </div>
       </div>
     </div>
@@ -827,9 +985,11 @@ function buildMain(c) {
   if (c.ifaceEnabled)     launches.push("Start-IfaceErrors.ps1");
 
   if (launches.length > 0) {
-    L.push("# Launch continuous monitors in background");
+    var winStyle = (c.runMode === "interactive") ? "Normal" : "Hidden";
+    var nonInt   = (c.runMode === "interactive") ? "" : "-NonInteractive ";
+    L.push("# Launch continuous monitors");
     launches.forEach(function(s) {
-      L.push('Start-Process "powershell.exe" -ArgumentList "-NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File `\"$Scripts\\' + s + '`\""');
+      L.push('Start-Process "powershell.exe" -ArgumentList "' + nonInt + '-WindowStyle ' + winStyle + ' -ExecutionPolicy Bypass -File `\"$Scripts\\' + s + '`\""');
     });
     L.push("");
   }
@@ -843,6 +1003,14 @@ function buildMain(c) {
   L.push('Write-Host "==========================================" -ForegroundColor Cyan');
   L.push('Write-Host ""');
   L.push('Write-Host "  Monitors are running in the background." -ForegroundColor Green');
+  L.push('Write-Host ""');
+  L.push('Write-Host "--- Active MonitorStation processes ---" -ForegroundColor Cyan');
+  L.push("Get-WmiObject Win32_Process -Filter \"Name='powershell.exe'\" | Where-Object { $_.CommandLine -like \"*MonitorStation*\" } | ForEach-Object {");
+  L.push('    Write-Host "  PID $($_.ProcessId) : $($_.CommandLine)" -ForegroundColor White');
+  L.push('}');
+  L.push('$ts = Get-Process tshark -ErrorAction SilentlyContinue');
+  L.push('if ($ts) { Write-Host "  PID $($ts.Id) : tshark (packet capture)" -ForegroundColor White }');
+  L.push('Write-Host ""');
   L.push('Write-Host "  You can safely close this window." -ForegroundColor Green');
   L.push('Write-Host ""');
   L.push('Read-Host "  Press Enter to close"');
@@ -855,6 +1023,12 @@ function buildPing(c) {
   var L = [];
   L.push(hdr("Start-PingMonitor.ps1", "Continuous ping failure and slow RTT logger with auto-traceroute"));
   L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$host.UI.RawUI.WindowTitle = "Monitor Station - Ping Monitor"');
+  L.push('$host.UI.RawUI.BackgroundColor = "DarkBlue"; Clear-Host');
+  L.push('Write-Host "================================================" -ForegroundColor Cyan');
+  L.push('Write-Host "  Ping Monitor - running" -ForegroundColor Cyan');
+  L.push('Write-Host "================================================" -ForegroundColor Cyan');
+  L.push('Write-Host ""');
   L.push('$LogPath = "$Root\\Logs\\' + c.pingLogFile + '"');
   L.push('$TrDir   = "$Root\\Logs\\Traceroutes"');
   if (c.pingTraceroute) L.push('if (-not (Test-Path $TrDir)) { New-Item -ItemType Directory -Path $TrDir -Force | Out-Null }');
@@ -917,6 +1091,12 @@ function buildSpeedtest(c) {
   var L = [];
   L.push(hdr("Start-SpeedTest.ps1", "Ookla Speedtest CLI - single run per scheduled invocation"));
   L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$host.UI.RawUI.WindowTitle = "Monitor Station - Speed Test"');
+  L.push('$host.UI.RawUI.BackgroundColor = "DarkGreen"; Clear-Host');
+  L.push('Write-Host "================================================" -ForegroundColor Green');
+  L.push('Write-Host "  Speed Test - running" -ForegroundColor Green');
+  L.push('Write-Host "================================================" -ForegroundColor Green');
+  L.push('Write-Host ""');
   L.push('$LogPath = "$Root\\Logs\\' + c.stLogFile + '"');
   L.push('if (-not (Test-Path $LogPath)) { Add-Content $LogPath "Timestamp,PingMs,DownloadMbps,UploadMbps,ServerName,ISP,Status" }');
   L.push("");
@@ -1028,6 +1208,12 @@ function buildJitter(c) {
   var L = [];
   L.push(hdr("Start-JitterMonitor.ps1", "RTT variance logger for VoIP and Teams quality monitoring"));
   L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$host.UI.RawUI.WindowTitle = "Monitor Station - Jitter / VoIP Monitor"');
+  L.push('$host.UI.RawUI.BackgroundColor = "DarkMagenta"; Clear-Host');
+  L.push('Write-Host "================================================" -ForegroundColor Magenta');
+  L.push('Write-Host "  Jitter / VoIP Monitor - running" -ForegroundColor Magenta');
+  L.push('Write-Host "================================================" -ForegroundColor Magenta');
+  L.push('Write-Host ""');
   L.push('$LogPath  = "$Root\\Logs\\' + c.jitterLogFile + '"');
   L.push('$Burst    = ' + c.jitterBurst);
   L.push('$Interval = ' + c.jitterInterval);
@@ -1072,6 +1258,12 @@ function buildNewDevice(c) {
   var L = [];
   L.push(hdr("Start-NewDeviceAlert.ps1", "ARP-table new device detector with OUI vendor lookup and optional port scan"));
   L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$host.UI.RawUI.WindowTitle = "Monitor Station - New Device Alert"');
+  L.push('$host.UI.RawUI.BackgroundColor = "DarkRed"; Clear-Host');
+  L.push('Write-Host "================================================" -ForegroundColor Red');
+  L.push('Write-Host "  New Device Alert - running" -ForegroundColor Red');
+  L.push('Write-Host "================================================" -ForegroundColor Red');
+  L.push('Write-Host ""');
   L.push('$BaselineFile = "$Root\\Logs\\' + c.ndBaselineFile + '"');
   L.push('$AlertLog     = "$Root\\Logs\\' + c.ndLogFile + '"');
   L.push('$Interval     = ' + c.ndInterval + ' * 60');
@@ -1143,6 +1335,12 @@ function buildIfaceErrors(c) {
   var L = [];
   L.push(hdr("Start-IfaceErrors.ps1", "NIC error delta poller - CRC errors, Rx/Tx discards via Get-NetAdapterStatistics"));
   L.push('param([string]$Root="' + c.outputDir + '")');
+  L.push('$host.UI.RawUI.WindowTitle = "Monitor Station - Interface Error Poller"');
+  L.push('$host.UI.RawUI.BackgroundColor = "DarkYellow"; Clear-Host');
+  L.push('Write-Host "================================================" -ForegroundColor Yellow');
+  L.push('Write-Host "  Interface Error Poller - running" -ForegroundColor Yellow');
+  L.push('Write-Host "================================================" -ForegroundColor Yellow');
+  L.push('Write-Host ""');
   L.push('$LogPath       = "$Root\\Logs\\' + c.ifaceLogFile + '"');
   L.push('$Interval      = ' + c.ifaceInterval);
   L.push('$CrcThresh     = ' + c.ifaceCrcThresh);
@@ -1321,6 +1519,183 @@ function buildReport(c) {
   L.push('Send-MailMessage -From $From -To $To -Subject $subj -Body $body -BodyAsHtml -SmtpServer $SmtpServer -Port $SmtpPort -UseSsl -Credential $cred');
   L.push('Write-Host "[Report] Sent to $($To -join ", ")"');
   return L.join("\r\n");
+}
+
+// ---- PER-TAB PREVIEW ----
+function buildConfig() {
+  return {
+    outputDir: g("outputDir") || "C:\\MonitorStation",
+    stationName: g("stationName"),
+    wsEnabled: true, wsInterface: g("wsInterface"),
+    wsCaptureFilter: g("wsCaptureFilter"), wsFileDuration: g("wsFileDuration") || "60",
+    wsFileCount: g("wsFileCount") || "24", wsFileSize: g("wsFileSize") || "100",
+    wsSnaplen: g("wsSnaplen") || "1518", wsPcapSubfolder: g("wsPcapSubfolder") || "PCAPs",
+    wsPcapPrefix: g("wsPcapPrefix") || "capture",
+    pingEnabled: true, pingInterval: g("pingInterval") || "30",
+    pingTimeout: g("pingTimeout") || "1000", pingCount: g("pingCount") || "4",
+    pingRttWarn: g("pingRttWarn") || "100", pingLossThresh: g("pingLossThresh") || "50",
+    pingLogMode: g("pingLogMode"), pingLogFile: g("pingLogFile") || "ping-failures.csv",
+    pingLogRetain: g("pingLogRetain") || "30", pingTraceroute: gb("pingTraceroute"),
+    stEnabled: true, stFrequency: g("stFrequency") || "60",
+    stQuietStart: g("stQuietStart") || "00:00", stQuietEnd: g("stQuietEnd") || "06:00",
+    stDownWarn: g("stDownWarn") || "10", stUpWarn: g("stUpWarn") || "2",
+    stServerId: g("stServerId"), stLogFile: g("stLogFile") || "speedtest-results.csv",
+    stLogRetain: g("stLogRetain") || "90", stAcceptLicense: gb("stAcceptLicense"),
+    ipscanEnabled: true, scanSubnet: g("scanSubnet") || "auto",
+    scanFrequency: g("scanFrequency") || "1440", scanThreads: g("scanThreads") || "32",
+    scanTimeout: g("scanTimeout") || "500", scanLogFile: g("scanLogFile") || "ip-scan.csv",
+    scanLogRetain: g("scanLogRetain") || "30", scanReverseDNS: gb("scanReverseDNS"),
+    scanPortCheck: gb("scanPortCheck"), scanArpDupCheck: gb("scanArpDupCheck"),
+    scanPorts: g("scanPorts") || "22,80,135,139,443,445,3389,8080",
+    jitterEnabled: true, jitterTarget: g("jitterTarget") || "8.8.8.8",
+    jitterTarget2: g("jitterTarget2") || "1.1.1.1", jitterBurst: g("jitterBurst") || "20",
+    jitterInterval: g("jitterInterval") || "60", jitterWarn: g("jitterWarn") || "20",
+    jitterLogFile: g("jitterLogFile") || "jitter-log.csv",
+    newdeviceEnabled: true, ndInterval: g("ndInterval") || "15",
+    ndBaselineFile: g("ndBaselineFile") || "known-devices.csv",
+    ndLogFile: g("ndLogFile") || "new-devices.csv", ndLogRetain: g("ndLogRetain") || "90",
+    ndReverseDNS: gb("ndReverseDNS"), ndOuiLookup: gb("ndOuiLookup"), ndPortScan: gb("ndPortScan"),
+    ifaceEnabled: true, ifaceInterval: g("ifaceInterval") || "60",
+    ifaceCrcThresh: g("ifaceCrcThresh") || "5", ifaceDiscardThresh: g("ifaceDiscardThresh") || "10",
+    ifaceLogFile: g("ifaceLogFile") || "interface-errors.csv", ifaceLogRetain: g("ifaceLogRetain") || "30",
+    ifaceAllAdapters: gb("ifaceAllAdapters"),
+    snapEnabled: true, snapIP: gb("snapIP"), snapGW: gb("snapGW"),
+    snapDNS: gb("snapDNS"), snapMTU: gb("snapMTU"), snapDHCP: gb("snapDHCP"),
+    snapRoutes: gb("snapRoutes"), snapNTP: gb("snapNTP"), snapARP: gb("snapARP"), snapSpeed: gb("snapSpeed"),
+    mtuTarget: g("mtuTarget") || "8.8.8.8", dnsTestDomain: g("dnsTestDomain") || "www.google.com",
+    snapFile: g("snapFile") || "network-snapshot.txt", mtuMax: g("mtuMax") || "1500",
+    reportEnabled: true, smtpServer: g("smtpServer"), smtpPort: g("smtpPort") || "587",
+    smtpFrom: g("smtpFrom"), smtpTo: g("smtpTo"), smtpUser: g("smtpUser"),
+    reportTime: g("reportTime") || "07:00", reportPingFails: gb("reportPingFails"),
+    reportSpeed: gb("reportSpeed"), reportNewDevices: gb("reportNewDevices"),
+    reportIfaceErrors: gb("reportIfaceErrors"), reportOnlyIssues: gb("reportOnlyIssues"),
+    runMode: "interactive"
+  };
+}
+
+var builderMap = {
+  "buildWsPreview":     function(c) { return buildSnapshot(c); }, // placeholder - ws has no standalone builder yet
+  "buildPingPreview":   buildPing,
+  "buildStPreview":     buildSpeedtest,
+  "buildIpScanPreview": buildIpScan,
+  "buildJitterPreview": buildJitter,
+  "buildNdPreview":     buildNewDevice,
+  "buildIfacePreview":  buildIfaceErrors,
+  "buildSnapPreview":   buildSnapshot
+};
+
+function previewSetup() {
+  var c = buildConfig();
+  c.installWireshark    = gb("installWireshark");
+  c.installSpeedtest    = gb("installSpeedtest");
+  c.installPingInfoView = gb("installPingInfoView");
+  c.installMTR          = gb("installMTR");
+  c.createShortcut      = gb("createShortcut");
+  c.outputDir           = g("outputDir") || "C:\\MonitorStation";
+  c.wsPcapSubfolder     = g("wsPcapSubfolder") || "PCAPs";
+  var code = buildInstallOnly(c);
+  var pre   = document.getElementById("preview-pre-setup");
+  var panel = document.getElementById("preview-setup");
+  if (pre)   pre.textContent = code;
+  if (panel) panel.classList.add("visible");
+}
+
+function buildInstallOnly(c) {
+  var d = c.outputDir;
+  var L = [];
+  L.push("#Requires -RunAsAdministrator");
+  L.push(hdr("Install-Tools.ps1", "Tool installation only - Wireshark, Speedtest CLI, PingInfoView, WinMTR"));
+  L.push("Set-ExecutionPolicy Bypass -Scope Process -Force");
+  L.push("[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12");
+  L.push("");
+  L.push('$Root  = "' + d + '"');
+  L.push('$Tools = "$Root\Tools"');
+  L.push('if (-not (Test-Path $Tools)) { New-Item -ItemType Directory -Path $Tools -Force | Out-Null }');
+  L.push('Write-Host "[OK] Folders ready" -ForegroundColor Green');
+  L.push("");
+  if (c.installWireshark) {
+    L.push("# Wireshark + tshark");
+    L.push('if (-not (Get-Command tshark -ErrorAction SilentlyContinue)) {');
+    L.push('    Write-Host "[..] Installing Wireshark..." -ForegroundColor Cyan');
+    L.push('    winget install --id WiresharkFoundation.Wireshark --silent --accept-package-agreements --accept-source-agreements');
+    L.push('    $env:PATH += ";C:\Program Files\Wireshark"');
+    L.push('    Write-Host "[OK] Wireshark installed" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] tshark already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installSpeedtest) {
+    L.push("# Speedtest CLI");
+    L.push('if (-not (Get-Command speedtest -ErrorAction SilentlyContinue)) {');
+    L.push('    Write-Host "[..] Installing Speedtest CLI..." -ForegroundColor Cyan');
+    L.push('    winget install --id Ookla.Speedtest.CLI --silent --accept-package-agreements --accept-source-agreements');
+    L.push('    if (-not (Get-Command speedtest -ErrorAction SilentlyContinue)) {');
+    L.push('        Write-Warning "[Speedtest] Not in PATH yet - try restarting shell or log off and back on"');
+    L.push('    }');
+    L.push('    Write-Host "[OK] Speedtest CLI ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] Speedtest CLI already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installPingInfoView) {
+    L.push("# PingInfoView");
+    L.push('if (-not (Test-Path "$Tools\PingInfoView\PingInfoView.exe")) {');
+    L.push('    $z = "$env:TEMP\piv.zip"');
+    L.push('    Invoke-WebRequest "https://www.nirsoft.net/utils/pinginfoview.zip" -OutFile $z -UseBasicParsing');
+    L.push('    Expand-Archive $z -DestinationPath "$Tools\PingInfoView" -Force');
+    L.push('    Write-Host "[OK] PingInfoView ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] PingInfoView already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.installMTR) {
+    L.push("# WinMTR");
+    L.push('if (-not (Test-Path "$Tools\WinMTR\WinMTR.exe")) {');
+    L.push('    $z = "$env:TEMP\winmtr.zip"');
+    L.push('    $mtrUrl = "https://github.com/White-Tiger/WinMTR/releases/download/v0.92/WinMTR-v092.zip"');
+    L.push('    Invoke-WebRequest $mtrUrl -OutFile $z -UseBasicParsing');
+    L.push('    Expand-Archive $z -DestinationPath "$Tools\WinMTR" -Force');
+    L.push('    Write-Host "[OK] WinMTR ready" -ForegroundColor Green');
+    L.push('} else { Write-Host "[OK] WinMTR already present" -ForegroundColor Green }');
+    L.push("");
+  }
+  if (c.createShortcut) {
+    L.push("# Desktop shortcut to logs");
+    L.push('$sh = New-Object -ComObject WScript.Shell');
+    L.push('$desktopPath = [Environment]::GetFolderPath("Desktop")');
+    L.push('if (Test-Path $desktopPath) {');
+    L.push('    $sc = $sh.CreateShortcut("$desktopPath\Monitor Tools.lnk")');
+    L.push('    $sc.TargetPath = $Tools; $sc.IconLocation = "shell32.dll,4"; $sc.Save()');
+    L.push('    Write-Host "[OK] Desktop shortcut created" -ForegroundColor Green');
+    L.push('} else { Write-Warning "[Shortcut] Desktop folder not found - skipping" }');
+    L.push("");
+  }
+  L.push('Write-Host ""');
+  L.push('Write-Host "==========================================" -ForegroundColor Cyan');
+  L.push('Write-Host "  Tool installation complete!" -ForegroundColor Cyan');
+  L.push('Write-Host "  Tools : $Tools" -ForegroundColor Cyan');
+  L.push('Write-Host "==========================================" -ForegroundColor Cyan');
+  L.push('Write-Host ""');
+  L.push('Read-Host "  Press Enter to close"');
+  return L.join("\r\n");
+}
+
+function previewScript(paneId, buildFn, copyId) {
+  var c = buildConfig();
+  var builder = builderMap[buildFn];
+  if (!builder) { return; }
+  var code = builder(c);
+  var pre = document.getElementById("preview-pre-" + paneId);
+  var panel = document.getElementById("preview-" + paneId);
+  if (pre) pre.textContent = code;
+  if (panel) panel.classList.add("visible");
+}
+
+function copyPreview(copyId, preId) {
+  var pre = document.getElementById(preId);
+  if (!pre) return;
+  var text = pre.textContent;
+  var btn = document.getElementById(copyId);
+  function done() { btn.textContent = "Copied!"; btn.classList.add("copied"); setTimeout(function(){ btn.textContent="Copy"; btn.classList.remove("copied"); }, 2000); }
+  try { navigator.clipboard.writeText(text).then(done).catch(function(){ fallbackCopy(text); done(); }); }
+  catch(e) { fallbackCopy(text); done(); }
 }
 
 // ---- COPY ----

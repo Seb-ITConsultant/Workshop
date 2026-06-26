@@ -129,6 +129,10 @@ a{color:inherit;}
 .finding h4{font-size:12px;font-weight:600;}
 .finding p{font-size:12px;color:var(--text-2);margin-top:2px;line-height:1.5;}
 .finding .fc{font-family:var(--mono);font-size:11px;color:var(--text-3);margin-top:3px;}
+.finding-filter{margin-top:7px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.finding-filter-label{font-size:10px;color:var(--text-3);font-weight:600;text-transform:uppercase;letter-spacing:.06em;flex-shrink:0;}
+.finding-filter-code{font-family:var(--mono);font-size:10px;background:var(--code-bg);color:var(--code-text);padding:2px 8px;border-radius:4px;cursor:pointer;border:none;transition:opacity .15s;white-space:nowrap;}
+.finding-filter-code:hover{opacity:.75;}
 .search-bar{display:flex;align-items:center;gap:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:18px;}
 .search-bar svg{width:14px;height:14px;color:var(--text-3);flex-shrink:0;}
 .search-bar input{border:none;background:transparent;outline:none;font-family:var(--font);font-size:13px;color:var(--text);width:100%;}
@@ -256,7 +260,7 @@ a{color:inherit;}
     <div class="ftypes">.pcap .pcapng .cap</div>
   </div>
   </div>
-  <input type="file" id="file-input" id="pcap-file" accept=".pcap,.pcapng,.cap" style="display:none" onchange="handleFileSelect(event)">
+  <input type="file" id="file-input" accept=".pcap,.pcapng,.cap" style="display:none" onchange="handleFileSelect(event)">
   <div id="progress-area">
     <div id="progress-wrap"></div>
     <div id="size-warn-wrap"></div>
@@ -2292,37 +2296,68 @@ function proceedAnyway(){
 
 function startAnalysis(file){
   var dwEl=document.getElementById('drop-wrap');if(dwEl)dwEl.style.display='none';
-  document.getElementById('size-warn-wrap').style.display='none';
-  var pwEl=document.getElementById('progress-wrap');if(pwEl)pwEl.innerHTML='<div class="progress-wrap"><h3>Analysing '+esc(file.name)+'</h3><p>Parsing packets in your browser - nothing is uploaded</p><div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div><div class="progress-pct" id="prog-pct">0%</div></div>';
-  document.getElementById('progress-wrap').style.display='block';
+  var swEl=document.getElementById('size-warn-wrap');if(swEl)swEl.style.display='none';
+  var pwEl=document.getElementById('progress-wrap');
+  if(pwEl){
+    pwEl.innerHTML='<div class="progress-wrap"><h3>Reading '+esc(file.name)+'</h3><p>Loading file into browser memory...</p><div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:5%"></div></div><div class="progress-pct" id="prog-pct">Reading...</div></div>';
+    pwEl.style.display='block';
+  }
   var reader=new FileReader();
+  reader.onprogress=function(e){
+    if(e.lengthComputable){
+      var pct=Math.round(e.loaded/e.total*40); // reading = 0-40%, parsing = 40-100%
+      setProgress(pct);
+      var l=document.getElementById('prog-pct');
+      if(l) l.textContent='Reading... '+pct+'%';
+    }
+  };
   reader.onload=function(e){
+    var l=document.getElementById('prog-pct');
+    if(l) l.textContent='Parsing packets...';
+    setProgress(40);
     var buf=new Uint8Array(e.target.result);
-    setTimeout(function(){parsePcapAsync(buf,file.name,file.size,function(r){
-      document.getElementById('progress-wrap').style.display='none';
-      renderAnalysis(r);
-    });},50);
+    setTimeout(function(){
+      try{
+        parsePcapAsync(buf,file.name,file.size,function(r){
+          var pw2=document.getElementById('progress-wrap');
+          if(pw2) pw2.style.display='none';
+          renderAnalysis(r);
+        });
+      } catch(err){
+        var pw2=document.getElementById('progress-wrap');
+        if(pw2) pw2.innerHTML='<div class="progress-wrap"><h3>Parse error</h3><p style="color:var(--red)">'+esc(String(err))+'</p><p style="margin-top:8px;font-size:12px;color:var(--text-2)">Try opening in Wireshark and re-saving as a .pcap file.</p></div>';
+      }
+    },50);
+  };
+  reader.onerror=function(){
+    if(pwEl) pwEl.innerHTML='<div class="progress-wrap"><h3>Error reading file</h3><p>Could not read the file. Try a smaller file or check the format.</p></div>';
   };
   reader.readAsArrayBuffer(file);
 }
 
 function setProgress(pct){
   var f=document.getElementById('prog-fill'), l=document.getElementById('prog-pct');
-  if(f)f.style.width=pct+'%';
-  if(l)l.textContent=Math.round(pct)+'%';
+  if(f) f.style.width=pct+'%';
+  if(l) l.textContent=Math.round(pct)+'%';
 }
 
 function parsePcapAsync(buf,fname,fsize,cb){
   var res=parsePcapHeader(buf,fname,fsize);
-  if(!res.valid||res.pcapng){setProgress(100);setTimeout(function(){cb(res);},50);return;}
+  if(!res.valid){setProgress(100);setTimeout(function(){cb(res);},50);return;}
+  if(res.pcapng){
+    // Route to full PCAPNG parser
+    parsePcapngAsync(buf,fname,fsize,cb);
+    return;
+  }
   var r32=res._le?function(o){return r32le(buf,o);}:function(o){return r32be(buf,o);};
   var snaplen=r32(16), lt=r32(20), o=24, total=buf.length;
   var s=res._s, seen=res._seen;
   function chunk(){
+    try{
     var dl=Date.now()+16, pk=0;
     while(o+16<=buf.length&&pk<2000&&Date.now()<dl){
-      var ts=r32(o),incl=r32(o+8),orig=r32(o+12); o+=16;
-      if(incl>buf.length-o)break;
+      var ts=(r32(o)>>>0), incl=(r32(o+8)>>>0), orig=(r32(o+12)>>>0); o+=16;
+      if(incl===0||incl>65535||incl>buf.length-o) break;
       if(res.count===0)s.t0=ts; s.t1=ts;
       s.bytes+=orig;
       if(orig>snaplen&&snaplen>0)s.trunc++;
@@ -2331,13 +2366,147 @@ function parsePcapAsync(buf,fname,fsize,cb){
       if(lt===1){parsePacket(p,s,seen,ts);parsePacketExtra(p,s,ts);}
       pk++;
     }
-    setProgress(Math.min(99,o/total*100));
-    if(o+16<=buf.length){setTimeout(chunk,0);}
+    setProgress(40+Math.min(59,o/total*60));
+    if(o+16<=buf.length&&pk>0){setTimeout(chunk,0);}
     else{
       setProgress(100);
       res.dur=s.t1-s.t0; res.bytes=s.bytes; res.tcp=s.tcp; res.udp=s.udp;
       buildFindings(res,s);
       setTimeout(function(){cb(res);},50);
+    }
+    }catch(err){
+      res.findings.unshift({sev:'critical',title:'Parse error at packet '+res.count,desc:String(err),count:''});
+      cb(res);
+    }
+  }
+  setTimeout(chunk,0);
+}
+
+function countPcapngPackets(buf){
+  var count=0, o=0;
+  while(o+12<=buf.length){
+    var type=(buf[o]|(buf[o+1]<<8)|(buf[o+2]<<16)|(buf[o+3]<<24))>>>0;
+    var len=(buf[o+4]|(buf[o+5]<<8)|(buf[o+6]<<16)|(buf[o+7]<<24))>>>0;
+    if(len<12||len>buf.length-o) break;
+    if(type===0x00000006||type===0x00000003) count++;
+    o+=len;
+  }
+  return count;
+}
+
+function parsePcapngAsync(buf,fname,fsize,cb){
+  // Full PCAPNG parser - reads IDB for link type then parses EPB/SPB packet data
+  var res={fname:fname,fsize:fsize,valid:true,pcapng:true,count:0,findings:[],dur:0};
+  res._s={
+    tcp:0,syn:0,rst:0,fin:0,http:0,https:0,sip:0,
+    rtr:0,zwin:0,dupAck:0,
+    udp:0,dns:0,dnsErr:0,dnsSlow:0,dnsNxdomain:0,dnsServfail:0,
+    dhcp:0,dhcpDiscover:0,dhcpOffer:0,dhcpReq:0,dhcpAck:0,dhcpNak:0,dhcpRogue:0,dhcpOfferSrcs:{},
+    rtp:0,rtcp:0,stun:0,teamsRelay:0,
+    icmp:0,icmpUnreach:0,icmpTtl:0,
+    arp:0,arpReq:0,arpRep:0,arpGratuitous:0,
+    stp:0,stpTc:0,tlsOld:0,
+    bytes:0,trunc:0,giant:0,t0:0,t1:0,totalBcast:0,
+    synMap:{},dnsMap:{},seqMap:{},ackMap:{},
+    smb:0,smb2Src:{},smb2Dst:{},
+    krb:0,krbSkew:0,
+    mdns:0,mdnsSrc:{},
+    danteMulticast:0,avMulticast:0,
+    dnsPerSrc:{},dhcpMac:{},ipSrc:{},
+    dscpZero:0,dscpNonZero:0,dscpEF:0,dscpCS3:0,dscpMap:{},
+    rtpStreams:{},burstGaps:[],lastPktTs:0,burstCount:0,
+    largePkts:0,largeWithRtp:false,
+    fragmented:0,fragSrc:{}
+  };
+  // Detect byte order from SHB magic
+  var le=(buf[8]===0x4d&&buf[9]===0x3c); // byte order magic 0x3c4d = LE
+  function r32(b,o){ return le?((b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24))>>>0):(((b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3])>>>0); }
+  function r16(b,o){ return le?((b[o]|(b[o+1]<<8))>>>0):(((b[o]<<8)|b[o+1])>>>0); }
+  // Track link types per interface (IDB sets link type)
+  var ifLinkTypes=[];
+  var s=res._s;
+  var seen={};
+  var total=buf.length;
+  var o=0;
+
+  function chunk(){
+    try{
+      var dl=Date.now()+16, pk=0;
+      while(o+12<=buf.length&&pk<2000&&Date.now()<dl){
+        var type=r32(buf,o);
+        var blen=r32(buf,o+4);
+        if(blen<12||o+blen>buf.length) break;
+
+        if(type===0x0A0D0D0A){
+          // SHB - Section Header Block, skip
+          o+=blen; continue;
+        }
+        if(type===0x00000001){
+          // IDB - Interface Description Block
+          // Link type at offset 8 (2 bytes)
+          var lt=r16(buf,o+8);
+          ifLinkTypes.push(lt);
+          o+=blen; continue;
+        }
+        if(type===0x00000006){
+          // EPB - Enhanced Packet Block
+          // Interface ID: o+8 (4 bytes)
+          // Timestamp high: o+12, low: o+16
+          // Captured len: o+20, original len: o+24
+          // Packet data: o+28
+          var ifIdx=r32(buf,o+8);
+          var tsHi=r32(buf,o+12), tsLo=r32(buf,o+16);
+          var ts=tsHi*4294967296+tsLo; // microseconds
+          var tsSec=Math.floor(ts/1000000);
+          var capLen=r32(buf,o+20);
+          var origLen=r32(buf,o+24);
+          var dataOff=o+28;
+          if(capLen>0&&dataOff+capLen<=buf.length){
+            var lt2=ifLinkTypes[ifIdx]!==undefined?ifLinkTypes[ifIdx]:1;
+            if(lt2===1){ // Ethernet
+              var p=buf.slice(dataOff,dataOff+capLen);
+              if(res.count===0)s.t0=tsSec; s.t1=tsSec;
+              s.bytes+=origLen;
+              parsePacket(p,s,seen,tsSec);
+              parsePacketExtra(p,s,tsSec);
+              res.count++;
+              pk++;
+            }
+          }
+          o+=blen; continue;
+        }
+        if(type===0x00000003){
+          // SPB - Simple Packet Block (no timestamp, link type from first IDB)
+          // Original len: o+8, packet data: o+12
+          var spbOrigLen=r32(buf,o+8);
+          var spbCapLen=blen-16; // block len minus headers
+          var spbDataOff=o+12;
+          if(spbCapLen>0&&spbDataOff+spbCapLen<=buf.length&&(ifLinkTypes[0]===undefined||ifLinkTypes[0]===1)){
+            var p2=buf.slice(spbDataOff,spbDataOff+spbCapLen);
+            s.bytes+=spbOrigLen;
+            parsePacket(p2,s,seen,0);
+            parsePacketExtra(p2,s,0);
+            res.count++;
+            pk++;
+          }
+          o+=blen; continue;
+        }
+        // Unknown block - skip
+        o+=blen;
+      }
+      setProgress(40+Math.min(59,o/total*60));
+      if(o+12<=buf.length&&pk>0){
+        setTimeout(chunk,0);
+      } else {
+        setProgress(100);
+        res.dur=s.t1-s.t0;
+        res.bytes=s.bytes; res.tcp=s.tcp; res.udp=s.udp;
+        buildFindings(res,s);
+        setTimeout(function(){cb(res);},50);
+      }
+    } catch(err){
+      res.findings.unshift({sev:'critical',title:'PCAPNG parse error at packet '+res.count,desc:String(err),count:''});
+      cb(res);
     }
   }
   setTimeout(chunk,0);
@@ -2346,7 +2515,7 @@ function parsePcapAsync(buf,fname,fsize,cb){
 function parsePcapHeader(buf,fname,fsize){
   var res={fname:fname,fsize:fsize,valid:false,pcapng:false,count:0,findings:[],dur:0,_le:false};
   if(buf.length<24){res.findings.push({sev:'critical',title:'File too small',desc:'Not a valid PCAP.',count:''});return res;}
-  var magic=(buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3];
+  var magic=((buf[0]<<24)|(buf[1]<<16)|(buf[2]<<8)|buf[3])>>>0;
   if(magic===0xa1b2c3d4||magic===0xa1b23c4d){res.valid=true;}
   else if(magic===0xd4c3b2a1||magic===0x4d3cb2a1){res._le=true;res.valid=true;}
   else if(magic===0x0a0d0d0a){res.valid=true;res.pcapng=true;}
@@ -2372,14 +2541,24 @@ function parsePcapHeader(buf,fname,fsize){
     krb:0,krbSkew:0,
     mdns:0,mdnsSrc:{},
     danteMulticast:0,avMulticast:0,
-    dnsPerSrc:{},dhcpMac:{},ipSrc:{}
+    dnsPerSrc:{},dhcpMac:{},ipSrc:{},
+    // QoS / burst detection
+    dscpZero:0,dscpNonZero:0,dscpEF:0,dscpCS3:0,dscpMap:{},
+    rtpStreams:{},       // key=src:sport->dst:dport, value={seq,ts,lastTs,jitterSum,jitterCount,lost,ssrc}
+    burstGaps:[],        // inter-packet times in microseconds (sampled)
+    lastPktTs:0,         // last packet timestamp in microseconds
+    burstCount:0,        // number of burst periods detected
+    largePkts:0,         // packets > 1400 bytes
+    largeWithRtp:false,  // large packets co-existing with RTP
+    fragmented:0,        // fragmented IP packets
+    fragSrc:{}           // source IPs generating fragments
   };
   res._seen={};
   return res;
 }
 
-function r32le(b,o){return b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24);}
-function r32be(b,o){return(b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3];}
+function r32le(b,o){return ((b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24))>>>0);}
+function r32be(b,o){return (((b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3])>>>0);}
 
 function parsePacket(p,s,seen,ts){
   if(p.length<14)return;
@@ -2484,45 +2663,49 @@ function buildFindings(res,s){
   var uDns=Object.keys(s.dnsMap).length;
   // TCP
   if(s.rtr>0){var pct=(s.rtr/c*100).toFixed(1);res.findings.push({sev:pct>5?'critical':'warning',title:'TCP Retransmissions',desc:s.rtr+' retransmitted packets ('+pct+'% of capture). Clusters suggest a bad port or cable; scattered suggest interference or congestion.',count:s.rtr+' packets'});}
-  if(s.dupAck>10)res.findings.push({sev:'warning',title:'Duplicate ACKs',desc:'Receiver sending repeated ACKs \u2014 sign of out-of-order or lost packets upstream. Usually appears just before retransmissions.',count:s.dupAck+' dup ACKs'});
-  if(s.rst>20)res.findings.push({sev:'warning',title:'High TCP RST count',desc:'Firewall dropping connections, application errors, or a service not listening on the target port.',count:s.rst+' RSTs'});
-  if(s.zwin>5)res.findings.push({sev:'warning',title:'TCP Zero Window',desc:'Receiver buffer full \u2014 slow application or memory pressure on the receiving end, not the network.',count:s.zwin+' packets'});
-  if(uSyns>5)res.findings.push({sev:'warning',title:'TCP SYN With No SYN-ACK',desc:'Connections started but never completed. Firewall may be blocking return traffic, or destination is unreachable. Classic sign of internet/routing failure.',count:uSyns+' unanswered SYNs'});
-  if(s.rtr===0&&s.zwin===0&&s.rst<5&&s.dupAck<3&&s.tcp>0&&uSyns<3)res.findings.push({sev:'ok',title:'TCP looks healthy',desc:'No retransmissions, zero-window, duplicate ACKs, or unanswered SYNs.',count:s.tcp+' TCP packets'});
+  if(s.dupAck>50||(s.tcp>0&&s.dupAck/s.tcp>0.02))res.findings.push({sev:'warning',title:'Duplicate ACKs',desc:'Receiver sending repeated ACKs \u2014 sign of out-of-order or lost packets upstream. Usually appears just before retransmissions.',count:s.dupAck+' dup ACKs',filter:'tcp.analysis.duplicate_ack'});
+  if(s.rst>200||(s.tcp>0&&s.rst/s.tcp>0.05))res.findings.push({sev:'warning',title:'High TCP RST count',desc:'Significant TCP resets detected ('+(s.tcp>0?(s.rst/s.tcp*100).toFixed(1)+'% of TCP connections':''+s.rst+' RSTs')+') - firewall dropping connections, application errors, or a service not listening on the target port.',count:s.rst+' RSTs',filter:'tcp.flags.rst == 1'});
+  if(s.zwin>50||(s.tcp>0&&s.zwin/s.tcp>0.01))res.findings.push({sev:'warning',title:'TCP Zero Window',desc:'Receiver buffer full - slow application or memory pressure on the receiving end, not the network. ('+(s.tcp>0?(s.zwin/s.tcp*100).toFixed(2)+'% of TCP':s.zwin+' packets')+')',count:s.zwin+' packets',filter:'tcp.window_size == 0'});
+  if(uSyns>20||(s.syn>0&&uSyns/s.syn>0.02))res.findings.push({sev:'warning',title:'TCP SYN With No SYN-ACK',desc:'Connections started but never completed. Firewall may be blocking return traffic, or destination is unreachable. Classic sign of internet/routing failure.',count:uSyns+' unanswered SYNs',filter:'tcp.flags.syn == 1 && tcp.flags.ack == 0'});
+  if(s.rtr===0&&s.zwin===0&&s.rst<5&&s.dupAck<3&&s.tcp>0&&uSyns<3)res.findings.push({sev:'ok',title:'TCP looks healthy',desc:'No retransmissions, zero-window, duplicate ACKs, or unanswered SYNs.',count:s.tcp+' TCP packets',filter:'tcp.analysis.flags'});
   // DNS
-  if(s.dnsErr>0)res.findings.push({sev:'warning',title:'DNS Errors',desc:'Failed DNS responses detected. '+(s.dnsNxdomain?s.dnsNxdomain+' NXDOMAIN (domain not found). ':'')+( s.dnsServfail?s.dnsServfail+' SERVFAIL (resolver cannot answer). ':'')+'Check internal zones and forwarder connectivity.',count:s.dnsErr+' error responses'});
-  if(uDns>3)res.findings.push({sev:'warning',title:'DNS Queries With No Response',desc:'DNS queries sent but no response received. DNS server unreachable or firewall blocking UDP/TCP 53.',count:uDns+' unanswered queries'});
-  if(s.dnsSlow>0)res.findings.push({sev:'warning',title:'Slow DNS Responses (>2s)',desc:'Slow forwarder, overloaded resolver, or unreachable upstream. Users will perceive general slowness.',count:s.dnsSlow+' slow responses'});
-  if(s.dns>0&&s.dnsErr===0&&uDns===0)res.findings.push({sev:'ok',title:'DNS looks healthy',desc:'All sampled DNS responses returned successful RCODEs with no timeouts.',count:s.dns+' DNS packets'});
+  if(s.dnsErr>0)res.findings.push({sev:'warning',title:'DNS Errors',desc:'Failed DNS responses detected. '+(s.dnsNxdomain?s.dnsNxdomain+' NXDOMAIN (domain not found). ':'')+( s.dnsServfail?s.dnsServfail+' SERVFAIL (resolver cannot answer). ':'')+'Check internal zones and forwarder connectivity.',count:s.dnsErr+' error responses',filter:'dns.flags.rcode > 0'});
+  if(uDns>10)res.findings.push({sev:'warning',title:'DNS Queries With No Response',desc:'DNS queries sent but no response received. DNS server unreachable or firewall blocking UDP/TCP 53.',count:uDns+' unanswered queries',filter:'dns.flags.response == 0'});
+  if(s.dnsSlow>0)res.findings.push({sev:'warning',title:'Slow DNS Responses (>2s)',desc:'Slow forwarder, overloaded resolver, or unreachable upstream. Users will perceive general slowness.',count:s.dnsSlow+' slow responses',filter:'dns && dns.time > 2'});
+  if(s.dns>0&&s.dnsErr===0&&uDns===0)res.findings.push({sev:'ok',title:'DNS looks healthy',desc:'All sampled DNS responses returned successful RCODEs with no timeouts.',count:s.dns+' DNS packets',filter:'dns'});
   // DHCP
-  if(s.dhcpDiscover>0&&s.dhcpOffer===0)res.findings.push({sev:'critical',title:'DHCP Discover With No Offer',desc:'Client broadcasting Discover but no server responding. DHCP service may be down, or helper-address not configured on this VLAN.',count:s.dhcpDiscover+' Discovers, 0 Offers'});
-  else if(s.dhcpRogue)res.findings.push({sev:'critical',title:'Rogue DHCP Server Detected',desc:'DHCP Offers from multiple source IPs \u2014 a rogue DHCP server is present. Clients may receive wrong IP, gateway, or DNS. Sources: '+Object.keys(s.dhcpOfferSrcs).join(', '),count:Object.keys(s.dhcpOfferSrcs).length+' offer sources'});
-  else if(s.dhcpNak>0)res.findings.push({sev:'warning',title:'DHCP NAK',desc:'Server refused address. Pool may be exhausted or client is on wrong subnet.',count:s.dhcpNak+' NAKs'});
-  else if(s.dhcp>0&&s.dhcpDiscover>0&&s.dhcpAck>0)res.findings.push({sev:'ok',title:'DHCP sequence complete',desc:'Discover \u2192 Offer \u2192 Request \u2192 ACK all present.',count:s.dhcp+' DHCP packets'});
-  else if(s.dhcp>0)res.findings.push({sev:'info',title:'DHCP activity',desc:'DHCP traffic present.',count:s.dhcp+' packets'});
+  if(s.dhcpDiscover>0&&s.dhcpOffer===0)res.findings.push({sev:'critical',title:'DHCP Discover With No Offer',desc:'Client broadcasting Discover but no server responding. DHCP service may be down, or helper-address not configured on this VLAN.',count:s.dhcpDiscover+' Discovers, 0 Offers',filter:'dhcp'});
+  else if(s.dhcpRogue)res.findings.push({sev:'critical',title:'Rogue DHCP Server Detected',desc:'DHCP Offers from multiple source IPs \u2014 a rogue DHCP server is present. Clients may receive wrong IP, gateway, or DNS. Sources: '+Object.keys(s.dhcpOfferSrcs).join(', '),count:Object.keys(s.dhcpOfferSrcs).length+' offer sources',filter:'dhcp.option.dhcp == 2'});
+  else if(s.dhcpNak>0)res.findings.push({sev:'warning',title:'DHCP NAK',desc:'Server refused address. Pool may be exhausted or client is on wrong subnet.',count:s.dhcpNak+' NAKs',filter:'dhcp.option.dhcp == 6'});
+  else if(s.dhcp>0&&s.dhcpDiscover>0&&s.dhcpAck>0)res.findings.push({sev:'ok',title:'DHCP sequence complete',desc:'Discover \u2192 Offer \u2192 Request \u2192 ACK all present.',count:s.dhcp+' DHCP packets',filter:'dhcp'});
+  else if(s.dhcp>0)res.findings.push({sev:'info',title:'DHCP activity',desc:'DHCP traffic present.',count:s.dhcp+' packets',filter:'dhcp'});
   // ARP / storm
   var bpct=s.totalBcast>0?(s.totalBcast/c*100).toFixed(1):0;
-  if(s.arp>200||(s.arp>50&&bpct>20))res.findings.push({sev:'critical',title:'Broadcast Storm / Possible Loop',desc:'Very high ARP volume with '+bpct+'% broadcast ratio. Switching loop or storm in progress. Network performance severely impacted.',count:s.arp+' ARP, '+bpct+'% bcast'});
-  else if(s.arp>50)res.findings.push({sev:'warning',title:'High ARP volume',desc:'Elevated ARP traffic. Could indicate scanning, misconfigured routing, or early loop signs.',count:s.arp+' ARP ('+s.arpReq+' req / '+s.arpRep+' rep)'});
+  if(s.arp>500&&bpct>30)res.findings.push({sev:'critical',title:'Broadcast Storm / Possible Loop',desc:'Very high ARP volume with '+bpct+'% broadcast ratio. Switching loop or storm in progress. Network performance severely impacted.',count:s.arp+' ARP, '+bpct+'% bcast',filter:'eth.dst == ff:ff:ff:ff:ff:ff'});
+  else if(s.arp>200||(s.arp>50&&bpct>20))res.findings.push({sev:'warning',title:'High ARP volume',desc:'Elevated ARP traffic ('+bpct+'% of traffic). Could indicate scanning, misconfigured routing, or early loop signs. Under 5% is normal for most networks.',count:s.arp+' ARP ('+s.arpReq+' req / '+s.arpRep+' rep)',filter:'arp'});
+  else if(s.arp>0&&bpct<=5)res.findings.push({sev:'ok',title:'ARP traffic normal',desc:'ARP at '+bpct+'% of traffic - within normal range for a healthy network.',count:s.arp+' ARP packets',filter:'arp'});
   // STP
-  if(s.stpTc>5)res.findings.push({sev:'warning',title:'STP Topology Changes',desc:'TC flag set repeatedly \u2014 a port is flapping and causing STP reconvergence. Enable BPDU Guard on access ports.',count:s.stpTc+' TC flags / '+s.stp+' BPDUs'});
-  else if(s.stp>0&&s.stpTc===0)res.findings.push({sev:'ok',title:'STP stable',desc:'STP BPDUs present, no topology change flags. Spanning tree is stable.',count:s.stp+' BPDUs'});
+  if(s.stpTc>5)res.findings.push({sev:'warning',title:'STP Topology Changes',desc:'TC flag set repeatedly \u2014 a port is flapping and causing STP reconvergence. Enable BPDU Guard on access ports.',count:s.stpTc+' TC flags / '+s.stp+' BPDUs',filter:'stp.flags.tc == 1'});
+  else if(s.stp>0&&s.stpTc===0)res.findings.push({sev:'ok',title:'STP stable',desc:'STP BPDUs present, no topology change flags. Spanning tree is stable.',count:s.stp+' BPDUs',filter:'stp'});
   // ICMP
-  if(s.icmpUnreach>0)res.findings.push({sev:'warning',title:'ICMP Destination Unreachable',desc:'Router or firewall sending type 3 unreachable. Routing table may be missing a route or a firewall policy is rejecting traffic.',count:s.icmpUnreach+' messages'});
-  if(s.icmpTtl>0)res.findings.push({sev:'warning',title:'ICMP TTL Exceeded',desc:'Packets dropped due to TTL expiry \u2014 possible routing loop or too many hops. Run a traceroute to confirm.',count:s.icmpTtl+' messages'});
+  if(s.icmpUnreach>10)res.findings.push({sev:'warning',title:'ICMP Destination Unreachable',desc:'Router or firewall sending type 3 unreachable. Routing table may be missing a route or a firewall policy is rejecting traffic.',count:s.icmpUnreach+' messages',filter:'icmp.type == 3'});
+  if(s.icmpTtl>5)res.findings.push({sev:'warning',title:'ICMP TTL Exceeded',desc:'Packets dropped due to TTL expiry \u2014 possible routing loop or too many hops. Run a traceroute to confirm.',count:s.icmpTtl+' messages',filter:'icmp.type == 11'});
   // VoIP / Teams
-  if(s.stun>0&&s.rtp===0)res.findings.push({sev:'warning',title:'STUN / ICE With No RTP',desc:'ICE negotiation detected but no RTP media followed. Teams or WebRTC ICE may have failed \u2014 check UDP 3478-3481 is open outbound.',count:s.stun+' STUN packets'});
-  else if(s.stun>0&&s.rtp>0)res.findings.push({sev:'info',title:'Teams / WebRTC media',desc:'STUN ICE and RTP both present \u2014 call established successfully.',count:s.stun+' STUN, '+s.rtp+' RTP'});
-  if(s.teamsRelay>0&&s.stun===0)res.findings.push({sev:'warning',title:'Teams TURN Relay',desc:'Traffic on UDP 3478-3481 without STUN \u2014 Teams may be using relay fallback. Check firewall rules for those ports.',count:s.teamsRelay+' packets'});
-  if(s.sip>0)res.findings.push({sev:'info',title:'SIP / VoIP traffic',desc:'SIP signalling detected. Use Wireshark Telephony \u2192 VoIP Calls for the full call ladder.',count:s.sip+' SIP packets'});
+  if(s.stun>0&&s.rtp===0)res.findings.push({sev:'warning',title:'STUN / ICE With No RTP',desc:'ICE negotiation detected but no RTP media followed. Teams or WebRTC ICE may have failed \u2014 check UDP 3478-3481 is open outbound.',count:s.stun+' STUN packets',filter:'stun'});
+  else if(s.stun>0&&s.rtp>0)res.findings.push({sev:'info',title:'Teams / WebRTC media',desc:'STUN ICE and RTP both present \u2014 call established successfully.',count:s.stun+' STUN, '+s.rtp+' RTP',filter:'stun || rtp'});
+  if(s.teamsRelay>0&&s.stun===0)res.findings.push({sev:'warning',title:'Teams TURN Relay',desc:'Traffic on UDP 3478-3481 without STUN \u2014 Teams may be using relay fallback. Check firewall rules for those ports.',count:s.teamsRelay+' packets',filter:'udp.port >= 3478 && udp.port <= 3481'});
+  if(s.sip>0)res.findings.push({sev:'info',title:'SIP / VoIP traffic',desc:'SIP signalling detected. Use Wireshark Telephony \u2192 VoIP Calls for the full call ladder.',count:s.sip+' SIP packets',filter:'sip || rtp'});
   // TLS / HTTP
-  if(s.tlsOld>0)res.findings.push({sev:'warning',title:'Outdated TLS (1.0/1.1)',desc:'Deprecated TLS versions in use. Fails PCI-DSS and Cyber Essentials compliance.',count:s.tlsOld+' handshakes'});
-  if(s.http>0)res.findings.push({sev:'info',title:'Cleartext HTTP',desc:'Unencrypted HTTP present \u2014 content visible in this capture.',count:s.http+' packets'});
-  if(s.trunc>0)res.findings.push({sev:'info',title:'Truncated packets',desc:'Packets exceeded snaplen. Re-capture with -s 0.',count:s.trunc+' packets'});
+  if(s.tlsOld>0)res.findings.push({sev:'warning',title:'Outdated TLS (1.0/1.1)',desc:'Deprecated TLS versions in use. Fails PCI-DSS and Cyber Essentials compliance.',count:s.tlsOld+' handshakes',filter:'tls.handshake.version < 0x0303'});
+  if(s.http>0)res.findings.push({sev:'info',title:'Cleartext HTTP',desc:'Unencrypted HTTP present \u2014 content visible in this capture.',count:s.http+' packets',filter:'http'});
+  if(s.trunc>0)res.findings.push({sev:'info',title:'Truncated packets',desc:'Packets exceeded snaplen. Re-capture with -s 0.',count:s.trunc+' packets',filter:'frame.cap_len < frame.len'});
   buildFindingsExtra(res,s,res.count);
 }
 
+var _lastResult=null;
+
 function renderAnalysis(r){
+  _lastResult=r;
   var html='';
   if(!r.valid){
     html='<div class="card" style="margin-top:16px;"><div class="finding critical"><div class="finding-hdr"><span class="badge">Error</span><h4>'+r.findings[0].title+'</h4></div><p>'+r.findings[0].desc+'</p></div></div>';
@@ -2538,11 +2721,20 @@ function renderAnalysis(r){
   html+='<div class="sum-stat"><div class="num">'+dur+'</div><div class="lbl">Duration</div></div>';
   html+='<div class="sum-stat"><div class="num">'+issues+'</div><div class="lbl">Issues</div></div>';
   html+='<div style="flex:1;font-size:12px;color:var(--text-2);">'+esc(r.fname)+(r.pcapng?' <span style="color:var(--accent)">(PCAPNG)</span>':'')+'<br>';
-  html+='<button style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;" onclick="resetAnalysis()">← Analyse another file</button></div></div>';
+  html+='<button style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;padding:0;" onclick="resetAnalysis()">&#8592; Analyse another file</button></div>';
+  html+='<div style="display:flex;gap:8px;flex-shrink:0;">';
+  html+='<button class="btn-secondary" style="font-size:12px;padding:6px 12px;" onclick="exportCustomerReport()">&#x1F4C4; Customer Report</button>';
+  html+='<button class="btn-secondary" style="font-size:12px;padding:6px 12px;" onclick="exportCWNote()">&#x1F4CB; CW Note</button>';
+  html+='</div></div>';
   html+='<div class="findings-grid">';
   if(!r.findings.length) html+='<div style="grid-column:1/-1;text-align:center;padding:32px;color:var(--text-2);">No specific issues detected.</div>';
-  r.findings.forEach(function(f){
-    html+='<div class="finding '+f.sev+'"><div class="finding-hdr"><span class="badge">'+f.sev+'</span><h4>'+f.title+'</h4></div><p>'+f.desc+'</p>'+(f.count?'<div class="fc">'+f.count+'</div>':'')+'</div>';
+  r.findings.forEach(function(f,fi){
+    var filterHtml='';
+    if(f.filter){
+      var fid='ff-'+fi;
+      filterHtml='<div class="finding-filter"><span class="finding-filter-label">Filter:</span><button class="finding-filter-code" id="'+fid+'" onclick="copyByElemId(\''+fid+'\')">'+esc(f.filter)+'</button></div>';
+    }
+    html+='<div class="finding '+f.sev+'"><div class="finding-hdr"><span class="badge">'+f.sev+'</span><h4>'+f.title+'</h4></div><p>'+f.desc+'</p>'+(f.count?'<div class="fc">'+f.count+'</div>':'')+filterHtml+'</div>';
   });
   html+='</div>';
   var aoEl=document.getElementById('analysis-out');if(aoEl)aoEl.innerHTML=html;
@@ -2551,11 +2743,204 @@ function renderAnalysis(r){
 
 function resetAnalysis(){
   document.getElementById('analysis-out').style.display='none';
-  document.getElementById('size-warn-wrap').style.display='none';
-  document.getElementById('progress-wrap').style.display='none';
+  var swEl=document.getElementById('size-warn-wrap');if(swEl)swEl.style.display='none';
+  var pwEl=document.getElementById('progress-wrap');if(pwEl)pwEl.style.display='none';
   var dwEl=document.getElementById('drop-wrap');if(dwEl)dwEl.style.display='block';
   var pfEl=document.getElementById('pcap-file')||document.getElementById('file-input');if(pfEl)pfEl.value='';
   _pendingFile=null;
+}
+
+function exportCustomerReport(){
+  var r=_lastResult; if(!r) return;
+  var date=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  var criticals=r.findings.filter(function(f){return f.sev==='critical';});
+  var warnings=r.findings.filter(function(f){return f.sev==='warning';});
+  var infos=r.findings.filter(function(f){return f.sev==='info';});
+  var issues=criticals.length+warnings.length;
+  var health=criticals.length>0?'Poor':warnings.length>3?'Fair':warnings.length>0?'Good':'Healthy';
+  var healthCol=criticals.length>0?'#dc2626':warnings.length>3?'#d97706':warnings.length>0?'#2563eb':'#16a34a';
+
+  // Plain English severity labels and customer-friendly descriptions
+  function customerDesc(f){
+    // Strip technical jargon, make readable for non-technical audience
+    var d=f.desc
+      .replace(/DSCP/g,'Quality of Service (QoS)')
+      .replace(/tcpdump/g,'packet capture')
+      .replace(/BPF/g,'capture filter')
+      .replace(/<[^>]+>/g,' ')  // strip HTML tags
+      .replace(/\s+/g,' ').trim();
+    return d;
+  }
+
+  function sevLabel(s){ return s==='critical'?'High Priority':s==='warning'?'Needs Attention':s==='ok'?'Healthy':'For Information'; }
+  function sevCol(s){ return s==='critical'?'#dc2626':s==='warning'?'#d97706':s==='ok'?'#16a34a':'#2563eb'; }
+
+  var findingsHtml='';
+  var actionable=r.findings.filter(function(f){return f.sev==='critical'||f.sev==='warning';});
+  actionable.forEach(function(f){
+    findingsHtml+='<div style="margin-bottom:20px;padding:16px 20px;border-radius:8px;border-left:4px solid '+sevCol(f.sev)+';background:#f8fafc;">';
+    findingsHtml+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">';
+    findingsHtml+='<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:'+sevCol(f.sev)+';background:'+sevCol(f.sev)+'22;padding:2px 8px;border-radius:4px;">'+sevLabel(f.sev)+'</span>';
+    findingsHtml+='<strong style="font-size:14px;">'+f.title+'</strong></div>';
+    findingsHtml+='<p style="font-size:13px;color:#475569;line-height:1.7;margin:0;">'+customerDesc(f)+'</p>';
+    if(f.count) findingsHtml+='<p style="font-size:12px;color:#94a3b8;margin-top:6px;font-family:monospace;">Observed: '+f.count+'</p>';
+    findingsHtml+='</div>';
+  });
+  if(!findingsHtml) findingsHtml='<div style="padding:20px;background:#f0fdf4;border-radius:8px;color:#16a34a;font-weight:500;">No significant issues detected in this capture.</div>';
+
+  var infoHtml='';
+  infos.forEach(function(f){
+    infoHtml+='<li style="margin-bottom:6px;color:#475569;font-size:13px;">'+f.title+(f.count?' - '+f.count:'')+'</li>';
+  });
+
+  var html='<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">';
+  html+='<title>Network Analysis Report - '+esc(r.fname)+'</title>';
+  html+='<style>';
+  html+='*{box-sizing:border-box;margin:0;padding:0;}';
+  html+='body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#f1f5f9;color:#0f172a;padding:40px 20px;}';
+  html+='.page{max-width:760px;margin:0 auto;background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,.08);}';
+  html+='.header{background:#0f172a;color:white;padding:32px 40px;}';
+  html+='.header h1{font-size:22px;font-weight:700;margin-bottom:4px;}';
+  html+='.header p{font-size:13px;color:#94a3b8;}';
+  html+='.health-band{padding:20px 40px;background:'+healthCol+'18;border-bottom:3px solid '+healthCol+';}';
+  html+='.health-band .label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:'+healthCol+';font-weight:700;}';
+  html+='.health-band .value{font-size:28px;font-weight:700;color:'+healthCol+';margin-top:2px;}';
+  html+='.health-band .sub{font-size:13px;color:#475569;margin-top:4px;}';
+  html+='.stats{display:flex;gap:0;border-bottom:1px solid #e2e8f0;}';
+  html+='.stat{flex:1;padding:20px 24px;border-right:1px solid #e2e8f0;text-align:center;}';
+  html+='.stat:last-child{border-right:none;}';
+  html+='.stat .n{font-size:22px;font-weight:700;color:#0d9488;}';
+  html+='.stat .l{font-size:11px;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}';
+  html+='.body{padding:32px 40px;}';
+  html+='.body h2{font-size:16px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid #e2e8f0;}';
+  html+='.summary-box{background:#f8fafc;border-radius:8px;padding:16px 20px;margin-bottom:28px;font-size:13px;line-height:1.8;color:#475569;}';
+  html+='.footer{padding:20px 40px;border-top:1px solid #e2e8f0;font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;}';
+  html+='@media print{body{background:white;padding:0;}.page{box-shadow:none;border-radius:0;}}';
+  html+='</style></head><body><div class="page">';
+
+  // Header
+  html+='<div class="header"><h1>Network Analysis Report</h1>';
+  html+='<p>'+esc(r.fname)+' &nbsp;&bull;&nbsp; '+date+'</p></div>';
+
+  // Health band
+  html+='<div class="health-band">';
+  html+='<div class="label">Overall Network Health</div>';
+  html+='<div class="value">'+health+'</div>';
+  html+='<div class="sub">'+issues+' issue'+(issues!==1?'s':'')+' identified requiring attention</div>';
+  html+='</div>';
+
+  // Stats
+  html+='<div class="stats">';
+  html+='<div class="stat"><div class="n">'+r.count.toLocaleString()+'</div><div class="l">Packets Analysed</div></div>';
+  html+='<div class="stat"><div class="n">'+((r.fsize/1048576).toFixed(1))+' MB</div><div class="l">Capture Size</div></div>';
+  html+='<div class="stat"><div class="n">'+(r.dur?r.dur+'s':'N/A')+'</div><div class="l">Duration</div></div>';
+  html+='<div class="stat"><div class="n" style="color:'+(criticals.length>0?'#dc2626':warnings.length>0?'#d97706':'#16a34a')+'">'+issues+'</div><div class="l">Issues Found</div></div>';
+  html+='</div>';
+
+  // Body
+  html+='<div class="body">';
+
+  // Executive summary
+  html+='<h2>Summary</h2>';
+  html+='<div class="summary-box">';
+  if(issues===0){
+    html+='This network capture did not reveal any significant issues. Traffic patterns appear normal with no evidence of connectivity problems, performance degradation, or security concerns based on the data analysed.';
+  } else {
+    html+='Analysis of this network capture identified <strong>'+issues+' issue'+(issues!==1?'s':'')+
+    '</strong> requiring attention'+(criticals.length>0?', including <strong>'+criticals.length+' high-priority item'+(criticals.length!==1?'s':'')+
+    '</strong> that should be addressed promptly':'')+'. ';
+    if(criticals.length>0){
+      html+='The high-priority findings indicate '+criticals.map(function(f){return f.title.toLowerCase();}).join(' and ')+
+      ', which may be impacting network performance and user experience. ';
+    }
+    if(warnings.length>0){
+      html+='Additional items flagged for attention include: '+warnings.map(function(f){return f.title.toLowerCase();}).join(', ')+'.';
+    }
+  }
+  html+='</div>';
+
+  // Findings
+  if(actionable.length>0){
+    html+='<h2>Findings</h2>';
+    html+=findingsHtml;
+  }
+
+  // Info items
+  if(infos.length>0){
+    html+='<h2 style="margin-top:28px;">Additional Observations</h2>';
+    html+='<ul style="padding-left:20px;margin-top:8px;">'+infoHtml+'</ul>';
+  }
+
+  html+='</div>';
+  html+='<div class="footer"><span>Generated by Seb\'s Workshop - Wireshark Helper</span><span>'+date+'</span></div>';
+  html+='</div></body></html>';
+
+  var w=window.open('','_blank');
+  if(w){w.document.write(html);w.document.close();}
+  else{showToast('Allow popups to open the report');}
+}
+
+function exportCWNote(){
+  var r=_lastResult; if(!r) return;
+  var date=new Date().toLocaleDateString('en-GB');
+  var mb=(r.fsize/1048576).toFixed(2);
+  var criticals=r.findings.filter(function(f){return f.sev==='critical';});
+  var warnings=r.findings.filter(function(f){return f.sev==='warning';});
+  var infos=r.findings.filter(function(f){return f.sev==='info';});
+  var oks=r.findings.filter(function(f){return f.sev==='ok';});
+  var issues=criticals.length+warnings.length;
+
+  function stripHtml(s){ return s.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim(); }
+
+  var lines=[];
+  lines.push('--- NETWORK PACKET CAPTURE ANALYSIS ---');
+  lines.push('Date: '+date);
+  lines.push('File: '+r.fname+(r.pcapng?' (PCAPNG)':''));
+  lines.push('Packets: '+r.count.toLocaleString()+' | Size: '+mb+' MB | Duration: '+(r.dur?r.dur+'s':'N/A'));
+  lines.push('Issues found: '+issues+' ('+criticals.length+' critical, '+warnings.length+' warning)');
+  lines.push('');
+
+  if(criticals.length>0){
+    lines.push('[HIGH PRIORITY - '+criticals.length+' item'+(criticals.length!==1?'s':'')+']');
+    criticals.forEach(function(f){
+      lines.push('');
+      lines.push('* '+f.title.toUpperCase());
+      lines.push('  '+stripHtml(f.desc));
+      if(f.count) lines.push('  Detail: '+f.count);
+      if(f.filter) lines.push('  Wireshark filter: '+f.filter);
+    });
+    lines.push('');
+  }
+
+  if(warnings.length>0){
+    lines.push('[WARNINGS - '+warnings.length+' item'+(warnings.length!==1?'s':'')+']');
+    warnings.forEach(function(f){
+      lines.push('');
+      lines.push('* '+f.title);
+      lines.push('  '+stripHtml(f.desc));
+      if(f.count) lines.push('  Detail: '+f.count);
+      if(f.filter) lines.push('  Wireshark filter: '+f.filter);
+    });
+    lines.push('');
+  }
+
+  if(oks.length>0){
+    lines.push('[HEALTHY]');
+    oks.forEach(function(f){ lines.push('  + '+f.title+(f.count?' ('+f.count+')':'')); });
+    lines.push('');
+  }
+
+  if(infos.length>0){
+    lines.push('[INFO]');
+    infos.forEach(function(f){ lines.push('  - '+f.title+(f.count?' ('+f.count+')':'')); });
+    lines.push('');
+  }
+
+  lines.push('--- Analysis performed using Seb\'s Workshop - Wireshark Helper ---');
+
+  var note=lines.join('\n');
+  copyToClipboard(note);
+  showToast('CW note copied to clipboard');
 }
 
 function copyToClipboard(text){
@@ -2702,12 +3087,55 @@ function filterSearch(q){renderFilters(q.toLowerCase());}
 // ─── TROUBLESHOOT SCENARIOS ──────────────────────────────
 
 function parsePacketExtra(p,s,ts){
-  if(p.length<14)return;
+  if(p.length<14) return;
   var et=(p[12]<<8)|p[13];
-  if(et!==0x0800||p.length<34)return;
+  if(et!==0x0800||p.length<34) return;
   var ihl=(p[14]&0xf)*4,pr=p[23];
   var srcIp=p[26]+'.'+p[27]+'.'+p[28]+'.'+p[29];
   var dstIp=p[30]+'.'+p[31]+'.'+p[32]+'.'+p[33];
+
+  // ── IP FRAGMENTATION ──────────────────────────────────────
+  // Flags field at offset 20-21 of IP header (p[14+6] and p[14+7])
+  // More Fragments bit = bit 13 of flags+fragment offset field
+  // Fragment offset > 0 also indicates a fragment
+  if(p.length>=14+ihl+4){
+    var flagsOff=(p[14+6]<<8)|p[14+7];
+    var moreFrags=(flagsOff>>13)&1;
+    var fragOffset=flagsOff&0x1fff;
+    if(moreFrags||fragOffset>0){
+      s.fragmented++;
+      s.fragSrc[srcIp]=(s.fragSrc[srcIp]||0)+1;
+    }
+  }
+
+  // ── DSCP (bits 7-2 of ToS byte at offset 15) ─────────────
+  var tos=p[15];
+  var dscp=(tos>>2)&0x3f;
+  if(dscp===0){
+    s.dscpZero++;
+  } else {
+    s.dscpNonZero++;
+    if(dscp===46) s.dscpEF++;   // Expedited Forwarding - VoIP RTP
+    if(dscp===24) s.dscpCS3++;  // CS3 - VoIP signalling
+    s.dscpMap[dscp]=(s.dscpMap[dscp]||0)+1;
+  }
+
+  // ── BURST DETECTION (inter-packet gap < 100 microseconds) ─
+  // ts is in seconds for legacy pcap; we use a counter-based approach
+  // For meaningful burst detection we track rapid consecutive packets
+  if(s.lastPktTs>0&&ts>0){
+    var gap=(ts-s.lastPktTs)*1000000; // convert seconds to microseconds
+    if(gap>0&&gap<1000) s.burstCount++; // sub-millisecond gap = burst
+  }
+  if(ts>0) s.lastPktTs=ts;
+
+  // ── LARGE PACKET (>1400 bytes) competing with RTP ─────────
+  if(p.length>1400){
+    s.largePkts++;
+    if(s.rtp>0) s.largeWithRtp=true;
+  }
+
+  // ── SMB2 / Kerberos / mDNS / Dante / DNS / DHCP (existing) ─
   if(pr===6&&p.length>=14+ihl+4){
     var dp=(p[14+ihl+2]<<8)|p[14+ihl+3];
     if(dp===445){s.smb++;s.smb2Src[srcIp]=(s.smb2Src[srcIp]||0)+1;if(!s.smb2Dst[srcIp])s.smb2Dst[srcIp]={};s.smb2Dst[srcIp][dstIp]=1;}
@@ -2728,6 +3156,43 @@ function parsePacketExtra(p,s,ts){
     if(md===5353||ms===5353){s.mdns++;s.mdnsSrc[srcIp]=(s.mdnsSrc[srcIp]||0)+1;}
     if(md===53){s.dnsPerSrc[srcIp]=(s.dnsPerSrc[srcIp]||0)+1;}
     if(md===67&&p.length>mu+8+34){var hb=mu+8+28;var mac=[p[hb],p[hb+1],p[hb+2],p[hb+3],p[hb+4],p[hb+5]].map(function(b){return b.toString(16).padStart(2,'0');}).join(':');s.dhcpMac[mac]=(s.dhcpMac[mac]||0)+1;}
+
+    // ── RTP JITTER + SEQUENCE GAP DETECTION ─────────────────
+    // RTP: version=2 (top 2 bits of byte at mu+8), even port, >1024
+    if(p.length>mu+16){
+      var rtpV=(p[mu+8]>>6)&3;
+      if(rtpV===2&&ms>1024&&md>1024&&ms!==53&&md!==53&&ms!==67&&md!==68){
+        // Extract RTP fields
+        var rtpSeq=(p[mu+10]<<8)|p[mu+11];
+        var rtpTs=(p[mu+12]<<24)|(p[mu+13]<<16)|(p[mu+14]<<8)|p[mu+15];
+        var rtpSsrc=((p[mu+16]<<24)|(p[mu+17]<<16)|(p[mu+18]<<8)|p[mu+19])>>>0;
+        var streamKey=srcIp+':'+ms+'->'+dstIp+':'+md+':'+rtpSsrc.toString(16);
+        if(!s.rtpStreams[streamKey]){
+          s.rtpStreams[streamKey]={seq:rtpSeq,ts:rtpTs,lastArrival:ts,jitterSum:0,jitterCount:0,lost:0,packets:1,ssrc:rtpSsrc};
+        } else {
+          var st=s.rtpStreams[streamKey];
+          // Sequence gap detection
+          var expectedSeq=(st.seq+1)&0xffff;
+          if(rtpSeq!==expectedSeq){
+            var gap2=(rtpSeq-expectedSeq+65536)&0xffff;
+            if(gap2>0&&gap2<1000) st.lost+=gap2; // plausible loss, not reorder
+          }
+          st.seq=rtpSeq;
+          // RFC 3550 jitter calculation
+          if(ts>0&&st.lastArrival>0){
+            var arrivalDelta=(ts-st.lastArrival)*8000; // assume 8kHz clock for approx
+            var tsDelta=rtpTs-st.ts;
+            var d=Math.abs(arrivalDelta-tsDelta);
+            st.jitterSum+=d;
+            st.jitterCount++;
+          }
+          st.lastArrival=ts;
+          st.ts=rtpTs;
+          st.packets++;
+        }
+        if(s.largePkts>0) s.largeWithRtp=true;
+      }
+    }
   }
   if(pr===17&&p[30]===224&&p[31]===0&&p[32]===1&&p[33]===51)s.danteMulticast++;
   if(pr===17&&p[30]===239)s.avMulticast++;
@@ -2735,20 +3200,101 @@ function parsePacketExtra(p,s,ts){
 }
 
 function buildFindingsExtra(res,s,c){
+  // ── DSCP / QoS MARKINGS ──────────────────────────────────
+  var totalIp=s.dscpZero+s.dscpNonZero;
+  if(totalIp>100){
+    var dscpZeroPct=Math.round(s.dscpZero/totalIp*100);
+    if(dscpZeroPct>95){
+      res.findings.push({sev:'warning',title:'No QoS Markings (DSCP all zero)',
+        desc:''+dscpZeroPct+'% of IP packets have DSCP=0 (Best Effort). QoS marking is not being applied - VoIP, video, and real-time traffic will compete equally with bulk data. Configure DSCP marking on your router/firewall: EF (46) for RTP, CS3 (24) for SIP signalling.',
+        count:s.dscpZero+' of '+totalIp+' packets unmarked',filter:'ip.dsfield.dscp == 0'});
+    } else if(s.dscpEF>0||s.dscpCS3>0){
+      res.findings.push({sev:'ok',title:'QoS Markings Present',
+        desc:'DSCP markings detected. EF (Expedited Forwarding/VoIP RTP): '+s.dscpEF+' packets. CS3 (VoIP signalling): '+s.dscpCS3+' packets. QoS is being applied.',
+        count:s.dscpNonZero+' marked packets',filter:'ip.dsfield.dscp > 0'});
+    } else {
+      res.findings.push({sev:'info',title:'Partial QoS Markings',
+        desc:'Some DSCP marking present but no EF or CS3 class detected. Check whether VoIP/real-time traffic is being correctly prioritised.',
+        count:s.dscpNonZero+' marked of '+totalIp,filter:'ip.dsfield.dscp > 0'});
+    }
+  }
+
+  // ── RTP STREAM ANALYSIS ───────────────────────────────────
+  var streamKeys=Object.keys(s.rtpStreams);
+  if(streamKeys.length>0){
+    var totalLost=0,totalJitter=0,jitterCount=0,highJitterStreams=0,lossStreams=0;
+    streamKeys.forEach(function(k){
+      var st=s.rtpStreams[k];
+      totalLost+=st.lost;
+      if(st.jitterCount>0){
+        var avgJitter=st.jitterSum/st.jitterCount;
+        totalJitter+=avgJitter;
+        jitterCount++;
+        if(avgJitter>20) highJitterStreams++; // >20ms jitter is audible
+      }
+      if(st.lost>0) lossStreams++;
+    });
+    var avgJitterMs=jitterCount>0?Math.round(totalJitter/jitterCount):-1;
+
+    if(totalLost>0){
+      res.findings.push({sev:totalLost>50?'critical':'warning',
+        title:'RTP Packet Loss Detected',
+        desc:'Sequence number gaps found in '+lossStreams+' RTP stream'+(lossStreams>1?'s':'')+'. Packet loss causes audible clicks, dropouts, or one-way audio. Check for network congestion, QoS misconfiguration, or wireless interference.',
+        count:totalLost+' missing RTP packets across '+streamKeys.length+' streams'});
+    }
+    if(avgJitterMs>20){
+      res.findings.push({sev:'warning',
+        title:'High RTP Jitter',
+        desc:'Average RTP inter-arrival jitter is approximately '+avgJitterMs+'ms across '+highJitterStreams+' stream'+(highJitterStreams>1?'s':'')+'. Jitter above 20ms is audible. Causes: QoS not prioritising RTP, bursty competing traffic, or wireless instability. Enable QoS with EF marking for RTP.',
+        count:avgJitterMs+'ms avg jitter, '+streamKeys.length+' streams'});
+    } else if(avgJitterMs>=0&&avgJitterMs<=20&&totalLost===0){
+      res.findings.push({sev:'ok',title:'RTP Streams Healthy',
+        desc:streamKeys.length+' RTP stream'+(streamKeys.length>1?'s':'')+' detected. Jitter approximately '+avgJitterMs+'ms, no sequence gaps. VoIP media paths look clean.',
+        count:streamKeys.length+' streams',filter:'rtp'});
+    }
+  }
+
+  // ── BURST DETECTION ───────────────────────────────────────
+  var burstPct=s.count>0?Math.round(s.burstCount/s.count*100):0;
+  if(s.burstCount>500&&burstPct>10){
+    res.findings.push({sev:'warning',
+      title:'Bursty Traffic Pattern',
+      desc:''+s.burstCount+' packet pairs with sub-millisecond inter-arrival gaps detected ('+burstPct+'% of traffic). Burst traffic can overwhelm switch buffers and cause transient queue drops even on an otherwise lightly loaded network. Symptoms: intermittent retransmits, VoIP jitter, or random slowness that is hard to reproduce.',
+      count:s.burstCount+' burst pairs ('+burstPct+'% of packets)'});
+  }
+
+  // ── LARGE PACKETS COMPETING WITH VOIP ────────────────────
+  if(s.largeWithRtp&&s.largePkts>100){
+    res.findings.push({sev:'warning',
+      title:'Large Packets Competing With RTP',
+      desc:''+s.largePkts+' packets over 1400 bytes detected alongside active RTP streams. Without QoS, a single 1500-byte packet takes ~125 microseconds to transmit at 100Mbps - enough to delay a VoIP packet and cause jitter. Enable QoS to prioritise RTP (DSCP EF) and consider enabling 802.3x flow control.',
+      count:s.largePkts+' large packets with '+Object.keys(s.rtpStreams).length+' RTP streams active'});
+  }
+
+  // ── FRAGMENTATION ────────────────────────────────────────
+  if(s.fragmented>0){
+    var topFragSrc=Object.keys(s.fragSrc).sort(function(a,b){return s.fragSrc[b]-s.fragSrc[a];})[0];
+    var fragPct=c>0?Math.round(s.fragmented/c*100):0;
+    res.findings.push({sev:fragPct>5?'warning':fragPct>1?'info':'ok',
+      title:'IP Fragmentation Detected',
+      desc:'Fragmented IP packets found'+(topFragSrc?' - top source: '+topFragSrc+' ('+s.fragSrc[topFragSrc]+' fragments)':'')+'. Fragmentation occurs when packets exceed the path MTU. Causes reassembly overhead and packet loss if any fragment is dropped. Check for MTU mismatch, misconfigured jumbo frames, or VPN tunnel overhead.',
+      count:s.fragmented+' fragmented packets ('+fragPct+'% of total)',
+      filter:'ip.flags.mf == 1 || ip.frag_offset > 0'});
+  }
   var smbSrcs=Object.keys(s.smb2Src).sort(function(a,b){return s.smb2Src[b]-s.smb2Src[a];});
-  if(smbSrcs.length>0){var ts2=smbSrcs[0],dc=Object.keys(s.smb2Dst[ts2]||{}).length;if(s.smb2Src[ts2]>500&&dc>3)res.findings.push({sev:'critical',title:'SMB2 Mass Polling',desc:ts2+' sent '+s.smb2Src[ts2]+' SMB frames to '+dc+' hosts. Likely an RMM agent, backup client, or Windows Search indexing network shares. Run <strong>resmon.exe &rarr; Network tab</strong> on the source machine to identify the process.',count:s.smb2Src[ts2]+' frames to '+dc+' hosts'});}
-  if(s.krbSkew>0)res.findings.push({sev:'critical',title:'Kerberos Clock Skew (KRB_AP_ERR_SKEW)',desc:'Kerberos error code 25 detected - clock difference between client and DC exceeds the 5-minute tolerance. Causes authentication failures and Group Policy not applying. Run <strong>w32tm /resync /force</strong> on the DC then <strong>w32tm /resync</strong> on affected clients.',count:s.krbSkew+' skew errors in '+s.krb+' Kerberos packets'});
+  if(smbSrcs.length>0){var ts2=smbSrcs[0],dc=Object.keys(s.smb2Dst[ts2]||{}).length;if(s.smb2Src[ts2]>500&&dc>3)res.findings.push({sev:'critical',title:'SMB2 Mass Polling',desc:ts2+' sent '+s.smb2Src[ts2]+' SMB frames to '+dc+' hosts. Likely an RMM agent, backup client, or Windows Search indexing network shares. Run <strong>resmon.exe &rarr; Network tab</strong> on the source machine to identify the process.',count:s.smb2Src[ts2]+' frames to '+dc+' hosts',filter:'tcp.port == 445 && smb2'});}
+  if(s.krbSkew>0)res.findings.push({sev:'critical',title:'Kerberos Clock Skew (KRB_AP_ERR_SKEW)',desc:'Kerberos error code 25 detected - clock difference between client and DC exceeds the 5-minute tolerance. Causes authentication failures and Group Policy not applying. Run <strong>w32tm /resync /force</strong> on the DC then <strong>w32tm /resync</strong> on affected clients.',count:s.krbSkew+' skew errors in '+s.krb+' Kerberos packets',filter:'kerberos.error_code == 25'});
   var mt=Object.keys(s.mdnsSrc).sort(function(a,b){return s.mdnsSrc[b]-s.mdnsSrc[a];})[0];
-  if(s.mdns>5000)res.findings.push({sev:'warning',title:'mDNS Flood',desc:'Very high mDNS volume.'+(mt?' Top source: '+mt+' ('+s.mdnsSrc[mt]+').':'')+' Printers advertising scan services or Chromebooks polling for Chromecasts. Enable Directed Multicast on APs to reduce airtime waste.',count:s.mdns+' mDNS frames'});
-  else if(s.mdns>1000)res.findings.push({sev:'info',title:'mDNS activity',desc:'Elevated mDNS - printers or Chromecast devices advertising.',count:s.mdns+' frames'});
-  if(s.danteMulticast>500)res.findings.push({sev:'warning',title:'Dante Audio Multicast Flood (224.0.1.51)',desc:'Sustained UDP to 224.0.1.51:16640 - Dante audio-over-IP multicast. Without IGMP snooping this floods every switch port at near-line-rate. Enable IGMP snooping on all switches immediately. Long term: place AV equipment on a dedicated VLAN.',count:s.danteMulticast+' frames'});
-  else if(s.avMulticast>2000)res.findings.push({sev:'info',title:'AV multicast traffic (239.x.x.x)',desc:'Elevated 239.x.x.x multicast - Dante audio, IPTV, or AV-over-IP. Enable IGMP snooping to prevent flooding every port.',count:s.avMulticast+' frames'});
+  if(s.mdns>10000)res.findings.push({sev:'warning',title:'mDNS Flood',desc:'Very high mDNS volume.'+(mt?' Top source: '+mt+' ('+s.mdnsSrc[mt]+').':'')+' Printers advertising scan services or Chromebooks polling for Chromecasts. Enable Directed Multicast on APs to reduce airtime waste.',count:s.mdns+' mDNS frames',filter:'mdns'});
+  else if(s.mdns>1000)res.findings.push({sev:'info',title:'mDNS activity',desc:'Elevated mDNS - printers or Chromecast devices advertising.',count:s.mdns+' frames',filter:'mdns'});
+  if(s.danteMulticast>500)res.findings.push({sev:'warning',title:'Dante Audio Multicast Flood (224.0.1.51)',desc:'Sustained UDP to 224.0.1.51:16640 - Dante audio-over-IP multicast. Without IGMP snooping this floods every switch port at near-line-rate. Enable IGMP snooping on all switches immediately. Long term: place AV equipment on a dedicated VLAN.',count:s.danteMulticast+' frames',filter:'ip.dst == 224.0.1.51'});
+  else if(s.avMulticast>2000)res.findings.push({sev:'info',title:'AV multicast traffic (239.x.x.x)',desc:'Elevated 239.x.x.x multicast - Dante audio, IPTV, or AV-over-IP. Enable IGMP snooping to prevent flooding every port.',count:s.avMulticast+' frames',filter:'udp && ip.dst >= 224.0.0.0 && ip.dst <= 239.255.255.255'});
   var dSrcs=Object.keys(s.dnsPerSrc);
-  if(dSrcs.length>0&&s.dns>500){var dt=dSrcs.sort(function(a,b){return s.dnsPerSrc[b]-s.dnsPerSrc[a];})[0];var dpct=Math.round(s.dnsPerSrc[dt]/s.dns*100);if(dpct>40)res.findings.push({sev:'warning',title:'DNS Query Concentration',desc:dt+' generated '+dpct+'% of all DNS queries ('+s.dnsPerSrc[dt]+' of '+s.dns+'). Likely a filtering appliance with caching disabled. Enable DNS caching and set a minimum TTL floor of 300-600s.',count:s.dnsPerSrc[dt]+' queries from '+dt});}
+  if(dSrcs.length>0&&s.dns>500){var dt=dSrcs.sort(function(a,b){return s.dnsPerSrc[b]-s.dnsPerSrc[a];})[0];var dpct=Math.round(s.dnsPerSrc[dt]/s.dns*100);if(dpct>40)res.findings.push({sev:'warning',title:'DNS Query Concentration',desc:dt+' generated '+dpct+'% of all DNS queries ('+s.dnsPerSrc[dt]+' of '+s.dns+'). Likely a filtering appliance with caching disabled. Enable DNS caching and set a minimum TTL floor of 300-600s.',count:s.dnsPerSrc[dt]+' queries from '+dt,filter:'dns && dns.flags.response == 0'});}
   var macs=Object.keys(s.dhcpMac).sort(function(a,b){return s.dhcpMac[b]-s.dhcpMac[a];});
-  if(macs.length>0&&s.dhcpMac[macs[0]]>10)res.findings.push({sev:'warning',title:'DHCP Churn - Repeated Requests',desc:'MAC '+macs[0]+' sent '+s.dhcpMac[macs[0]]+' DHCP requests. Normal devices request once per lease. Causes: wireless instability, lease time under 1 hour, or aggressive NIC power management.',count:s.dhcpMac[macs[0]]+' requests from same MAC'});
+  if(macs.length>0&&s.dhcpMac[macs[0]]>20)res.findings.push({sev:'warning',title:'DHCP Churn - Repeated Requests',desc:'MAC '+macs[0]+' sent '+s.dhcpMac[macs[0]]+' DHCP requests. Normal devices request once per lease. Causes: wireless instability, lease time under 1 hour, or aggressive NIC power management.',count:s.dhcpMac[macs[0]]+' requests from same MAC',filter:'bootp'});
   var sl=Object.keys(s.ipSrc).sort(function(a,b){return s.ipSrc[b]-s.ipSrc[a];}).slice(0,5);
-  if(sl.length>0&&c>500)res.findings.push({sev:'info',title:'Top Talkers (by frame count)',desc:'Top source IPs: '+sl.map(function(ip){return ip+' ('+s.ipSrc[ip]+')';}).join(', '),count:sl.length+' sources'});
+  if(sl.length>0&&c>500)res.findings.push({sev:'info',title:'Top Talkers (by frame count)',desc:'Top source IPs: '+sl.map(function(ip){return ip+' ('+s.ipSrc[ip]+')';}).join(', '),count:sl.length+' sources',filter:'ip'});
 }
 
 var TS_SCENARIOS=[
