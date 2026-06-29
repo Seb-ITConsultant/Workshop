@@ -1,0 +1,1605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Seb's Display Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+<script>(function(){var t=localStorage.getItem("sw-theme");if(t)document.documentElement.setAttribute("data-theme",t);})();</script>
+<style>
+:root{--accent:#0d9488;--bg:#f8fafc;--surface:#fff;--surface2:#f1f5f9;--border:#e2e8f0;--text:#0f172a;--text-muted:#64748b;--shadow:0 1px 3px rgba(0,0,0,.1);--radius:10px;--overlay-bg:rgba(15,23,42,.85);}
+[data-theme="dark"]{--accent:#00dba8;--bg:#0f172a;--surface:#1e293b;--surface2:#273549;--border:#334155;--text:#f1f5f9;--text-muted:#94a3b8;--shadow:0 1px 3px rgba(0,0,0,.4);--overlay-bg:rgba(0,0,0,.9);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--surface);border-bottom:1px solid var(--border);box-shadow:var(--shadow);position:relative;z-index:10;flex-shrink:0;}
+.back-link{display:flex;align-items:center;gap:6px;color:var(--accent);text-decoration:none;font-size:.85rem;font-weight:500;transition:opacity .15s;}
+.back-link:hover{opacity:.75;}
+header h1{position:absolute;left:50%;transform:translateX(-50%);font-size:1.1rem;font-weight:600;letter-spacing:-.01em;pointer-events:none;}
+header h1 span{color:var(--accent);}
+.header-right{display:flex;align-items:center;gap:8px;}
+.theme-btn{background:var(--surface2);border:1px solid var(--border);border-radius:8px;width:36px;height:36px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-muted);transition:background .15s;font-size:1rem;}
+.theme-btn:hover{background:var(--border);}
+main{flex:1;display:flex;flex-direction:column;padding:24px;gap:18px;max-width:960px;width:100%;margin:0 auto;}
+.btn{padding:9px 16px;border-radius:8px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-weight:600;font-size:.875rem;transition:opacity .15s,background .15s;white-space:nowrap;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{opacity:.88;}
+.btn-ghost{background:var(--surface2);border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{background:var(--border);}
+.btn-sm{padding:6px 11px;font-size:.8rem;}
+.btn-launch{background:var(--accent);color:#fff;padding:12px 28px;font-size:1rem;border-radius:10px;border:none;cursor:pointer;font-family:"DM Sans",sans-serif;font-weight:600;display:flex;align-items:center;gap:8px;transition:opacity .15s;}
+.btn-launch:hover{opacity:.88;}
+.btn-launch:disabled{opacity:.4;cursor:default;}
+.banner{display:flex;align-items:center;gap:12px;padding:14px 18px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);flex-wrap:wrap;}
+.banner.ok{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 6%,var(--surface));}
+.banner-icon{font-size:1.4rem;flex-shrink:0;}
+.banner-text{flex:1;min-width:0;}
+.banner-text strong{font-size:.9rem;font-weight:600;display:block;}
+.banner-text span{font-size:.79rem;color:var(--text-muted);}
+.section-label{font-family:"JetBrains Mono",monospace;font-size:.76rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:-6px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;}
+.card-header{display:flex;align-items:center;justify-content:space-between;padding:11px 16px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.card-header strong{font-size:.87rem;}
+.card-header span{font-size:.78rem;color:var(--text-muted);}
+.card-body{padding:16px;display:flex;flex-direction:column;gap:10px;}
+.card-footer{display:flex;gap:8px;justify-content:flex-end;padding:11px 16px;border-top:1px solid var(--border);flex-wrap:wrap;}
+.url-list{display:flex;flex-direction:column;gap:5px;}
+.url-item{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:7px;font-size:.83rem;cursor:grab;user-select:none;transition:background .12s;}
+.url-item:hover{background:var(--border);}
+.url-item.dragging{opacity:.4;}
+.url-item.drag-target{border-color:var(--accent);}
+.url-item .drag-handle{color:var(--text-muted);opacity:.5;font-size:.9rem;flex-shrink:0;}
+.url-item .url-text{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text-muted);}
+.url-reload-badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;color:var(--accent);background:color-mix(in srgb,var(--accent) 12%,var(--surface2));padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;}
+.dur-badge{font-family:"JetBrains Mono",monospace;font-size:.7rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;}
+.type-badge{font-family:"JetBrains Mono",monospace;font-size:.67rem;padding:2px 6px;border-radius:3px;white-space:nowrap;flex-shrink:0;font-weight:600;}
+.type-badge.url{background:var(--surface2);color:var(--text-muted);}
+.type-badge.status-green{background:#dcfce7;color:#15803d;}
+.type-badge.status-amber{background:#fef9c3;color:#a16207;}
+.type-badge.status-red{background:#fee2e2;color:#b91c1c;}
+.type-badge.html-slide{background:color-mix(in srgb,var(--accent) 14%,var(--surface2));color:var(--accent);}
+[data-theme="dark"] .type-badge.status-green{background:#14532d;color:#86efac;}
+[data-theme="dark"] .type-badge.status-amber{background:#422006;color:#fcd34d;}
+[data-theme="dark"] .type-badge.status-red{background:#450a0a;color:#fca5a5;}
+.url-item button{background:none;border:none;cursor:pointer;color:var(--text-muted);padding:2px 4px;border-radius:3px;transition:color .12s,background .12s;font-size:.9rem;flex-shrink:0;}
+.url-item button:hover{color:#ef4444;background:#fee2e2;}
+.add-row{display:flex;gap:7px;flex-wrap:wrap;align-items:center;}
+.add-row input[type="text"]{flex:1;min-width:160px;padding:8px 11px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-family:"DM Sans",sans-serif;font-size:.85rem;outline:none;transition:border-color .15s;}
+.add-row input[type="text"]:focus{border-color:var(--accent);}
+.add-row input[type="text"]::placeholder{color:var(--text-muted);}
+.num-input{width:66px;padding:8px 7px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-family:"JetBrains Mono",monospace;font-size:.8rem;outline:none;text-align:right;}
+.num-input:focus{border-color:var(--accent);}
+.input-hint{font-size:.75rem;color:var(--text-muted);white-space:nowrap;}
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin:-16px -16px 4px -16px;padding:0 16px;}
+.tab-btn{padding:9px 14px;font-size:.82rem;font-weight:600;background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;color:var(--text-muted);font-family:"DM Sans",sans-serif;transition:color .15s;white-space:nowrap;}
+.tab-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab-pane{display:none;flex-direction:column;gap:10px;padding-top:6px;}
+.tab-pane.active{display:flex;}
+.drop-zone{border:2px dashed var(--border);border-radius:var(--radius);background:var(--surface);padding:24px;text-align:center;cursor:pointer;transition:border-color .2s,background .2s;position:relative;}
+.drop-zone.drag-over{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 8%,var(--surface));}
+.drop-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-zone-icon{font-size:1.6rem;margin-bottom:6px;}
+.drop-zone h2{font-size:.9rem;font-weight:600;margin-bottom:3px;}
+.drop-zone p{font-size:.78rem;color:var(--text-muted);}
+.badges{margin-top:9px;display:flex;gap:5px;flex-wrap:wrap;justify-content:center;}
+.badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;padding:2px 7px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);color:var(--text-muted);}
+.slide-list{display:flex;flex-direction:column;gap:5px;}
+.slide-item{display:flex;align-items:center;gap:9px;padding:9px 13px;background:var(--surface);border:1px solid var(--border);border-radius:7px;cursor:grab;transition:background .12s;user-select:none;}
+.slide-item:hover{background:var(--surface2);}
+.slide-item.dragging{opacity:.4;}
+.slide-item.drag-target{border-color:var(--accent);}
+.slide-handle{color:var(--text-muted);opacity:.5;font-size:.9rem;flex-shrink:0;}
+.slide-thumb{width:50px;height:34px;border-radius:4px;background:var(--surface2);border:1px solid var(--border);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.slide-thumb img{width:100%;height:100%;object-fit:cover;}
+.slide-thumb.st-green{background:#dcfce7;}
+.slide-thumb.st-amber{background:#fef9c3;}
+.slide-thumb.st-red{background:#fee2e2;}
+.slide-thumb.st-html{background:color-mix(in srgb,var(--accent) 10%,var(--surface2));}
+.slide-info{flex:1;min-width:0;}
+.slide-name{font-size:.83rem;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.slide-meta{font-family:"JetBrains Mono",monospace;font-size:.69rem;color:var(--text-muted);margin-top:1px;}
+.slide-def-badge{font-size:.67rem;background:color-mix(in srgb,var(--accent) 14%,var(--surface2));color:var(--accent);padding:1px 5px;border-radius:3px;font-family:"JetBrains Mono",monospace;margin-left:5px;}
+.slide-dur-wrap{display:flex;align-items:center;gap:3px;flex-shrink:0;}
+.slide-dur-wrap input{width:50px;padding:4px 5px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text);font-family:"JetBrains Mono",monospace;font-size:.73rem;text-align:right;outline:none;}
+.slide-dur-wrap input:focus{border-color:var(--accent);}
+.slide-dur-wrap span{font-size:.7rem;color:var(--text-muted);}
+.slide-remove{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:.95rem;padding:2px 4px;border-radius:4px;transition:color .12s,background .12s;flex-shrink:0;}
+.slide-remove:hover{color:#ef4444;background:#fee2e2;}
+.settings-grid{display:flex;flex-wrap:wrap;gap:18px 28px;align-items:flex-start;}
+.settings-group{display:flex;flex-direction:column;gap:8px;}
+.settings-group-label{font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.05em;}
+.settings-row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+.setting-item{display:flex;align-items:center;gap:6px;font-size:.85rem;}
+.setting-item label{color:var(--text-muted);font-weight:500;white-space:nowrap;}
+.setting-item select{padding:5px 8px;border:1px solid var(--border);border-radius:6px;background:var(--surface2);color:var(--text);font-family:"JetBrains Mono",monospace;font-size:.78rem;outline:none;}
+.setting-item select:focus{border-color:var(--accent);}
+.toggle-label{display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.85rem;color:var(--text);}
+.toggle-label input[type="checkbox"]{accent-color:var(--accent);width:14px;height:14px;}
+.overlay-config{display:flex;flex-direction:column;gap:8px;}
+.flex-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap;}
+/* HTML editor */
+.html-editor{width:100%;min-height:180px;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:var(--text);font-family:"JetBrains Mono",monospace;font-size:.8rem;outline:none;resize:vertical;line-height:1.5;}
+.html-editor:focus{border-color:var(--accent);}
+.template-row{display:flex;gap:6px;flex-wrap:wrap;}
+.template-btn{padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text-muted);font-size:.76rem;cursor:pointer;font-family:"DM Sans",sans-serif;transition:background .12s,color .12s;}
+.template-btn:hover{background:var(--border);color:var(--text);}
+/* Status indicator row */
+.status-indicator-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.status-dot-btn{width:28px;height:28px;border-radius:50%;border:3px solid transparent;cursor:pointer;transition:transform .12s,border-color .12s;flex-shrink:0;}
+.status-dot-btn:hover{transform:scale(1.12);}
+.status-dot-btn.selected{border-color:var(--text);}
+.status-dot-btn.green{background:#22c55e;}
+.status-dot-btn.amber{background:#f59e0b;}
+.status-dot-btn.red{background:#ef4444;}
+.status-dot-btn.blue{background:#3b82f6;}
+.status-dot-btn.grey{background:#6b7280;}
+/* Launch bar */
+.launch-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:16px 0 4px;}
+.launch-bar-left{display:flex;align-items:center;gap:10px;}
+.slide-count{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--text-muted);}
+.wakelock-status{display:flex;align-items:center;gap:5px;font-size:.75rem;color:var(--text-muted);}
+.status-dot-sm{width:8px;height:8px;border-radius:50%;background:#94a3b8;display:inline-block;margin-right:3px;}
+.status-dot-sm.ok{background:#22c55e;}
+.status-dot-sm.warn{background:#f59e0b;}
+.empty-state{text-align:center;padding:32px 20px;color:var(--text-muted);font-size:.85rem;}
+.empty-state .emoji{font-size:2rem;margin-bottom:8px;}
+/* ── DISPLAY OVERLAY ── */
+#display-overlay{display:none;position:fixed;inset:0;background:#000;z-index:1000;flex-direction:column;}
+#display-overlay.active{display:flex;}
+.ss-stage{flex:1;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;}
+.ss-progress{position:absolute;bottom:0;left:0;height:3px;background:var(--accent);z-index:20;transition:width .1s linear;}
+/* Transitions */
+.ss-frame{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;}
+.ss-frame img{max-width:100%;max-height:100%;object-fit:contain;display:block;}
+.ss-frame iframe{width:100%;height:100%;border:none;}
+.tr-none .ss-frame{transition:none;}
+.tr-none .ss-frame.active{opacity:1;pointer-events:auto;}
+.tr-fade .ss-frame{transition:opacity .5s ease;}
+.tr-fade .ss-frame.active{opacity:1;pointer-events:auto;}
+.tr-slide .ss-frame{transition:opacity .01s,transform .45s cubic-bezier(.4,0,.2,1);transform:translateX(100%);opacity:1;}
+.tr-slide .ss-frame.active{transform:translateX(0);pointer-events:auto;}
+.tr-slide .ss-frame.leaving{transform:translateX(-100%);}
+.tr-slide.going-prev .ss-frame{transform:translateX(-100%);}
+.tr-slide.going-prev .ss-frame.active{transform:translateX(0);}
+.tr-slide.going-prev .ss-frame.leaving{transform:translateX(100%);}
+.tr-zoom .ss-frame{transition:opacity .45s ease,transform .45s cubic-bezier(.4,0,.2,1);transform:scale(1.06);}
+.tr-zoom .ss-frame.active{opacity:1;transform:scale(1);pointer-events:auto;}
+.tr-zoom .ss-frame.leaving{opacity:0;transform:scale(.94);}
+.tr-flip{perspective:1200px;}
+.tr-flip .ss-frame{transition:opacity .05s,transform .5s cubic-bezier(.4,0,.2,1);transform:rotateY(90deg);backface-visibility:hidden;}
+.tr-flip .ss-frame.active{opacity:1;transform:rotateY(0deg);pointer-events:auto;}
+.tr-flip .ss-frame.leaving{transform:rotateY(-90deg);}
+.tr-blur .ss-frame{transition:opacity .5s ease,filter .5s ease;filter:blur(12px);}
+.tr-blur .ss-frame.active{opacity:1;filter:blur(0);pointer-events:auto;}
+.tr-blur .ss-frame.leaving{opacity:0;filter:blur(12px);}
+.tr-wipe .ss-frame{transition:clip-path .5s cubic-bezier(.4,0,.2,1),opacity .01s;clip-path:inset(0 100% 0 0);opacity:1;}
+.tr-wipe .ss-frame.active{clip-path:inset(0 0% 0 0);pointer-events:auto;}
+.tr-wipe .ss-frame.leaving{clip-path:inset(0 0 0 100%);}
+/* Status slide */
+.ss-status-slide{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.ss-status-indicator{width:160px;height:160px;border-radius:50%;box-shadow:0 0 60px rgba(0,0,0,.5);}
+.ss-status-label{font-size:2.8rem;font-weight:700;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.5);letter-spacing:-.01em;}
+.ss-status-sublabel{font-size:1.1rem;color:rgba(255,255,255,.7);font-family:"JetBrains Mono",monospace;}
+.ss-status-updated{font-size:.8rem;color:rgba(255,255,255,.4);font-family:"JetBrains Mono",monospace;position:absolute;bottom:60px;right:20px;}
+/* Nav arrows */
+.ss-nav-prev,.ss-nav-next{position:absolute;top:50%;transform:translateY(-50%);background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.15);border-radius:50%;width:48px;height:48px;color:#fff;font-size:1.4rem;cursor:pointer;display:flex;align-items:center;justify-content:center;z-index:15;transition:background .15s,opacity .3s;opacity:0;}
+.ss-stage:hover .ss-nav-prev,.ss-stage:hover .ss-nav-next{opacity:1;}
+.ss-nav-prev{left:16px;}
+.ss-nav-next{right:16px;}
+.ss-nav-prev:hover,.ss-nav-next:hover{background:rgba(0,0,0,.65);}
+/* Clock widget */
+.ss-clock-widget{position:absolute;z-index:18;pointer-events:none;font-family:"JetBrains Mono",monospace;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.7);line-height:1.1;}
+.ss-clock-widget.pos-tl{top:18px;left:22px;}
+.ss-clock-widget.pos-tr{top:18px;right:22px;text-align:right;}
+.ss-clock-widget.pos-bl{bottom:56px;left:22px;}
+.ss-clock-widget.pos-br{bottom:56px;right:22px;text-align:right;}
+.ss-clock-time{font-size:2rem;font-weight:600;letter-spacing:.02em;}
+.ss-clock-date{font-size:.8rem;opacity:.8;margin-top:2px;}
+/* Weather widget */
+.ss-weather-widget{position:absolute;z-index:18;pointer-events:none;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.7);}
+.ss-weather-widget.pos-tl{top:14px;left:20px;}
+.ss-weather-widget.pos-tr{top:14px;right:20px;text-align:right;}
+.ss-weather-widget.pos-bl{bottom:52px;left:20px;}
+.ss-weather-widget.pos-br{bottom:52px;right:20px;text-align:right;}
+.ss-weather-inner{display:flex;align-items:center;gap:8px;background:rgba(0,0,0,.35);backdrop-filter:blur(6px);padding:7px 13px;border-radius:10px;border:1px solid rgba(255,255,255,.12);}
+.ss-weather-icon{font-size:1.6rem;}
+.ss-weather-temp{font-size:1.3rem;font-weight:600;}
+.ss-weather-desc{font-size:.75rem;opacity:.85;}
+/* Ticker */
+.ss-ticker{position:absolute;bottom:0;left:0;right:0;z-index:19;background:rgba(0,0,0,.65);backdrop-filter:blur(4px);border-top:1px solid rgba(255,255,255,.08);height:36px;overflow:hidden;display:flex;align-items:center;}
+.ss-ticker-inner{display:flex;align-items:center;white-space:nowrap;will-change:transform;}
+.ss-ticker-text{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:#fff;padding-right:120px;}
+.ss-ticker-sep{color:var(--accent);margin-right:120px;font-size:1rem;}
+/* Blackout */
+.ss-blackout{position:absolute;inset:0;background:#000;z-index:25;display:none;}
+.ss-blackout.active{display:block;}
+/* Control bar */
+.ss-bar{display:flex;align-items:center;gap:8px;padding:9px 18px;background:var(--overlay-bg);backdrop-filter:blur(8px);flex-shrink:0;transition:opacity .3s;z-index:20;}
+.ss-bar.hidden{opacity:0;pointer-events:none;}
+.ss-counter{font-family:"JetBrains Mono",monospace;font-size:.76rem;color:rgba(255,255,255,.6);min-width:54px;text-align:center;}
+.ss-slide-title{flex:1;font-size:.82rem;color:rgba(255,255,255,.9);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ss-dur-label{font-family:"JetBrains Mono",monospace;font-size:.72rem;color:rgba(255,255,255,.45);}
+.ss-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:7px;color:#fff;padding:6px 11px;font-size:.8rem;cursor:pointer;font-family:"DM Sans",sans-serif;font-weight:500;transition:background .15s;white-space:nowrap;}
+.ss-btn:hover{background:rgba(255,255,255,.22);}
+.ss-btn.active-btn{background:var(--accent);border-color:var(--accent);}
+.ss-sep{width:1px;height:22px;background:rgba(255,255,255,.15);flex-shrink:0;}
+/* Thumbstrip */
+.ss-thumbstrip{display:flex;gap:6px;padding:7px 18px;background:rgba(0,0,0,.6);overflow-x:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,.2) transparent;flex-shrink:0;z-index:20;}
+.ss-thumb{flex-shrink:0;width:62px;height:40px;border-radius:4px;background:#222;border:2px solid transparent;overflow:hidden;cursor:pointer;transition:border-color .15s,opacity .15s;display:flex;align-items:center;justify-content:center;font-size:1rem;opacity:.5;}
+.ss-thumb img{width:100%;height:100%;object-fit:cover;}
+.ss-thumb.active{border-color:var(--accent);opacity:1;}
+.ss-thumb:hover{opacity:.85;}
+.ss-thumb.st-green{background:#14532d;}
+.ss-thumb.st-amber{background:#451a03;}
+.ss-thumb.st-red{background:#450a0a;}
+.ss-thumb.st-html{background:#164e63;}
+.ss-thumb.st-yt{background:#1a0a0a;}
+/* Inline dur editor on thumbstrip */
+.ss-thumb-wrap{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.ss-thumb-dur{display:none;align-items:center;gap:2px;}
+.ss-thumb-dur input{width:44px;padding:2px 4px;border:1px solid rgba(255,255,255,.3);border-radius:4px;background:rgba(0,0,0,.6);color:#fff;font-family:"JetBrains Mono",monospace;font-size:.68rem;text-align:center;outline:none;}
+.ss-thumb-dur span{font-size:.62rem;color:rgba(255,255,255,.5);}
+.ss-thumbstrip.edit-mode .ss-thumb-dur{display:flex;}
+.ss-thumbstrip.edit-mode .ss-thumb{opacity:.7;}
+.ss-thumbstrip.edit-mode .ss-thumb.active{opacity:1;}
+/* YouTube muted notice */
+.yt-muted-badge{position:absolute;top:12px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.65);color:rgba(255,255,255,.8);font-size:.75rem;font-family:"JetBrains Mono",monospace;padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.15);pointer-events:none;z-index:16;white-space:nowrap;transition:opacity .4s;}
+.yt-muted-badge.hidden{opacity:0;}
+/* Help / PIN overlays */
+.ss-modal{position:absolute;inset:0;z-index:30;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;}
+.ss-modal.active{display:flex;}
+.ss-modal-box{background:#1e293b;border:1px solid #334155;border-radius:14px;padding:28px 32px;min-width:300px;}
+.ss-modal-box h3{color:#fff;font-size:1rem;margin-bottom:16px;font-weight:600;}
+.ss-help-row{display:flex;justify-content:space-between;gap:20px;margin-bottom:8px;font-size:.84rem;}
+.ss-help-key{font-family:"JetBrains Mono",monospace;color:var(--accent);}
+.ss-help-desc{color:rgba(255,255,255,.75);}
+.save-pulse{animation:spulse .6s ease;}
+@keyframes spulse{0%,100%{box-shadow:0 0 0 0 transparent;}40%{box-shadow:0 0 0 6px color-mix(in srgb,var(--accent) 30%,transparent);}}
+/* Auth guidance */
+.auth-option{padding:14px 16px;}
+.auth-option.best{background:color-mix(in srgb,var(--accent) 5%,var(--surface));}
+.auth-option-head{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.auth-option-head strong{font-size:.87rem;}
+.auth-badge{font-family:"JetBrains Mono",monospace;font-size:.68rem;font-weight:700;padding:2px 8px;border-radius:10px;white-space:nowrap;flex-shrink:0;}
+.auth-badge.best{background:#dcfce7;color:#15803d;}
+.auth-badge.good{background:color-mix(in srgb,var(--accent) 15%,var(--surface2));color:var(--accent);}
+.auth-badge.ok{background:#fef9c3;color:#a16207;}
+.auth-badge.na{background:#fee2e2;color:#b91c1c;}
+[data-theme="dark"] .auth-badge.best{background:#14532d;color:#86efac;}
+[data-theme="dark"] .auth-badge.ok{background:#422006;color:#fcd34d;}
+[data-theme="dark"] .auth-badge.na{background:#450a0a;color:#fca5a5;}
+.auth-option-body{font-size:.83rem;line-height:1.65;color:var(--text-muted);}
+.auth-option-body code{font-family:"JetBrains Mono",monospace;font-size:.78rem;background:var(--surface2);padding:1px 5px;border-radius:3px;color:var(--text);}
+.auth-examples{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.auth-ex{font-family:"JetBrains Mono",monospace;font-size:.71rem;background:var(--surface2);border:1px solid var(--border);padding:2px 8px;border-radius:4px;color:var(--text-muted);}
+.auth-steps{display:flex;flex-direction:column;gap:6px;margin-top:10px;}
+.auth-step{display:flex;gap:10px;align-items:flex-start;font-size:.81rem;}
+.auth-step-n{background:var(--accent);color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+/* Session note on URL slides */
+.session-note-row{display:flex;gap:6px;align-items:center;margin-top:4px;}
+.session-note-row input{flex:1;padding:4px 8px;border:1px solid var(--border);border-radius:5px;background:var(--surface2);color:var(--text-muted);font-family:"DM Sans",sans-serif;font-size:.75rem;outline:none;}
+.session-note-row input:focus{border-color:var(--accent);color:var(--text);}
+.session-note-row input::placeholder{color:var(--text-muted);opacity:.6;}
+.session-note-icon{font-size:.75rem;color:var(--text-muted);white-space:nowrap;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<header>
+  <a href="index.html" class="back-link">
+    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    Workshop
+  </a>
+  <h1><span>Seb's</span> Display Board</h1>
+  <div class="header-right">
+    <button class="theme-btn" id="theme-btn">&#127769;</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- Banner -->
+  <div class="banner" id="status-banner">
+    <div class="banner-icon" id="banner-icon">&#128247;</div>
+    <div class="banner-text">
+      <strong id="banner-title">No slides configured</strong>
+      <span id="banner-sub">Add default slides below. The board will auto-launch on page load.</span>
+    </div>
+    <span class="wakelock-status" id="wakelock-status"></span>
+  </div>
+
+  <!-- Default slides card with tabs -->
+  <div class="section-label">Default slides &mdash; auto-loaded on startup</div>
+  <div class="card">
+    <div class="card-header">
+      <strong>Slides</strong>
+      <span>Saved to this browser &mdash; drag to reorder</span>
+    </div>
+    <div class="card-body">
+
+      <!-- Tab nav -->
+      <div class="tab-row">
+        <button class="tab-btn active" data-tab="tab-url">&#127760; Web page</button>
+        <button class="tab-btn" data-tab="tab-yt">&#9654; YouTube</button>
+        <button class="tab-btn" data-tab="tab-status">&#9679; Status slide</button>
+        <button class="tab-btn" data-tab="tab-html">&#60;/&#62; HTML slide</button>
+        <button class="tab-btn" data-tab="tab-list">&#128444;&#65039; All slides</button>
+      </div>
+
+      <!-- Tab: URL -->
+      <div class="tab-pane active" id="tab-url">
+        <div class="add-row">
+          <input type="text" id="def-url-input" placeholder="https://dashboard.example.com" />
+          <input type="number" class="num-input" id="def-dur-input" min="3" max="3600" value="30" title="Seconds on screen" />
+          <span class="input-hint">s</span>
+          <input type="number" class="num-input" id="def-reload-input" min="0" max="1440" value="0" title="Reload iframe every N minutes (0 = off)" />
+          <span class="input-hint">min reload</span>
+          <button class="btn btn-primary btn-sm" id="def-add-btn">+ Add URL</button>
+        </div>
+        <div class="session-note-row">
+          <span class="session-note-icon">&#128274; Session note (config only):</span>
+          <input type="text" id="def-note-input" placeholder="e.g. Log in as display@company.com before launching" />
+        </div>
+        <div id="rss-cors-note" style="display:none;font-size:.78rem;padding:8px 12px;background:color-mix(in srgb,#f59e0b 10%,var(--surface2));border:1px solid #f59e0b;border-radius:7px;color:var(--text);">
+          &#9888;&#65039; RSS feed was blocked by CORS. The ticker is using static text instead. To fix this, host the feed on the same domain or use a CORS proxy.
+        </div>
+      </div>
+
+      <!-- Tab: YouTube -->
+      <div class="tab-pane" id="tab-yt">
+        <div style="font-size:.83rem;color:var(--text-muted);line-height:1.6;padding:6px 10px;background:color-mix(in srgb,#f59e0b 8%,var(--surface2));border:1px solid #f59e0b;border-radius:7px;">
+          &#128266; <strong>Always muted</strong> when auto-launched on page load (browser policy). If you manually click Launch, an <strong>Unmute</strong> button appears in the control bar. The slide advances automatically when the video ends, or after the fallback duration if it stalls.
+        </div>
+        <div class="add-row">
+          <input type="text" id="yt-url-input" placeholder="https://www.youtube.com/watch?v=... or youtu.be/..." />
+          <input type="number" class="num-input" id="yt-fallback-input" min="10" max="3600" value="300" title="Fallback duration in seconds if video stalls or embedding is blocked" />
+          <span class="input-hint">s fallback</span>
+          <button class="btn btn-primary btn-sm" id="yt-add-btn">+ Add video</button>
+        </div>
+        <div style="font-size:.76rem;color:var(--text-muted);">Paste any YouTube URL. Videos with embedding disabled by the uploader will show an error slide and advance after the fallback duration.</div>
+      </div>
+
+      <!-- Tab: Status slide -->
+      <div class="tab-pane" id="tab-status">
+        <div style="font-size:.83rem;color:var(--text-muted);line-height:1.5;">
+          Creates a full-screen status indicator slide. For Atlassian Statuspage URLs, live status is fetched automatically. For any other URL, set the indicator manually below and the page is shown in an iframe behind it.
+        </div>
+        <div class="add-row">
+          <input type="text" id="stat-url-input" placeholder="https://status.example.com  (optional)" style="flex:2" />
+          <input type="text" id="stat-label-input" placeholder="Label e.g. All Systems" style="flex:1;min-width:120px" />
+        </div>
+        <div class="add-row">
+          <span class="input-hint">Indicator:</span>
+          <div class="status-indicator-row" id="stat-colour-row">
+            <button class="status-dot-btn green selected" data-colour="green" title="Green - Operational"></button>
+            <button class="status-dot-btn amber" data-colour="amber" title="Amber - Degraded"></button>
+            <button class="status-dot-btn red" data-colour="red" title="Red - Outage"></button>
+            <button class="status-dot-btn blue" data-colour="blue" title="Blue - Maintenance"></button>
+            <button class="status-dot-btn grey" data-colour="grey" title="Grey - Unknown"></button>
+          </div>
+          <input type="number" class="num-input" id="stat-dur-input" min="3" max="3600" value="30" title="Seconds" />
+          <span class="input-hint">s</span>
+          <input type="number" class="num-input" id="stat-reload-input" min="0" max="60" value="5" title="Re-fetch Statuspage API every N minutes (0 = off)" />
+          <span class="input-hint">min refresh</span>
+          <button class="btn btn-primary btn-sm" id="stat-add-btn">+ Add status</button>
+        </div>
+        <div style="font-size:.76rem;color:var(--text-muted);">Statuspage.io domains are detected automatically and the live API status overrides the manual indicator.</div>
+      </div>
+
+      <!-- Tab: HTML slide -->
+      <div class="tab-pane" id="tab-html">
+        <div style="font-size:.83rem;color:var(--text-muted)">Write any HTML/CSS. Rendered full-screen in a sandboxed iframe. Use templates below to get started.</div>
+        <div class="template-row" id="html-template-row">
+          <button class="template-btn" data-tpl="welcome">Welcome screen</button>
+          <button class="template-btn" data-tpl="notice">IT notice</button>
+          <button class="template-btn" data-tpl="countdown">Countdown</button>
+          <button class="template-btn" data-tpl="blank">Blank</button>
+        </div>
+        <div class="add-row">
+          <input type="text" id="html-name-input" placeholder="Slide name e.g. Welcome" style="flex:1;min-width:120px" />
+          <input type="number" class="num-input" id="html-dur-input" min="3" max="3600" value="30" />
+          <span class="input-hint">s</span>
+        </div>
+        <textarea class="html-editor" id="html-editor" spellcheck="false" placeholder="&lt;!-- Your HTML here --&gt;"></textarea>
+        <div style="display:flex;gap:8px;justify-content:flex-end;">
+          <button class="btn btn-ghost btn-sm" id="html-preview-btn">&#128065;&#65039; Preview</button>
+          <button class="btn btn-primary btn-sm" id="html-add-btn">+ Add HTML slide</button>
+        </div>
+      </div>
+
+      <!-- Tab: All slides list -->
+      <div class="tab-pane" id="tab-list">
+        <div class="url-list" id="default-url-list">
+          <div class="empty-state" style="padding:12px 0"><div class="emoji">&#128444;&#65039;</div><p>No slides yet</p></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="card-footer">
+      <button class="btn btn-ghost btn-sm" id="export-btn">&#8681; Export config</button>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer">&#8679; Import config<input type="file" id="import-input" accept=".json" style="display:none"/></label>
+      <button class="btn btn-primary btn-sm" id="save-defaults-btn">&#10003; Save</button>
+    </div>
+  </div>
+
+  <!-- Auth guidance -->
+  <div class="section-label">Authenticated pages</div>
+  <div class="card" id="auth-card">
+    <div class="card-header" style="cursor:pointer" id="auth-card-toggle">
+      <strong>&#128274; Displaying pages that require login</strong>
+      <span id="auth-toggle-label" style="color:var(--accent);font-weight:600;">&#9660; Expand</span>
+    </div>
+    <div class="card-body" id="auth-card-body" style="display:none">
+
+      <div style="font-size:.85rem;line-height:1.7;color:var(--text-muted);">
+        The display board cannot log into websites on your behalf. Browsers block cross-origin access to iframe content for security reasons, so there is no way to inject credentials or automate login flows. Below are the practical options, roughly in order of recommendation.
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:0;border:1px solid var(--border);border-radius:8px;overflow:hidden;">
+
+        <div class="auth-option best">
+          <div class="auth-option-head">
+            <span class="auth-badge best">&#9733; Best</span>
+            <strong>Use an embed or public link</strong>
+          </div>
+          <div class="auth-option-body">
+            Most dashboard tools provide a shareable or embed URL that bypasses login entirely. Check your tool before doing anything else.
+            <div class="auth-examples">
+              <span class="auth-ex">Grafana &rarr; Share &rarr; Embed</span>
+              <span class="auth-ex">Power BI &rarr; Publish to web</span>
+              <span class="auth-ex">Datadog &rarr; Shared dashboards</span>
+              <span class="auth-ex">Statuspage &rarr; already handled</span>
+              <span class="auth-ex">Kibana &rarr; Short URLs</span>
+              <span class="auth-ex">Domo &rarr; Embed card</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="auth-option" style="border-top:1px solid var(--border)">
+          <div class="auth-option-head">
+            <span class="auth-badge good">&#10003; Recommended</span>
+            <strong>Dedicated browser session on the display PC</strong>
+          </div>
+          <div class="auth-option-body">
+            Create a <strong>service account</strong> (e.g. <code>display@company.com</code>) with read-only access to the dashboards you want to show. Sign into that account in a <strong>separate Chrome or Edge profile</strong> on the display PC, tick <em>Stay signed in</em>, and open the Display Board in that profile. The browser already holds the session cookies, so iframes load without prompting for login. Set the profile to not clear cookies on close.
+            <div class="auth-steps">
+              <div class="auth-step"><span class="auth-step-n">1</span>Create a read-only service account in your directory (Entra ID, Google Workspace, etc.)</div>
+              <div class="auth-step"><span class="auth-step-n">2</span>Open a new Chrome/Edge profile on the display PC and sign in as that account</div>
+              <div class="auth-step"><span class="auth-step-n">3</span>Browse to each dashboard URL and confirm it loads without re-prompting</div>
+              <div class="auth-step"><span class="auth-step-n">4</span>Open the Display Board in that same profile and add those URLs as slides</div>
+              <div class="auth-step"><span class="auth-step-n">5</span>In browser settings, disable &ldquo;Clear cookies on close&rdquo; for that profile</div>
+            </div>
+            <div style="margin-top:8px;font-size:.78rem;color:var(--text-muted);">&#9888;&#65039; Sessions still expire eventually. The URL reload interval setting (per slide) can help &mdash; refreshing the iframe will re-use the existing session cookie if it is still valid.</div>
+          </div>
+        </div>
+
+        <div class="auth-option" style="border-top:1px solid var(--border)">
+          <div class="auth-option-head">
+            <span class="auth-badge ok">&#8505;&#65039; Fallback</span>
+            <strong>Keep a browser tab open alongside the board</strong>
+          </div>
+          <div class="auth-option-body">
+            For pages that re-authenticate frequently (e.g. MFA every 24h), the simplest fallback is to keep the page open in a regular browser tab on the same machine. The tab maintains its own session independently. The Display Board can run in fullscreen on a second monitor or second window, with the authenticated tab available if you need to refresh or re-auth.
+          </div>
+        </div>
+
+        <div class="auth-option" style="border-top:1px solid var(--border)">
+          <div class="auth-option-head">
+            <span class="auth-badge na">&#10007; Not possible</span>
+            <strong>Automatic login via stored credentials</strong>
+          </div>
+          <div class="auth-option-body">
+            The board cannot fill in usernames and passwords, click login buttons, or handle MFA flows inside iframes. This is enforced by the browser&rsquo;s same-origin security policy and cannot be worked around in a client-side tool. Any site that shows a login screen inside the iframe will stay on that screen.
+          </div>
+        </div>
+
+      </div>
+
+      <div style="padding:10px 14px;background:color-mix(in srgb,var(--accent) 8%,var(--surface2));border:1px solid var(--accent);border-radius:7px;font-size:.81rem;line-height:1.6;">
+        &#128161; <strong>Tip:</strong> Add a <strong>session note</strong> to any URL slide as a reminder of which account to use. Notes are only visible on this config page &mdash; never shown on the board itself.
+      </div>
+
+    </div>
+  </div>
+
+  <!-- One-off files -->
+  <div class="section-label">One-off files &mdash; this session only</div>
+  <div class="drop-zone" id="drop-zone">
+    <input type="file" id="file-input" multiple accept="image/*,.pdf" />
+    <div class="drop-zone-icon">&#128194;</div>
+    <h2>Drop images or PDFs here</h2>
+    <p>Not saved &mdash; cleared on page reload</p>
+    <div class="badges">
+      <span class="badge">JPG</span><span class="badge">PNG</span><span class="badge">GIF</span>
+      <span class="badge">WebP</span><span class="badge">SVG</span><span class="badge">PDF</span>
+    </div>
+  </div>
+
+  <!-- Launch bar -->
+  <div class="launch-bar">
+    <div class="launch-bar-left">
+      <span class="slide-count" id="slide-count-label">0 slides</span>
+      <button class="btn btn-ghost btn-sm" id="clear-session-btn">Clear files</button>
+    </div>
+    <button class="btn-launch" id="launch-btn" disabled>&#9654; Launch Board</button>
+  </div>
+  <div id="session-slide-list" class="slide-list">
+    <div class="empty-state"><div class="emoji">&#128444;&#65039;</div><p>No slides yet.</p></div>
+  </div>
+
+  <!-- Settings -->
+  <div class="section-label">Settings</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="settings-grid">
+
+        <div class="settings-group">
+          <div class="settings-group-label">Playback</div>
+          <div class="settings-row">
+            <div class="setting-item"><label>Default duration</label>
+              <select id="default-duration">
+                <option value="10">10 s</option><option value="15">15 s</option>
+                <option value="30" selected>30 s</option><option value="60">60 s</option>
+                <option value="120">2 min</option><option value="300">5 min</option>
+              </select>
+            </div>
+            <div class="setting-item"><label>Transition</label>
+              <select id="transition-type">
+                <option value="fade" selected>Fade</option><option value="slide">Slide</option>
+                <option value="zoom">Zoom</option><option value="flip">Flip</option>
+                <option value="blur">Blur</option><option value="wipe">Wipe</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="loop-toggle" checked /> Loop</label>
+            <label class="toggle-label"><input type="checkbox" id="autolaunch-toggle" checked /> Auto-launch on load</label>
+            <label class="toggle-label"><input type="checkbox" id="thumbs-toggle" checked /> Thumbnails</label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-label">Display</div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="wakelock-toggle" checked /> Wake lock</label>
+            <label class="toggle-label"><input type="checkbox" id="autorestart-toggle" checked /> Auto-restart</label>
+            <div class="setting-item"><label>Every</label>
+              <select id="autorestart-interval">
+                <option value="6">6 h</option><option value="12">12 h</option>
+                <option value="24" selected>24 h</option><option value="48">48 h</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-label">Clock overlay</div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="clock-toggle" /> Show clock</label>
+          </div>
+          <div class="overlay-config" id="clock-config" style="display:none">
+            <div class="settings-row">
+              <div class="setting-item"><label>Position</label>
+                <select id="clock-pos">
+                  <option value="tr" selected>Top right</option><option value="tl">Top left</option>
+                  <option value="br">Bottom right</option><option value="bl">Bottom left</option>
+                </select>
+              </div>
+              <label class="toggle-label"><input type="checkbox" id="clock-date-toggle" checked /> Date</label>
+              <label class="toggle-label"><input type="checkbox" id="clock-24h-toggle" checked /> 24 h</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-label">Weather overlay</div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="weather-toggle" /> Show weather</label>
+          </div>
+          <div class="overlay-config" id="weather-config" style="display:none">
+            <div class="flex-row">
+              <input type="text" id="weather-location" placeholder="London" style="width:120px;padding:6px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;" />
+              <div class="setting-item"><label>Units</label>
+                <select id="weather-units"><option value="metric" selected>&#176;C</option><option value="imperial">&#176;F</option></select>
+              </div>
+              <div class="setting-item"><label>Position</label>
+                <select id="weather-pos">
+                  <option value="tl" selected>Top left</option><option value="tr">Top right</option>
+                  <option value="bl">Bottom left</option><option value="br">Bottom right</option>
+                </select>
+              </div>
+              <button class="btn btn-ghost btn-sm" id="weather-fetch-btn">Test</button>
+            </div>
+            <div id="weather-status" style="font-size:.78rem;color:var(--text-muted)">Uses Open-Meteo (free, no API key).</div>
+          </div>
+        </div>
+
+        <div class="settings-group" style="flex:1;min-width:260px">
+          <div class="settings-group-label">Ticker</div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="ticker-toggle" /> Show ticker</label>
+          </div>
+          <div class="overlay-config" id="ticker-config" style="display:none">
+            <div class="flex-row">
+              <input type="text" id="ticker-text" placeholder="Static text shown if no RSS feed or feed is blocked" style="flex:1;min-width:180px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;" />
+            </div>
+            <div class="flex-row">
+              <input type="text" id="ticker-rss" placeholder="RSS feed URL (optional, falls back to static text if blocked)" style="flex:1;min-width:180px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'DM Sans',sans-serif;font-size:.83rem;outline:none;" />
+            </div>
+            <div class="settings-row">
+              <div class="setting-item"><label>Speed</label>
+                <select id="ticker-speed">
+                  <option value="60">Slow</option><option value="40" selected>Medium</option><option value="22">Fast</option>
+                </select>
+              </div>
+              <label class="toggle-label"><input type="checkbox" id="ticker-rss-toggle" checked /> Try RSS first</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-group-label">Access</div>
+          <div class="settings-row">
+            <label class="toggle-label"><input type="checkbox" id="pin-toggle" /> PIN to exit</label>
+          </div>
+          <div class="overlay-config" id="pin-config" style="display:none">
+            <input type="text" id="pin-input" placeholder="4-digit PIN" maxlength="8" style="width:120px;padding:7px 10px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-family:'JetBrains Mono',monospace;font-size:.85rem;outline:none;" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ── DISPLAY OVERLAY ── -->
+<div id="display-overlay">
+  <div class="ss-stage" id="ss-stage">
+    <div class="ss-progress" id="ss-progress" style="width:0%"></div>
+    <button class="ss-nav-prev" id="ss-prev">&#8249;</button>
+    <button class="ss-nav-next" id="ss-next">&#8250;</button>
+    <div id="ss-frames"></div>
+    <div class="ss-blackout" id="ss-blackout"></div>
+    <div class="yt-muted-badge hidden" id="yt-muted-badge">&#128266; Muted &mdash; click Unmute in the bar to enable audio</div>
+  </div>
+  <div class="ss-ticker" id="ss-ticker" style="display:none">
+    <div class="ss-ticker-inner" id="ss-ticker-inner">
+      <span class="ss-ticker-text" id="ss-ticker-text"></span>
+      <span class="ss-ticker-sep">&#9670;</span>
+      <span class="ss-ticker-text" id="ss-ticker-text2"></span>
+    </div>
+  </div>
+  <div class="ss-thumbstrip" id="ss-thumbstrip"></div>
+  <div class="ss-bar" id="ss-bar">
+    <button class="ss-btn" id="ss-exit-btn">&#10005; Exit</button>
+    <div class="ss-sep"></div>
+    <button class="ss-btn" id="ss-prev-btn">&#8249;</button>
+    <span class="ss-counter" id="ss-counter">1 / 1</span>
+    <button class="ss-btn" id="ss-next-btn">&#8250;</button>
+    <div class="ss-sep"></div>
+    <span class="ss-slide-title" id="ss-slide-title"></span>
+    <span class="ss-dur-label" id="ss-dur-label"></span>
+    <div class="ss-sep"></div>
+    <button class="ss-btn" id="ss-play-btn">&#9646;&#9646; Pause</button>
+    <button class="ss-btn" id="ss-mute-btn" style="display:none">&#128266; Unmute</button>
+    <button class="ss-btn" id="ss-editdur-btn" title="Edit slide durations">&#9202; Durations</button>
+    <button class="ss-btn" id="ss-black-btn" title="Blackout (B)">&#9632;</button>
+    <button class="ss-btn" id="ss-fullscreen-btn">&#x26F6;</button>
+    <button class="ss-btn" id="ss-help-btn">?</button>
+  </div>
+  <!-- PIN modal -->
+  <div class="ss-modal" id="ss-pin-prompt">
+    <div class="ss-modal-box" style="text-align:center;min-width:260px">
+      <h3>Enter PIN to exit</h3>
+      <input type="password" id="ss-pin-entry" maxlength="8" placeholder="PIN" style="width:100%;padding:10px;border-radius:8px;border:1px solid #334155;background:#0f172a;color:#fff;font-family:'JetBrains Mono',monospace;font-size:1.2rem;text-align:center;outline:none;margin-bottom:10px;" />
+      <div id="ss-pin-error" style="color:#ef4444;font-size:.8rem;height:18px;margin-bottom:8px;"></div>
+      <button class="ss-btn" id="ss-pin-cancel-btn">Cancel</button>
+    </div>
+  </div>
+  <!-- Help modal -->
+  <div class="ss-modal" id="ss-help-overlay">
+    <div class="ss-modal-box">
+      <h3>Keyboard shortcuts</h3>
+      <div class="ss-help-row"><span class="ss-help-key">&#8592; / &#8594;</span><span class="ss-help-desc">Previous / Next slide</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">Space</span><span class="ss-help-desc">Pause / Resume</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">B</span><span class="ss-help-desc">Blackout screen</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">F</span><span class="ss-help-desc">Toggle fullscreen</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">R</span><span class="ss-help-desc">Reload current slide</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">?</span><span class="ss-help-desc">This help</span></div>
+      <div class="ss-help-row"><span class="ss-help-key">Esc</span><span class="ss-help-desc">Exit board</span></div>
+      <div style="margin-top:14px;text-align:center"><button class="ss-btn" id="ss-help-close-btn">Close</button></div>
+    </div>
+  </div>
+  <!-- HTML preview modal -->
+  <div class="ss-modal" id="ss-preview-modal">
+    <div class="ss-modal-box" style="width:80vw;max-width:900px;padding:0;overflow:hidden;border-radius:12px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:#273549;">
+        <span style="color:#fff;font-size:.87rem;font-weight:600;">HTML Preview</span>
+        <button class="ss-btn" id="ss-preview-close-btn">&#10005; Close</button>
+      </div>
+      <iframe id="ss-preview-iframe" style="width:100%;height:55vh;border:none;background:#fff;display:block;"></iframe>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+var themeBtn = document.getElementById("theme-btn");
+function applyTheme(t) {
+  document.documentElement.setAttribute("data-theme", t);
+  localStorage.setItem("sw-theme", t);
+  themeBtn.innerHTML = t === "dark" ? "&#9728;&#65039;" : "&#127769;";
+}
+themeBtn.addEventListener("click", function() {
+  applyTheme(document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark");
+});
+applyTheme(document.documentElement.getAttribute("data-theme") || "light");
+
+var SK_DEF = "sw-board-defaults";
+var SK_SET = "sw-board-settings";
+
+// ── State ──
+var defaultSlides  = [];
+var sessionFiles   = [];
+var allSlides      = [];
+var ssIndex        = 0;
+var ssPlaying      = false;
+var ssTimer        = null;
+var ssProgTimer    = null;
+var ssProgStart    = 0;
+var ssCurDur       = 30;
+var ssReloadTimers = {};
+var ssStatusTimers = {};
+var wakeLock       = null;
+var autoRestartTimer = null;
+var tickerAnim     = null;
+var clockInterval  = null;
+var weatherFetchTimer = null;
+var blackoutActive = false;
+var selectedStatColour = "green";
+var ytPlayers = {};        // index -> YT.Player instance
+var ytMuted   = true;      // global mute state
+var ytApiReady = false;    // IFrame API loaded flag
+window.onYouTubeIframeAPIReady = function() { ytApiReady = true; };
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+function fmtSize(b){if(b<1024)return b+"B";if(b<1048576)return (b/1024).toFixed(1)+"KB";return (b/1048576).toFixed(1)+"MB";}
+function gv(id){return document.getElementById(id);}
+function pad(n){return n<10?"0"+n:String(n);}
+
+// ── Tabs ──
+document.querySelectorAll(".tab-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+    document.querySelectorAll(".tab-pane").forEach(function(p){p.classList.remove("active");});
+    btn.classList.add("active");
+    var pane = gv(btn.dataset.tab);
+    if(pane) pane.classList.add("active");
+    if(btn.dataset.tab === "tab-list") renderDefaultList();
+  });
+});
+
+// ── Status colour picker ──
+document.querySelectorAll(".status-dot-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    document.querySelectorAll(".status-dot-btn").forEach(function(b){b.classList.remove("selected");});
+    btn.classList.add("selected");
+    selectedStatColour = btn.dataset.colour;
+  });
+});
+
+// ── HTML templates ──
+var TEMPLATES = {
+  welcome: "<!DOCTYPE html>\n<html>\n<head><style>\n  body{margin:0;background:#0f172a;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'DM Sans',Arial,sans-serif;}\n  .box{text-align:center;color:#fff;}\n  h1{font-size:4rem;font-weight:700;margin:0;letter-spacing:-.02em;}\n  h1 span{color:#0d9488;}\n  p{font-size:1.4rem;color:rgba(255,255,255,.6);margin-top:16px;}\n</style></head>\n<body>\n  <div class=\"box\">\n    <h1>Welcome to <span>Acme Ltd</span></h1>\n    <p>Please sign in at reception</p>\n  </div>\n</body>\n</html>",
+  notice: "<!DOCTYPE html>\n<html>\n<head><style>\n  body{margin:0;background:#1e293b;display:flex;align-items:center;justify-content:center;height:100vh;font-family:'DM Sans',Arial,sans-serif;}\n  .card{background:#0f172a;border:2px solid #0d9488;border-radius:20px;padding:48px 56px;max-width:800px;text-align:center;color:#fff;}\n  .label{font-size:.9rem;text-transform:uppercase;letter-spacing:.1em;color:#0d9488;font-weight:700;margin-bottom:16px;}\n  h1{font-size:2.8rem;font-weight:700;margin:0 0 20px;}\n  p{font-size:1.2rem;color:rgba(255,255,255,.7);line-height:1.6;}\n</style></head>\n<body>\n  <div class=\"card\">\n    <div class=\"label\">IT Notice</div>\n    <h1>Planned Maintenance</h1>\n    <p>Systems will be unavailable Saturday 18 Jan between 02:00 and 06:00.<br>Please save your work before leaving on Friday.</p>\n  </div>\n</body>\n</html>",
+  countdown: "<!DOCTYPE html>\n<html>\n<head><style>\n  body{margin:0;background:#0f172a;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:'JetBrains Mono',monospace;color:#fff;}\n  .label{font-size:1rem;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.5);margin-bottom:24px;}\n  .timer{display:flex;gap:32px;}\n  .unit{text-align:center;}\n  .num{font-size:5rem;font-weight:700;color:#0d9488;line-height:1;}\n  .uname{font-size:.8rem;color:rgba(255,255,255,.4);margin-top:6px;}\n  .title{font-size:1.6rem;font-weight:600;margin-top:32px;color:rgba(255,255,255,.8);font-family:'DM Sans',Arial,sans-serif;}\n</style></head>\n<body>\n  <div class=\"label\">Time until</div>\n  <div class=\"timer\">\n    <div class=\"unit\"><div class=\"num\" id=\"dd\">00</div><div class=\"uname\">DAYS</div></div>\n    <div class=\"unit\"><div class=\"num\" id=\"hh\">00</div><div class=\"uname\">HRS</div></div>\n    <div class=\"unit\"><div class=\"num\" id=\"mm\">00</div><div class=\"uname\">MIN</div></div>\n    <div class=\"unit\"><div class=\"num\" id=\"ss\">00</div><div class=\"uname\">SEC</div></div>\n  </div>\n  <div class=\"title\">Planned Maintenance Window</div>\n  <script>\n    var target = new Date(\"2025-02-01T02:00:00\");\n    function tick(){\n      var diff=Math.max(0,target-new Date());\n      var d=Math.floor(diff/86400000),h=Math.floor(diff%86400000/3600000),m=Math.floor(diff%3600000/60000),s=Math.floor(diff%60000/1000);\n      document.getElementById(\"dd\").textContent=String(d).padStart(2,\"0\");\n      document.getElementById(\"hh\").textContent=String(h).padStart(2,\"0\");\n      document.getElementById(\"mm\").textContent=String(m).padStart(2,\"0\");\n      document.getElementById(\"ss\").textContent=String(s).padStart(2,\"0\");\n    }\n    tick(); setInterval(tick,1000);\n  <\/script>\n</body>\n</html>",
+  blank: "<!DOCTYPE html>\n<html>\n<head><style>body{margin:0;background:#000;height:100vh;}</style></head>\n<body></body>\n</html>"
+};
+document.querySelectorAll(".template-btn").forEach(function(btn) {
+  btn.addEventListener("click", function() {
+    gv("html-editor").value = TEMPLATES[btn.dataset.tpl] || "";
+    if(!gv("html-name-input").value) gv("html-name-input").value = btn.textContent.trim();
+  });
+});
+
+// ── HTML preview ──
+gv("html-preview-btn").addEventListener("click", function() {
+  var html = gv("html-editor").value.trim();
+  if(!html) return;
+  var blob = new Blob([html], {type:"text/html"});
+  var url = URL.createObjectURL(blob);
+  gv("ss-preview-iframe").src = url;
+  gv("ss-preview-modal").classList.add("active");
+});
+gv("ss-preview-close-btn").addEventListener("click", function() {
+  gv("ss-preview-modal").classList.remove("active");
+  gv("ss-preview-iframe").src = "about:blank";
+});
+
+// ── Add HTML slide ──
+gv("html-add-btn").addEventListener("click", function() {
+  var html = gv("html-editor").value.trim();
+  var name = gv("html-name-input").value.trim() || "HTML Slide";
+  var dur  = parseInt(gv("html-dur-input").value,10)||30;
+  if(!html) return;
+  defaultSlides.push({type:"html", name:name, html:html, duration:dur});
+  saveDefaults();
+  gv("html-editor").value = "";
+  gv("html-name-input").value = "";
+  switchToListTab();
+});
+
+// ── Add status slide ──
+gv("stat-add-btn").addEventListener("click", addStatusSlide);
+function addStatusSlide() {
+  var url    = gv("stat-url-input").value.trim();
+  var label  = gv("stat-label-input").value.trim() || "System Status";
+  var dur    = parseInt(gv("stat-dur-input").value,10)||30;
+  var reload = parseInt(gv("stat-reload-input").value,10)||5;
+  defaultSlides.push({type:"status", name:label, url:url||"", colour:selectedStatColour, duration:dur, reload:reload});
+  saveDefaults();
+  gv("stat-url-input").value = "";
+  gv("stat-label-input").value = "";
+  renderDefaultList();
+  switchToListTab();
+}
+
+// ── Add URL slide ──
+gv("def-add-btn").addEventListener("click", addUrlSlide);
+gv("def-url-input").addEventListener("keydown", function(e){if(e.key==="Enter") addUrlSlide();});
+function addUrlSlide() {
+  var raw = gv("def-url-input").value.trim(); if(!raw) return;
+  var url = /^https?:\/\//i.test(raw) ? raw : "https://"+raw;
+  var dur = parseInt(gv("def-dur-input").value,10)||30;
+  var reload = parseInt(gv("def-reload-input").value,10)||0;
+  var note = gv("def-note-input").value.trim();
+  defaultSlides.push({type:"url", name:url, url:url, duration:dur, reload:reload, note:note});
+  saveDefaults();
+  gv("def-url-input").value=""; gv("def-dur-input").value="30"; gv("def-reload-input").value="0"; gv("def-note-input").value="";
+  renderDefaultList();
+}
+
+// ── YouTube helpers ──
+function extractYtId(url) {
+  var m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([A-Za-z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+gv("yt-add-btn").addEventListener("click", addYtSlide);
+gv("yt-url-input").addEventListener("keydown", function(e){if(e.key==="Enter") addYtSlide();});
+function addYtSlide() {
+  var raw = gv("yt-url-input").value.trim(); if(!raw) return;
+  var id = extractYtId(raw);
+  if(!id) { alert("Could not find a YouTube video ID in that URL."); return; }
+  var fallback = parseInt(gv("yt-fallback-input").value,10)||300;
+  var label = "YouTube: "+id;
+  defaultSlides.push({type:"youtube", name:label, ytId:id, duration:fallback});
+  saveDefaults();
+  gv("yt-url-input").value="";
+  renderDefaultList();
+  switchToListTab();
+}
+function switchToListTab() {
+  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+  document.querySelectorAll(".tab-pane").forEach(function(p){p.classList.remove("active");});
+  document.querySelector("[data-tab='tab-list']").classList.add("active");
+  gv("tab-list").classList.add("active");
+  renderDefaultList();
+}
+
+// ── Render default list ──
+function typeBadgeHtml(slide) {
+  if(slide.type==="status") {
+    var cls="status-"+slide.colour; var lbl=slide.colour.toUpperCase();
+    return "<span class=\"type-badge "+cls+"\">&#9679; "+lbl+"</span>";
+  }
+  if(slide.type==="html") return "<span class=\"type-badge html-slide\">&lt;/&gt; HTML</span>";
+  if(slide.type==="youtube") return "<span class=\"type-badge status-red\">&#9654; YT</span>";
+  return "<span class=\"type-badge url\">URL</span>";
+}
+function renderDefaultList() {
+  var list = gv("default-url-list");
+  rebuildAllSlides();
+  if(defaultSlides.length===0){
+    list.innerHTML="<div class=\"empty-state\" style=\"padding:12px 0\"><div class=\"emoji\">&#128444;&#65039;</div><p>No slides yet</p></div>";
+    updateBanner(); return;
+  }
+  list.innerHTML="";
+  defaultSlides.forEach(function(d,i){
+    var item=document.createElement("div");
+    item.className="url-item"; item.draggable=true; item.dataset.index=i;
+    var reloadBadge = d.reload>0 ? "<span class=\"url-reload-badge\">&#8635; "+d.reload+"m</span>" : "";
+    var noteBadge = d.note ? "<div style=\"font-size:.72rem;color:var(--accent);margin-top:3px;padding-left:2px;\">&#128274; "+esc(d.note)+"</div>" : "";
+    item.innerHTML=
+      "<span class=\"drag-handle\">\u2630</span>"+
+      typeBadgeHtml(d)+
+      "<span class=\"url-text\">"+esc(d.name)+(noteBadge?"<br>"+noteBadge:"")+"</span>"+
+      reloadBadge+
+      "<span class=\"dur-badge\">"+d.duration+"s</span>"+
+      "<button data-i=\""+i+"\" title=\"Remove\">&#215;</button>";
+    item.querySelector("button").addEventListener("click",function(e){
+      e.stopPropagation(); defaultSlides.splice(i,1); saveDefaults(); renderDefaultList();
+    });
+    list.appendChild(item);
+  });
+  initDefaultDragSort();
+  updateBanner();
+}
+
+// ── Default drag sort ──
+var defDragSrc=null;
+function initDefaultDragSort() {
+  document.querySelectorAll("#default-url-list .url-item").forEach(function(item){
+    item.addEventListener("dragstart",function(){defDragSrc=parseInt(item.dataset.index,10);setTimeout(function(){item.classList.add("dragging");},0);});
+    item.addEventListener("dragend",function(){item.classList.remove("dragging");});
+    item.addEventListener("dragover",function(e){e.preventDefault();item.classList.add("drag-target");});
+    item.addEventListener("dragleave",function(){item.classList.remove("drag-target");});
+    item.addEventListener("drop",function(e){
+      e.preventDefault();item.classList.remove("drag-target");
+      var ti=parseInt(item.dataset.index,10);
+      if(defDragSrc!==null&&defDragSrc!==ti){var m=defaultSlides.splice(defDragSrc,1)[0];defaultSlides.splice(ti,0,m);saveDefaults();renderDefaultList();}
+      defDragSrc=null;
+    });
+  });
+}
+
+// ── Save / load ──
+function saveDefaults(){localStorage.setItem(SK_DEF,JSON.stringify(defaultSlides));}
+function loadDefaults(){try{var r=localStorage.getItem(SK_DEF);if(r)defaultSlides=JSON.parse(r);}catch(e){defaultSlides=[];}}
+function loadSettings(){
+  try{
+    var r=localStorage.getItem(SK_SET); if(!r) return; var s=JSON.parse(r);
+    if(s.duration)    gv("default-duration").value=s.duration;
+    if(s.transition)  gv("transition-type").value=s.transition;
+    if(s.loop===false) gv("loop-toggle").checked=false;
+    if(s.autolaunch===false) gv("autolaunch-toggle").checked=false;
+    if(s.thumbs===false) gv("thumbs-toggle").checked=false;
+    if(s.wakelock===false) gv("wakelock-toggle").checked=false;
+    if(s.autorestart===false) gv("autorestart-toggle").checked=false;
+    if(s.autorestartH) gv("autorestart-interval").value=s.autorestartH;
+    if(s.clock)  gv("clock-toggle").checked=true;
+    if(s.clockPos) gv("clock-pos").value=s.clockPos;
+    if(s.clockDate===false) gv("clock-date-toggle").checked=false;
+    if(s.clock24h===false) gv("clock-24h-toggle").checked=false;
+    if(s.weather) gv("weather-toggle").checked=true;
+    if(s.weatherLoc) gv("weather-location").value=s.weatherLoc;
+    if(s.weatherUnits) gv("weather-units").value=s.weatherUnits;
+    if(s.weatherPos) gv("weather-pos").value=s.weatherPos;
+    if(s.ticker) gv("ticker-toggle").checked=true;
+    if(s.tickerText) gv("ticker-text").value=s.tickerText;
+    if(s.tickerRss) gv("ticker-rss").value=s.tickerRss;
+    if(s.tickerSpeed) gv("ticker-speed").value=s.tickerSpeed;
+    if(s.tickerRssTry===false) gv("ticker-rss-toggle").checked=false;
+    if(s.pin){gv("pin-toggle").checked=true;gv("pin-input").value=s.pin;}
+    syncToggles();
+  }catch(e){}
+}
+function saveSettings(){
+  localStorage.setItem(SK_SET,JSON.stringify({
+    duration:gv("default-duration").value, transition:gv("transition-type").value,
+    loop:gv("loop-toggle").checked, autolaunch:gv("autolaunch-toggle").checked,
+    thumbs:gv("thumbs-toggle").checked, wakelock:gv("wakelock-toggle").checked,
+    autorestart:gv("autorestart-toggle").checked, autorestartH:gv("autorestart-interval").value,
+    clock:gv("clock-toggle").checked, clockPos:gv("clock-pos").value,
+    clockDate:gv("clock-date-toggle").checked, clock24h:gv("clock-24h-toggle").checked,
+    weather:gv("weather-toggle").checked, weatherLoc:gv("weather-location").value,
+    weatherUnits:gv("weather-units").value, weatherPos:gv("weather-pos").value,
+    ticker:gv("ticker-toggle").checked, tickerText:gv("ticker-text").value,
+    tickerRss:gv("ticker-rss").value, tickerSpeed:gv("ticker-speed").value,
+    tickerRssTry:gv("ticker-rss-toggle").checked,
+    pin:gv("pin-toggle").checked?gv("pin-input").value:""
+  }));
+}
+function syncToggles(){
+  gv("clock-config").style.display   = gv("clock-toggle").checked   ? "flex":"none";
+  gv("weather-config").style.display = gv("weather-toggle").checked ? "flex":"none";
+  gv("ticker-config").style.display  = gv("ticker-toggle").checked  ? "flex":"none";
+  gv("pin-config").style.display     = gv("pin-toggle").checked     ? "flex":"none";
+}
+["clock-toggle","weather-toggle","ticker-toggle","pin-toggle"].forEach(function(id){gv(id).addEventListener("change",function(){syncToggles();saveSettings();});});
+["default-duration","transition-type","loop-toggle","autolaunch-toggle","thumbs-toggle","wakelock-toggle",
+ "autorestart-toggle","autorestart-interval","clock-pos","clock-date-toggle","clock-24h-toggle",
+ "weather-location","weather-units","weather-pos","ticker-text","ticker-rss","ticker-speed",
+ "ticker-rss-toggle","pin-input"].forEach(function(id){var el=gv(id);if(el)el.addEventListener("change",saveSettings);});
+
+gv("save-defaults-btn").addEventListener("click",function(){
+  saveDefaults(); var btn=gv("save-defaults-btn");
+  btn.classList.remove("save-pulse"); void btn.offsetWidth; btn.classList.add("save-pulse");
+  setTimeout(function(){btn.classList.remove("save-pulse");},700);
+});
+
+// ── Export / Import ──
+gv("export-btn").addEventListener("click",function(){
+  var cfg={defaultSlides:defaultSlides,settings:JSON.parse(localStorage.getItem(SK_SET)||"{}") };
+  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([JSON.stringify(cfg,null,2)],{type:"application/json"}));
+  a.download="display-board-config.json"; a.click();
+});
+gv("import-input").addEventListener("change",function(){
+  var file=this.files[0]; if(!file) return;
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var cfg=JSON.parse(e.target.result);
+      if(cfg.defaultSlides){defaultSlides=cfg.defaultSlides;saveDefaults();}
+      if(cfg.settings){localStorage.setItem(SK_SET,JSON.stringify(cfg.settings));loadSettings();}
+      renderDefaultList();
+    }catch(err){alert("Invalid config file.");}
+  };
+  reader.readAsText(file); this.value="";
+});
+
+// ── File drop ──
+var dropZone=gv("drop-zone"), fileInput=gv("file-input");
+dropZone.addEventListener("dragover",function(e){e.preventDefault();dropZone.classList.add("drag-over");});
+dropZone.addEventListener("dragleave",function(){dropZone.classList.remove("drag-over");});
+dropZone.addEventListener("drop",function(e){e.preventDefault();dropZone.classList.remove("drag-over");handleFiles(Array.from(e.dataTransfer.files));});
+fileInput.addEventListener("change",function(){handleFiles(Array.from(fileInput.files));fileInput.value="";});
+function handleFiles(files){
+  files.forEach(function(file){
+    if(!file.type.startsWith("image/")&&file.type!=="application/pdf") return;
+    var dur=parseInt(gv("default-duration").value,10)||30;
+    var reader=new FileReader();
+    reader.onload=function(e){
+      sessionFiles.push({type:file.type.startsWith("image/")?"image":"pdf",name:file.name,url:e.target.result,size:fmtSize(file.size),duration:dur});
+      rebuildAllSlides();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+gv("clear-session-btn").addEventListener("click",function(){sessionFiles=[];rebuildAllSlides();});
+
+// ── Rebuild allSlides ──
+function rebuildAllSlides(){
+  allSlides=[];
+  defaultSlides.forEach(function(d){allSlides.push(Object.assign({},d,{isDefault:true}));});
+  sessionFiles.forEach(function(f){allSlides.push(f);});
+  renderSessionList(); updateLaunchBtn();
+}
+
+// ── Session list ──
+function slideThumbHtml(slide){
+  if(slide.type==="image") return "<div class=\"slide-thumb\"><img src=\""+slide.url+"\" alt=\"\" /></div>";
+  if(slide.type==="pdf") return "<div class=\"slide-thumb\">&#128196;</div>";
+  if(slide.type==="status") return "<div class=\"slide-thumb st-"+slide.colour+"\">&#9679;</div>";
+  if(slide.type==="html") return "<div class=\"slide-thumb st-html\">&lt;/&gt;</div>";
+  if(slide.type==="youtube") return "<div class=\"slide-thumb st-yt\">&#9654;</div>";
+  return "<div class=\"slide-thumb\">&#127760;</div>";
+}
+function renderSessionList(){
+  var list=gv("session-slide-list");
+  gv("slide-count-label").textContent=allSlides.length+" slide"+(allSlides.length!==1?"s":"");
+  if(allSlides.length===0){list.innerHTML="<div class=\"empty-state\"><div class=\"emoji\">&#128444;&#65039;</div><p>No slides yet.</p></div>";return;}
+  list.innerHTML="";
+  allSlides.forEach(function(slide,i){
+    var item=document.createElement("div");
+    item.className="slide-item"; item.draggable=true; item.dataset.index=i;
+    var defBadge=slide.isDefault?"<span class=\"slide-def-badge\">default</span>":"";
+    var reloadNote=slide.reload>0?" <span style=\"font-size:.68rem;color:var(--accent)\">&#8635;"+slide.reload+"m</span>":"";
+    item.innerHTML=
+      "<span class=\"slide-handle\">\u2630</span>"+
+      slideThumbHtml(slide)+
+      "<div class=\"slide-info\">"+
+        "<div class=\"slide-name\">"+esc(slide.name)+defBadge+reloadNote+"</div>"+
+        "<div class=\"slide-meta\">"+slide.type.toUpperCase()+" \u00B7 "+(slide.size||slide.type)+"</div>"+
+      "</div>"+
+      "<div class=\"slide-dur-wrap\"><input type=\"number\" min=\"3\" max=\"3600\" value=\""+(slide.duration||30)+"\" data-index=\""+i+"\" /><span>s</span></div>"+
+      "<button class=\"slide-remove\" data-index=\""+i+"\">&#215;</button>";
+    list.appendChild(item);
+  });
+  list.querySelectorAll(".slide-remove").forEach(function(btn){
+    btn.addEventListener("click",function(e){
+      e.stopPropagation();
+      var idx=parseInt(btn.dataset.index,10);
+      if(allSlides[idx].isDefault){
+        var di=defaultSlides.findIndex(function(d){return d.name===allSlides[idx].name&&d.type===allSlides[idx].type;});
+        if(di>=0){defaultSlides.splice(di,1);saveDefaults();renderDefaultList();}
+      } else {
+        var fi=sessionFiles.findIndex(function(f){return f.url===allSlides[idx].url;});
+        if(fi>=0){sessionFiles.splice(fi,1);}
+      }
+      rebuildAllSlides();
+    });
+  });
+  list.querySelectorAll(".slide-dur-wrap input").forEach(function(inp){
+    inp.addEventListener("click",function(e){e.stopPropagation();});
+    inp.addEventListener("mousedown",function(e){e.stopPropagation();});
+    inp.addEventListener("change",function(){
+      var idx=parseInt(inp.dataset.index,10);
+      allSlides[idx].duration=parseInt(inp.value,10)||30;
+      if(allSlides[idx].isDefault){var di=defaultSlides.findIndex(function(d){return d.name===allSlides[idx].name&&d.type===allSlides[idx].type;});if(di>=0){defaultSlides[di].duration=allSlides[idx].duration;saveDefaults();}}
+    });
+  });
+  initSessionDragSort();
+}
+var sesDragSrc=null;
+function initSessionDragSort(){
+  document.querySelectorAll("#session-slide-list .slide-item").forEach(function(item){
+    item.addEventListener("dragstart",function(){sesDragSrc=parseInt(item.dataset.index,10);setTimeout(function(){item.classList.add("dragging");},0);});
+    item.addEventListener("dragend",function(){item.classList.remove("dragging");});
+    item.addEventListener("dragover",function(e){e.preventDefault();item.classList.add("drag-target");});
+    item.addEventListener("dragleave",function(){item.classList.remove("drag-target");});
+    item.addEventListener("drop",function(e){
+      e.preventDefault();item.classList.remove("drag-target");
+      var ti=parseInt(item.dataset.index,10);
+      if(sesDragSrc!==null&&sesDragSrc!==ti){var m=allSlides.splice(sesDragSrc,1)[0];allSlides.splice(ti,0,m);renderSessionList();}
+      sesDragSrc=null;
+    });
+  });
+}
+
+// ── Banner ──
+function updateBanner(){
+  var n=defaultSlides.length;
+  var banner=gv("status-banner");
+  if(n>0){banner.classList.add("ok");gv("banner-icon").innerHTML="&#9989;";gv("banner-title").textContent=n+" default slide"+(n!==1?"s":"")+" configured";gv("banner-sub").textContent="Board will auto-launch on page load. Export to back up your config.";}
+  else{banner.classList.remove("ok");gv("banner-icon").innerHTML="&#128247;";gv("banner-title").textContent="No slides configured";gv("banner-sub").textContent="Add default slides below.";}
+  updateWakeLockStatus();
+}
+function updateLaunchBtn(){gv("launch-btn").disabled=allSlides.length===0;}
+
+// ── Wake lock ──
+function updateWakeLockStatus(){
+  var el=gv("wakelock-status");
+  if(!("wakeLock" in navigator)){el.innerHTML="<span class=\"status-dot-sm\"></span>Wake lock unavailable";return;}
+  if(wakeLock&&!wakeLock.released){el.innerHTML="<span class=\"status-dot-sm ok\"></span>Screen awake";}
+  else{el.innerHTML="<span class=\"status-dot-sm warn\"></span>Wake lock inactive";}
+}
+async function requestWakeLock(){
+  if(!("wakeLock" in navigator)||!gv("wakelock-toggle").checked) return;
+  try{wakeLock=await navigator.wakeLock.request("screen");wakeLock.addEventListener("release",updateWakeLockStatus);updateWakeLockStatus();}catch(e){}
+}
+document.addEventListener("visibilitychange",function(){if(document.visibilityState==="visible") requestWakeLock();});
+
+// ── Auto-restart ──
+function scheduleAutoRestart(){
+  if(autoRestartTimer){clearTimeout(autoRestartTimer);autoRestartTimer=null;}
+  if(!gv("autorestart-toggle").checked) return;
+  autoRestartTimer=setTimeout(function(){location.reload();},(parseInt(gv("autorestart-interval").value,10)||24)*3600000);
+}
+
+// ── Weather ──
+function fetchWeather(callback){
+  var loc=gv("weather-location").value.trim()||"London";
+  var units=gv("weather-units").value;
+  fetch("https://geocoding-api.open-meteo.com/v1/search?name="+encodeURIComponent(loc)+"&count=1&language=en&format=json")
+    .then(function(r){return r.json();})
+    .then(function(geo){
+      if(!geo.results||!geo.results.length){if(callback)callback(null,"Location not found.");return;}
+      var lat=geo.results[0].latitude,lon=geo.results[0].longitude;
+      return fetch("https://api.open-meteo.com/v1/forecast?latitude="+lat+"&longitude="+lon+"&current=temperature_2m,weathercode&temperature_unit="+(units==="imperial"?"fahrenheit":"celsius"))
+        .then(function(r){return r.json();})
+        .then(function(w){
+          var temp=Math.round(w.current.temperature_2m),code=w.current.weathercode;
+          if(callback)callback({temp:temp,unit:units==="imperial"?"\u00B0F":"\u00B0C",icon:wmoIcon(code),desc:wmoDesc(code),loc:geo.results[0].name},null);
+        });
+    }).catch(function(){if(callback)callback(null,"Fetch failed.");});
+}
+function wmoIcon(c){if(c===0)return "\u2600\uFE0F";if(c<=2)return "\uD83C\uDF24\uFE0F";if(c<=3)return "\u2601\uFE0F";if(c<=49)return "\uD83C\uDF2B\uFE0F";if(c<=69)return "\uD83C\uDF27\uFE0F";if(c<=79)return "\u2744\uFE0F";if(c<=84)return "\uD83C\uDF26\uFE0F";return "\u26C8\uFE0F";}
+function wmoDesc(c){if(c===0)return "Clear sky";if(c<=2)return "Partly cloudy";if(c<=3)return "Overcast";if(c<=9)return "Fog";if(c<=29)return "Drizzle";if(c<=39)return "Rain";if(c<=49)return "Snow";if(c<=69)return "Rain";if(c<=79)return "Snow";if(c<=84)return "Showers";return "Thunderstorm";}
+gv("weather-fetch-btn").addEventListener("click",function(){
+  gv("weather-status").textContent="Fetching...";
+  fetchWeather(function(d,err){gv("weather-status").textContent=err?"Error: "+err:d.loc+": "+d.temp+d.unit+" "+d.desc+" "+d.icon;});
+});
+
+// ── Status slide: Atlassian Statuspage auto-fetch ──
+function isStatusPage(url){return /statuspage\.io/i.test(url)||/status\./i.test(url);}
+function fetchStatusPage(url,callback){
+  if(!url) return;
+  // Try Atlassian Statuspage JSON API
+  var apiUrl=url.replace(/\/+$/,"");
+  if(!/api\/v2/.test(apiUrl)) apiUrl=apiUrl+"/api/v2/status.json";
+  fetch(apiUrl).then(function(r){return r.json();}).then(function(d){
+    var ind=d.status&&d.status.indicator;
+    var desc=d.status&&d.status.description;
+    var colour="green";
+    if(ind==="none"||ind==="operational") colour="green";
+    else if(ind==="minor"||ind==="degraded_performance") colour="amber";
+    else if(ind==="major"||ind==="partial_outage") colour="amber";
+    else if(ind==="critical") colour="red";
+    else colour="grey";
+    if(callback) callback({colour:colour,desc:desc||"All Systems Operational"});
+  }).catch(function(){if(callback) callback(null);});
+}
+
+// ── Launch board ──
+gv("launch-btn").addEventListener("click",launchBoard);
+function launchBoard(){
+  if(allSlides.length===0) return;
+  ssIndex=0; ssPlaying=true; blackoutActive=false; ytMuted=true;
+  buildFrames(); buildThumbStrip();
+  setupClock(); setupWeather(); setupTicker();
+  gv("display-overlay").classList.add("active");
+  var hasYt=allSlides.some(function(s){return s.type==="youtube";});
+  gv("ss-mute-btn").style.display=hasYt?"":"none";
+  gv("ss-mute-btn").textContent="&#128266; Unmute";
+  gv("ss-mute-btn").classList.remove("active-btn");
+  goToSlide(0);
+  startAutoAdvance();
+  requestWakeLock();
+  scheduleAutoRestart();
+  clearReloadTimers(); setupReloadTimers();
+  clearStatusTimers(); setupStatusTimers();
+  if(hasYt) initYtPlayers();
+  setTimeout(function(){if(gv("display-overlay").requestFullscreen) gv("display-overlay").requestFullscreen().catch(function(){});},200);
+}
+
+// ── Build frames ──
+var statusColourMap={green:"#16a34a",amber:"#d97706",red:"#dc2626",blue:"#2563eb",grey:"#6b7280"};
+var statusBgMap={green:"#052e16",amber:"#1c1000",red:"#1a0000",blue:"#0c1629",grey:"#111827"};
+var statusLabelMap={green:"Operational",amber:"Degraded",red:"Outage",blue:"Maintenance",grey:"Unknown"};
+
+function buildFrames(){
+  var container=gv("ss-frames");
+  container.innerHTML=""; container.style.cssText="position:absolute;inset:0;";
+  var trans=gv("transition-type").value;
+  container.className="tr-"+trans;
+  ytPlayers={};
+  allSlides.forEach(function(slide,i){
+    var frame=document.createElement("div");
+    frame.className="ss-frame"; frame.id="ss-frame-"+i;
+    if(slide.type==="image"){
+      var img=document.createElement("img"); img.src=slide.url; img.alt=slide.name;
+      frame.appendChild(img);
+    } else if(slide.type==="html"){
+      var blob=new Blob([slide.html],{type:"text/html"});
+      var ifrHtml=document.createElement("iframe");
+      ifrHtml.src=URL.createObjectURL(blob); ifrHtml.sandbox="allow-scripts";
+      frame.appendChild(ifrHtml);
+    } else if(slide.type==="youtube"){
+      frame.style.background="#000";
+      var ytDiv=document.createElement("div"); ytDiv.id="yt-player-"+i;
+      ytDiv.style.cssText="width:100%;height:100%;";
+      frame.appendChild(ytDiv);
+    } else if(slide.type==="status"){
+      var col=slide.colour||"green";
+      frame.style.background=statusBgMap[col]||"#052e16";
+      var inner=document.createElement("div"); inner.className="ss-status-slide"; inner.id="ss-status-inner-"+i;
+      var circle=document.createElement("div"); circle.className="ss-status-indicator";
+      circle.style.background=statusColourMap[col]||"#16a34a"; circle.id="ss-status-circle-"+i;
+      var lbl=document.createElement("div"); lbl.className="ss-status-label"; lbl.id="ss-status-lbl-"+i; lbl.textContent=slide.name;
+      var sub=document.createElement("div"); sub.className="ss-status-sublabel"; sub.id="ss-status-sub-"+i; sub.textContent=statusLabelMap[col]||"Operational";
+      var upd=document.createElement("div"); upd.className="ss-status-updated"; upd.id="ss-status-upd-"+i; upd.textContent="";
+      inner.appendChild(circle); inner.appendChild(lbl); inner.appendChild(sub);
+      frame.appendChild(inner); frame.appendChild(upd);
+      if(slide.url){var ifrSt=document.createElement("iframe");ifrSt.src=slide.url;ifrSt.style.cssText="position:absolute;inset:0;width:100%;height:100%;border:none;opacity:.15;pointer-events:none;";frame.insertBefore(ifrSt,inner);}
+    } else {
+      var iframe=document.createElement("iframe");
+      iframe.src=slide.url; iframe.title=slide.name; iframe.id="ss-iframe-"+i;
+      if(slide.type==="url") iframe.sandbox="allow-scripts allow-same-origin allow-forms allow-popups";
+      frame.appendChild(iframe);
+    }
+    container.appendChild(frame);
+  });
+}
+
+function initYtPlayers(){
+  if(!ytApiReady){setTimeout(initYtPlayers,300);return;}
+  allSlides.forEach(function(slide,i){
+    if(slide.type!=="youtube") return;
+    ytPlayers[i]=new YT.Player("yt-player-"+i,{
+      width:"100%",height:"100%",videoId:slide.ytId,
+      playerVars:{autoplay:1,mute:1,controls:0,rel:0,modestbranding:1,playsinline:1},
+      events:{
+        onReady:function(e){e.target.setVolume(0);if(!ytMuted)e.target.unMute();if(ssIndex===i)e.target.playVideo();},
+        onStateChange:function(e){if(e.data===0){stopAdvance();goToSlide(ssIndex+1);}if(e.data===1&&ssIndex===i){stopAdvance();}},
+        onError:function(){stopAdvance();goToSlide(ssIndex+1);}
+      }
+    });
+  });
+}
+
+function buildThumbStrip(){
+  var strip=gv("ss-thumbstrip");
+  strip.classList.remove("edit-mode");
+  strip.style.display=gv("thumbs-toggle").checked?"flex":"none";
+  strip.innerHTML="";
+  allSlides.forEach(function(slide,i){
+    var wrap=document.createElement("div"); wrap.className="ss-thumb-wrap";
+    var t=document.createElement("div"); t.className="ss-thumb"; t.dataset.index=i;
+    if(slide.type==="image"){var img=document.createElement("img");img.src=slide.url;t.appendChild(img);}
+    else if(slide.type==="status"){t.classList.add("st-"+slide.colour);t.innerHTML="&#9679;";}
+    else if(slide.type==="html"){t.classList.add("st-html");t.innerHTML="&lt;/&gt;";}
+    else if(slide.type==="youtube"){t.classList.add("st-yt");t.innerHTML="&#9654;";}
+    else{t.innerHTML=slide.type==="pdf"?"&#128196;":"&#127760;";}
+    t.addEventListener("click",function(){goToSlide(i);});
+    var durWrap=document.createElement("div"); durWrap.className="ss-thumb-dur";
+    var durInp=document.createElement("input"); durInp.type="number"; durInp.min="3"; durInp.max="3600";
+    durInp.value=slide.duration||30;
+    if(slide.type==="youtube") durInp.title="Fallback duration if video stalls";
+    else durInp.title="Duration (s)";
+    durInp.addEventListener("change",function(){
+      var val=parseInt(durInp.value,10)||30; allSlides[i].duration=val;
+      if(allSlides[i].isDefault){var di=defaultSlides.findIndex(function(d){return d.name===allSlides[i].name&&d.type===allSlides[i].type;});if(di>=0){defaultSlides[di].duration=val;saveDefaults();}}
+      if(ssIndex===i){ssCurDur=val;gv("ss-dur-label").textContent=val+"s";}
+    });
+    durInp.addEventListener("click",function(e){e.stopPropagation();});
+    var durSpan=document.createElement("span"); durSpan.textContent="s";
+    durWrap.appendChild(durInp); durWrap.appendChild(durSpan);
+    wrap.appendChild(t); wrap.appendChild(durWrap);
+    strip.appendChild(wrap);
+  });
+}
+
+// ── Navigate ──
+function goToSlide(index){
+  var loop=gv("loop-toggle").checked;
+  var goingPrev=index<ssIndex;
+  if(index<0){if(loop){index=allSlides.length-1;goingPrev=true;}else return;}
+  if(index>=allSlides.length){if(loop){index=0;goingPrev=false;}else{stopAdvance();ssPlaying=false;updatePlayBtn();return;}}
+
+  // Pause any YT player on the old slide
+  if(ytPlayers[ssIndex]) { try{ytPlayers[ssIndex].pauseVideo();}catch(e){} }
+
+  var container=gv("ss-frames");
+  var trans=gv("transition-type").value;
+  var prevFrame=gv("ss-frame-"+ssIndex);
+  if(prevFrame&&ssIndex!==index){
+    prevFrame.classList.remove("active");
+    if(trans!=="none"&&trans!=="fade"){prevFrame.classList.add("leaving");(function(pf){setTimeout(function(){pf.classList.remove("leaving");},520);})(prevFrame);}
+  }
+  if(trans==="slide"){goingPrev?container.classList.add("going-prev"):container.classList.remove("going-prev");}
+  ssIndex=index;
+  var frame=gv("ss-frame-"+index); if(frame) frame.classList.add("active");
+  var slide=allSlides[index];
+  ssCurDur=slide.duration||parseInt(gv("default-duration").value,10)||30;
+  gv("ss-counter").textContent=(index+1)+" / "+allSlides.length;
+  gv("ss-slide-title").textContent=slide.name;
+  gv("ss-dur-label").textContent=slide.type==="youtube"?"video":""+ssCurDur+"s";
+
+  // YT slide: play and let onStateChange handle advance; show muted badge
+  var badge=gv("yt-muted-badge");
+  if(slide.type==="youtube"){
+    badge.classList.remove("hidden");
+    setTimeout(function(){badge.classList.add("hidden");},4000);
+    if(ytPlayers[index]){try{ytPlayers[index].playVideo();}catch(e){}}
+    // Don't start auto-advance — video end fires it; but set fallback
+    stopAdvance();
+    ssProgStart=Date.now(); tickProgress(ssCurDur*1000);
+    ssTimer=setTimeout(function(){goToSlide(ssIndex+1);},ssCurDur*1000);
+  } else {
+    badge.classList.add("hidden");
+    if(ssPlaying) startAutoAdvance();
+  }
+
+  document.querySelectorAll(".ss-thumb").forEach(function(t,ti){t.classList.toggle("active",ti===index);});
+  var at=gv("ss-thumbstrip").querySelector(".ss-thumb.active");
+  if(at) at.scrollIntoView({block:"nearest",inline:"center",behavior:"smooth"});
+}
+
+// ── Auto-advance ──
+function startAutoAdvance(){
+  stopAdvance(); if(!ssPlaying) return;
+  ssProgStart=Date.now(); tickProgress(ssCurDur*1000);
+  ssTimer=setTimeout(function(){goToSlide(ssIndex+1);},ssCurDur*1000);
+}
+function stopAdvance(){
+  if(ssTimer){clearTimeout(ssTimer);ssTimer=null;}
+  if(ssProgTimer){cancelAnimationFrame(ssProgTimer);ssProgTimer=null;}
+  gv("ss-progress").style.width="0%";
+}
+function tickProgress(total){
+  var pct=Math.min(100,((Date.now()-ssProgStart)/total)*100);
+  gv("ss-progress").style.width=pct+"%";
+  if(pct<100) ssProgTimer=requestAnimationFrame(function(){tickProgress(total);});
+}
+
+// ── Reload timers (URL iframes) ──
+function clearReloadTimers(){Object.keys(ssReloadTimers).forEach(function(k){clearInterval(ssReloadTimers[k]);});ssReloadTimers={};}
+function setupReloadTimers(){
+  allSlides.forEach(function(slide,i){
+    if(slide.type==="url"&&slide.reload>0){
+      ssReloadTimers[i]=setInterval(function(){var ifr=gv("ss-iframe-"+i);if(ifr){var s=ifr.src;ifr.src="";setTimeout(function(){ifr.src=s;},100);}},slide.reload*60000);
+    }
+  });
+}
+
+// ── Status auto-refresh timers ──
+function clearStatusTimers(){Object.keys(ssStatusTimers).forEach(function(k){clearInterval(ssStatusTimers[k]);});ssStatusTimers={};}
+function setupStatusTimers(){
+  allSlides.forEach(function(slide,i){
+    if(slide.type==="status"&&slide.url&&slide.reload>0){
+      var doFetch=function(){
+        fetchStatusPage(slide.url,function(res){
+          if(!res) return;
+          var circle=gv("ss-status-circle-"+i);
+          var sub=gv("ss-status-sub-"+i);
+          var upd=gv("ss-status-upd-"+i);
+          var frame=gv("ss-frame-"+i);
+          if(circle) circle.style.background=statusColourMap[res.colour]||"#16a34a";
+          if(sub) sub.textContent=res.desc;
+          if(upd) upd.textContent="Updated "+new Date().toLocaleTimeString();
+          if(frame) frame.style.background=statusBgMap[res.colour]||"#052e16";
+        });
+      };
+      doFetch();
+      ssStatusTimers[i]=setInterval(doFetch,slide.reload*60000);
+    }
+  });
+}
+
+function reloadCurrentSlide(){var ifr=gv("ss-iframe-"+ssIndex);if(ifr){var s=ifr.src;ifr.src="";setTimeout(function(){ifr.src=s;},100);}}
+
+// ── Clock ──
+function setupClock(){
+  var ex=gv("ss-clock-widget");if(ex)ex.remove();
+  if(!gv("clock-toggle").checked) return;
+  var w=document.createElement("div"); w.id="ss-clock-widget"; w.className="ss-clock-widget pos-"+gv("clock-pos").value;
+  w.innerHTML="<div class=\"ss-clock-time\" id=\"ss-clock-time\"></div><div class=\"ss-clock-date\" id=\"ss-clock-date\"></div>";
+  gv("ss-stage").appendChild(w);
+  if(clockInterval) clearInterval(clockInterval);
+  clockInterval=setInterval(tickClock,1000); tickClock();
+}
+function tickClock(){
+  var te=gv("ss-clock-time"),de=gv("ss-clock-date"); if(!te) return;
+  var now=new Date(),h=now.getHours(),m=now.getMinutes(),s=now.getSeconds();
+  var use24=gv("clock-24h-toggle").checked;
+  te.textContent=(use24?pad(h):pad(h%12||12))+":"+pad(m)+":"+pad(s)+(use24?"":(h<12?" AM":" PM"));
+  if(gv("clock-date-toggle").checked&&de){
+    var days=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    var months=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    de.textContent=days[now.getDay()]+" "+now.getDate()+" "+months[now.getMonth()];
+  } else if(de){de.textContent="";}
+}
+
+// ── Weather overlay ──
+function setupWeather(){
+  var ex=gv("ss-weather-widget");if(ex)ex.remove();
+  if(weatherFetchTimer){clearInterval(weatherFetchTimer);weatherFetchTimer=null;}
+  if(!gv("weather-toggle").checked) return;
+  var w=document.createElement("div"); w.id="ss-weather-widget"; w.className="ss-weather-widget pos-"+gv("weather-pos").value;
+  w.innerHTML="<div class=\"ss-weather-inner\"><span class=\"ss-weather-icon\" id=\"sw-icon\">&#127761;</span><div><div class=\"ss-weather-temp\" id=\"sw-temp\">--</div><div class=\"ss-weather-desc\" id=\"sw-desc\">Loading...</div></div></div>";
+  gv("ss-stage").appendChild(w);
+  function doFetch(){fetchWeather(function(d,err){if(d){gv("sw-icon").textContent=d.icon;gv("sw-temp").textContent=d.temp+d.unit;gv("sw-desc").textContent=d.desc;}else if(gv("sw-desc")){gv("sw-desc").textContent="Unavailable";}});}
+  doFetch(); weatherFetchTimer=setInterval(doFetch,10*60000);
+}
+
+// ── RSS ticker fetch ──
+function setupTicker(){
+  var tickerEl=gv("ss-ticker");
+  if(!gv("ticker-toggle").checked){tickerEl.style.display="none";return;}
+  var staticText=gv("ticker-text").value.trim();
+  var rssUrl=gv("ticker-rss").value.trim();
+  var tryRss=gv("ticker-rss-toggle").checked;
+  if(tryRss&&rssUrl){
+    fetch(rssUrl).then(function(r){return r.text();}).then(function(xml){
+      var parser=new DOMParser();
+      var doc=parser.parseFromString(xml,"text/xml");
+      var items=doc.querySelectorAll("item");
+      var titles=[];
+      items.forEach(function(item){var t=item.querySelector("title");if(t&&t.textContent)titles.push(t.textContent.trim());});
+      if(titles.length>0){
+        startTicker(titles.join("   \u2022   ")); gv("rss-cors-note").style.display="none";
+      } else {
+        startTicker(staticText); gv("rss-cors-note").style.display=staticText?"block":"none";
+      }
+    }).catch(function(){
+      startTicker(staticText);
+      if(staticText) gv("rss-cors-note").style.display="block";
+    });
+  } else {
+    startTicker(staticText);
+  }
+}
+function startTicker(text){
+  var tickerEl=gv("ss-ticker");
+  if(!text){tickerEl.style.display="none";return;}
+  tickerEl.style.display="flex";
+  gv("ss-ticker-text").textContent=text; gv("ss-ticker-text2").textContent=text;
+  if(tickerAnim) cancelAnimationFrame(tickerAnim);
+  var inner=gv("ss-ticker-inner"),pos=0,speed=parseInt(gv("ticker-speed").value,10)||40,last=null;
+  function animTicker(ts){
+    if(!last)last=ts; var dt=ts-last;last=ts;
+    pos-=(speed/1000)*dt;
+    var halfW=inner.scrollWidth/2; if(Math.abs(pos)>=halfW) pos+=halfW;
+    inner.style.transform="translateX("+pos+"px)";
+    tickerAnim=requestAnimationFrame(animTicker);
+  }
+  tickerAnim=requestAnimationFrame(animTicker);
+}
+
+// ── Blackout ──
+function toggleBlackout(){
+  blackoutActive=!blackoutActive;
+  gv("ss-blackout").classList.toggle("active",blackoutActive);
+  gv("ss-black-btn").classList.toggle("active-btn",blackoutActive);
+}
+
+// ── Play/pause ──
+function updatePlayBtn(){
+  var btn=gv("ss-play-btn");
+  btn.innerHTML=ssPlaying?"&#9646;&#9646; Pause":"&#9654; Play";
+  btn.classList.toggle("active-btn",ssPlaying);
+}
+
+// ── Exit with PIN ──
+function tryExit(){if(gv("pin-toggle").checked&&gv("pin-input").value.trim()){showPinPrompt();}else{closeBoard();}}
+function showPinPrompt(){gv("ss-pin-prompt").classList.add("active");gv("ss-pin-entry").value="";gv("ss-pin-error").textContent="";setTimeout(function(){gv("ss-pin-entry").focus();},50);}
+gv("ss-pin-cancel-btn").addEventListener("click",function(){gv("ss-pin-prompt").classList.remove("active");});
+gv("ss-pin-entry").addEventListener("keydown",function(e){
+  if(e.key==="Enter"){
+    if(gv("ss-pin-entry").value.trim()===gv("pin-input").value.trim()){gv("ss-pin-prompt").classList.remove("active");closeBoard();}
+    else{gv("ss-pin-error").textContent="Incorrect PIN";gv("ss-pin-entry").value="";}
+  }
+});
+function closeBoard(){
+  stopAdvance(); clearReloadTimers(); clearStatusTimers();
+  Object.keys(ytPlayers).forEach(function(k){try{ytPlayers[k].destroy();}catch(e){}});
+  ytPlayers={};
+  if(clockInterval){clearInterval(clockInterval);clockInterval=null;}
+  if(weatherFetchTimer){clearInterval(weatherFetchTimer);weatherFetchTimer=null;}
+  if(tickerAnim){cancelAnimationFrame(tickerAnim);tickerAnim=null;}
+  if(autoRestartTimer){clearTimeout(autoRestartTimer);autoRestartTimer=null;}
+  ssPlaying=false;
+  gv("display-overlay").classList.remove("active");
+  if(document.fullscreenElement) document.exitFullscreen();
+  if(wakeLock&&!wakeLock.released) wakeLock.release();
+}
+
+// ── Controls ──
+gv("ss-exit-btn").addEventListener("click",tryExit);
+gv("ss-prev-btn").addEventListener("click",function(){goToSlide(ssIndex-1);});
+gv("ss-next-btn").addEventListener("click",function(){goToSlide(ssIndex+1);});
+gv("ss-prev").addEventListener("click",function(){goToSlide(ssIndex-1);});
+gv("ss-next").addEventListener("click",function(){goToSlide(ssIndex+1);});
+gv("ss-play-btn").addEventListener("click",function(){ssPlaying=!ssPlaying;updatePlayBtn();if(ssPlaying)startAutoAdvance();else stopAdvance();});
+gv("ss-mute-btn").addEventListener("click",function(){
+  ytMuted=!ytMuted;
+  Object.keys(ytPlayers).forEach(function(k){
+    try{if(ytMuted){ytPlayers[k].mute();}else{ytPlayers[k].unMute();ytPlayers[k].setVolume(80);}}catch(e){}
+  });
+  gv("ss-mute-btn").innerHTML=ytMuted?"&#128266; Unmute":"&#128263; Mute";
+  gv("ss-mute-btn").classList.toggle("active-btn",!ytMuted);
+});
+gv("ss-editdur-btn").addEventListener("click",function(){
+  var strip=gv("ss-thumbstrip");
+  strip.classList.toggle("edit-mode");
+  gv("ss-editdur-btn").classList.toggle("active-btn",strip.classList.contains("edit-mode"));
+});
+gv("ss-black-btn").addEventListener("click",toggleBlackout);
+gv("ss-fullscreen-btn").addEventListener("click",function(){var o=gv("display-overlay");if(!document.fullscreenElement){o.requestFullscreen&&o.requestFullscreen();}else{document.exitFullscreen&&document.exitFullscreen();}});
+gv("ss-help-btn").addEventListener("click",function(){gv("ss-help-overlay").classList.add("active");});
+gv("ss-help-close-btn").addEventListener("click",function(){gv("ss-help-overlay").classList.remove("active");});
+
+// ── Keyboard ──
+document.addEventListener("keydown",function(e){
+  if(!gv("display-overlay").classList.contains("active")) return;
+  if(gv("ss-pin-prompt").classList.contains("active")) return;
+  if(gv("ss-preview-modal").classList.contains("active")) return;
+  if(gv("ss-help-overlay").classList.contains("active")){if(e.key==="Escape"||e.key==="?")gv("ss-help-overlay").classList.remove("active");return;}
+  if(e.key==="Escape"){tryExit();return;}
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp"){goToSlide(ssIndex-1);return;}
+  if(e.key==="ArrowRight"||e.key==="ArrowDown"||e.key==="Enter"){goToSlide(ssIndex+1);return;}
+  if(e.key===" "){e.preventDefault();gv("ss-play-btn").click();return;}
+  if(e.key==="b"||e.key==="B"){toggleBlackout();return;}
+  if(e.key==="f"||e.key==="F"){gv("ss-fullscreen-btn").click();return;}
+  if(e.key==="r"||e.key==="R"){reloadCurrentSlide();return;}
+  if(e.key==="?"){gv("ss-help-overlay").classList.add("active");return;}
+});
+
+// ── Auto-hide bar ──
+var hideBarTimer=null;
+gv("ss-stage").addEventListener("mousemove",function(){
+  var bar=gv("ss-bar"); bar.classList.remove("hidden");
+  clearTimeout(hideBarTimer); hideBarTimer=setTimeout(function(){bar.classList.add("hidden");},3000);
+});
+
+// ── Auth card toggle ──
+gv("auth-card-toggle").addEventListener("click", function() {
+  var body = gv("auth-card-body");
+  var lbl  = gv("auth-toggle-label");
+  var open = body.style.display === "none";
+  body.style.display = open ? "flex" : "none";
+  lbl.innerHTML = open ? "&#9650; Collapse" : "&#9660; Expand";
+});
+
+// ── Boot ──
+loadDefaults(); loadSettings(); syncToggles(); updateBanner(); rebuildAllSlides();
+window.addEventListener("load",function(){
+  requestWakeLock();
+  if(gv("autolaunch-toggle").checked&&allSlides.length>0) launchBoard();
+});
+</script>
+</body>
+</html>
