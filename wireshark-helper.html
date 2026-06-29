@@ -230,6 +230,115 @@ a{color:inherit;}
 </style>
 </head>
 <body>
+
+<!-- ── SEB'S WORKSHOP AUTH ── -->
+<script>
+(function(){
+  var HASH='cde4e019dba2d940472dafe0015cdc74e3b837f02b4d3fd7a30952d80a6e4a70';
+  var SALT='Sebs-Workshop-Salt-v1';
+  var TOKEN='sw-auth-v1';
+  var EXPIRY=7*24*60*60*1000;
+  var STYLES='position:fixed;inset:0;z-index:999999;display:flex;align-items:center;justify-content:center;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;';
+
+  document.documentElement.style.visibility='hidden';
+
+  try{
+    var stored=JSON.parse(localStorage.getItem(TOKEN)||'null');
+    if(stored&&stored.hash===HASH&&stored.exp>Date.now()){
+      document.documentElement.style.visibility='';
+      return;
+    }
+  }catch(e){}
+
+  function showOverlay(){
+    var isDark=false;
+    try{isDark=localStorage.getItem('sw-theme')==='dark';}catch(e){}
+    var bg=isDark?'#0f1923':'#f0f4f8';
+    var surface=isDark?'#1a2533':'#ffffff';
+    var border=isDark?'#2a3a4d':'#dde3ea';
+    var text=isDark?'#e8f0f8':'#0d1b2a';
+    var muted=isDark?'#7a93aa':'#6b7a8d';
+    var acc='#0d9488';
+
+    var overlay=document.createElement('div');
+    overlay.id='sw-auth-overlay';
+    overlay.style.cssText=STYLES+'background:'+bg+';';
+    overlay.innerHTML=
+      '<div style="background:'+surface+';border:1px solid '+border+';border-radius:16px;padding:36px;width:440px;max-width:92vw;box-shadow:0 8px 40px rgba(0,0,0,.15);text-align:center;">'+
+      '<div style="width:52px;height:52px;background:'+acc+';border-radius:14px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:24px;">🔒</div>'+
+      '<h2 style="font-size:1.2rem;font-weight:700;color:'+text+';margin-bottom:4px;">Seb\'s Workshop</h2>'+
+      '<p style="font-size:.78rem;color:'+muted+';margin-bottom:14px;line-height:1.6;">A personal collection of standalone IT tools built for MSP engineers. Diagnostics, compliance, reporting, capture analysis and more - all running entirely in your browser.</p>'+
+      '<p style="font-size:.72rem;color:'+muted+';margin-bottom:18px;line-height:1.6;background:'+bg+';border:1px solid '+border+';border-radius:8px;padding:10px 12px;text-align:left;">🛠️ <strong style="color:'+text+';">Hobby project.</strong> Built in spare time - every effort is made to keep things accurate and functional, but I can\'t guarantee everything works perfectly in every scenario, especially Beta-labelled tools. Always verify results before making changes to a live system.</p>'+
+      '<div style="background:'+bg+';border:1px solid '+border+';border-left:3px solid '+acc+';border-radius:8px;padding:12px 14px;margin-bottom:20px;text-align:left;">'+
+      '<div style="font-size:.72rem;font-weight:700;color:'+acc+';margin-bottom:8px;">🔒 Your data never leaves your browser</div>'+
+      '<div style="font-size:.72rem;color:'+muted+';line-height:1.6;margin-bottom:10px;">Every tool processes everything locally on your machine. No server, no database, no AI calls, no analytics. Safe to use with real client data, PCAPs and config exports.</div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px;">'+
+      '<span style="font-size:.65rem;font-weight:600;background:'+acc+'18;color:'+acc+';border-radius:20px;padding:2px 8px;">No uploads</span>'+
+      '<span style="font-size:.65rem;font-weight:600;background:'+acc+'18;color:'+acc+';border-radius:20px;padding:2px 8px;">No AI processing</span>'+
+      '<span style="font-size:.65rem;font-weight:600;background:'+acc+'18;color:'+acc+';border-radius:20px;padding:2px 8px;">No accounts</span>'+
+      '<span style="font-size:.65rem;font-weight:600;background:'+acc+'18;color:'+acc+';border-radius:20px;padding:2px 8px;">No tracking</span>'+
+      '<span style="font-size:.65rem;font-weight:600;background:'+acc+'18;color:'+acc+';border-radius:20px;padding:2px 8px;">Works offline</span>'+
+      '</div></div>'+
+      '<input id="sw-auth-input" type="password" placeholder="Password" autocomplete="current-password" '+
+        'style="width:100%;padding:11px 14px;border:1px solid '+border+';border-radius:9px;font-size:.9rem;background:'+bg+';color:'+text+';outline:none;margin-bottom:10px;font-family:inherit;letter-spacing:.05em;" />'+
+      '<div id="sw-auth-error" style="font-size:.75rem;color:#dc2626;margin-bottom:10px;min-height:18px;"></div>'+
+      '<button id="sw-auth-btn" onclick="swAuthSubmit()" '+
+        'style="width:100%;padding:11px;background:'+acc+';color:white;border:none;border-radius:9px;font-size:.9rem;font-weight:600;cursor:pointer;font-family:inherit;">'+
+        'Unlock</button>'+
+      '</div>';
+    document.body.appendChild(overlay);
+    document.documentElement.style.visibility='';
+
+    document.getElementById('sw-auth-input').addEventListener('keydown',function(e){
+      if(e.key==='Enter') swAuthSubmit();
+    });
+    setTimeout(function(){
+      var inp=document.getElementById('sw-auth-input');
+      if(inp) inp.focus();
+    },100);
+  }
+
+  window.swAuthSubmit=function(){
+    var inp=document.getElementById('sw-auth-input');
+    var err=document.getElementById('sw-auth-error');
+    var btn=document.getElementById('sw-auth-btn');
+    var pw=inp?inp.value:'';
+    if(!pw){if(err)err.textContent='Please enter the password.';return;}
+    if(btn){btn.textContent='Checking...';btn.disabled=true;}
+    if(err) err.textContent='';
+
+    var enc=new TextEncoder();
+    window.crypto.subtle.importKey('raw',enc.encode(pw),'PBKDF2',false,['deriveBits'])
+    .then(function(key){
+      return window.crypto.subtle.deriveBits({
+        name:'PBKDF2',salt:enc.encode(SALT),iterations:100000,hash:'SHA-256'
+      },key,256);
+    })
+    .then(function(bits){
+      var hex=Array.from(new Uint8Array(bits)).map(function(b){return b.toString(16).padStart(2,'0');}).join('');
+      if(hex===HASH){
+        try{localStorage.setItem(TOKEN,JSON.stringify({hash:HASH,exp:Date.now()+EXPIRY}));}catch(e){}
+        var ov=document.getElementById('sw-auth-overlay');
+        if(ov) ov.remove();
+      } else {
+        if(err) err.textContent='Incorrect password. Please try again.';
+        if(inp){inp.value='';inp.focus();}
+        if(btn){btn.textContent='Unlock';btn.disabled=false;}
+      }
+    })
+    .catch(function(){
+      if(err) err.textContent='Error checking password. Try again.';
+      if(btn){btn.textContent='Unlock';btn.disabled=false;}
+    });
+  };
+
+  if(document.body){showOverlay();}
+  else{document.addEventListener('DOMContentLoaded',showOverlay);}
+})();
+</script>
+<!-- ── END AUTH ── -->
+
+  
 <nav class="nav">
   <div class="nav-left">
     <a href="index.html" class="back-link">
