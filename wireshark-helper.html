@@ -2541,7 +2541,7 @@ function parsePcapAsync(buf,fname,fsize,cb){
       var p=buf.slice(o,o+incl); o+=incl; res.count++;
       // Track timeline with orig_len for accurate throughput
       if(ts>0){if(s.tlFirst===0)s.tlFirst=ts;if(!s._tlRaw)s._tlRaw=[];s._tlRaw.push({ts:ts,bytes:orig});}
-      if(lt===1){parsePacket(p,s,seen,ts);parsePacketExtra(p,s,ts);}
+      if(lt===1){parsePacket(p,s,seen,ts,res.count);parsePacketExtra(p,s,ts,res.count);}
       pk++;
     }
     setProgress(40+Math.min(59,o/total*60));
@@ -2659,8 +2659,8 @@ function parsePcapngAsync(buf,fname,fsize,cb){
               var p=buf.slice(dataOff,dataOff+capLen);
               if(res.count===0){s.t0=tsSec;} s.t1=tsSec;
               s.bytes+=origLen;
-              parsePacket(p,s,seen,tsSec);
-              parsePacketExtra(p,s,tsSec);
+              parsePacket(p,s,seen,tsSec,res.count);
+              parsePacketExtra(p,s,tsSec,res.count);
               res.count++;
               pk++;
             }
@@ -2767,6 +2767,11 @@ function addSample(s,key,sample){
   if(s.samples[key].length<3) s.samples[key].push(sample);
 }
 
+function addSampleN(s,key,pktNum,sample){
+  if(!s.samples[key]) s.samples[key]=[];
+  if(s.samples[key].length<3) s.samples[key].push('#'+pktNum+' '+sample);
+}
+
 function extractDnsName(p,off){
   // Extract DNS query name from packet at offset off
   try{
@@ -2788,7 +2793,7 @@ function fmtIp(p,o){return p[o]+'.'+p[o+1]+'.'+p[o+2]+'.'+p[o+3];}
 function r32le(b,o){return ((b[o]|(b[o+1]<<8)|(b[o+2]<<16)|(b[o+3]<<24))>>>0);}
 function r32be(b,o){return (((b[o]<<24)|(b[o+1]<<16)|(b[o+2]<<8)|b[o+3])>>>0);}
 
-function parsePacket(p,s,seen,ts){
+function parsePacket(p,s,seen,ts,pktNum){
   if(p.length<14) return;
   if(p[0]===0xff&&p[1]===0xff&&p[2]===0xff&&p[3]===0xff&&p[4]===0xff&&p[5]===0xff) s.totalBcast++;
 
@@ -2883,16 +2888,25 @@ function parsePacket(p,s,seen,ts){
       var fl=p[tb+13], win=(p[tb+14]<<8)|p[tb+15];
       var doff=(p[tb+12]>>4)*4;
       if(fl&0x02&&!(fl&0x10)){s.syn++;s.synMap[srcIp+':'+sp+'->'+dstIp+':'+dp]=1;}
-      if(fl&0x10&&fl&0x02){var sk=dstIp+':'+dp+'->'+srcIp+':'+sp;if(s.synMap[sk])delete s.synMap[sk];}
-      if(fl&0x04){s.rst++;addSample(s,'rst',srcIp+':'+sp+' -> '+dstIp+':'+dp+' [RST]');}
+      if(fl&0x10&&fl&0x02){var sk2=dstIp+':'+dp+'->'+srcIp+':'+sp;if(s.synMap[sk2])delete s.synMap[sk2];}
+      if(fl&0x04){
+        s.rst++;addSampleN(s,'rst',pktNum,srcIp+':'+sp+' -> '+dstIp+':'+dp+' [RST]');
+        // Clear any pending SYN for this stream
+        var rstK=dstIp+':'+dp+'->'+srcIp+':'+sp;
+        if(s.synMap[rstK]) delete s.synMap[rstK];
+      }
       if(fl&0x01)s.fin++;
-      if(win===0){s.zwin++;addSample(s,'zwin',srcIp+':'+sp+' -> '+dstIp+':'+dp+' win=0');}
+      if(win===0&&!(fl&0x04)&&!(fl&0x01)){s.zwin++;addSampleN(s,'zwin',pktNum,srcIp+':'+sp+' -> '+dstIp+':'+dp+' win=0');}
       var seqK=srcIp+':'+sp+'->'+dstIp+':'+dp;
-      if(seen[seqK]===sq&&!(fl&0x02)){s.rtr++;addSample(s,'rtr',srcIp+':'+sp+' -> '+dstIp+':'+dp+' [retransmit seq='+sq+']');}
-      seen[seqK]=sq;
       var pktData=p.length-(ipOff+ihl+doff);
+      // Only count retransmit if packet carries data AND seq was seen before on this stream
+      if(pktData>0&&!(fl&0x02)&&seen[seqK]!==undefined&&seen[seqK]===sq){
+        s.rtr++;addSampleN(s,'rtr',pktNum,srcIp+':'+sp+' -> '+dstIp+':'+dp+' [retransmit seq='+sq+']');
+      }
+      // Only update seen seq when packet carries data
+      if(pktData>0) seen[seqK]=sq;
       var ackK=seqK+':ack';
-      if(pktData===0&&fl===0x10&&s.ackMap[ackK]===aq){s.dupAck++;addSample(s,'dupAck',srcIp+':'+sp+' -> '+dstIp+':'+dp+' [dup ACK '+aq+']');}
+      if(pktData===0&&(fl&0x10)&&!(fl&0x04)&&!(fl&0x01)&&s.ackMap[ackK]===aq){s.dupAck++;addSampleN(s,'dupAck',pktNum,srcIp+':'+sp+' -> '+dstIp+':'+dp+' [dup ACK '+aq+']');}
       s.ackMap[ackK]=aq;
 
       // ── TCP PORT SUMMARY ─────────────────────────────────
@@ -2940,9 +2954,48 @@ function parsePacket(p,s,seen,ts){
       if(dp===443||sp===443){
         s.https++;
         var tBase=tb+doff;
-        if(p.length>tBase+4&&p[tBase]===0x16){var tv=p[tBase+1];if(tv===3&&p[tBase+2]<=2){s.tlsOld++;addSample(s,'tlsOld',srcIp+' -> '+dstIp+' TLS 1.'+(p[tBase+2]===1?'0':'1 ('+p[tBase+2]+')'));}}
+        // TLS record: type=0x16 (handshake), then check handshake type=0x01 (ClientHello)
+        // Handshake version is at tBase+9/10 (after record header 5 bytes + handshake type 1 + length 3)
+        // Only flag if handshake version is explicitly 0x0301 (TLS1.0) or 0x0302 (TLS1.1)
+        // and there is NO supported_versions extension (which would indicate TLS1.3)
+        if(p.length>tBase+11&&p[tBase]===0x16&&p[tBase+5]===0x01){
+          var hsVer=(p[tBase+9]<<8)|p[tBase+10]; // ClientHello version
+          if(hsVer===0x0301||hsVer===0x0302){
+            // Check it's not a TLS1.3 client using legacy version for compat
+            // TLS1.3 ClientHello has supported_versions ext (0x002b) - scan extensions
+            var isTls13=false;
+            // Session ID offset: tBase+5(rec hdr)+4(hs hdr)+2(ver)+32(random)=tBase+43
+            if(p.length>tBase+44){
+              var sessLen=p[tBase+43];
+              var csOff=tBase+44+sessLen;
+              if(p.length>csOff+2){
+                var csLen=(p[csOff]<<8)|p[csOff+1];
+                var compOff=csOff+2+csLen;
+                if(p.length>compOff+1){
+                  var compLen=p[compOff];
+                  var extOff=compOff+1+compLen;
+                  if(p.length>extOff+2){
+                    var extTotalLen=(p[extOff]<<8)|p[extOff+1];
+                    var extEnd=extOff+2+extTotalLen;
+                    var ei=extOff+2;
+                    while(ei+4<=extEnd&&ei+4<=p.length){
+                      var extType=(p[ei]<<8)|p[ei+1];
+                      var extLen=(p[ei+2]<<8)|p[ei+3];
+                      if(extType===0x002b){isTls13=true;break;}
+                      ei+=4+extLen;
+                    }
+                  }
+                }
+              }
+            }
+            if(!isTls13){
+              s.tlsOld++;
+              addSampleN(s,'tlsOld',pktNum,srcIp+' -> '+dstIp+' TLS '+(hsVer===0x0301?'1.0':'1.1'));
+            }
+          }
+        }
       }
-      if(dp===5060||sp===5060){s.sip++;addSample(s,'sip',srcIp+':'+sp+' -> '+dstIp+':'+dp+' SIP');}
+      if(dp===5060||sp===5060){s.sip++;addSampleN(s,'sip',pktNum,srcIp+':'+sp+' -> '+dstIp+':'+dp+' SIP');}
     } else if(pr===17&&p.length>=ipOff+ihl+8){
       s.udp++;
       var ub=ipOff+ihl;
@@ -2956,11 +3009,11 @@ function parsePacket(p,s,seen,ts){
           var qname=p.length>ub+20?extractDnsName(p,ub+20):'(unknown)';
           if(!isR){s.dnsMap[txid]={ts:ts,name:qname};}
           else{
-            if(rc>0){s.dnsErr++;var rcName=rc===3?'NXDOMAIN':rc===2?'SERVFAIL':rc===5?'REFUSED':'RCODE:'+rc;addSample(s,'dnsErr',srcIp+' query: '+qname+' -> '+rcName);}
+            if(rc>0){s.dnsErr++;var rcName=rc===3?'NXDOMAIN':rc===2?'SERVFAIL':rc===5?'REFUSED':'RCODE:'+rc;addSampleN(s,'dnsErr',pktNum,srcIp+' query: '+qname+' -> '+rcName);}
             if(rc===3)s.dnsNxdomain++;
             if(rc===2)s.dnsServfail++;
             if(s.dnsMap[txid]){
-              if(ts-s.dnsMap[txid].ts>2){s.dnsSlow++;addSample(s,'dnsSlow',srcIp+' query: '+(s.dnsMap[txid].name||qname)+' ('+((ts-s.dnsMap[txid].ts).toFixed(1))+'s)');}
+              if(ts-s.dnsMap[txid].ts>2){s.dnsSlow++;addSampleN(s,'dnsSlow',pktNum,srcIp+' query: '+(s.dnsMap[txid].name||qname)+' ('+((ts-s.dnsMap[txid].ts).toFixed(1))+'s)');}
               delete s.dnsMap[txid];
             }
           }
@@ -2983,23 +3036,29 @@ function parsePacket(p,s,seen,ts){
           }
           var dhcpTypes={1:'Discover',2:'Offer',3:'Request',5:'ACK',6:'NAK'};
           var dhcpLabel=dhcpTypes[mt]||'type:'+mt;
-          if(mt===1){s.dhcpDiscover++;addSample(s,'dhcp',srcIp+' ['+dhcpLabel+'] MAC:'+cmac);}
-          if(mt===2){s.dhcpOffer++;s.dhcpOfferSrcs[srcIp]=(s.dhcpOfferSrcs[srcIp]||0)+1;if(Object.keys(s.dhcpOfferSrcs).length>1){s.dhcpRogue=1;addSample(s,'dhcpRogue',srcIp+' [Offer] to '+dstIp);}}
-          if(mt===3){s.dhcpReq++;addSample(s,'dhcp',srcIp+' ['+dhcpLabel+'] MAC:'+cmac);}
+          if(mt===1){s.dhcpDiscover++;addSampleN(s,'dhcp',pktNum,srcIp+' ['+dhcpLabel+'] MAC:'+cmac);}
+          if(mt===2){s.dhcpOffer++;s.dhcpOfferSrcs[srcIp]=(s.dhcpOfferSrcs[srcIp]||0)+1;if(Object.keys(s.dhcpOfferSrcs).length>1){s.dhcpRogue=1;addSampleN(s,'dhcpRogue',pktNum,srcIp+' [Offer] to '+dstIp);}}
+          if(mt===3){s.dhcpReq++;addSampleN(s,'dhcp',pktNum,srcIp+' ['+dhcpLabel+'] MAC:'+cmac);}
           if(mt===5)s.dhcpAck++;
-          if(mt===6){s.dhcpNak++;addSample(s,'dhcpNak',srcIp+' -> '+dstIp+' [NAK]');}
+          if(mt===6){s.dhcpNak++;addSampleN(s,'dhcpNak',pktNum,srcIp+' -> '+dstIp+' [NAK]');}
         }
       }
-      // RTP heuristic: version=2, even port, not well-known
-      if(p.length>ub+12){var rv=(p[ub+8]>>6)&3;if(rv===2&&us>1024&&ud>1024&&us!==53&&ud!==53&&us!==67&&ud!==68){s.rtp++;addSample(s,'rtp',srcIp+':'+us+' -> '+dstIp+':'+ud+' RTP');}}
+      // RTP heuristic: version=2, even port, payload type 0-127, exclude well-known ports
+      var rtpExcludePorts={53:1,67:1,68:1,123:1,161:1,162:1,443:1,500:1,514:1,5353:1,5060:1,5061:1,1900:1,3478:1,3479:1,3480:1,3481:1};
+      if(p.length>ub+12){
+        var rv=(p[ub+8]>>6)&3;
+        var pt=p[ub+9]&0x7f; // payload type (strip marker bit)
+        var isRtp=rv===2&&us>1024&&ud>1024&&(ud%2===0)&&pt<=127&&!rtpExcludePorts[us]&&!rtpExcludePorts[ud];
+        if(isRtp){s.rtp++;addSampleN(s,'rtp',pktNum,srcIp+':'+us+' -> '+dstIp+':'+ud+' RTP PT='+pt);}
+      }
       if(p.length>ub+8&&((p[ub+8]>>6)&3)===2&&p[ub+9]>=200&&p[ub+9]<=205)s.rtcp++;
-      if(p.length>ub+16&&p[ub+12]===0x21&&p[ub+13]===0x12&&p[ub+14]===0xa4&&p[ub+15]===0x42){s.stun++;addSample(s,'stun',srcIp+' -> '+dstIp+' STUN');}
+      if(p.length>ub+16&&p[ub+12]===0x21&&p[ub+13]===0x12&&p[ub+14]===0xa4&&p[ub+15]===0x42){s.stun++;addSampleN(s,'stun',pktNum,srcIp+' -> '+dstIp+' STUN');}
       if((ud>=3478&&ud<=3481)||(us>=3478&&us<=3481))s.teamsRelay++;
     } else if(pr===1&&p.length>=ipOff+ihl+4){
       s.icmp++;
       var it=p[ipOff+ihl];
-      if(it===3){s.icmpUnreach++;addSample(s,'icmpUnreach',srcIp+' -> '+dstIp+' Unreachable code:'+p[ipOff+ihl+1]);}
-      if(it===11){s.icmpTtl++;addSample(s,'icmpTtl',srcIp+' -> '+dstIp+' TTL Exceeded');}
+      if(it===3){s.icmpUnreach++;addSampleN(s,'icmpUnreach',pktNum,srcIp+' -> '+dstIp+' Unreachable code:'+p[ipOff+ihl+1]);}
+      if(it===11){s.icmpTtl++;addSampleN(s,'icmpTtl',pktNum,srcIp+' -> '+dstIp+' TTL Exceeded');}
     }
   } else if(actualEt===0x0806&&p.length>=28){
     s.arp++;
@@ -3008,16 +3067,16 @@ function parsePacket(p,s,seen,ts){
       s.arpReq++;
       var tip=p[38]+'.'+p[39]+'.'+p[40]+'.'+p[41];
       var sip2=p[28]+'.'+p[29]+'.'+p[30]+'.'+p[31];
-      if(tip===sip2){s.arpGratuitous++;addSample(s,'arp','Gratuitous ARP: '+sip2);}
-      else{addSample(s,'arp','ARP who-has '+tip+' tell '+sip2);}
+      if(tip===sip2){s.arpGratuitous++;addSampleN(s,'arp',pktNum,'Gratuitous ARP: '+sip2);}
+      else{addSampleN(s,'arp',pktNum,'ARP who-has '+tip+' tell '+sip2);}
     }
     if(ao===2)s.arpRep++;
   }
   // STP samples
   if(et<0x0600&&p[0]===0x01&&p[1]===0x80&&p[2]===0xc2){
     var smac=[p[6],p[7],p[8],p[9],p[10],p[11]].map(function(b){return b.toString(16).padStart(2,'0');}).join(':');
-    if(p.length>18&&(p[18]&0x01)){addSample(s,'stpTc','TC flag from '+smac);}
-    else{addSample(s,'stp','BPDU from '+smac);}
+    if(p.length>18&&(p[18]&0x01)){addSampleN(s,'stpTc',pktNum,'TC flag from '+smac);}
+    else{addSampleN(s,'stp',pktNum,'BPDU from '+smac);}
   }
 }
 
@@ -3652,7 +3711,7 @@ function filterSearch(q){renderFilters(q.toLowerCase());}
 
 // ─── TROUBLESHOOT SCENARIOS ──────────────────────────────
 
-function parsePacketExtra(p,s,ts){
+function parsePacketExtra(p,s,ts,pktNum){
   if(p.length<14) return;
   var et=(p[12]<<8)|p[13];
   if(et!==0x0800||p.length<34) return;
@@ -3668,7 +3727,7 @@ function parsePacketExtra(p,s,ts){
     if(moreFrags||fragOffset>0){
       s.fragmented++;
       s.fragSrc[srcIp]=(s.fragSrc[srcIp]||0)+1;
-      addSample(s,'frag',srcIp+' -> '+dstIp+' frag_offset='+fragOffset+(moreFrags?' MF':''));
+      addSampleN(s,'frag',pktNum,srcIp+' -> '+dstIp+' frag_offset='+fragOffset+(moreFrags?' MF':''));
     }
   }
 
@@ -3684,14 +3743,16 @@ function parsePacketExtra(p,s,ts){
     s.dscpMap[dscp]=(s.dscpMap[dscp]||0)+1;
   }
 
-  // ── BURST DETECTION (inter-packet gap < 100 microseconds) ─
-  // ts is in seconds for legacy pcap; we use a counter-based approach
-  // For meaningful burst detection we track rapid consecutive packets
-  if(s.lastPktTs>0&&ts>0){
-    var gap=(ts-s.lastPktTs)*1000000; // convert seconds to microseconds
-    if(gap>0&&gap<1000) s.burstCount++; // sub-millisecond gap = burst
+  // ── BURST DETECTION ───────────────────────────────────────
+  // Use _tlRaw which stores full microsecond timestamps
+  if(s._tlRaw&&s._tlRaw.length>1){
+    var lastEntry=s._tlRaw[s._tlRaw.length-1];
+    var prevEntry=s._tlRaw[s._tlRaw.length-2];
+    if(lastEntry&&prevEntry){
+      var gapUs=(lastEntry.ts-prevEntry.ts)*1000000; // ts is in seconds
+      if(gapUs>=0&&gapUs<1000) s.burstCount++;
+    }
   }
-  if(ts>0) s.lastPktTs=ts;
 
   // ── LARGE PACKET (>1400 bytes) competing with RTP ─────────
   if(p.length>1400){
@@ -3702,7 +3763,7 @@ function parsePacketExtra(p,s,ts){
   // ── SMB2 / Kerberos / mDNS / Dante / DNS / DHCP (existing) ─
   if(pr===6&&p.length>=14+ihl+4){
     var dp=(p[14+ihl+2]<<8)|p[14+ihl+3];
-    if(dp===445){s.smb++;s.smb2Src[srcIp]=(s.smb2Src[srcIp]||0)+1;if(!s.smb2Dst[srcIp])s.smb2Dst[srcIp]={};s.smb2Dst[srcIp][dstIp]=1;addSample(s,'smb',srcIp+' -> '+dstIp+':445 SMB2');}
+    if(dp===445){s.smb++;s.smb2Src[srcIp]=(s.smb2Src[srcIp]||0)+1;if(!s.smb2Dst[srcIp])s.smb2Dst[srcIp]={};s.smb2Dst[srcIp][dstIp]=1;addSampleN(s,'smb',pktNum,srcIp+' -> '+dstIp+':445 SMB2');}
   }
   if((pr===17||pr===6)&&p.length>=14+ihl+12){
     var up=14+ihl+(pr===6?(p[14+ihl+12]>>4)*4:0);
@@ -3711,13 +3772,13 @@ function parsePacketExtra(p,s,ts){
       if(kdp===88||ksp===88){
         s.krb++;
         var pl2=p.slice(up+8);
-        for(var ki=0;ki<Math.min(pl2.length-3,200);ki++){if(pl2[ki]===0x02&&pl2[ki+1]===0x01&&pl2[ki+2]===0x19){s.krbSkew++;addSample(s,'krbSkew',srcIp+' -> '+dstIp+' KRB_AP_ERR_SKEW (error 25)');break;}}
+        for(var ki=0;ki<Math.min(pl2.length-3,200);ki++){if(pl2[ki]===0x02&&pl2[ki+1]===0x01&&pl2[ki+2]===0x19){s.krbSkew++;addSampleN(s,'krbSkew',pktNum,srcIp+' -> '+dstIp+' KRB_AP_ERR_SKEW (error 25)');break;}}
       }
     }
   }
   if(pr===17&&p.length>=14+ihl+8){
     var mu=14+ihl,ms=(p[mu]<<8)|p[mu+1],md=(p[mu+2]<<8)|p[mu+3];
-    if(md===5353||ms===5353){s.mdns++;s.mdnsSrc[srcIp]=(s.mdnsSrc[srcIp]||0)+1;var mname=p.length>mu+20?extractDnsName(p,mu+20):'';addSample(s,'mdns',srcIp+' mDNS'+(mname?' query: '+mname:''));}
+    if(md===5353||ms===5353){s.mdns++;s.mdnsSrc[srcIp]=(s.mdnsSrc[srcIp]||0)+1;var mname=p.length>mu+20?extractDnsName(p,mu+20):'';addSampleN(s,'mdns',pktNum,srcIp+' mDNS'+(mname?' query: '+mname:''));}
     if(md===53){s.dnsPerSrc[srcIp]=(s.dnsPerSrc[srcIp]||0)+1;}
     if(md===67&&p.length>mu+8+34){var hb=mu+8+28;var mac=[p[hb],p[hb+1],p[hb+2],p[hb+3],p[hb+4],p[hb+5]].map(function(b){return b.toString(16).padStart(2,'0');}).join(':');s.dhcpMac[mac]=(s.dhcpMac[mac]||0)+1;}
 
@@ -3758,8 +3819,8 @@ function parsePacketExtra(p,s,ts){
       }
     }
   }
-  if(pr===17&&p[30]===224&&p[31]===0&&p[32]===1&&p[33]===51){s.danteMulticast++;addSample(s,'dante',srcIp+' -> 224.0.1.51:16640 Dante audio len='+p.length);}
-  if(pr===17&&p[30]===239){s.avMulticast++;addSample(s,'avMulticast',srcIp+' -> '+dstIp+' AV multicast');}
+  if(pr===17&&p[30]===224&&p[31]===0&&p[32]===1&&p[33]===51){s.danteMulticast++;addSampleN(s,'dante',pktNum,srcIp+' -> 224.0.1.51:16640 Dante audio len='+p.length);}
+  if(pr===17&&p[30]===239){s.avMulticast++;addSampleN(s,'avMulticast',pktNum,srcIp+' -> '+dstIp+' AV multicast');}
   s.ipSrc[srcIp]=(s.ipSrc[srcIp]||0)+1;
 }
 

@@ -106,7 +106,62 @@ header{background:var(--surface);border-bottom:1px solid var(--border);padding:0
 main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
 .hero{margin-bottom:44px}
 .hero h1{font-size:1.6rem;font-weight:700;margin-bottom:6px}
-.hero p{font-size:.92rem;color:var(--muted);max-width:540px;line-height:1.6}
+.hero p{font-size:.92rem;color:var(--muted);max-width:580px;line-height:1.6}
+
+/* ── PRIVACY BANNER ── */
+.privacy-banner{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-left:4px solid var(--acc);
+  border-radius:var(--radius);
+  padding:18px 22px;
+  margin-bottom:20px;
+  max-width:780px;
+}
+.privacy-banner-title{
+  font-size:.85rem;
+  font-weight:700;
+  color:var(--text);
+  margin-bottom:10px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
+.privacy-pills{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+.privacy-pill{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  font-size:.75rem;
+  font-weight:600;
+  background:var(--acc-lt);
+  color:var(--acc);
+  border:1px solid color-mix(in srgb, var(--acc) 20%, transparent);
+  border-radius:20px;
+  padding:4px 11px;
+  white-space:nowrap;
+}
+.privacy-pill .dot{
+  width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0;
+}
+
+/* ── NOTICE BOX ── */
+.notice-box{
+  background:var(--surface);
+  border:1px solid var(--border);
+  border-radius:10px;
+  padding:16px 20px;
+  max-width:780px;
+  font-size:.83rem;
+  color:var(--muted);
+  line-height:1.7;
+}
+.notice-box p{margin-bottom:6px}
+.notice-box p:last-child{margin-bottom:0}
 
 /* ── SECTIONS ── */
 .section{margin-bottom:44px}
@@ -154,11 +209,33 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
 <main>
   <div class="hero">
     <h1>Tools &amp; Resources</h1>
-    <p style="margin-bottom:12px;">A collection of standalone IT tools grouped by who they're built for. Everything runs in the browser with no installs, no accounts and no data leaving your machine.</p>
-    <div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 20px;max-width:680px;font-size:.83rem;color:var(--muted);line-height:1.7;">
-      <p style="margin-bottom:6px;">🛠️ <strong style="color:var(--text2);">This is a hobby project.</strong> These tools are built in spare time and while every effort is made to ensure they're accurate and functional, I can't guarantee everything works perfectly in every scenario - especially Beta-labelled tools.</p>
-      <p style="margin-bottom:6px;">💬 <strong style="color:var(--text2);">Feedback is very welcome.</strong> If something doesn't work, gives wrong results, or could be improved, please let me know. This whole collection exists because I wanted better tools for daily engineering work - your input genuinely helps make them better.</p>
-      <p>💾 <strong style="color:var(--text2);">Always back up first.</strong> Where any tool is used to inform changes to a live system or configuration, please take a backup before making changes. No tool - however well built - is a substitute for a good backup.</p>
+    <p style="margin-bottom:16px;">A collection of standalone IT tools grouped by who they're built for. Everything runs entirely in your browser.</p>
+
+    <!-- Privacy banner -->
+    <div class="privacy-banner">
+      <div class="privacy-banner-title">
+        🔒 Your data never leaves your browser
+      </div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+        Every tool on this site processes everything locally on your machine. There is no server, no database, no AI calls, no analytics and no accounts.
+        When you upload a file or enter data it stays in your browser tab and goes nowhere else. Close the tab and it's gone.
+        This makes these tools safe to use with real client data, PCAPs, config exports, and anything else you'd normally be cautious about pasting into an online tool.
+      </div>
+      <div class="privacy-pills">
+        <span class="privacy-pill"><span class="dot"></span>No uploads to any server</span>
+        <span class="privacy-pill"><span class="dot"></span>No AI or cloud processing</span>
+        <span class="privacy-pill"><span class="dot"></span>No accounts or login</span>
+        <span class="privacy-pill"><span class="dot"></span>No analytics or tracking</span>
+        <span class="privacy-pill"><span class="dot"></span>No data stored anywhere</span>
+        <span class="privacy-pill"><span class="dot"></span>Works offline once loaded</span>
+      </div>
+    </div>
+
+    <!-- General notices -->
+    <div class="notice-box">
+      <p>🛠️ <strong style="color:var(--text2);">This is a hobby project.</strong> These tools are built in spare time and while every effort is made to ensure they're accurate and functional, I can't guarantee everything works perfectly in every scenario - especially Beta-labelled tools.</p>
+      <p>💬 <strong style="color:var(--text2);">Feedback is very welcome.</strong> If something doesn't work, gives wrong results, or could be improved, please let me know. Your input genuinely helps make them better.</p>
+      <p>💾 <strong style="color:var(--text2);">Always back up first.</strong> Where any tool is used to inform changes to a live system or configuration, please take a backup before making changes.</p>
     </div>
   </div>
 
@@ -176,7 +253,7 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
           <div class="card-icon" style="background:#f0fdfa">🦈</div>
           <div class="card-title">Seb's Wireshark Helper</div>
         </div>
-        <p class="card-desc">Analyse PCAPs for common issues - TCP retransmissions, DNS failures, DHCP problems, STP loops, Teams/VoIP faults and more. Includes guided troubleshooting scenarios, a capture builder for UniFi and port mirror setups, Wireshark display filter reference, and step-by-step port mirror instructions for DrayTek, Netgear, HP, D-Link and UniFi switches. Everything runs in the browser.</p>
+        <p class="card-desc">Drop a PCAP and instantly see what's wrong - TCP retransmissions, DNS failures, DHCP problems, STP loops, rogue DHCP, Kerberos skew, TLS version issues and more. Includes guided troubleshooting scenarios, a capture builder for DrayTek, Netgear, HP, D-Link, UniFi and WatchGuard, and a full Wireshark display filter reference. PCAP data is parsed entirely in the browser - nothing is uploaded.</p>
         <span class="card-tag tag-acc">Network</span>
       </a>
 
@@ -231,7 +308,7 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
           <div class="card-title">Seb's Port Scanner <span style="font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--amber-lt);color:var(--amber);font-family:var(--mono);vertical-align:middle;margin-left:4px;">Beta</span></div>
         </div>
         <p class="card-desc">Run a port scan against any IP or hostname and get a plain-English risk analysis per port, CE concern flags and service version detection.<br><br>
-        <span style="font-size:11.5px;color:var(--amber);font-weight:500">⚠ Requires the local Python backend to be running - see the tool for setup instructions.</span></p>
+        <span style="font-size:11.5px;color:var(--amber);font-weight:500">⚠ Requires a local Python backend - see the tool for setup instructions. This is the one exception to the no-server rule, as port scanning requires a local agent.</span></p>
         <span class="card-tag tag-amber">Beta</span>
       </a>
 
@@ -247,6 +324,8 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
 
     </div>
   </div>
+
+  <!-- ── COMPLIANCE & GOVERNANCE ── -->
   <div class="section">
     <div class="section-header">
       <div class="section-label">📋 Compliance &amp; Governance</div>
