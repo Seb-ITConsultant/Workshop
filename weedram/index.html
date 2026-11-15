@@ -746,6 +746,11 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
   .top.compact .chips{grid-template-columns:repeat(3,1fr)}
   .nav{left:12px;right:auto;max-width:520px}
 }
+.pvbar{position:absolute;left:8px;right:60px;bottom:10px;z-index:540;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 8px;display:none;align-items:center;gap:6px;box-shadow:0 2px 8px rgba(0,0,0,.3);flex-wrap:wrap}
+.pvbar.on{display:flex}.pvbar button{font:inherit;font-weight:700;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:8px;padding:5px 9px;min-width:38px}
+.pvbar input{flex:1;min-width:90px}.pvt{width:100%;font-size:12px;color:var(--muted)}
+.pvask{position:absolute;left:8px;right:60px;bottom:10px;z-index:545;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:none;box-shadow:0 2px 10px rgba(0,0,0,.35);font-size:13px}
+.pvask.on{display:block}.pvab{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pvab button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px}.pvab button.pri{background:var(--canal);color:#fff;border-color:var(--canal)}
 .dot.remote{background:#7b3fb8;box-shadow:0 0 0 2px #7b3fb8}
 @keyframes p{0%{transform:scale(.4);opacity:.7}100%{transform:scale(1.4);opacity:0}}
 .pin{display:inline-block;transform:translate(-50%,-100%);background:var(--pub);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);position:relative}
@@ -813,6 +818,8 @@ pre.sum{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);b
 <div class="mapwrap">
   <div id="map"></div>
   <div class="nav" id="nav" style="display:none"><div class="ni" id="navI"></div><div><div class="nd" id="navD"></div><div class="nt" id="navT"></div></div></div>
+  <div class="pvbar" id="pvBar"><button id="pvPlay">⏸</button><input type="range" id="pvSlide" min="0" max="1000" value="0" aria-label="Preview position"><button id="pvSpeed">1×</button><button id="pvClose" aria-label="End preview">✕</button><div class="pvt" id="pvT"></div></div>
+  <div class="pvask" id="pvAsk"><div><b>Preview the route?</b><br><span id="pvAskT"></span></div><div class="pvab"><button class="pri" id="pvYes">▶ Play</button><button id="pvNo">Not now</button><button id="pvNever">Don't ask again</button></div></div>
   <div class="hint" id="hint">Tap the canal to set your position</div>
   <div class="ctrl">
     <button id="zin" aria-label="Zoom in">+</button>
@@ -860,6 +867,7 @@ pre.sum{white-space:pre-wrap;background:var(--bg);border:1px solid var(--line);b
   <button id="chkBtn">Checks</button>
   <button id="logBtn">Log</button>
   <button id="stopBtn">⛔</button>
+  <button id="pvBtn">▶ Preview</button>
   <button id="shareBtn">Share</button>
   <select id="pace" aria-label="Pace" title="Pace"><option value="auto" selected>⏩ Auto</option><option value="1.15">⏩ Slow</option><option value="1">⏩ Map</option><option value="0.9">⏩ Quick</option></select>
 </div>
@@ -938,7 +946,7 @@ function dur(h){ if(h<=0.005) return "Now"; const m=Math.round(h*pace()*60); ret
 function onTrip(){ return T.date===new Date().toISOString().slice(0,10) || store.get("forceLive",false); }
 function clockAt(h){
   const hn=hoursAt(posMiles);
-  if(onTrip() || posMiles>M0+0.05) return hm(new Date(Date.now()+(h-hn)*pace()*3600e3));
+  if(!PV.on && (onTrip() || posMiles>M0+0.05)) return hm(new Date(Date.now()+(h-hn)*pace()*3600e3));
   return fromMin(toMin(T.start)+(h-H0)*pace()*60);
 }
 function minsAt(h){ const s=clockAt(h); return toMin(s); }
@@ -995,7 +1003,7 @@ function renderTop(){
     const arr=minsAt(dW[4]);
     $("destT").innerHTML=dur(dh)+"<small>"+fromMin(arr)+"</small>"; $("destN").textContent=clean(dW[0]); CHIP.dest+=` Arrive ${fromMin(arr)}.`;
     const locks=W.filter(w=>w[5]==="lock"&&w[3]>posMiles+0.02&&w[3]<=dW[3]).length;
-    $("etaLine").innerHTML=travelText()+`${onTrip()||posMiles>M0+0.05?"Now "+hm(new Date())+" · ":"Planned start "+T.start+" · "}${locks} lock${locks===1?"":"s"} left · arrive ${fromMin(arr)} · sunset ${tripSunset()}${paceLabel()}`;
+    $("etaLine").innerHTML=travelText()+`${PV.on?"Preview of "+T.label.split(":")[0]+" · ":(onTrip()||posMiles>M0+0.05)?"Now "+hm(new Date())+" · ":"Planned start "+T.start+" · "}${locks} lock${locks===1?"":"s"} left · arrive ${fromMin(arr)} · sunset ${tripSunset()}${paceLabel()}`;
     if(arr>sunset){
       const moors=W.filter(w=>w[5]==="moor"&&w[3]>posMiles+0.05&&w[3]<dW[3]);
       const ok=moors.filter(w=>minsAt(w[4])<=sunset); const last=ok[ok.length-1];
@@ -1262,7 +1270,7 @@ function setTalk(on){
     setTimeout(()=>{ if(!speechSynthesis.speaking && !speechSynthesis.pending) $("status").textContent="No sound? Check the volume and silent switch. Speech is blocked inside the Claude app, so use the offline file in Chrome."; },2500); }
 }
 $("speak").onclick=()=>setTalk(!talk);
-function alerts(){
+function alerts(){ if(PV.on) return;
   if(!talk || !(gpsLive || onTrip())) return;
   const h=hoursAt(posMiles), mins=x=>(x-h)*pace()*60, spoken=s=>clean(s).replace(/\s*\([^)]*\)/g,"").replace(/\bBr\b/g,"bridge");
   W.forEach(w=>{ const m=mins(w[4]); if(w[3]<=posMiles+0.01||w[3]>W[DEST][3]+0.05) return;
@@ -1374,6 +1382,52 @@ function showStops(){
   const b=document.getElementById("stopRefresh"); if(b) b.onclick=async()=>{ b.textContent="Checking…"; await fetchStops(true); showStops(); };
 }
 $("stopBtn").onclick=showStops;
+
+// ---------- route preview (sped-up run along today's route on the TAM map)
+const PV={on:false,play:false,m:0,speed:1,saved:null,gps:null,last:0,lastTop:0,raf:null,secs:45};
+function pvEnd(){ return W[DEST][3]; }
+function pvStart(){
+  $("pvAsk").classList.remove("on");
+  if(!PV.on){ PV.saved=posMiles; PV.on=true; PV.m=M0; }
+  PV.play=true; PV.last=performance.now(); $("pvBar").classList.add("on"); $("pvPlay").textContent="⏸";
+  setFollow(true); try{ if(map.getZoom()<-1) map.setZoom(-1,{animate:false}); }catch(e){}
+  cancelAnimationFrame(PV.raf); PV.raf=requestAnimationFrame(pvTick);
+}
+function pvDraw(full){
+  posMiles=PV.m; const ll=toMap(...llAt(posMiles)); dot.setLatLng(ll); updateRoute();
+  if(follow) map.panTo(ll,{animate:false});
+  const now=performance.now(); if(full||now-PV.lastTop>220){ PV.lastTop=now; renderTop(); updateNav(); }
+  $("pvSlide").value=Math.round((PV.m-M0)/(pvEnd()-M0)*1000);
+  $("pvT").textContent=`Preview · about ${clockAt(hoursAt(PV.m))} on the day · ${(PV.m-M0).toFixed(1)} of ${(pvEnd()-M0).toFixed(1)} mi`;
+}
+function pvTick(now){
+  if(!PV.on) return;
+  const dt=Math.min(100,now-PV.last); PV.last=now;
+  if(PV.play){ PV.m=Math.min(pvEnd(),PV.m+(pvEnd()-M0)*dt/(PV.secs*1000)*PV.speed);
+    if(PV.m>=pvEnd()){ PV.play=false; $("pvPlay").textContent="↺"; } }
+  pvDraw(!PV.play);
+  if(PV.play) PV.raf=requestAnimationFrame(pvTick);
+}
+function pvStop(){
+  cancelAnimationFrame(PV.raf); PV.on=false; PV.play=false; $("pvBar").classList.remove("on");
+  if(PV.gps){ const sn=snapLL(...PV.gps); posMiles=sn.m; PV.gps=null; } else posMiles=PV.saved??M0;
+  update(true);
+}
+$("pvBtn").onclick=()=>{ if(PV.on) pvStop(); else pvStart(); };
+$("pvPlay").onclick=()=>{ if(PV.m>=pvEnd()-0.001) PV.m=M0; PV.play=!PV.play; $("pvPlay").textContent=PV.play?"⏸":"▶"; if(PV.play){ PV.last=performance.now(); PV.raf=requestAnimationFrame(pvTick);} };
+$("pvSpeed").onclick=()=>{ PV.speed=PV.speed===1?2:PV.speed===2?4:PV.speed===4?0.5:1; $("pvSpeed").textContent=(PV.speed===0.5?"½":PV.speed)+"×"; };
+$("pvSlide").oninput=e=>{ if(!PV.on) return; PV.play=false; $("pvPlay").textContent="▶"; PV.m=M0+(pvEnd()-M0)*e.target.value/1000; pvDraw(true); };
+$("pvClose").onclick=pvStop;
+function pvOffer(){
+  if(VIEWER || !store.get("pvAsk",true)) return;
+  const key="pvSeen_"+T.id+"_"+new Date().toDateString(); if(store.get(key,false)) return;
+  if(posMiles>=W[DEST][3]-0.1) return;
+  store.set(key,true);
+  $("pvAskT").textContent=`${T.label}: ${(W[DEST][3]-M0).toFixed(1)} mi, ${W.filter(w=>w[5]==="lock"&&w[3]<=W[DEST][3]&&w[3]>M0).length} locks, about ${dur(W[DEST][4]-H0)}. Watch it in under a minute.`;
+  $("pvAsk").classList.add("on");
+}
+$("pvYes").onclick=pvStart; $("pvNo").onclick=()=>$("pvAsk").classList.remove("on");
+$("pvNever").onclick=()=>{ store.set("pvAsk",false); $("pvAsk").classList.remove("on"); };
 // ---------- trip log
 function hmDur(ms){ const m=Math.max(0,Math.round(ms/60e3)); return Math.floor(m/60)+"h"+String(m%60).padStart(2,"0"); }
 function travelStats(){
@@ -1487,6 +1541,7 @@ function startGPS(){
   $("status").textContent="Waiting for GPS…";
   try{
     watchId=navigator.geolocation.watchPosition(pos=>{
+      if(PV.on){ PV.gps=[pos.coords.latitude,pos.coords.longitude]; return; }
       const la=pos.coords.latitude, lo=pos.coords.longitude;
       // switch trip automatically if we're clearly on another trip's route
       let sn=snapLL(la,lo);
@@ -1503,7 +1558,7 @@ function startGPS(){
 
 // ---------- start
 TRIPS.forEach(t=>{ const o=document.createElement("option"); o.value=t.id; o.textContent=t.label; $("tripSel").appendChild(o); });
-$("tripSel").onchange=()=>{ setFollow(true); setTrip($("tripSel").value,false); };
+$("tripSel").onchange=()=>{ if(PV.on){ PV.on=false; cancelAnimationFrame(PV.raf); $("pvBar").classList.remove("on"); } setFollow(true); setTrip($("tripSel").value,false); };
 $("pace").value=store.get("pace","auto");
 const first=pickDefaultTrip(); $("tripSel").value=first;
 map.setView([0,0],-1);
@@ -1513,6 +1568,7 @@ if(VIEWER){ document.querySelectorAll("#gpsBtn,#manBtn,#logBtn,#shareBtn").forEa
 else startGPS();
 if(wantWake) setWake(true);
 if(store.get("compact",false)) setCompact(true);
+setTimeout(pvOffer,1200);
 $("speak").textContent=talk?"🔊":"🔇"; $("speak").classList.toggle("lit",talk);
 setInterval(renderTop,60000);
 fetchStops(false); setInterval(()=>fetchStops(false),30*60e3);
