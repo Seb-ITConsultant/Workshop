@@ -224,10 +224,29 @@ main{max-width:1100px;margin:0 auto;padding:40px 24px 80px}
       <div class="privacy-pills">
         <span class="privacy-pill"><span class="dot"></span>No uploads to any server</span>
         <span class="privacy-pill"><span class="dot"></span>No AI or cloud processing</span>
-        <span class="privacy-pill"><span class="dot"></span>No accounts or login</span>
+        <span class="privacy-pill"><span class="dot"></span>Sign-in only controls access</span>
         <span class="privacy-pill"><span class="dot"></span>No analytics or tracking</span>
         <span class="privacy-pill"><span class="dot"></span>No data stored anywhere</span>
         <span class="privacy-pill"><span class="dot"></span>Works offline once loaded</span>
+      </div>
+    </div>
+
+    <!-- Sign-in banner -->
+    <div class="privacy-banner" style="border-left-color:var(--blue);">
+      <div class="privacy-banner-title">
+        🔑 Signing in to the tools
+      </div>
+      <div style="font-size:.8rem;color:var(--muted);margin-bottom:12px;line-height:1.6;">
+        Most tools on this site are kept private and open only after you sign in with a Microsoft account.
+        The sign-in is handled entirely by Microsoft: this website never sees, receives or stores your password.
+        Microsoft only confirms who you are, and that is used purely to decide which pages you're allowed to open.
+        Nothing about how the tools work changes: they still run entirely in your browser, as described above.
+        The Wee Dram boat app stays open to everyone and needs no sign-in.
+      </div>
+      <div id="auth-box" style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+        <a id="auth-login" href="/.auth/login/aad?post_login_redirect_uri=/" style="display:none;align-items:center;gap:7px;background:var(--blue);color:#fff;border:none;border-radius:9px;padding:9px 16px;font-size:.82rem;font-weight:600;text-decoration:none;">Sign in with Microsoft</a>
+        <span id="auth-status" style="font-size:.8rem;color:var(--muted);"></span>
+        <a id="auth-logout" href="/.auth/logout?post_logout_redirect_uri=/" style="display:none;font-size:.8rem;color:var(--blue);text-decoration:none;font-weight:600;">Sign out</a>
       </div>
     </div>
 
@@ -481,6 +500,29 @@ function toggleTheme(){
 (function(){
   var t=document.documentElement.getAttribute('data-theme');
   document.getElementById('theme-toggle').textContent=t==='dark'?'☀️':'🌙';
+})();
+
+// Show sign-in state on the landing page
+(function(){
+  var login=document.getElementById('auth-login');
+  var logout=document.getElementById('auth-logout');
+  var status=document.getElementById('auth-status');
+  if(!login) return;
+  fetch('/.auth/me',{cache:'no-store'}).then(function(r){return r.json();}).then(function(d){
+    var p=(d&&d.clientPrincipal)||null;
+    if(p){
+      var who=p.userDetails||'your account';
+      status.textContent='Signed in as '+who+'. You can open the tools below.';
+      logout.style.display='inline';
+      login.style.display='none';
+    } else {
+      status.textContent='Not signed in. The boat app is open to all; the tools need a sign-in.';
+      login.style.display='inline-flex';
+      logout.style.display='none';
+    }
+  }).catch(function(){
+    login.style.display='inline-flex';
+  });
 })();
 </script>
 </body>
