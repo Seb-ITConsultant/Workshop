@@ -727,10 +727,10 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .mapwrap{position:relative;flex:1;min-height:260px}
 #map{position:absolute;inset:0;background:#e9e6df}
 .leaflet-container{font:inherit}
-.dot{width:22px;height:22px;border-radius:50%;background:var(--here);border:3px solid #fff;box-shadow:0 0 0 2px var(--here),0 2px 6px rgba(0,0,0,.4);position:relative}
-.dot::after{content:"";position:absolute;inset:-14px;border-radius:50%;border:2px solid var(--here);opacity:.5;animation:p 2s infinite}
-.hdg{position:absolute;left:50%;top:50%;width:0;height:0;margin:-27px 0 0 -9px;border-left:9px solid transparent;border-right:9px solid transparent;border-bottom:14px solid var(--here);transform-origin:9px 27px;filter:drop-shadow(0 0 1.5px #fff)}
-.dot.remote .hdg{border-bottom-color:#7b3fb8}
+.dot{width:22px;height:22px;position:relative}
+.dot::after{content:"";position:absolute;inset:-18px;border-radius:50%;border:2px solid #c8102e;opacity:.5;animation:p 2s infinite;pointer-events:none}
+.boat{position:absolute;left:1px;top:-19px;width:20px;height:60px;transform-origin:10px 30px;filter:drop-shadow(0 1px 2px rgba(0,0,0,.55))}.boat svg{display:block}
+
 .nav{position:absolute;left:8px;right:60px;top:8px;z-index:520;background:#0f5132;color:#fff;border-radius:12px;padding:7px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 8px rgba(0,0,0,.35)}
 .nav .ni{flex:none;width:34px;height:34px;border-radius:9px;background:rgba(255,255,255,.16);display:flex;align-items:center;justify-content:center;font-size:20px}
 .nav .nd{font-size:20px;font-weight:800;line-height:1}.nav .nd small{font-size:12px;font-weight:600;opacity:.85;margin-left:4px}
@@ -752,7 +752,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pvask{position:absolute;left:8px;right:60px;bottom:10px;z-index:545;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:none;box-shadow:0 2px 10px rgba(0,0,0,.35);font-size:13px}
 .pvask.on{display:block}.pvab{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pvab button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px}.pvab button.pri{background:var(--canal);color:#fff;border-color:var(--canal)}
 .dot.spin{animation:wdspin 1s ease-in-out}@keyframes wdspin{to{transform:rotate(360deg)}}
-.dot.remote{background:#7b3fb8;box-shadow:0 0 0 2px #7b3fb8}
+.dot.remote::after{border-color:#7b3fb8}
 @keyframes p{0%{transform:scale(.4);opacity:.7}100%{transform:scale(1.4);opacity:0}}
 .pin{display:inline-block;transform:translate(-50%,-100%);background:var(--pub);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);position:relative}
 .pin::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--pub)}
@@ -1037,7 +1037,7 @@ new Tiles({tileSize:512,minNativeZoom:-2,maxNativeZoom:0,minZoom:-4,maxZoom:2,no
 const routeDone=L.polyline([],{color:"#7d8a8e",weight:6,opacity:.55,lineCap:"round"}).addTo(map);
 const routeCase=L.polyline([],{color:"#ffffff",weight:11,opacity:.9,lineCap:"round",lineJoin:"round"}).addTo(map);
 const routeAhead=L.polyline([],{color:"#1a73e8",weight:7,opacity:.95,lineCap:"round",lineJoin:"round"}).addTo(map);
-const dot = L.marker([0,0],{icon:L.divIcon({className:"",html:'<div class="dot'+(VIEWER?' remote':'')+'"><div class="hdg" id="hdg"></div></div>',iconSize:[22,22],iconAnchor:[11,11]}),interactive:false,zIndexOffset:1000}).addTo(map);
+const dot = L.marker([0,0],{icon:L.divIcon({className:"",html:'<div class="dot'+(VIEWER?' remote':'')+'"><div class="boat" id="hdg"><svg viewBox="0 0 20 60" width="20" height="60"><path d="M10 1C15.5 7 18 14 18 21V51Q18 54 15 54H5Q2 54 2 51V21C2 14 4.5 7 10 1Z" fill="#1d4e9e" stroke="#fff" stroke-width="1.6"/><path d="M10 3.5C12.6 6.8 14.1 10 14.6 13H5.4C5.9 10 7.4 6.8 10 3.5Z" fill="#c8102e"/><rect x="5.2" y="17" width="9.6" height="29" rx="1.2" fill="#c8102e" stroke="#ffd166" stroke-width=".8"/><rect x="7.4" y="19.5" width="5.2" height="24" rx=".8" fill="#1d4e9e"/><circle cx="10" cy="24" r="1.1" fill="#fff"/><circle cx="10" cy="31.5" r="1.1" fill="#fff"/><circle cx="10" cy="39" r="1.1" fill="#fff"/><rect x="4" y="48" width="12" height="4" rx="1" fill="#c8102e"/><path d="M10 54V59" stroke="#333" stroke-width="1.8" stroke-linecap="round"/></svg></div></div>',iconSize:[22,22],iconAnchor:[11,11]}),interactive:false,zIndexOffset:1000}).addTo(map);
 function updateRoute(){
   const Ln=T.line, endM=W[DEST][3], here=toMap(...llAt(posMiles));
   const done=[], ahead=[here];
