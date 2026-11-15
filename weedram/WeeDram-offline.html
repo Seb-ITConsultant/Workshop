@@ -760,11 +760,12 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pin::after{content:"";position:absolute;left:50%;bottom:-5px;margin-left:-5px;border:5px solid transparent;border-bottom:0;border-top-color:var(--pub)}
 .pin.anch{background:var(--moor)}.pin.anch::after{border-top-color:var(--moor)}
 .pin.svcp{background:var(--canal)}.pin.svcp::after{border-top-color:var(--canal)}
-.icos{display:flex;gap:3px;transform:translate(-50%,-135%);width:max-content}
+.icos{display:flex;gap:3px;transform:translate(-50%,-50%);width:max-content}
 .ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;line-height:1;border:2.5px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.45)}
 .brg{display:inline-flex;align-items:center;gap:2px;transform:translate(10px,-50%);background:#fff;color:#7a1f2b;border:1.5px solid #7a1f2b;border-radius:6px;padding:0 4px;font:800 10.5px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.3)}
 .brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:18px;height:13px;background:#fff;border:1.5px solid #7a1f2b;border-radius:4px;box-shadow:0 0 0 1.5px #fff,0 1px 2px rgba(0,0,0,.4);color:#7a1f2b}
-.lknode{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:15px;height:15px;background:#fff;border:1.5px solid #0b3d91;border-radius:3px;box-shadow:0 0 0 1.5px #fff,0 1px 2px rgba(0,0,0,.4);color:#0b3d91}
+.locwrap{position:absolute;left:0;top:0;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
+.loc{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#fff;border:1.5px solid #c3cccc;font-size:11px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .ico.pub{background:#a8452b}.ico.lock{background:#2c3e45}.ico.tunnel{background:#3b2f25}.ico.warn{background:#b7791f}.ico.W{background:#2f7fb8}.ico.E{background:#7a5a3a}.ico.R{background:#5d6b70}.ico.moor{background:#2e7d4f;width:34px;height:34px;font-size:18px}
 .leaflet-popup-content{margin:8px 12px;font-size:13px}.leaflet-popup-content b{display:block}
 .ctrl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:500}
@@ -1053,10 +1054,17 @@ function updateRoute(){
   const ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI+90; const h=document.getElementById("hdg"); if(h) h.style.transform=`rotate(${ang}deg)`;
 }
 let trackLine = L.polyline([],{color:"#d62d20",weight:3,opacity:.6,dashArray:"4 6"}).addTo(map);
-let MK=[], iconLayer=null, brLayer=null;
+let MK=[], iconLayer=null, brLayer=null, TLL=null;
 function showBridges(){ if(!brLayer) return; const z=map.getZoom(); if(z>=-1){ if(!map.hasLayer(brLayer)) brLayer.addTo(layer||map); } else if(map.hasLayer(brLayer)) brLayer.remove(); }
+// Screen-space bearing of the canal near a point, used to orient lock symbols and push icons to one side.
+function canalAngle(ll){ if(!TLL||!TLL.length) return 0;
+  let bi=0,bd=Infinity; for(let i=0;i<TLL.length;i++){ const dx=TLL[i].lng-ll.lng,dy=TLL[i].lat-ll.lat,d=dx*dx+dy*dy; if(d<bd){bd=d;bi=i;} }
+  const a=TLL[Math.max(0,bi-2)],b=TLL[Math.min(TLL.length-1,bi+2)];
+  const pa=map.latLngToLayerPoint(a),pb=map.latLngToLayerPoint(b);
+  return Math.atan2(pb.y-pa.y,pb.x-pa.x)*180/Math.PI; }
 function drawMarkers(){
   if(layer) map.removeLayer(layer); layer=L.layerGroup().addTo(map);
+  TLL=T.line.map(p=>toMap(p[0],p[1]));
   MK=[];
   PUBS.forEach(p=>MK.push({ll:toMap(p.la,p.lo),kinds:["pub"],pop:()=>`<div class="pubpop">${pubHTML(p,false)}</div>`}));
   SVC.forEach(s=>{ const ks=["W","E","R"].filter(k=>s.k.includes(k));
@@ -1078,9 +1086,14 @@ function drawMarkers(){
     L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="brgnode"><svg viewBox="0 0 16 10" width="12" height="8"><path d="M1 9V6a7 5 0 0 1 14 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><div class="brg">${m[1]}</div>`,iconSize:[0,0]}),zIndexOffset:-100})
       .bindPopup(()=>`<b>${clean(w[0])}</b>${w[6]?w[6]+"<br>":""}${w[3]>posMiles+0.02?`${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:"Behind you"}`,{offset:[0,-6],closeButton:false})
       .addTo(brLayer); });
-  // lock nodes: mark the exact lock point on the navigation line (square, distinct from bridge dots)
-  W.forEach(w=>{ if(w[5]!=="lock") return;
-    L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="lknode"><svg viewBox="0 0 12 12" width="10" height="10"><rect x="2" y="1.5" width="8" height="9" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6 1.5v9" stroke="currentColor" stroke-width="1.3"/></svg></span>`,iconSize:[0,0]}),zIndexOffset:-120,interactive:false}).addTo(brLayer); });
+  // tiny locators on the line: mark each feature's actual spot (the big tappable icon sits to one side).
+  // Locks use the black bowtie symbol from the printed map, rotated to straddle the canal.
+  const SMALL={pub:"🍺",W:"💧",E:"💩",R:"🗑",moor:"⚓",warn:"⚠️",tunnel:"🚇"};
+  MK.forEach(m=>{ const k=m.kinds[0]; let html;
+    if(k==="lock"){ const a=(canalAngle(m.ll)+90).toFixed(0);
+      html=`<span class="locwrap" style="transform:translate(-50%,-50%) rotate(${a}deg)"><svg viewBox="0 0 20 16" width="16" height="13"><path d="M2 2L10 13L18 2" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+    } else { html=`<span class="loc">${SMALL[k]||""}</span>`; }
+    L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-120,interactive:false}).addTo(brLayer); });
   showBridges();
   layoutIcons();
   trackLine.setLatLngs((store.get("log_"+T.id,{pts:[]}).pts||[]).map(p=>toMap(p[1],p[2])));
@@ -1093,7 +1106,8 @@ function layoutIcons(){
     const g=groups.find(g=>Math.abs(g.p.y-p.y)<30 && p.x>g.p.x-g.w/2-28 && p.x<g.p.x+g.w/2+28);
     if(g){ g.items.push(i); g.w+=w; } else groups.push({p,ll:m.ll,items:[i],w}); });
   groups.forEach(g=>{
-    const html=`<div class="icos">${g.items.map(i=>MK[i].kinds.map(k=>`<div class="ico ${k}" data-i="${i}">${ICON[k]}</div>`).join("")).join("")}</div>`;
+    const rad=(canalAngle(g.ll)+90)*Math.PI/180; let ox=Math.cos(rad)*36, oy=Math.sin(rad)*36; if(oy>0){ox=-ox;oy=-oy;}
+    const html=`<div class="icos" style="transform:translate(calc(-50% + ${ox.toFixed(0)}px), calc(-50% + ${oy.toFixed(0)}px))">${g.items.map(i=>MK[i].kinds.map(k=>`<div class="ico ${k}" data-i="${i}">${ICON[k]}</div>`).join("")).join("")}</div>`;
     const mk=L.marker(g.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),riseOnHover:true}).addTo(iconLayer);
     mk.on("click",ev=>{ const el=ev.originalEvent&&ev.originalEvent.target.closest&&ev.originalEvent.target.closest("[data-i]");
       const i=el?+el.dataset.i:g.items[0]; L.popup({offset:[0,-14],closeButton:false,maxWidth:260}).setLatLng(MK[i].ll).setContent(MK[i].pop()).openOn(map); });
