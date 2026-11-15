@@ -1087,7 +1087,10 @@ function drawList(){
     ul.appendChild(li);
   });
 }
-$("listBtn").onclick=()=>{ drawList(); openPanel("listPanel"); };
+function addDl(){ if(!canShare||/offline/i.test(document.title)) return; const li=document.createElement("li"); li.style.display="block"; li.style.borderBottom="0";
+  li.innerHTML='<a href="WeeDram-offline.html" download="WeeDram-offline.html" style="display:block;text-align:center;padding:10px;border:1px solid var(--line);border-radius:10px;font-weight:700;color:var(--canal);text-decoration:none">⬇️ Download offline copy (one file, about 7 MB)</a><div class="nt" style="text-align:center;margin-top:4px">Open it in Chrome from your phone\'s files. Works with no signal.</div>';
+  $("list").appendChild(li); }
+$("listBtn").onclick=()=>{ drawList(); addDl(); openPanel("listPanel"); };
 function showLocks(){ $("info").dataset.v="";
   const locks=W.filter(w=>w[5]==="lock");
   $("info").innerHTML=`<h3>Locks on this trip</h3>`+(locks.length?locks.map(l=>`<p><b>${clean(l[0])}</b> · ${(l[3]-M0).toFixed(1)}mi · ${clockAt(l[4])}<br><span class="status">${l[6]||""}</span></p>`).join(""):"<p>No locks.</p>")+
