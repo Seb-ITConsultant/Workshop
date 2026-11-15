@@ -761,7 +761,10 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pin.anch{background:var(--moor)}.pin.anch::after{border-top-color:var(--moor)}
 .pin.svcp{background:var(--canal)}.pin.svcp::after{border-top-color:var(--canal)}
 .icos{display:flex;gap:3px;transform:translate(-50%,-50%);width:max-content}
-.ico{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.ico{position:relative;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.ico .qty{position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;font:800 9px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:center;background:#fff;color:#1f2a2e;border:1.5px solid #1f2a2e;border-radius:8px;padding:0 2px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.pblist{font-size:13px;min-width:120px}.pblist b{display:block;margin-bottom:5px;color:var(--muted,#55606a);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
+.pblist .pbrow{padding:6px 4px;border-top:1px solid var(--line,#e2e6ea);cursor:pointer;font-weight:600}.pblist .pbrow:active{background:rgba(0,0,0,.06)}
 .brg{display:inline-flex;align-items:center;gap:2px;transform:translate(10px,-50%);background:#fff;color:#7a1f2b;border:1.5px solid #7a1f2b;border-radius:6px;padding:0 4px;font:800 10.5px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.3)}
 .brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:18px;height:13px;background:#fff;border:1.5px solid #7a1f2b;border-radius:4px;box-shadow:0 0 0 1.5px #fff,0 1px 2px rgba(0,0,0,.4);color:#7a1f2b}
 .locwrap{position:absolute;left:0;top:0;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
@@ -1059,21 +1062,21 @@ function showBridges(){ if(!brLayer) return; const z=map.getZoom(); if(z>=-1){ i
 // Screen-space bearing of the canal near a point, used to orient lock symbols and push icons to one side.
 function canalAngle(ll){ if(!TLL||!TLL.length) return 0;
   let bi=0,bd=Infinity; for(let i=0;i<TLL.length;i++){ const dx=TLL[i].lng-ll.lng,dy=TLL[i].lat-ll.lat,d=dx*dx+dy*dy; if(d<bd){bd=d;bi=i;} }
-  const a=TLL[Math.max(0,bi-2)],b=TLL[Math.min(TLL.length-1,bi+2)];
+  const a=TLL[Math.max(0,bi-3)],b=TLL[Math.min(TLL.length-1,bi+3)];
   const pa=map.latLngToLayerPoint(a),pb=map.latLngToLayerPoint(b);
   return Math.atan2(pb.y-pa.y,pb.x-pa.x)*180/Math.PI; }
 function drawMarkers(){
   if(layer) map.removeLayer(layer); layer=L.layerGroup().addTo(map);
   TLL=T.line.map(p=>toMap(p[0],p[1]));
   MK=[];
-  PUBS.forEach(p=>MK.push({ll:toMap(p.la,p.lo),kinds:["pub"],pop:()=>`<div class="pubpop">${pubHTML(p,false)}</div>`}));
+  PUBS.forEach(p=>MK.push({ll:toMap(p.la,p.lo),kinds:["pub"],nm:p.n,pop:()=>`<div class="pubpop">${pubHTML(p,false)}</div>`}));
   SVC.forEach(s=>{ const ks=["W","E","R"].filter(k=>s.k.includes(k));
     const note=(s.note&&/water|elsan/i.test(s.note))?s.note:[s.k.includes("W")?"Water":"",s.k.includes("E")?"Elsan":"",s.k.includes("R")?"Rubbish":""].filter(Boolean).join(", ")+(s.note?". "+s.note:"");
-    MK.push({ll:s.ll?toMap(...s.ll):toMap(...llAt(Math.min(s.m,W[W.length-1][3]))),kinds:ks,pop:()=>`<b>${s.n}</b>${note}`}); });
+    MK.push({ll:s.ll?toMap(...s.ll):toMap(...llAt(Math.min(s.m,W[W.length-1][3]))),kinds:ks,nm:s.n,pop:()=>`<b>${s.n}</b>${note}`}); });
   W.forEach(w=>{ const tun=/Tunnel/i.test(w[0]); if(tun&&!/portal/i.test(w[0])) return;
-    if(w[5]==="lock"||w[5]==="warn"||tun) MK.push({ll:toMap(w[1],w[2]),kinds:[tun?"tunnel":w[5]],
+    if(w[5]==="lock"||w[5]==="warn"||tun) MK.push({ll:toMap(w[1],w[2]),kinds:[tun?"tunnel":w[5]],nm:clean(w[0]),
     pop:()=>`<b>${clean(w[0])}</b>${w[6]||""}${w[3]>posMiles+0.02?`<br>${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:" (behind you)"}`}); });
-  MK.push({ll:toMap(W[DEST][1],W[DEST][2]),kinds:["moor"],pop:()=>`<b>Moor here: ${clean(W[DEST][0])}</b>${W[DEST][6]||""}`});
+  MK.push({ll:toMap(W[DEST][1],W[DEST][2]),kinds:["moor"],nm:"Moor: "+clean(W[DEST][0]),pop:()=>`<b>Moor here: ${clean(W[DEST][0])}</b>${W[DEST][6]||""}`});
   // tunnels: dark dashed stretch between the portals
   const portals=W.filter(w=>/Tunnel/i.test(w[0])&&/portal/i.test(w[0])).map(w=>w[3]).sort((a,b)=>a-b);
   if(portals.length>=2){ const pts=T.line.filter(p=>p[2]>=portals[0]&&p[2]<=portals[portals.length-1]).map(p=>toMap(p[0],p[1]));
@@ -1092,8 +1095,11 @@ function drawMarkers(){
   MK.forEach(m=>{ const k=m.kinds[0]; let html;
     if(k==="lock"){ const a=(canalAngle(m.ll)+90).toFixed(0);
       html=`<span class="locwrap" style="transform:translate(-50%,-50%) rotate(${a}deg)"><svg viewBox="0 0 20 16" width="16" height="13"><path d="M2 2L10 13L18 2" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-120,interactive:false}).addTo(brLayer); return;
     } else { html=`<span class="loc">${SMALL[k]||""}</span>`; }
-    L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-120,interactive:false}).addTo(brLayer); });
+    const lm=L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-115});
+    if(m.pop) lm.bindPopup(()=>m.pop(),{offset:[0,-9],closeButton:false,maxWidth:260});
+    lm.addTo(brLayer); });
   showBridges();
   layoutIcons();
   trackLine.setLatLngs((store.get("log_"+T.id,{pts:[]}).pts||[]).map(p=>toMap(p[1],p[2])));
@@ -1106,14 +1112,25 @@ function layoutIcons(){
     const g=groups.find(g=>Math.abs(g.p.y-p.y)<26 && p.x>g.p.x-g.w/2-24 && p.x<g.p.x+g.w/2+24);
     if(g){ g.items.push(i); g.w+=w; } else groups.push({p,ll:m.ll,items:[i],w}); });
   groups.forEach(g=>{
-    // push the whole row clear of the line: offset scales with the row's extent along the perpendicular
-    const n=g.items.reduce((s,i)=>s+MK[i].kinds.length,0), halfW=n*13.5;
-    const rad=(canalAngle(g.ll)+90)*Math.PI/180, dist=16+halfW*Math.abs(Math.cos(rad))+13*Math.abs(Math.sin(rad));
+    // collapse the group's items by kind: one icon per kind, with a count badge when there are duplicates
+    const order=["pub","W","E","R","moor","tunnel","lock","warn"], byKind={};
+    g.items.forEach(i=>MK[i].kinds.forEach(k=>(byKind[k]=byKind[k]||[]).push(i)));
+    const kinds=order.filter(k=>byKind[k]);
+    // push the cluster clear of the canal: a firm minimum, plus extra when it sits along the line
+    const halfW=kinds.length*13.5, rad=(canalAngle(g.ll)+90)*Math.PI/180;
+    const dist=Math.max(40, 24+halfW*Math.abs(Math.cos(rad))+18*Math.abs(Math.sin(rad)));
     let ox=Math.cos(rad)*dist, oy=Math.sin(rad)*dist; if(oy>0){ox=-ox;oy=-oy;}
-    const html=`<div class="icos" style="transform:translate(calc(-50% + ${ox.toFixed(0)}px), calc(-50% + ${oy.toFixed(0)}px))">${g.items.map(i=>MK[i].kinds.map(k=>`<div class="ico ${k}" data-i="${i}">${ICON[k]}</div>`).join("")).join("")}</div>`;
+    const html=`<div class="icos" style="transform:translate(calc(-50% + ${ox.toFixed(0)}px), calc(-50% + ${oy.toFixed(0)}px))">`+
+      kinds.map(k=>`<div class="ico ${k}" data-k="${k}">${ICON[k]}${byKind[k].length>1?`<span class="qty">${byKind[k].length}</span>`:""}</div>`).join("")+`</div>`;
     const mk=L.marker(g.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),riseOnHover:true}).addTo(iconLayer);
-    mk.on("click",ev=>{ const el=ev.originalEvent&&ev.originalEvent.target.closest&&ev.originalEvent.target.closest("[data-i]");
-      const i=el?+el.dataset.i:g.items[0]; L.popup({offset:[0,-14],closeButton:false,maxWidth:260}).setLatLng(MK[i].ll).setContent(MK[i].pop()).openOn(map); });
+    mk.on("click",ev=>{
+      const el=ev.originalEvent&&ev.originalEvent.target.closest&&ev.originalEvent.target.closest("[data-k]");
+      const k=el?el.dataset.k:kinds[0], items=byKind[k];
+      if(items.length===1){ L.popup({offset:[0,-14],closeButton:false,maxWidth:260}).setLatLng(MK[items[0]].ll).setContent(MK[items[0]].pop()).openOn(map); return; }
+      const rows=items.map(i=>`<div class="pbrow" data-ii="${i}">${MK[i].nm||"View"}</div>`).join("");
+      L.popup({offset:[0,-14],closeButton:true,maxWidth:250}).setLatLng(g.ll).setContent(`<div class="pblist"><b>${items.length} here</b>${rows}</div>`).openOn(map);
+      setTimeout(()=>document.querySelectorAll(".pblist .pbrow").forEach(r=>r.onclick=()=>{const i=+r.dataset.ii;L.popup({offset:[0,-14],closeButton:false,maxWidth:260}).setLatLng(MK[i].ll).setContent(MK[i].pop()).openOn(map);}),0);
+    });
   });
 }
 map.on("zoomend",()=>{ if(MK.length) layoutIcons(); showBridges(); });
