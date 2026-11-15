@@ -750,6 +750,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pvbar input{flex:1;min-width:90px}.pvt{width:100%;font-size:12px;color:var(--muted)}
 .pvask{position:absolute;left:8px;right:60px;bottom:10px;z-index:545;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;display:none;box-shadow:0 2px 10px rgba(0,0,0,.35);font-size:13px}
 .pvask.on{display:block}.pvab{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.pvab button{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:9px;padding:6px 10px}.pvab button.pri{background:var(--canal);color:#fff;border-color:var(--canal)}
+.dot.spin{animation:wdspin 1s ease-in-out}@keyframes wdspin{to{transform:rotate(360deg)}}
 .dot.remote{background:#7b3fb8;box-shadow:0 0 0 2px #7b3fb8}
 @keyframes p{0%{transform:scale(.4);opacity:.7}100%{transform:scale(1.4);opacity:0}}
 .pin{display:inline-block;transform:translate(-50%,-100%);background:var(--pub);color:#fff;font-size:11px;font-weight:700;padding:2px 6px;border-radius:8px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,0,0,.35);position:relative}
@@ -1396,11 +1397,16 @@ function showStops(){
 $("stopBtn").onclick=showStops;
 
 // ---------- route preview (sped-up run along today's route on the TAM map)
-const PV={on:false,play:false,m:0,speed:1,saved:null,gps:null,last:0,lastTop:0,raf:null,secs:45};
+const PV={on:false,play:false,m:0,speed:1,saved:null,gps:null,last:0,lastTop:0,raf:null,secs:45,hold:0,ev:[],note:""};
+function pvEvents(){ const ev=[], end=pvEnd();
+  W.forEach(w=>{ if(w[5]==="lock"&&w[3]>M0&&w[3]<=end) ev.push({m:w[3],t:"lock",n:clean(w[0])}); });
+  PUBS.forEach(p=>{ if(p.m>M0&&p.m<=end+0.01&&!ev.some(e=>e.t==="pub"&&Math.abs(e.m-p.m)<0.05)) ev.push({m:Math.min(p.m,end),t:"pub",n:p.n}); });
+  return ev.sort((a,b)=>a.m-b.m); }
+function pvSpin(){ const d=document.querySelector(".dot"); if(!d) return; d.classList.remove("spin"); void d.offsetWidth; d.classList.add("spin"); }
 function pvEnd(){ return W[DEST][3]; }
 function pvStart(){
   $("pvAsk").classList.remove("on");
-  if(!PV.on){ PV.saved=posMiles; PV.on=true; PV.m=M0; }
+  if(!PV.on){ PV.saved=posMiles; PV.on=true; PV.m=M0; } PV.ev=pvEvents(); PV.hold=0; PV.note="";
   PV.play=true; PV.last=performance.now(); $("pvBar").classList.add("on"); $("pvPlay").textContent="⏸";
   setFollow(true); try{ if(map.getZoom()<-1) map.setZoom(-1,{animate:false}); }catch(e){}
   cancelAnimationFrame(PV.raf); PV.raf=requestAnimationFrame(pvTick);
@@ -1410,12 +1416,16 @@ function pvDraw(full){
   if(follow) map.panTo(ll,{animate:false});
   const now=performance.now(); if(full||now-PV.lastTop>220){ PV.lastTop=now; renderTop(); updateNav(); }
   $("pvSlide").value=Math.round((PV.m-M0)/(pvEnd()-M0)*1000);
-  $("pvT").textContent=`Preview · about ${clockAt(hoursAt(PV.m))} on the day · ${(PV.m-M0).toFixed(1)} of ${(pvEnd()-M0).toFixed(1)} mi`;
+  $("pvT").textContent=(PV.note?PV.note+" · ":"")+`Preview · about ${clockAt(hoursAt(PV.m))} on the day · ${(PV.m-M0).toFixed(1)} of ${(pvEnd()-M0).toFixed(1)} mi`;
 }
 function pvTick(now){
   if(!PV.on) return;
   const dt=Math.min(100,now-PV.last); PV.last=now;
-  if(PV.play){ PV.m=Math.min(pvEnd(),PV.m+(pvEnd()-M0)*dt/(PV.secs*1000)*PV.speed);
+  if(PV.play && now<PV.hold){ pvDraw(false); PV.raf=requestAnimationFrame(pvTick); return; }
+  if(PV.play){ const prev=PV.m; PV.m=Math.min(pvEnd(),PV.m+(pvEnd()-M0)*dt/(PV.secs*1000)*PV.speed);
+    const e=PV.ev.find(e=>e.m>prev+1e-6&&e.m<=PV.m);
+    if(e){ PV.m=e.m; if(e.t==="lock"){ PV.hold=now+1100; PV.note="⏸ Working "+e.n; } else { PV.hold=now+1000; PV.note="🍺 "+e.n; pvSpin(); } }
+    else if(now>PV.hold+600) PV.note="";
     if(PV.m>=pvEnd()){ PV.play=false; $("pvPlay").textContent="↺"; } }
   pvDraw(!PV.play);
   if(PV.play) PV.raf=requestAnimationFrame(pvTick);
@@ -1426,7 +1436,7 @@ function pvStop(){
   update(true);
 }
 $("pvBtn").onclick=()=>{ if(PV.on) pvStop(); else pvStart(); };
-$("pvPlay").onclick=()=>{ if(PV.m>=pvEnd()-0.001) PV.m=M0; PV.play=!PV.play; $("pvPlay").textContent=PV.play?"⏸":"▶"; if(PV.play){ PV.last=performance.now(); PV.raf=requestAnimationFrame(pvTick);} };
+$("pvPlay").onclick=()=>{ if(PV.m>=pvEnd()-0.001){ PV.m=M0; PV.hold=0; } PV.play=!PV.play; $("pvPlay").textContent=PV.play?"⏸":"▶"; if(PV.play){ PV.last=performance.now(); PV.raf=requestAnimationFrame(pvTick);} };
 $("pvSpeed").onclick=()=>{ PV.speed=PV.speed===1?2:PV.speed===2?4:PV.speed===4?0.5:1; $("pvSpeed").textContent=(PV.speed===0.5?"½":PV.speed)+"×"; };
 $("pvSlide").oninput=e=>{ if(!PV.on) return; PV.play=false; $("pvPlay").textContent="▶"; PV.m=M0+(pvEnd()-M0)*e.target.value/1000; pvDraw(true); };
 $("pvClose").onclick=pvStop;
