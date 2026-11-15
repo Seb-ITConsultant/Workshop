@@ -3,7 +3,14 @@
   "routes": [
     { "route": "/weedram/sw.js", "headers": { "Cache-Control": "no-cache" } },
     { "route": "/weedram/index.html", "headers": { "Cache-Control": "no-cache" } },
-    { "route": "/weedram", "redirect": "/weedram/", "statusCode": 301 }
+    { "route": "/weedram", "redirect": "/weedram/", "statusCode": 301 },
+    { "route": "/weedram/*", "allowedRoles": ["anonymous"] },
+    { "route": "/api/*", "allowedRoles": ["anonymous"] },
+    { "route": "/.auth/*", "allowedRoles": ["anonymous"] },
+    { "route": "/*", "allowedRoles": ["authenticated"] }
   ],
+  "responseOverrides": {
+    "401": { "statusCode": 302, "redirect": "/.auth/login/aad" }
+  },
   "mimeTypes": { ".webmanifest": "application/manifest+json" }
 }
