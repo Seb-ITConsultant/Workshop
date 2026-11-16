@@ -765,8 +765,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .ico .qty{position:absolute;top:-6px;right:-6px;min-width:15px;height:15px;font:800 9px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;text-align:center;background:#fff;color:#1f2a2e;border:1.5px solid #1f2a2e;border-radius:8px;padding:0 2px;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .pblist{font-size:13px;min-width:120px}.pblist b{display:block;margin-bottom:5px;color:var(--muted,#55606a);font-size:11px;text-transform:uppercase;letter-spacing:.04em}
 .pblist .pbrow{padding:6px 4px;border-top:1px solid var(--line,#e2e6ea);cursor:pointer;font-weight:600}.pblist .pbrow:active{background:rgba(0,0,0,.06)}
-.brg{display:inline-flex;align-items:center;gap:2px;transform:translate(10px,-50%);background:#fff;color:#7a1f2b;border:1.5px solid #7a1f2b;border-radius:6px;padding:0 4px;font:800 10.5px/15px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;white-space:nowrap;box-shadow:0 1px 2px rgba(0,0,0,.3)}
-.brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:18px;height:13px;background:#fff;border:1.5px solid #7a1f2b;border-radius:4px;box-shadow:0 0 0 1.5px #fff,0 1px 2px rgba(0,0,0,.4);color:#7a1f2b}
+.brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;min-width:13px;height:13px;padding:0 3px;background:#fff;border:1.5px solid #7a1f2b;border-radius:4px;box-shadow:0 0 0 1.5px #fff,0 1px 2px rgba(0,0,0,.4);color:#7a1f2b;font:800 9px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 .locwrap{position:absolute;left:0;top:0;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
 .loc{position:absolute;left:0;top:0;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;width:17px;height:17px;border-radius:50%;background:#fff;border:1.5px solid #c3cccc;font-size:11px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .ico.pub{background:#a8452b}.ico.lock{background:#2c3e45}.ico.tunnel{background:#3b2f25}.ico.warn{background:#b7791f}.ico.W{background:#2f7fb8}.ico.E{background:#7a5a3a}.ico.R{background:#5d6b70}.ico.moor{background:#2e7d4f;width:27px;height:27px;font-size:15px}
@@ -1091,7 +1090,7 @@ function drawMarkers(){
   // bridges: small numbered tags like the TAM maps
   brLayer=L.layerGroup();
   W.forEach(w=>{ const m=w[0].match(/[Bb]ridges? (\d+[A-Z]?)/); if(!m) return;
-    L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="brgnode"><svg viewBox="0 0 16 10" width="12" height="8"><path d="M1 9V6a7 5 0 0 1 14 0v3" fill="none" stroke="currentColor" stroke-width="2"/></svg></span><div class="brg">${m[1]}</div>`,iconSize:[0,0]}),zIndexOffset:-100})
+    L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="brgnode">${m[1]}</span>`,iconSize:[0,0]}),zIndexOffset:-100})
       .bindPopup(()=>`<b>${clean(w[0])}</b>${w[6]?w[6]+"<br>":""}${w[3]>posMiles+0.02?`${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:"Behind you"}`,{offset:[0,-6],closeButton:false})
       .addTo(brLayer); });
   // tiny locators on the line: mark each feature's actual spot (the big tappable icon sits to one side).
