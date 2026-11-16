@@ -767,7 +767,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pblist .pbrow{padding:6px 4px;border-top:1px solid var(--line,#e2e6ea);cursor:pointer;font-weight:600}.pblist .pbrow:active{background:rgba(0,0,0,.06)}
 .brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--mks,1));transform-origin:center;display:flex;align-items:center;justify-content:center;min-width:11px;height:11px;padding:0 2.5px;background:#fff;border:1.25px solid #7a1f2b;border-radius:3px;box-shadow:0 0 0 1.25px #fff,0 1px 2px rgba(0,0,0,.35);color:#7a1f2b;font:800 8px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 .locwrap{position:absolute;left:0;top:0;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
-.loc{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--mks,1));transform-origin:center;display:flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#fff;border:1.25px solid #c3cccc;font-size:10px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.4)}
+.loc{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--mks,1));transform-origin:center;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#fff;border:1.5px solid #c3cccc;font-size:15px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .ico.pub{background:#a8452b}.ico.lock{background:#2c3e45}.ico.tunnel{background:#3b2f25}.ico.warn{background:#b7791f}.ico.W{background:#2f7fb8}.ico.E{background:#7a5a3a}.ico.R{background:#5d6b70}.ico.moor{background:#2e7d4f;width:27px;height:27px;font-size:15px}
 .leaflet-popup-content{margin:8px 12px;font-size:13px}.leaflet-popup-content b{display:block}
 .ctrl{position:absolute;right:8px;top:8px;display:flex;flex-direction:column;gap:6px;z-index:500}
@@ -1098,7 +1098,7 @@ function drawMarkers(){
   const SMALL={pub:"🍺",W:"💧",E:"💩",R:"🗑",moor:"⚓",warn:"⚠️",tunnel:"🚇"};
   MK.forEach(m=>{ const k=m.kinds[0]; let html;
     if(k==="lock"){ const a=(canalAngle(m.ll)+90).toFixed(0);
-      html=`<span class="locwrap" style="transform:translate(-50%,-50%) rotate(${a}deg) scale(var(--mks,1));transform-origin:center"><svg viewBox="0 0 20 16" width="16" height="13"><path d="M2 2L10 13L18 2" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
+      html=`<span class="locwrap" style="transform:translate(-50%,-50%) rotate(${a}deg) scale(var(--mks,1));transform-origin:center"><svg viewBox="0 0 20 16" width="24" height="19" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2L10 13L18 2"/></svg></span>`;
       const lkm=L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-120});
       if(m.pop) lkm.bindPopup(()=>m.pop(),{offset:[0,-9],closeButton:false,maxWidth:260});
       lkm.addTo(layer); return;
