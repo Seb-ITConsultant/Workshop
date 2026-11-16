@@ -1078,10 +1078,11 @@ function drawMarkers(){
   SVC.forEach(s=>{ const ks=["W","E","R"].filter(k=>s.k.includes(k));
     const note=(s.note&&/water|elsan/i.test(s.note))?s.note:[s.k.includes("W")?"Water":"",s.k.includes("E")?"Elsan":"",s.k.includes("R")?"Rubbish":""].filter(Boolean).join(", ")+(s.note?". "+s.note:"");
     MK.push({ll:s.ll?toMap(...s.ll):toMap(...llAt(Math.min(s.m,W[W.length-1][3]))),kinds:ks,nm:s.n,pop:()=>`<b>${s.n}</b>${note}`}); });
-  W.forEach(w=>{ const tun=/Tunnel/i.test(w[0]); if(tun&&!/portal/i.test(w[0])) return;
+  W.forEach((w,i)=>{ const tun=/Tunnel/i.test(w[0]); if(tun&&!/portal/i.test(w[0])) return;
     if(w[5]==="lock"||w[5]==="warn"||tun) MK.push({ll:toMap(w[1],w[2]),kinds:[tun?"tunnel":w[5]],nm:clean(w[0]),
-    pop:()=>`<b>${clean(w[0])}</b>${w[6]||""}${w[3]>posMiles+0.02?`<br>${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:" (behind you)"}`}); });
-  MK.push({ll:toMap(W[DEST][1],W[DEST][2]),kinds:["moor"],nm:"Moor: "+clean(W[DEST][0]),pop:()=>`<b>Moor here: ${clean(W[DEST][0])}</b>${W[DEST][6]||""}`});
+      pop:()=>`<b>${clean(w[0])}</b>${w[6]||""}${w[3]>posMiles+0.02?`<br>${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:" (behind you)"}`});
+    else if(w[5]==="moor") MK.push({ll:toMap(w[1],w[2]),kinds:["moor"],nm:clean(w[0]),
+      pop:()=>`<b>${i===DEST?"Moor here: ":""}${clean(w[0])}</b><br>${w[7]==="14d"?"14-day mooring":w[7]==="48h"?"48-hour mooring (14-day in winter)":"Mooring"}${w[6]?"<br>"+w[6]:""}${w[3]>posMiles+0.02?`<br>${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:" (behind you)"}`}); });
   // tunnels: dark dashed stretch between the portals
   const portals=W.filter(w=>/Tunnel/i.test(w[0])&&/portal/i.test(w[0])).map(w=>w[3]).sort((a,b)=>a-b);
   if(portals.length>=2){ const pts=T.line.filter(p=>p[2]>=portals[0]&&p[2]<=portals[portals.length-1]).map(p=>toMap(p[0],p[1]));
