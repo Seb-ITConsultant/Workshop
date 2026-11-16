@@ -767,6 +767,7 @@ body{background:var(--bg);color:var(--ink);font:14px/1.35 -apple-system,BlinkMac
 .pblist .pbrow{padding:6px 4px;border-top:1px solid var(--line,#e2e6ea);cursor:pointer;font-weight:600}.pblist .pbrow:active{background:rgba(0,0,0,.06)}
 .brgnode{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--mks,1));transform-origin:center;display:flex;align-items:center;justify-content:center;min-width:11px;height:11px;padding:0 2.5px;background:#fff;border:1.25px solid #7a1f2b;border-radius:3px;box-shadow:0 0 0 1.25px #fff,0 1px 2px rgba(0,0,0,.35);color:#7a1f2b;font:800 8px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
 .locwrap{position:absolute;left:0;top:0;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
+.brgsym{position:absolute;left:0;top:0;transform-origin:center;line-height:0}
 .loc{position:absolute;left:0;top:0;transform:translate(-50%,-50%) scale(var(--mks,1));transform-origin:center;display:flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;background:#fff;border:1.5px solid #c3cccc;font-size:15px;line-height:1;box-shadow:0 1px 2px rgba(0,0,0,.4)}
 .ico.pub{background:#a8452b}.ico.lock{background:#2c3e45}.ico.tunnel{background:#3b2f25}.ico.warn{background:#b7791f}.ico.W{background:#2f7fb8}.ico.E{background:#7a5a3a}.ico.R{background:#5d6b70}.ico.moor{background:#2e7d4f;width:27px;height:27px;font-size:15px}
 .leaflet-popup-content{margin:8px 12px;font-size:13px}.leaflet-popup-content b{display:block}
@@ -1090,7 +1091,8 @@ function drawMarkers(){
   // bridges: small numbered tags like the TAM maps
   brLayer=L.layerGroup();
   W.forEach(w=>{ const m=w[0].match(/[Bb]ridges? (\d+[A-Z]?)/); if(!m) return;
-    L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="brgnode">${m[1]}</span>`,iconSize:[0,0]}),zIndexOffset:-100})
+    const a=canalAngle(toMap(w[1],w[2])).toFixed(1);
+    L.marker(toMap(w[1],w[2]),{icon:L.divIcon({className:"",html:`<span class="brgsym" style="transform:translate(-50%,-50%) rotate(${a}deg) scale(var(--mks,1))"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M9 5V19M15 5V19" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M9 5V19M15 5V19" fill="none" stroke="#111" stroke-width="2.4" stroke-linecap="round"/></svg></span>`,iconSize:[0,0]}),zIndexOffset:-100})
       .bindPopup(()=>`<b>${clean(w[0])}</b>${w[6]?w[6]+"<br>":""}${w[3]>posMiles+0.02?`${(w[3]-posMiles).toFixed(1)} mi · ${dur(w[4]-hoursAt(posMiles))}, about ${clockAt(w[4])}`:"Behind you"}`,{offset:[0,-6],closeButton:false})
       .addTo(brLayer); });
   // tiny locators on the line: mark each feature's actual spot (the big tappable icon sits to one side).
