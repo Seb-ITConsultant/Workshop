@@ -1,5 +1,5 @@
 // Offline cache for the Wee Dram route page. Bump VERSION when you upload a new index.html.
-const VERSION = "weedram-v38";
+const VERSION = "weedram-v39";
 const FILES = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 self.addEventListener("install", e => e.waitUntil(caches.open(VERSION).then(c => c.addAll(FILES)).then(() => self.skipWaiting())));
 self.addEventListener("activate", e => e.waitUntil(
