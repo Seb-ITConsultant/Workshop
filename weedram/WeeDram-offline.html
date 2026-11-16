@@ -1101,11 +1101,11 @@ function drawMarkers(){
       html=`<span class="locwrap" style="transform:translate(-50%,-50%) rotate(${a}deg)"><svg viewBox="0 0 20 16" width="16" height="13"><path d="M2 2L10 13L18 2" fill="none" stroke="#111" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>`;
       const lkm=L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-120});
       if(m.pop) lkm.bindPopup(()=>m.pop(),{offset:[0,-9],closeButton:false,maxWidth:260});
-      lkm.addTo(brLayer); return;
+      lkm.addTo(layer); return;
     } else { html=`<span class="loc">${SMALL[k]||""}</span>`; }
     const lm=L.marker(m.ll,{icon:L.divIcon({className:"",html,iconSize:[0,0]}),zIndexOffset:-115});
     if(m.pop) lm.bindPopup(()=>m.pop(),{offset:[0,-9],closeButton:false,maxWidth:260});
-    lm.addTo(brLayer); });
+    lm.addTo(layer); });
   showBridges();
   trackLine.setLatLngs((store.get("log_"+T.id,{pts:[]}).pts||[]).map(p=>toMap(p[1],p[2])));
 }
